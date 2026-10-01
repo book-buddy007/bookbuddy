@@ -2,42 +2,26 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  Building2, 
-  MapPin, 
-  Users, 
-  BookOpen, 
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-  Upload,
-  FileText,
-  ArrowLeft,
-  Send,
-  School,
-  GraduationCap,
-  Briefcase,
-} from "@/components/ui/icons"
+import { FormField } from "@/components/ui/form-field"
+import { Icon } from "@/components/ui/icon"
+import { PageHeader } from "@/components/ui/page-header"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuthStore } from "@/store/useAuthStore"
 import { toast } from "@/hooks/use-toast"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-// Form validation schema
 const joinRequestSchema = z.object({
   tenantId: z.string().min(1, "Please select an institution"),
   requestedRole: z.string().default("student"),
   message: z.string().optional(),
+  // Proof upload has no storage backend yet; the field stays so the API shape is unchanged.
   proofDocument: z.string().optional(),
 });
 
@@ -58,18 +42,36 @@ interface Institution {
   requireApproval: boolean;
 }
 
+// Types arrive as enum names (SCHOOL, COLLEGE…); compare case-insensitively.
+const TYPE_LABELS: Record<string, string> = {
+  school: 'School',
+  college: 'College',
+  university: 'University',
+  corporate: 'Corporate',
+};
+const typeLabel = (type: string) => TYPE_LABELS[String(type ?? '').toLowerCase()] ?? type;
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-bb-lg bg-bb-surface p-6 shadow-e1 sm:p-8">
+      <h2 className="font-display text-xl font-bold text-bb-text">{title}</h2>
+      {description && <p className="mt-1 text-sm text-bb-muted">{description}</p>}
+      <div className="mt-6 space-y-5">{children}</div>
+    </section>
+  );
+}
+
 export default function JoinRequestPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
-  
+
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
   const [isLoadingInstitutions, setIsLoadingInstitutions] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canRequest, setCanRequest] = useState<boolean | null>(null);
   const [checkingEligibility, setCheckingEligibility] = useState(false);
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
   const {
     register,
@@ -79,19 +81,16 @@ export default function JoinRequestPage() {
     formState: { errors },
   } = useForm<JoinRequestFormData>({
     resolver: zodResolver(joinRequestSchema),
-    defaultValues: {
-      requestedRole: "student",
-    },
+    defaultValues: { requestedRole: "student" },
   });
 
   const selectedTenantId = watch("tenantId");
 
-  // Fetch institutions on mount
   useEffect(() => {
     fetchInstitutions();
   }, []);
 
-  // Pre-select institution if institutionId is in query params
+  // Pre-select the institution passed from the browse page
   useEffect(() => {
     const institutionId = searchParams.get("institutionId");
     if (institutionId && institutions.length > 0) {
@@ -99,13 +98,11 @@ export default function JoinRequestPage() {
     }
   }, [searchParams, institutions, setValue]);
 
-  // Update selected institution when tenantId changes
   useEffect(() => {
     if (selectedTenantId) {
       const institution = institutions.find((i) => i.id === selectedTenantId);
       setSelectedInstitution(institution || null);
-      
-      // Check eligibility
+
       if (institution && user) {
         checkEligibility(user.id, institution.id);
       }
@@ -113,24 +110,22 @@ export default function JoinRequestPage() {
       setSelectedInstitution(null);
       setCanRequest(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTenantId, institutions, user]);
 
   const fetchInstitutions = async () => {
     try {
       setIsLoadingInstitutions(true);
       const response = await fetch('/api/institutions/browse');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch institutions');
-      }
+      if (!response.ok) throw new Error('Failed to fetch institutions');
 
       const data = await response.json();
       setInstitutions(data);
     } catch (error) {
       console.error('Error fetching institutions:', error);
       toast({
-        title: "Error",
-        description: "Failed to load institutions. Please try again.",
+        title: "Couldn't load institutions",
+        description: "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -138,32 +133,19 @@ export default function JoinRequestPage() {
     }
   };
 
-  const checkEligibility = async (userId: string, tenantId: string) => {
+  const checkEligibility = async (_userId: string, tenantId: string) => {
     try {
       setCheckingEligibility(true);
-      const response = await fetch(
-        `/api/join-requests/check?tenantId=${tenantId}`
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to check eligibility');
-      }
+      const response = await fetch(`/api/join-requests/check?tenantId=${tenantId}`);
+      if (!response.ok) throw new Error('Failed to check eligibility');
 
       const data = await response.json();
       setCanRequest(data.canRequest);
 
       if (data.hasMembership) {
-        toast({
-          title: "Already a Member",
-          description: "You are already a member of this institution.",
-          variant: "default",
-        });
+        toast({ title: "Already a member", description: "You are already a member of this institution." });
       } else if (data.hasPendingRequest) {
-        toast({
-          title: "Pending Request",
-          description: "You already have a pending request for this institution.",
-          variant: "default",
-        });
+        toast({ title: "Request pending", description: "You already have a pending request for this institution." });
       }
     } catch (error) {
       console.error('Error checking eligibility:', error);
@@ -173,48 +155,11 @@ export default function JoinRequestPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a PDF, JPG, or PNG file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      toast({
-        title: "File Too Large",
-        description: "Please upload a file smaller than 5MB.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // TODO: Implement actual file upload to S3
-    // For now, we'll just store the file name as a placeholder
-    setUploadedFileName(file.name);
-    setValue("proofDocument", `placeholder-url/${file.name}`);
-    
-    toast({
-      title: "File Ready",
-      description: `${file.name} is ready to upload.`,
-    });
-  };
-
   const onSubmit = async (data: JoinRequestFormData) => {
     if (!user) {
       toast({
-        title: "Authentication Required",
-        description: "Please log in to submit a join request.",
+        title: "Sign in required",
+        description: "Please sign in to submit a join request.",
         variant: "destructive",
       });
       return;
@@ -222,7 +167,7 @@ export default function JoinRequestPage() {
 
     if (canRequest === false) {
       toast({
-        title: "Cannot Submit Request",
+        title: "Can't submit this request",
         description: "You already have a pending request or membership with this institution.",
         variant: "destructive",
       });
@@ -234,9 +179,7 @@ export default function JoinRequestPage() {
 
       const response = await fetch('/api/join-requests/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tenantId: data.tenantId,
           requestedRole: data.requestedRole,
@@ -250,20 +193,17 @@ export default function JoinRequestPage() {
         throw new Error(error.error || 'Failed to submit join request');
       }
 
-      const result = await response.json();
-
       toast({
-        title: "Request Submitted!",
-        description: `Your request to join ${selectedInstitution?.name} has been submitted successfully.`,
+        title: "Request sent",
+        description: `Your request to join ${selectedInstitution?.name} has been submitted.`,
       });
 
-      // Redirect to Browse Institutions page with My Requests tab active
       router.push('/institutions/browse?tab=requests');
     } catch (error: any) {
       console.error('Error submitting join request:', error);
       toast({
-        title: "Submission Failed",
-        description: error.message || "Failed to submit join request. Please try again.",
+        title: "Couldn't send the request",
+        description: error.message || "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -271,290 +211,158 @@ export default function JoinRequestPage() {
     }
   };
 
-  const getInstitutionIcon = (type: string) => {
-    switch (type) {
-      case 'school':
-        return School;
-      case 'college':
-      case 'university':
-        return GraduationCap;
-      case 'corporate':
-        return Briefcase;
-      default:
-        return Building2;
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      school: 'School',
-      college: 'College',
-      university: 'University',
-      corporate: 'Corporate',
-    };
-    return labels[type] || type;
-  };
-
-  // Check if user is independent student
   const isIndependentStudent = user?.accountType === 'INDEPENDENT';
 
   if (!isIndependentStudent) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <EnhancedCard variant="elevated">
-          <EnhancedCardContent className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="rounded-full bg-blue-50 dark:bg-blue-900/20 p-6 mb-4">
-              <Building2 className="h-16 w-16 text-blue-700 dark:text-blue-500" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-2">Join Request</h2>
-            <p className="text-muted-foreground max-w-md">
-              This feature is only available for independent students. Institutional users are already part of an organization.
-            </p>
-            <EnhancedButton
-              variant="vg-primary"
-              className="mt-6"
-              onClick={() => router.push('/dashboard')}
-            >
-              Back to Dashboard
-            </EnhancedButton>
-          </EnhancedCardContent>
-        </EnhancedCard>
+      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+        <EmptyState
+          icon="institution"
+          title="You're already part of an institution"
+          description="Join requests are for independent students. Your library comes from your institution."
+          action={
+            <Button asChild>
+              <Link href="/dashboard">Back to dashboard</Link>
+            </Button>
+          }
+        />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8 animate-in fade-in-0 duration-bb-ui">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <EnhancedButton
-          variant="outline"
-          size="icon"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </EnhancedButton>
-        <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight text-bb-accent">
-            Request Institution Access
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Submit a request to join an institutional library
-          </p>
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:py-10">
+      <Link
+        href="/institutions/browse"
+        className="inline-flex items-center gap-1.5 rounded text-sm font-semibold text-bb-muted hover:text-bb-text focus-visible:outline-none focus-visible:shadow-focus"
+      >
+        <Icon name="arrow-left" size={16} fillLayer={false} />
+        Back to institutions
+      </Link>
+
+      <PageHeader
+        eyebrow="Institutions"
+        title="Request access"
+        description="Ask an institution to add you to its library."
+      />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Institution Selection */}
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle>Select Institution</EnhancedCardTitle>
-            <EnhancedCardDescription>
-              Choose the institution you would like to request access to
-            </EnhancedCardDescription>
-          </EnhancedCardHeader>
-          <EnhancedCardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tenantId">Institution *</Label>
-              <Select
-                value={selectedTenantId}
-                onValueChange={(value) => setValue("tenantId", value)}
-                disabled={isLoadingInstitutions}
-              >
-                <SelectTrigger id="tenantId">
-                  <SelectValue placeholder="Select an institution..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {institutions.map((institution) => (
-                    <SelectItem key={institution.id} value={institution.id}>
-                      {institution.name} ({getTypeLabel(institution.type)})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.tenantId && (
-                <p className="text-sm text-red-600">{errors.tenantId.message}</p>
+        <Section title="Institution" description="Choose the library you want to join.">
+          <FormField label="Institution" htmlFor="tenantId" error={errors.tenantId?.message}>
+            <Select
+              value={selectedTenantId}
+              onValueChange={(value) => setValue("tenantId", value, { shouldValidate: true })}
+              disabled={isLoadingInstitutions}
+            >
+              <SelectTrigger id="tenantId" aria-invalid={errors.tenantId ? "true" : "false"}>
+                <SelectValue placeholder={isLoadingInstitutions ? "Loading institutions…" : "Select an institution"} />
+              </SelectTrigger>
+              <SelectContent>
+                {institutions.map((institution) => (
+                  <SelectItem key={institution.id} value={institution.id}>
+                    {institution.name} ({typeLabel(institution.type)})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          {selectedInstitution && (
+            <div className="flex items-start gap-4 rounded-bb-md bg-bb-surface-2 p-4">
+              {selectedInstitution.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selectedInstitution.logoUrl} alt="" className="h-14 w-14 shrink-0 rounded-bb-md object-cover" />
+              ) : (
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-bb-md bg-bb-navy text-white">
+                  <Icon name="institution" size={26} />
+                </span>
               )}
-            </div>
-
-            {/* Selected Institution Details */}
-            {selectedInstitution && (
-              <div className="mt-6 p-4 border rounded-lg bg-muted/50">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-16 w-16">
-                    {selectedInstitution.logoUrl ? (
-                      <AvatarImage src={selectedInstitution.logoUrl} alt={selectedInstitution.name} />
-                    ) : (
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-                        {(() => {
-                          const Icon = getInstitutionIcon(selectedInstitution.type);
-                          return <Icon className="h-8 w-8" />;
-                        })()}
-                      </AvatarFallback>
+              <div className="min-w-0 flex-1 space-y-2">
+                <div>
+                  <h3 className="font-display text-lg font-bold text-bb-text">{selectedInstitution.name}</h3>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    <span className="rounded-lg bg-bb-info-soft px-2 py-0.5 text-xs font-semibold text-bb-info-ink">
+                      {typeLabel(selectedInstitution.type)}
+                    </span>
+                    {selectedInstitution.subscriptionTier && (
+                      <span className="rounded-lg bg-bb-accent-soft px-2 py-0.5 text-xs font-semibold capitalize text-bb-accent-ink">
+                        {selectedInstitution.subscriptionTier.toLowerCase()}
+                      </span>
                     )}
-                  </Avatar>
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <h3 className="text-lg font-semibold">{selectedInstitution.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline">{getTypeLabel(selectedInstitution.type)}</Badge>
-                        {selectedInstitution.subscriptionTier && (
-                          <Badge variant="secondary" className="capitalize">
-                            {selectedInstitution.subscriptionTier}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {selectedInstitution.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {selectedInstitution.description}
-                      </p>
-                    )}
-
-                    {selectedInstitution.location && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span>{selectedInstitution.location}</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-blue-600" />
-                        <span>{selectedInstitution.memberCount} members</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-cyan-600" />
-                        <span>{selectedInstitution.bookCount} books</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
+                {selectedInstitution.description && <p className="text-sm text-bb-muted">{selectedInstitution.description}</p>}
+                <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-bb-muted">
+                  {selectedInstitution.location && (
+                    <span className="inline-flex items-center gap-1">
+                      <Icon name="map-pin" size={14} fillLayer={false} />
+                      {selectedInstitution.location}
+                    </span>
+                  )}
+                  <span>{selectedInstitution.memberCount} members</span>
+                  <span>{selectedInstitution.bookCount} books</span>
+                </p>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Eligibility Check */}
-            {checkingEligibility && (
-              <Alert>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertTitle>Checking eligibility...</AlertTitle>
-                <AlertDescription>
-                  Please wait while we verify your request status.
-                </AlertDescription>
-              </Alert>
-            )}
+          {checkingEligibility && (
+            <Alert variant="info" role="status">
+              <Icon name="loader" fillLayer={false} className="animate-spin" />
+              <AlertTitle>Checking your request status…</AlertTitle>
+            </Alert>
+          )}
 
-            {canRequest === false && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Cannot Submit Request</AlertTitle>
-                <AlertDescription>
-                  You already have a pending request or membership with this institution.
-                </AlertDescription>
-              </Alert>
-            )}
+          {canRequest === false && (
+            <Alert variant="destructive">
+              <Icon name="alert-circle" fillLayer={false} />
+              <AlertTitle>You can&apos;t request this one</AlertTitle>
+              <AlertDescription>You already have a pending request or membership with this institution.</AlertDescription>
+            </Alert>
+          )}
 
-            {canRequest === true && selectedInstitution?.requireApproval && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Approval Required</AlertTitle>
-                <AlertDescription>
-                  This institution requires admin approval for join requests. You will be notified once your request is reviewed.
-                </AlertDescription>
-              </Alert>
-            )}
-          </EnhancedCardContent>
-        </EnhancedCard>
+          {canRequest === true && selectedInstitution?.requireApproval && (
+            <Alert variant="info">
+              <Icon name="info" fillLayer={false} />
+              <AlertTitle>An admin reviews each request</AlertTitle>
+              <AlertDescription>You&apos;ll be notified once yours has been reviewed.</AlertDescription>
+            </Alert>
+          )}
+        </Section>
 
-        {/* Request Details - Only show if institution is selected and can request */}
         {selectedInstitution && canRequest !== false && (
           <>
-            {/* Message */}
-            <EnhancedCard variant="elevated">
-              <EnhancedCardHeader>
-                <EnhancedCardTitle>Request Details</EnhancedCardTitle>
-                <EnhancedCardDescription>
-                  Provide additional information about your request (optional)
-                </EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message (Optional)</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Tell the institution why you'd like to join..."
-                    rows={4}
-                    {...register("message")}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Explain your reason for joining this institution (e.g., student, researcher, etc.)
-                  </p>
-                </div>
-
-                {/* Proof Document Upload */}
-                <div className="space-y-2">
-                  <Label htmlFor="proofDocument">Supporting Document (Optional)</Label>
-                  <div className="flex items-center gap-4">
-                    <Input
-                      id="proofDocument"
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <Label
-                      htmlFor="proofDocument"
-                      className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-muted transition-colors"
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span>Upload Document</span>
-                    </Label>
-                    {uploadedFileName && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <FileText className="h-4 w-4" />
-                        <span>{uploadedFileName}</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Upload proof of enrollment, student ID, or other supporting documents (PDF, JPG, PNG - Max 5MB)
-                  </p>
-                </div>
-              </EnhancedCardContent>
-            </EnhancedCard>
-
-            {/* Submit Button */}
-            <div className="flex items-center justify-end gap-4">
-              <EnhancedButton
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isSubmitting}
+            <Section title="Your request" description="Optional, but it helps the admin decide quickly.">
+              <FormField
+                label="Message"
+                htmlFor="message"
+                hint="Who you are and why you'd like to join, for example your class and roll number."
               >
+                <Textarea id="message" placeholder="I'm a Class 10 student at…" rows={4} {...register("message")} />
+              </FormField>
+
+              <div className="flex items-start gap-3 rounded-bb-md border border-dashed border-bb-border p-4">
+                <Icon name="upload" size={20} className="mt-0.5 shrink-0 text-bb-faint" />
+                <div className="text-sm">
+                  <p className="font-semibold text-bb-text">
+                    Supporting document <span className="ml-1 rounded-md bg-bb-surface-2 px-1.5 py-0.5 text-xs font-semibold text-bb-muted">Not available yet</span>
+                  </p>
+                  <p className="mt-1 text-bb-muted">
+                    Uploading proof of enrolment isn&apos;t supported yet. Put your student ID in the message instead.
+                  </p>
+                </div>
+              </div>
+            </Section>
+
+            {/* `canRequest === false` is already excluded by the guard around this block. */}
+            <div className="flex items-center justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isSubmitting}>
                 Cancel
-              </EnhancedButton>
-              {/* `canRequest === false` was dropped from `disabled` below: this
-                  whole block already sits inside a `canRequest !== false`
-                  guard, so the value is narrowed to true|null there and the
-                  check could never fire. */}
-              <EnhancedButton
-                type="submit"
-                variant="vg-primary"
-                disabled={isSubmitting || !selectedTenantId}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Submit Request
-                  </>
-                )}
-              </EnhancedButton>
+              </Button>
+              <Button type="submit" size="lg" disabled={isSubmitting || !selectedTenantId}>
+                {isSubmitting ? <Icon name="loader" fillLayer={false} className="animate-spin" /> : <Icon name="send" fillLayer={false} />}
+                {isSubmitting ? "Sending…" : "Send request"}
+              </Button>
             </div>
           </>
         )}
@@ -562,4 +370,3 @@ export default function JoinRequestPage() {
     </div>
   );
 }
-

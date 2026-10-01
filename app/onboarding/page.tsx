@@ -236,7 +236,8 @@ export default function OnboardingPage() {
     try {
       const res = await fetch(`/api/institutions/browse?search=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
-      setInstitutions(data.data || []);
+      // The browse API returns a plain array (older code read data.data, which was always empty)
+      setInstitutions(Array.isArray(data) ? data : data?.data ?? []);
       setSearchedFor(searchQuery);
     } catch (e) {
       console.error(e);
