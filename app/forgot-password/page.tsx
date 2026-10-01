@@ -4,27 +4,22 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useRouter } from 'next/navigation';
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardFooter, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { GraduationCap, Mail, ArrowLeft, CheckCircle2 } from '@/components/ui/icons';
 import Link from 'next/link';
-import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
-import { BrandMark } from '@/components/ui/brand-mark';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { FormField } from '@/components/ui/form-field';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Icon } from '@/components/ui/icon';
+import { AuthBackdrop } from '@/components/auth/auth-backdrop';
+import { AuthButton, AuthCard } from '@/components/auth/auth-card';
 
-// Define the validation schema using Zod
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
 });
 
-// Infer the type from the schema
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -35,9 +30,7 @@ export default function ForgotPasswordPage() {
     formState: { errors },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: '',
-    },
+    defaultValues: { email: '' },
   });
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
@@ -46,12 +39,10 @@ export default function ForgotPasswordPage() {
 
     try {
       const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3333';
-      
+
       const response = await fetch(`${BACKEND_URL}/auth/forgot-password`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: data.email }),
       });
 
@@ -69,140 +60,69 @@ export default function ForgotPasswordPage() {
     }
   };
 
+  const backToLogin = (
+    <Link href="/login" className="font-semibold text-bb-accent-ink hover:underline">
+      Back to sign in
+    </Link>
+  );
+
+  if (success) {
+    return (
+      <AuthBackdrop>
+        <AuthCard
+          icon="mail"
+          tone="success"
+          title="Check your email"
+          description="If an account exists for that address, a reset link is on its way. Check your inbox and spam folder."
+        >
+          <div className="flex flex-col gap-3">
+            <Button asChild size="lg" className="w-full">
+              <Link href="/login">
+                <Icon name="arrow-left" fillLayer={false} />
+                Back to sign in
+              </Link>
+            </Button>
+            <Button type="button" variant="outline" size="lg" className="w-full" onClick={() => setSuccess(false)}>
+              Send another email
+            </Button>
+          </div>
+        </AuthCard>
+      </AuthBackdrop>
+    );
+  }
+
   return (
     <AuthBackdrop>
-      <EnhancedCard className={`animate-in fade-in-0 duration-bb-ui border-0 ${authCardClassName}`}>
-        <EnhancedCardHeader className="text-center space-y-4 relative z-10">
-          {/* Logo */}
-          <div className="flex justify-center">
-            <BrandMark height={34} />
-          </div>
-
-          <div className="space-y-2">
-            <EnhancedCardTitle className="font-display text-[32px] font-extrabold tracking-[-0.03em] text-bb-text">
-              {success ? 'Check Your Email' : 'Forgot Password?'}
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-base text-bb-muted">
-              {success 
-                ? "We've sent you a password reset link" 
-                : "Enter your email and we'll send you a reset link"}
-            </EnhancedCardDescription>
-          </div>
-        </EnhancedCardHeader>
-
-        <EnhancedCardContent className="relative z-10">
-          {success ? (
-            <div className="space-y-6">
-              <div className="flex justify-center">
-                <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
-                  <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-              
-              <Alert className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
-                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertTitle className="text-green-800 dark:text-green-300">Email Sent!</AlertTitle>
-                <AlertDescription className="text-green-700 dark:text-green-400">
-                  If an account exists with that email, you'll receive a password reset link shortly. 
-                  Please check your inbox and spam folder.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-3">
-                <EnhancedButton
-                  size="lg"
-                  className="w-full border-transparent transition-all duration-300"
-                  onClick={() => router.push('/login')}
-                  icon={<ArrowLeft className="h-5 w-5" />}
-                  iconPosition="left"
-                >
-                  Back to Login
-                </EnhancedButton>
-
-                <EnhancedButton
-                  variant="vg-outline"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => setSuccess(false)}
-                >
-                  Send Another Email
-                </EnhancedButton>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <Alert variant="destructive" className="animate-in fade-in-0 duration-bb-ui">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-bold text-bb-text">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email address"
-                    className="pl-10 placeholder:text-slate-400"
-                    {...register("email")}
-                    aria-invalid={errors.email ? "true" : "false"}
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <EnhancedButton
-                type="submit"
-                size="lg"
-                className="w-full border-transparent transition-all duration-300"
-                loading={isLoading}
-                loadingText="Sending reset link..."
-                icon={<Mail className="h-5 w-5" />}
-                iconPosition="right"
-              >
-                Send Reset Link
-              </EnhancedButton>
-            </form>
+      <AuthCard
+        title="Forgot your password?"
+        description="Enter your email and we'll send you a reset link."
+        footer={<>Remembered it? {backToLogin}</>}
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+          {error && (
+            <Alert variant="destructive">
+              <Icon name="alert-circle" fillLayer={false} />
+              <AlertTitle>Couldn&apos;t send the link</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        </EnhancedCardContent>
 
-        {!success && (
-          <EnhancedCardFooter className="flex flex-col space-y-4">
-            <div className="relative w-full">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200 dark:border-gray-700" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
-                  Remember your password?
-                </span>
-              </div>
-            </div>
+          <FormField label="Email address" htmlFor="email" error={errors.email?.message}>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              {...register("email")}
+              aria-invalid={errors.email ? "true" : "false"}
+            />
+          </FormField>
 
-            <Link href="/login" className="w-full">
-              <EnhancedButton
-                variant="vg-outline"
-                size="lg"
-                className="w-full"
-                icon={<ArrowLeft className="h-5 w-5" />}
-                iconPosition="left"
-              >
-                Back to Login
-              </EnhancedButton>
-            </Link>
-          </EnhancedCardFooter>
-        )}
-      </EnhancedCard>
+          <AuthButton type="submit" loading={isLoading} loadingText="Sending reset link…" icon="send">
+            Send reset link
+          </AuthButton>
+        </form>
+      </AuthCard>
     </AuthBackdrop>
   );
 }
-

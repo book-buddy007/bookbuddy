@@ -36,6 +36,9 @@ const publicRoutes = [
   '/terms',
   '/cookies',
   '/subscription/compare',
+  // Public account-deletion request form (the URL listed on the Play Store); people who
+  // can't sign in any more still need to reach it.
+  '/delete-account',
   // PWA: install metadata, app icons and the offline fallback must load without a session.
   '/manifest.webmanifest',
   '/pwa-icon',

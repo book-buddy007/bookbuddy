@@ -1,40 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, XCircle, Loader2, Mail } from "@/components/ui/icons";
+import { Icon } from "@/components/ui/icon";
+import { AuthBackdrop } from "@/components/auth/auth-backdrop";
+import { AuthCard, AuthCardSkeleton } from "@/components/auth/auth-card";
 
-export default function VerifyEmailPage() {
+type Status = "loading" | "success" | "error" | "no-token";
+
+function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<"loading" | "success" | "error" | "no-token">("loading");
+  const [status, setStatus] = useState<Status>("loading");
   const [message, setMessage] = useState("");
-  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     if (!token) {
       setStatus("no-token");
-      setMessage("No verification token provided. Please check your email for the verification link.");
+      setMessage("Open the verification link from the email we sent when you registered.");
       return;
     }
 
     verifyEmail(token);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const verifyEmail = async (verificationToken: string) => {
     try {
       setStatus("loading");
 
-      const response = await fetch('/api/user/verify/check-link', {
+      const response = await fetch("/api/user/verify/check-link", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: verificationToken }),
       });
 
@@ -42,9 +43,9 @@ export default function VerifyEmailPage() {
 
       if (response.ok && data.verified) {
         setStatus("success");
-        setMessage(data.message || "Email verified successfully! You can now access your account.");
+        setMessage(data.message || "Email verified. You can now use your account.");
 
-        // Redirect to onboarding/dashboard after 3 seconds
+        // Continue to onboarding after 3 seconds
         setTimeout(() => {
           router.push("/onboarding");
         }, 3000);
@@ -59,120 +60,57 @@ export default function VerifyEmailPage() {
     }
   };
 
+  if (status === "loading") {
+    return (
+      <AuthCard icon="loader" title="Verifying your email" description="This only takes a moment…">
+        <div className="h-1.5 overflow-hidden rounded-full bg-bb-surface-2">
+          <div className="h-full w-1/3 animate-[bb-loader_1.2s_ease-in-out_infinite] rounded-full bg-bb-accent" />
+        </div>
+      </AuthCard>
+    );
+  }
 
-  const handleResendVerification = async () => {
-    // This function is not used in this page anymore
-    // Resend functionality is now on the login page
-    router.push("/login");
-  };
+  if (status === "success") {
+    return (
+      <AuthCard icon="check-circle" tone="success" title="Email verified" description={`${message} Taking you to setup…`}>
+        <Button size="lg" className="w-full" onClick={() => router.push("/onboarding")}>
+          Continue
+          <Icon name="arrow-right" fillLayer={false} />
+        </Button>
+      </AuthCard>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <AuthCard icon="x-circle" tone="danger" title="Verification failed" description={message}>
+        <div className="flex flex-col gap-3">
+          <p className="text-center text-sm text-bb-muted">
+            Links expire. Sign in with your email and password and we&apos;ll offer to send a fresh one.
+          </p>
+          <Button asChild size="lg" className="w-full">
+            <Link href="/login">Go to sign in</Link>
+          </Button>
+        </div>
+      </AuthCard>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4">
-            {status === "loading" && (
-              <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
-            )}
-            {status === "success" && (
-              <CheckCircle2 className="h-16 w-16 text-green-600" />
-            )}
-            {status === "error" && (
-              <XCircle className="h-16 w-16 text-red-600" />
-            )}
-            {status === "no-token" && (
-              <Mail className="h-16 w-16 text-gray-600" />
-            )}
-          </div>
-          <CardTitle className="text-2xl font-bold">
-            {status === "loading" && "Verifying Your Email"}
-            {status === "success" && "Email Verified!"}
-            {status === "error" && "Verification Failed"}
-            {status === "no-token" && "Email Verification"}
-          </CardTitle>
-          <CardDescription>
-            {status === "loading" && "Please wait while we verify your email address..."}
-            {status === "success" && "Your email has been successfully verified"}
-            {status === "error" && "We couldn't verify your email address"}
-            {status === "no-token" && "Verify your email to access your account"}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {message && (
-            <Alert variant={status === "success" ? "default" : "destructive"}>
-              <AlertDescription>{message}</AlertDescription>
-            </Alert>
-          )}
-
-          {status === "success" && (
-            <div className="text-center space-y-4">
-              <p className="text-sm text-gray-600">
-                Redirecting to login page in 3 seconds...
-              </p>
-              <Button
-                onClick={() => router.push("/login")}
-                className="w-full"
-              >
-                Go to Login Now
-              </Button>
-            </div>
-          )}
-
-          {status === "error" && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 text-center">
-                The verification link may have expired or is invalid.
-              </p>
-              <Button
-                onClick={handleResendVerification}
-                disabled={isResending}
-                variant="outline"
-                className="w-full"
-              >
-                {isResending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Resending...
-                  </>
-                ) : (
-                  "Resend Verification Email"
-                )}
-              </Button>
-              <Button
-                onClick={() => router.push("/login")}
-                variant="ghost"
-                className="w-full"
-              >
-                Back to Login
-              </Button>
-            </div>
-          )}
-
-          {status === "no-token" && (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 text-center">
-                Please check your email for the verification link we sent you when you registered.
-              </p>
-              <Button
-                onClick={() => router.push("/login")}
-                className="w-full"
-              >
-                Go to Login
-              </Button>
-            </div>
-          )}
-
-          {status === "loading" && (
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                This may take a few moments...
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCard icon="mail" title="Verify your email" description={message}>
+      <Button asChild size="lg" className="w-full">
+        <Link href="/login">Go to sign in</Link>
+      </Button>
+    </AuthCard>
   );
 }
 
+export default function VerifyEmailPage() {
+  return (
+    <AuthBackdrop>
+      <Suspense fallback={<AuthCardSkeleton />}>
+        <VerifyEmail />
+      </Suspense>
+    </AuthBackdrop>
+  );
+}

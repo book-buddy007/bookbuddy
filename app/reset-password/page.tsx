@@ -5,17 +5,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardFooter, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { GraduationCap, Lock, CheckCircle2, ArrowRight, Eye, EyeOff } from '@/components/ui/icons';
 import Link from 'next/link';
-import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
-import { BrandMark } from '@/components/ui/brand-mark';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/ui/form-field';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Icon } from '@/components/ui/icon';
+import { AuthBackdrop } from '@/components/auth/auth-backdrop';
+import { AuthButton, AuthCard, AuthCardSkeleton, PasswordInput } from '@/components/auth/auth-card';
 
-// Define the validation schema using Zod
 const resetPasswordSchema = z.object({
   password: z
     .string()
@@ -29,19 +26,18 @@ const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
-// Infer the type from the schema
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+const MISSING_TOKEN = 'Invalid or missing reset token. Please request a new password reset link.';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -49,22 +45,16 @@ function ResetPasswordForm() {
     formState: { errors },
   } = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      password: '',
-      confirmPassword: '',
-    },
+    defaultValues: { password: '', confirmPassword: '' },
   });
 
-  // Check if token exists
   useEffect(() => {
-    if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset link.');
-    }
+    if (!token) setError(MISSING_TOKEN);
   }, [token]);
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     if (!token) {
-      setError('Invalid or missing reset token. Please request a new password reset link.');
+      setError(MISSING_TOKEN);
       return;
     }
 
@@ -73,16 +63,11 @@ function ResetPasswordForm() {
 
     try {
       const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3333';
-      
+
       const response = await fetch(`${BACKEND_URL}/auth/reset-password`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          token: token,
-          password: data.password 
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: data.password }),
       });
 
       const result = await response.json();
@@ -92,8 +77,8 @@ function ResetPasswordForm() {
       }
 
       setSuccess(true);
-      
-      // Redirect to login after 3 seconds
+
+      // Send them to login after 3 seconds
       setTimeout(() => {
         router.push('/login');
       }, 3000);
@@ -104,165 +89,94 @@ function ResetPasswordForm() {
     }
   };
 
+  if (success) {
+    return (
+      <AuthBackdrop>
+        <AuthCard
+          icon="check-circle"
+          tone="success"
+          title="Password updated"
+          description="You can now sign in with your new password. Taking you there now…"
+        >
+          <Button asChild size="lg" className="w-full">
+            <Link href="/login">
+              Go to sign in
+              <Icon name="arrow-right" fillLayer={false} />
+            </Link>
+          </Button>
+        </AuthCard>
+      </AuthBackdrop>
+    );
+  }
+
   return (
     <AuthBackdrop>
-      <EnhancedCard className={`animate-in fade-in-0 duration-bb-ui border-0 ${authCardClassName}`}>
-        <EnhancedCardHeader className="text-center space-y-4 relative z-10">
-          {/* Logo */}
-          <div className="flex justify-center">
-            <BrandMark height={34} />
-          </div>
-
-          <div className="space-y-2">
-            <EnhancedCardTitle className="font-display text-[32px] font-extrabold tracking-[-0.03em] text-bb-text">
-              {success ? 'Password Reset!' : 'Reset Password'}
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-base text-bb-muted">
-              {success 
-                ? "Your password has been successfully reset" 
-                : "Enter your new password below"}
-            </EnhancedCardDescription>
-          </div>
-        </EnhancedCardHeader>
-
-        <EnhancedCardContent className="relative z-10">
-          {success ? (
-            <div className="space-y-6">
-              <div className="flex justify-center">
-                <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
-                  <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-              
-              <Alert className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
-                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertTitle className="text-green-800 dark:text-green-300">Success!</AlertTitle>
-                <AlertDescription className="text-green-700 dark:text-green-400">
-                  Your password has been reset successfully. You can now log in with your new password.
-                  Redirecting to login page...
-                </AlertDescription>
-              </Alert>
-
-              <EnhancedButton
-                size="lg"
-                className="w-full border-transparent transition-all duration-300"
-                onClick={() => router.push('/login')}
-                icon={<ArrowRight className="h-5 w-5" />}
-                iconPosition="right"
-              >
-                Go to Login
-              </EnhancedButton>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <Alert variant="destructive" className="animate-in fade-in-0 duration-bb-ui">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-bold text-bb-text">
-                  New Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter new password"
-                    className="pl-10 pr-10 placeholder:text-slate-400"
-                    {...register("password")}
-                    aria-invalid={errors.password ? "true" : "false"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
-                    {errors.password.message}
-                  </p>
+      <AuthCard
+        title="Set a new password"
+        description="Choose a password you haven't used here before."
+        footer={
+          <>
+            Remembered it?{' '}
+            <Link href="/login" className="font-semibold text-bb-accent-ink hover:underline">
+              Back to sign in
+            </Link>
+          </>
+        }
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+          {error && (
+            <Alert variant="destructive">
+              <Icon name="alert-circle" fillLayer={false} />
+              <AlertTitle>Couldn&apos;t reset your password</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>{error}</p>
+                {!token && (
+                  <Link href="/forgot-password" className="inline-block font-semibold underline">
+                    Request a new link
+                  </Link>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Must be at least 8 characters with uppercase, lowercase, and number
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-bold text-bb-text">
-                  Confirm New Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm new password"
-                    className="pl-10 pr-10 placeholder:text-slate-400"
-                    {...register("confirmPassword")}
-                    aria-invalid={errors.confirmPassword ? "true" : "false"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-
-              <EnhancedButton
-                type="submit"
-                size="lg"
-                className="w-full border-transparent transition-all duration-300"
-                loading={isLoading}
-                loadingText="Resetting password..."
-                icon={<Lock className="h-5 w-5" />}
-                iconPosition="right"
-                disabled={!token}
-              >
-                Reset Password
-              </EnhancedButton>
-            </form>
+              </AlertDescription>
+            </Alert>
           )}
-        </EnhancedCardContent>
 
-        {!success && (
-          <EnhancedCardFooter className="flex flex-col space-y-4 relative z-10">
-            <div className="text-center text-sm text-bb-muted">
-              Remember your password?{' '}
-              <Link href="/login" className="text-bb-accent-ink hover:text-bb-accent hover:underline font-semibold">
-                Back to Login
-              </Link>
-            </div>
-          </EnhancedCardFooter>
-        )}
-      </EnhancedCard>
+          <FormField
+            label="New password"
+            htmlFor="password"
+            hint="At least 8 characters, with an uppercase letter, a lowercase letter and a number."
+            error={errors.password?.message}
+          >
+            <PasswordInput
+              id="password"
+              autoComplete="new-password"
+              placeholder="New password"
+              {...register("password")}
+              aria-invalid={errors.password ? "true" : "false"}
+            />
+          </FormField>
+
+          <FormField label="Confirm new password" htmlFor="confirmPassword" error={errors.confirmPassword?.message}>
+            <PasswordInput
+              id="confirmPassword"
+              autoComplete="new-password"
+              placeholder="Repeat the new password"
+              {...register("confirmPassword")}
+              aria-invalid={errors.confirmPassword ? "true" : "false"}
+            />
+          </FormField>
+
+          <AuthButton type="submit" loading={isLoading} loadingText="Saving password…" icon="lock" disabled={!token}>
+            Reset password
+          </AuthButton>
+        </form>
+      </AuthCard>
     </AuthBackdrop>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-bb-accent-soft">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bb-accent"></div>
-      </div>
-    }>
+    <Suspense fallback={<AuthBackdrop><AuthCardSkeleton /></AuthBackdrop>}>
       <ResetPasswordForm />
     </Suspense>
   );
 }
-

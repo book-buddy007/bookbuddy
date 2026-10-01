@@ -1,12 +1,6 @@
 import Link from "next/link"
 import { BrandLockup } from "@/components/ui/brand-mark"
 
-/** Shared class for the auth card — apply to <EnhancedCard>. White surface, radius 28, e2. */
-export const authCardClassName = "w-full rounded-[28px] border-0 bg-bb-surface shadow-e2"
-
-/** Kept for call-site compatibility; the new frame has no logo halo. */
-export const authLogoHaloClassName = ""
-
 /**
  * AuthBackdrop — the shared frame for every auth screen: a navy hero band (grid + glow)
  * carrying the brand, with the form card overlapping its lower edge on the cloud background.

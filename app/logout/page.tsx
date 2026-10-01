@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Loader2 } from '@/components/ui/icons';
+import { BrandMark } from '@/components/ui/brand-mark';
+import { Icon } from '@/components/ui/icon';
 
 export default function LogoutPage() {
   const router = useRouter();
@@ -12,14 +13,11 @@ export default function LogoutPage() {
   useEffect(() => {
     const performLogout = async () => {
       try {
-        // Call the logout function from the auth store
         await logout();
-        
-        // Redirect to login page after successful logout
         router.push('/login');
       } catch (error) {
         console.error('Logout error:', error);
-        // Redirect to login anyway
+        // Go to login anyway
         router.push('/login');
       }
     };
@@ -28,17 +26,15 @@ export default function LogoutPage() {
   }, [logout, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          Logging out...
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Please wait while we sign you out.
-        </p>
+    <main className="grid min-h-dvh place-items-center bg-bb-bg px-4">
+      <div role="status" className="flex flex-col items-center gap-4 text-center">
+        <BrandMark height={30} />
+        <Icon name="loader" size={28} fillLayer={false} className="animate-spin text-bb-accent" />
+        <div>
+          <h1 className="font-display text-xl font-bold text-bb-text">Signing you out…</h1>
+          <p className="mt-1 text-sm text-bb-muted">See you next time.</p>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
-
