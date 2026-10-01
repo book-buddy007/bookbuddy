@@ -13,6 +13,9 @@ const amber = { 50: '#FFF8EB', 100: '#FFEFD1', 200: '#FFDDA0', 300: '#FFCB70', 4
 const gold = { 50: '#FFFBE6', 100: '#FFF4C2', 200: '#FFE98A', 300: '#FFDB4D', 400: '#FFD23F', 500: '#F5B800', 600: '#B88700', 700: '#8A6600', 800: '#7A5A00', 900: '#5C4300', 950: '#3A2A00' }
 const danger = { 50: '#FFF1F2', 100: '#FFE1E4', 200: '#FFC2C9', 300: '#FF98A3', 400: '#FF5468', 500: '#E5283A', 600: '#C41E2E', 700: '#B0182A', 800: '#8A1222', 900: '#650D19', 950: '#3A060E' }
 const success = { 50: '#EFFBF3', 100: '#DDF8E6', 200: '#B8F0CC', 300: '#7FE3A5', 400: '#3DDC84', 500: '#12B85A', 600: '#0E9A4A', 700: '#0B7A3B', 800: '#095E2E', 900: '#074524', 950: '#03281A' }
+/** Token colour that still accepts Tailwind opacity modifiers (bg-bb-surface/80): a bare var() cannot. */
+const a = (v: string) => `color-mix(in srgb, var(${v}) calc(<alpha-value> * 100%), transparent)`
+
 const BB_PALETTE = {
 	slate: neutral, gray: neutral, zinc: neutral, neutral, stone: neutral,
 	indigo: cobalt, violet: cobalt, purple: cobalt, blue: cobalt, sky: cobalt, cyan: cobalt, teal: cobalt, fuchsia: cobalt,
@@ -38,14 +41,14 @@ const config: Config = {
 				bb: {
 				ink: '#0A0F24', cobalt: '#1E3A8A', 'cobalt-light': '#3B5BDB', periwinkle: '#5B7CFF',
 				blaze: '#FF4D00', 'blaze-light': '#FF8A3D', 'blaze-dark': '#D93A00', amber: '#FFB547', cream: '#FFE3A3', cloud: '#F2F4F8',
-				bg: 'var(--bb-bg)', surface: 'var(--bb-surface)', 'surface-2': 'var(--bb-surface-2)', border: 'var(--bb-border)',
-				text: 'var(--bb-text)', muted: 'var(--bb-text-muted)', faint: 'var(--bb-text-faint)',
-				accent: 'var(--bb-accent)', 'accent-soft': 'var(--bb-accent-soft)', 'accent-ink': 'var(--bb-accent-ink)',
-				success: 'var(--bb-success)', 'success-soft': 'var(--bb-success-soft)', 'success-ink': 'var(--bb-success-ink)',
-				warning: 'var(--bb-warning)', 'warning-soft': 'var(--bb-warning-soft)', 'warning-ink': 'var(--bb-warning-ink)',
-				danger: 'var(--bb-danger)', 'danger-soft': 'var(--bb-danger-soft)', 'danger-ink': 'var(--bb-danger-ink)',
-				info: 'var(--bb-info)', 'info-soft': 'var(--bb-info-soft)', 'info-ink': 'var(--bb-info-ink)',
-				hover: 'var(--bb-hover)',
+				bg: a('--bb-bg'), surface: a('--bb-surface'), 'surface-2': a('--bb-surface-2'), border: a('--bb-border'),
+				text: a('--bb-text'), muted: a('--bb-text-muted'), faint: a('--bb-text-faint'),
+				accent: a('--bb-accent'), 'accent-soft': a('--bb-accent-soft'), 'accent-ink': a('--bb-accent-ink'),
+				success: a('--bb-success'), 'success-soft': a('--bb-success-soft'), 'success-ink': a('--bb-success-ink'),
+				warning: a('--bb-warning'), 'warning-soft': a('--bb-warning-soft'), 'warning-ink': a('--bb-warning-ink'),
+				danger: a('--bb-danger'), 'danger-soft': a('--bb-danger-soft'), 'danger-ink': a('--bb-danger-ink'),
+				info: a('--bb-info'), 'info-soft': a('--bb-info-soft'), 'info-ink': a('--bb-info-ink'),
+				hover: a('--bb-hover'),
 				// text/lines for content sitting on the always-navy bands (hero, CTA, footer)
 				dim: '#A9B4D0', 'dim-2': '#B8C4E6', 'night-line': '#2A3556', 'night-line-2': '#3A4668', 'night-panel': '#18213C',
 				peach: '#FFB37A',

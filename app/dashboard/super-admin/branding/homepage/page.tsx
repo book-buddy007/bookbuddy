@@ -797,7 +797,7 @@ export default function HomepageEditorPage() {
             <LivePreviewWindow htmlContent={previewHtml} />
           ) : (
             <div className="relative">
-              <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-bb-navy/90 px-2 py-1 text-[10px] font-bold uppercase text-white">
+              <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-bb-ink/90 px-2 py-1 text-[10px] font-bold uppercase text-white">
                 Live version
               </div>
               <LivePreviewWindow htmlContent={liveHtml} />
