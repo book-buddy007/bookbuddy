@@ -86,7 +86,7 @@ export function AssignCollectionsDialog({
       <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-[var(--gold)]/15 to-[var(--gold)]/5 text-[var(--gold)]">
+            <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
               <Shield className="h-4 w-4" />
             </div>
             Assign Collections (RBAC)
@@ -100,7 +100,7 @@ export function AssignCollectionsDialog({
           <div className="grid gap-2">
             <Label htmlFor="tenant" className="text-slate-700 dark:text-slate-300 font-semibold">Institution Membership</Label>
             <Select value={selectedTenant} onValueChange={handleTenantChange}>
-              <SelectTrigger id="tenant" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40">
+              <SelectTrigger id="tenant" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40">
                 <SelectValue placeholder="Select an institution" />
               </SelectTrigger>
               <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
@@ -125,7 +125,7 @@ export function AssignCollectionsDialog({
               value={collectionsInput} 
               onChange={(e) => setCollectionsInput(e.target.value)}
               disabled={!selectedTenant || selectedTenant === 'none'}
-              className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40 focus:border-[var(--deep-saffron)]/40"
+              className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40"
             />
             <p className="text-xs text-slate-400 dark:text-slate-500">
                Enter the unique IDs of the collections this user should manage. Granular RBAC permissions will apply.

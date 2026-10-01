@@ -99,7 +99,7 @@ export function SortableChapter({
               onKeyDown={handleTitleKeyDown}
               autoFocus
               className="flex-1 bg-transparent border-b-2 border-peacock-teal outline-none
-                         font-medium py-0.5 focus:border-indigo-deep
+ font-medium py-0.5 focus:border-indigo-deep
                          transition-colors duration-150"
               aria-label="Chapter title"
             />
@@ -117,7 +117,7 @@ export function SortableChapter({
             <button
               onClick={() => setIsEditingTitle(true)}
               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg
-                         hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500"
+ hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500"
               aria-label="Rename chapter"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -139,7 +139,7 @@ export function SortableChapter({
           <button
             onClick={() => onAddSection(chapter.id)}
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl
-                       bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800
+ bg-bb-success-soft text-emerald-800
                        dark:from-emerald-900/40 dark:to-teal-900/30 dark:text-emerald-300
                        border border-emerald-200/50 dark:border-emerald-800/50
                        hover:shadow-sm transition-all"
@@ -234,7 +234,7 @@ function SectionRow({
   return (
     <div className="pl-6 border-l-2 border-slate-200 dark:border-slate-700 py-2 ml-2 group">
       <div className="flex justify-between items-center bg-slate-50/80 dark:bg-slate-800/40 px-4 py-3 rounded-xl
-                      border border-slate-200/60 dark:border-slate-700/40 shadow-sm transition-shadow hover:shadow-md">
+ border border-slate-200/60 dark:border-slate-700/40 shadow-sm transition-shadow hover:shadow-md">
         <div className="flex items-center gap-2 flex-1">
           {isEditing ? (
             <input
@@ -247,7 +247,7 @@ function SectionRow({
               }}
               autoFocus
               className="flex-1 bg-transparent border-b border-peacock-teal outline-none
-                         text-sm font-medium text-slate-800 dark:text-slate-200"
+ text-sm font-medium text-slate-800 dark:text-slate-200"
             />
           ) : (
             <span className="font-medium text-sm text-slate-800 dark:text-slate-200 flex-1 cursor-text"
@@ -258,7 +258,7 @@ function SectionRow({
           <button
             onClick={() => setIsEditing(true)}
             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg
-                       hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400"
+ hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400"
             aria-label="Rename section"
           >
             <Pencil className="w-3 h-3" />

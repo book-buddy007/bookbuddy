@@ -57,7 +57,7 @@ export function AssignTenantRoleDialog({
       <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-[var(--deep-saffron)]/15 to-[var(--saffron)]/10 text-[var(--deep-saffron)]">
+            <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
               <Building2 className="h-4 w-4" />
             </div>
             Assign Institution Role
@@ -71,7 +71,7 @@ export function AssignTenantRoleDialog({
           <div className="grid gap-2">
             <Label htmlFor="tenant" className="text-slate-700 dark:text-slate-300 font-semibold">Institution</Label>
             <Select value={selectedTenant} onValueChange={setSelectedTenant}>
-              <SelectTrigger id="tenant" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40">
+              <SelectTrigger id="tenant" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40">
                 <SelectValue placeholder="Select an institution" />
               </SelectTrigger>
               <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
@@ -87,7 +87,7 @@ export function AssignTenantRoleDialog({
           <div className="grid gap-2">
             <Label htmlFor="role" className="text-slate-700 dark:text-slate-300 font-semibold">Role inside Institution</Label>
             <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger id="role" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40">
+              <SelectTrigger id="role" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">

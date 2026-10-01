@@ -514,7 +514,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
 
             <div className="relative z-10 p-10 text-center space-y-6">
               {/* Animated Checkmark */}
-              <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-in zoom-in-50 duration-500">
+              <div className="mx-auto w-20 h-20 rounded-full bg-bb-success flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-in zoom-in-50 duration-500">
                 <Check className="w-10 h-10 text-white" strokeWidth={3} />
               </div>
 
@@ -570,7 +570,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                 <EnhancedButton variant="outline" onClick={handleAddAnother} className="gap-2">
                   <PlusCircle className="w-4 h-4" /> Add Another Book
                 </EnhancedButton>
-                <EnhancedButton onClick={handleViewInCatalog} className="bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white gap-2 shadow-md shadow-bb-cobalt/20">
+                <EnhancedButton onClick={handleViewInCatalog} className=" text-white gap-2 shadow-md shadow-bb-cobalt/20">
                   <Eye className="w-4 h-4" /> View in Library
                 </EnhancedButton>
               </div>
@@ -595,7 +595,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
               <EnhancedButton variant="outline" onClick={() => { setView('form'); setStep(4); }} className="text-slate-600">
                 <ChevronLeft className="w-4 h-4 mr-1" /> Back to Form
               </EnhancedButton>
-              <EnhancedButton onClick={handleRetry} className="bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white gap-2 shadow-md">
+              <EnhancedButton onClick={handleRetry} className=" text-white gap-2 shadow-md">
                 <RotateCcw className="w-4 h-4" /> Retry Upload
               </EnhancedButton>
             </div>
@@ -626,7 +626,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                           {step > num ? '✓' : num}
                         </div>
                       </div>
-                      <div className={`h-1 rounded-full transition-all duration-300 ${step >= num ? 'bg-gradient-to-r from-bb-accent to-bb-accent' : 'bg-white/10'}`} />
+                      <div className={`h-1 rounded-full transition-all duration-300 ${step >= num ? 'bg-bb-progress' : 'bg-white/10'}`} />
                       <span className={`text-[10px] font-semibold uppercase mt-1 block transition-colors ${step >= num ? 'text-white' : 'text-white/35'}`}>
                         {num === 1 ? 'Details' : num === 2 ? 'Classification' : num === 3 ? 'Media' : 'Review'}
                       </span>
@@ -642,7 +642,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
               {/* STEP 1: Details */}
               <div className={step === 1 ? 'block animate-in fade-in slide-in-from-right-4' : 'hidden'}>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 pb-3 mb-4 flex items-center gap-2.5 border-b border-slate-200/60 dark:border-slate-700/40">
-                  <div className="w-1 h-5 rounded-full bg-gradient-to-b from-bb-cobalt to-bb-cobalt" />
+                  <div className="w-1 h-5 rounded-full bg-bb-progress" />
                   <BookOpen className="h-5 w-5 text-bb-text" /> Book Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -699,7 +699,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
               {/* STEP 2: Classification */}
               <div className={step === 2 ? 'block animate-in fade-in slide-in-from-right-4' : 'hidden'}>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 pb-3 mb-4 flex items-center gap-2.5 border-b border-slate-200/60 dark:border-slate-700/40">
-                  <div className="w-1 h-5 rounded-full bg-gradient-to-b from-teal-500 to-emerald-500" />
+                  <div className="w-1 h-5 rounded-full bg-bb-success" />
                   <Building2 className="h-5 w-5 text-teal-500" /> Library Classification
                 </h3>
                 <div className="space-y-6">
@@ -744,7 +744,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
               {/* STEP 3: Media */}
               <div className={step === 3 ? 'block animate-in fade-in slide-in-from-right-4' : 'hidden'}>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 pb-3 mb-4 flex items-center gap-2.5 border-b border-slate-200/60 dark:border-slate-700/40">
-                  <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-500 to-orange-500" />
+                  <div className="w-1 h-5 rounded-full bg-bb-progress" />
                   <FileUp className="h-5 w-5 text-amber-500" /> Book Artwork & Previews
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -789,11 +789,11 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
               {/* STEP 4: Review & Main file */}
               <div className={step === 4 ? 'block animate-in fade-in slide-in-from-right-4' : 'hidden'}>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 pb-3 mb-4 flex items-center gap-2.5 border-b border-slate-200/60 dark:border-slate-700/40">
-                  <div className="w-1 h-5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500" />
+                  <div className="w-1 h-5 rounded-full bg-bb-success" />
                   <Check className="h-5 w-5 text-emerald-500" /> Finalize & Book Format
                 </h3>
                 
-                <div className="bg-gradient-to-br from-bb-success-soft to-bb-success-soft dark:from-bb-cobalt/10 dark:to-bb-cobalt/10 border border-bb-cobalt/15 dark:border-bb-cobalt/25 rounded-2xl p-5 mb-6">
+                <div className="bg-bb-progress border border-bb-cobalt/15 dark:border-bb-cobalt/25 rounded-2xl p-5 mb-6">
                   <h4 className="font-bold text-bb-text dark:text-teal-200 mb-3 flex items-center gap-2"><Eye className="w-4 h-4 text-bb-text" /> Publishing Summary</h4>
                   <ul className="text-sm space-y-2 text-slate-700 dark:text-slate-300">
                     <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Title:</span> <span className="truncate">{formData.title || '(Missing)'}</span></li>
@@ -926,7 +926,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                                 <span>{progress['main'].pct}%</span>
                               </div>
                               <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-bb-cobalt via-bb-cobalt to-bb-accent rounded-full transition-all duration-300" style={{ width: `${progress['main'].pct}%` }} />
+                                <div className="h-full bg-bb-progress rounded-full transition-all duration-300" style={{ width: `${progress['main'].pct}%` }} />
                               </div>
                             </div>
                          ) : progress['main']?.status === 'done' ? (
@@ -990,14 +990,14 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                 )}
 
                 {step < 4 ? (
-                  <EnhancedButton onClick={nextStep} className="bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-ink hover:to-bb-cobalt text-white font-semibold shadow-md shadow-bb-cobalt/15 rounded-xl transition-all">
+                  <EnhancedButton onClick={nextStep} className=" text-white font-semibold shadow-md shadow-bb-cobalt/15 rounded-xl transition-all">
                     Next Step <ChevronRight className="w-4 h-4 ml-1" />
                   </EnhancedButton>
                 ) : (
                   <EnhancedButton 
                     onClick={handleSubmit} 
                     disabled={isSubmitting || (mainFormat !== 'NONE' && !mainContentFile) || progress['main']?.status === 'done'} 
-                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold shadow-lg shadow-emerald-600/25 rounded-xl transition-all duration-200"
+                    className="bg-bb-success hover:brightness-95 text-white font-bold shadow-lg shadow-emerald-600/25 rounded-xl transition-all duration-200"
                   >
                     {isSubmitting ? 'Publishing...' : 'Publish Book'} <Check className="w-4 h-4 ml-1.5" />
                   </EnhancedButton>

@@ -56,7 +56,7 @@ export function DeleteBookDialog({ open, onOpenChange, book }: DeleteBookDialogP
         <DialogHeader>
           <div className="mx-auto mb-3 relative">
             <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl animate-pulse scale-150" />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/60 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800/50 shadow-sm">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-bb-progress border border-amber-200 dark:border-amber-800/50 shadow-sm">
               <Trash2 className="h-8 w-8 text-amber-600 dark:text-amber-400" />
             </div>
           </div>
@@ -78,7 +78,7 @@ export function DeleteBookDialog({ open, onOpenChange, book }: DeleteBookDialogP
           <EnhancedButton
             onClick={() => deleteMutation.mutate()}
             disabled={deleteMutation.isPending}
-            className="gap-2 rounded-xl text-white shadow-sm bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 shadow-amber-500/20"
+            className="gap-2 rounded-xl text-white shadow-sm shadow-amber-500/20"
           >
             {deleteMutation.isPending ? (
               <><Loader2 className="h-4 w-4 animate-spin" /> Moving...</>

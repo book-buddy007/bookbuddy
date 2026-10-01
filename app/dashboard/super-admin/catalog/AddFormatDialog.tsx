@@ -20,10 +20,10 @@ import {
 } from '@/components/ui/icons';
 
 const ALL_FORMATS = [
-  { key: 'PDF', icon: FileText, label: 'PDF', accept: '.pdf', mimeType: 'application/pdf', color: 'border-red-200 bg-red-50/80 dark:bg-red-950/20 dark:border-red-800/50', accentGradient: 'from-red-500 to-rose-500' },
-  { key: 'EPUB', icon: BookOpenCheck, label: 'EPUB', accept: '.epub', mimeType: 'application/epub+zip', color: 'border-emerald-200 bg-emerald-50/80 dark:bg-emerald-950/20 dark:border-emerald-800/50', accentGradient: 'from-emerald-500 to-teal-500' },
-  { key: 'AUDIOBOOK', icon: Headphones, label: 'Audiobook', accept: '.mp3,.m4a,.ogg,.wav', mimeType: 'audio/mpeg', color: 'border-amber-200 bg-amber-50/80 dark:bg-amber-950/20 dark:border-amber-800/50', accentGradient: 'from-amber-500 to-orange-500' },
-  { key: 'AI_EMBED', icon: Sparkles, label: 'AI Markdown', accept: '.md', mimeType: 'text/markdown', color: 'border-cyan-200 bg-cyan-50/80 dark:bg-cyan-950/20 dark:border-cyan-800/50', accentGradient: 'from-cyan-500 to-sky-500' },
+  { key: 'PDF', icon: FileText, label: 'PDF', accept: '.pdf', mimeType: 'application/pdf', color: 'border-bb-border bg-bb-surface', accentGradient: '' },
+  { key: 'EPUB', icon: BookOpenCheck, label: 'EPUB', accept: '.epub', mimeType: 'application/epub+zip', color: 'border-bb-border bg-bb-surface', accentGradient: '' },
+  { key: 'AUDIOBOOK', icon: Headphones, label: 'Audiobook', accept: '.mp3,.m4a,.ogg,.wav', mimeType: 'audio/mpeg', color: 'border-bb-border bg-bb-surface', accentGradient: '' },
+  { key: 'AI_EMBED', icon: Sparkles, label: 'AI Markdown', accept: '.md', mimeType: 'text/markdown', color: 'border-bb-border bg-bb-surface', accentGradient: '' },
 ] as const;
 
 /**
@@ -340,7 +340,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
-            <div className="p-1.5 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg">
+            <div className="p-1.5 bg-bb-progress rounded-lg">
               <FileUp className="h-4 w-4 text-white" />
             </div>
             Add Format
@@ -373,7 +373,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
           <div className="py-10 text-center">
             <div className="relative inline-block mb-3">
               <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl scale-150" />
-              <div className="relative flex items-center justify-center h-14 w-14 mx-auto bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+              <div className="relative flex items-center justify-center h-14 w-14 mx-auto bg-bb-success-soft rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
                 <Check className="h-7 w-7 text-emerald-500" />
               </div>
             </div>
@@ -385,7 +385,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
             {/* Success checkmark with animation */}
             <div className="relative inline-block mb-4">
               <div className="absolute inset-0 bg-emerald-500/15 rounded-full blur-2xl scale-150 animate-pulse" />
-              <div className="relative h-16 w-16 mx-auto bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <div className="relative h-16 w-16 mx-auto bg-bb-success rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                 <Check className="h-8 w-8 text-white" strokeWidth={3} />
               </div>
             </div>
@@ -421,7 +421,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
               <EnhancedButton variant="outline" onClick={() => resetState()} className="rounded-xl">
                 Add Another Format
               </EnhancedButton>
-              <EnhancedButton onClick={() => { onOpenChange(false); resetState(); }} className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white">
+              <EnhancedButton onClick={() => { onOpenChange(false); resetState(); }} className="rounded-xl text-white">
                 Done
               </EnhancedButton>
             </div>
@@ -441,7 +441,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                     disabled={isUploading}
                     className={`flex items-center gap-3 p-4 rounded-xl border-2 border-dashed ${fmt.color} hover:border-solid hover:shadow-md transition-all text-left w-full group hover:-translate-y-0.5 duration-200`}
                   >
-                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${fmt.accentGradient} flex items-center justify-center shadow-sm`}>
+                    <div className={`h-10 w-10 rounded-xl bg-bb-navy text-white flex items-center justify-center shadow-sm`}>
                       <fmt.icon className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1">
@@ -521,7 +521,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                     const fmt = ALL_FORMATS.find(f => f.key === selectedFormat);
                     const Icon = fmt?.icon || FileText;
                     return (
-                      <div className={`p-2 rounded-lg bg-gradient-to-br ${fmt?.accentGradient || 'from-indigo-500 to-purple-500'}`}>
+                      <div className={`p-2 rounded-lg bg-bb-navy text-white`}>
                         <Icon className="h-4 w-4 text-white" />
                       </div>
                     );
@@ -544,7 +544,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                   <div className="space-y-2">
                     <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 rounded-full transition-all duration-300"
+                        className="h-full bg-bb-progress rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       />
                     </div>
@@ -558,7 +558,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                 <EnhancedButton
                   onClick={handleUpload}
                   disabled={isUploading}
-                  className="w-full gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-600/20"
+                  className="w-full gap-2 rounded-xl text-white shadow-md shadow-indigo-600/20"
                   size="lg"
                 >
                   {isUploading ? (

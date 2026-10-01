@@ -219,7 +219,7 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
       <BookContextHeader book={initialBook} />
 
       {/* ── Toolbar ── */}
-      <div className="bg-gradient-to-r from-slate-50 to-white dark:from-slate-900/60 dark:to-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+      <div className="bg-bb-surface-2 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div>
           <h3 className="font-semibold flex items-center gap-2"><Music className="w-5 h-5 text-amber-500" /> Audiobook Structure</h3>
           <p className="text-sm text-muted-foreground">Drag to reorder. Click titles to rename.</p>
@@ -237,7 +237,7 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
           <EnhancedButton
             onClick={saveOrder}
             loading={reorderMutation.isPending}
-            className="gap-2 rounded-xl bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white shadow-md"
+            className="gap-2 rounded-xl text-white shadow-md"
           >
             {!reorderMutation.isPending && <Save className="w-4 h-4" />}
             Save Order

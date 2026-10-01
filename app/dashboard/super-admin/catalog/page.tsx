@@ -16,7 +16,12 @@ import {
   restoreCatalogBook,
   backfillCatalogGraphs
 } from '@/lib/api/adminApi';
-import { StatPill } from '@/components/ui/stat-pill';
+import { Button } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
+import { Segmented } from '@/components/ui/segmented';
+import { StatCard } from '@/components/ui/stat-card';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import {
   Table,
@@ -81,11 +86,11 @@ import { AddFormatDialog } from './AddFormatDialog';
 import { EditBookDialog } from './EditBookDialog';
 import { EmbeddingProgressDialog } from './EmbeddingProgressDialog';
 
-// Format badge helper
+// Format badge helper: availability is shown by icon + label; colour only marks "uploaded".
 const FORMAT_BADGE_CONFIG: Record<string, { icon: any; label: string; active: string; inactive: string }> = {
-  PDF: { icon: FileText, label: 'PDF', active: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800', inactive: 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800 dark:text-slate-600 dark:border-slate-700' },
-  EPUB: { icon: BookOpenCheck, label: 'EPUB', active: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800', inactive: 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800 dark:text-slate-600 dark:border-slate-700' },
-  AUDIOBOOK: { icon: Headphones, label: 'Audio', active: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800', inactive: 'bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800 dark:text-slate-600 dark:border-slate-700' },
+  PDF: { icon: FileText, label: 'PDF', active: 'bg-bb-accent-soft text-bb-accent-ink', inactive: 'bg-bb-surface-2 text-bb-faint' },
+  EPUB: { icon: BookOpenCheck, label: 'EPUB', active: 'bg-bb-accent-soft text-bb-accent-ink', inactive: 'bg-bb-surface-2 text-bb-faint' },
+  AUDIOBOOK: { icon: Headphones, label: 'Audio', active: 'bg-bb-accent-soft text-bb-accent-ink', inactive: 'bg-bb-surface-2 text-bb-faint' },
 };
 
 const FormatBadges = ({ bookFormats }: { bookFormats?: { type: string }[] }) => {
@@ -99,13 +104,13 @@ const FormatBadges = ({ bookFormats }: { bookFormats?: { type: string }[] }) => 
           <TooltipProvider key={key} delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-all ${isActive ? cfg.active : cfg.inactive}`}>
+                <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold ${isActive ? cfg.active : cfg.inactive}`}>
                   <Icon className="h-3 w-3" />
                   {cfg.label}
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
-                {cfg.label}: {isActive ? '✅ Uploaded' : '❌ Not uploaded'}
+                {cfg.label}: {isActive ? 'Uploaded' : 'Not uploaded'}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -115,40 +120,25 @@ const FormatBadges = ({ bookFormats }: { bookFormats?: { type: string }[] }) => 
   );
 };
 
-// UI Helpers for tiers
+// UI helper for access tiers
+const TIER_STYLE: Record<string, { cls: string; icon?: any }> = {
+  DIAMOND: { cls: 'bg-bb-info-soft text-bb-info-ink', icon: Sparkles },
+  GOLD: { cls: 'bg-bb-warning-soft text-bb-warning-ink', icon: Crown },
+  SILVER: { cls: 'bg-bb-surface-2 text-bb-text', icon: ShieldCheck },
+  BRONZE: { cls: 'bg-bb-accent-soft text-bb-accent-ink', icon: Zap },
+};
+
 const TierBadge = ({ tier }: { tier: string }) => {
-  switch (tier) {
-    case 'DIAMOND':
-      return (
-        <Badge variant="outline" className="bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-900/30 dark:text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.5)]">
-          <Sparkles className="h-3 w-3 mr-1" /> DIAMOND
-        </Badge>
-      );
-    case 'GOLD':
-      return (
-        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-          <Crown className="h-3 w-3 mr-1" /> GOLD
-        </Badge>
-      );
-    case 'SILVER':
-      return (
-        <Badge variant="outline" className="bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800/50 dark:text-slate-300 shadow-[0_0_10px_rgba(148,163,184,0.3)]">
-          <ShieldCheck className="h-3 w-3 mr-1" /> SILVER
-        </Badge>
-      );
-    case 'BRONZE':
-      return (
-        <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 shadow-[0_0_10px_rgba(234,88,12,0.3)]">
-          <Zap className="h-3 w-3 mr-1" /> BRONZE
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 border-transparent">
-          FREE
-        </Badge>
-      );
+  const s = TIER_STYLE[tier];
+  if (!s) {
+    return <span className="inline-flex h-7 items-center rounded-lg bg-bb-surface-2 px-3 text-[13px] font-semibold text-bb-muted">FREE</span>;
   }
+  const TierIcon = s.icon;
+  return (
+    <span className={`inline-flex h-7 items-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold ${s.cls}`}>
+      <TierIcon className="h-3.5 w-3.5" /> {tier}
+    </span>
+  );
 };
 
 export default function SuperAdminCatalogPage() {
@@ -362,103 +352,46 @@ export default function SuperAdminCatalogPage() {
   ) : 0;
 
   return (
-    <div className="p-3 md:p-6 space-y-6">
-      {/* ── Page Header — Indic Premium Gradient ── */}
-      <div className="relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl mb-8 border border-white/10" style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}>
-        <div className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")'}} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--deep-saffron)]/[0.15] rounded-full blur-3xl translate-y-1/2 -translate-x-1/3" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-[var(--deep-saffron)] mr-2 animate-pulse"></span>
-              Content Library
-            </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm font-display">
-               Global Library Management
-            </h1>
-            <p className="text-indigo-100/90 text-lg max-w-xl font-medium">
-               Manage the platform-wide book library. Add books, set access tiers, review institutional submissions, and control publisher permissions.
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-            <EnhancedButton
-              size="lg"
+    <div className="space-y-6">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Content library"
+        title="Global library management"
+        description="Manage the platform-wide book library. Add books, set access tiers, review institutional submissions, and control publisher permissions."
+        actions={
+          <>
+            <Button
               variant="outline"
-              className="shrink-0 bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md font-semibold"
+              size="lg"
               onClick={() => backfillMutation.mutate()}
               disabled={backfillMutation.isPending}
               title="Generate concept maps for ingested books that don't have one yet"
             >
               {backfillMutation.isPending ? (
-                <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Generating…</>
+                <><Icon name="loader" size={18} className="animate-spin" /> Generating…</>
               ) : (
-                <><Network className="h-5 w-5 mr-2" /> Backfill Maps</>
+                <><Icon name="layers" size={18} /> Backfill maps</>
               )}
-            </EnhancedButton>
-            <EnhancedButton
-              size="lg"
-              className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
-              onClick={() => setIsAddBookOpen(true)}
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Add Book to Library
-            </EnhancedButton>
-          </div>
-        </div>
+            </Button>
+            <Button size="lg" onClick={() => setIsAddBookOpen(true)}>
+              <Icon name="plus" size={18} /> Add book to library
+            </Button>
+          </>
+        }
+      />
 
-        {/* Format indicators — warm-toned pills */}
-        <div className="relative z-10 mt-6 flex flex-wrap gap-3">
-          {[
-            { icon: FileText, label: 'PDF', color: 'bg-red-400/15 text-red-100 border-red-400/20' },
-            { icon: BookOpenCheck, label: 'EPUB', color: 'bg-emerald-400/15 text-emerald-100 border-emerald-400/20' },
-            { icon: Headphones, label: 'Audiobook', color: 'bg-amber-400/15 text-amber-100 border-amber-400/20' },
-            { icon: BrainCircuit, label: 'AI-Embedded', color: 'bg-cyan-400/15 text-cyan-100 border-cyan-400/20' },
-          ].map(f => (
-            <span key={f.label} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 backdrop-blur-sm ${f.color}`}>
-              <f.icon className="h-3.5 w-3.5" />
-              {f.label}
-            </span>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-2">
+        <Chip icon="pdf">PDF</Chip>
+        <Chip icon="read">EPUB</Chip>
+        <Chip icon="audiobook">Audiobook</Chip>
+        <Chip icon="bot">AI-embedded</Chip>
       </div>
 
-      {/* ── Stat Pills (Indic Theme) ── */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatPill
-          label="Global Books"
-          value={statsData?.globalBooks?.toString() || "0"}
-          icon={<Globe className="h-5 w-5" />}
-          accent="indigo"
-          delayMs={0}
-          subLabel="Platform-wide library"
-        />
-        <StatPill
-          label="Pending Approvals"
-          value={statsData?.pendingApprovals?.toString() || "0"}
-          icon={<Hourglass className="h-5 w-5" />}
-          accent="saffron"
-          delayMs={80}
-          subLabel="Awaiting review"
-        />
-        <StatPill
-          label="Premium Gated"
-          value={premiumBooksCount.toString()}
-          icon={<Crown className="h-5 w-5" />}
-          accent="gold"
-          delayMs={160}
-          subLabel="Bronze + Silver + Gold + Diamond"
-        />
-        <StatPill
-          label="Supported Formats"
-          value="4"
-          icon={<BookOpen className="h-5 w-5" />}
-          accent="teal"
-          delayMs={240}
-          subLabel="PDF · EPUB · Audio · AI"
-        />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard variant="featured" title="Global books" value={statsData?.globalBooks?.toString() || "0"} description="Platform-wide library" icon="globe" />
+        <StatCard title="Pending approvals" value={statsData?.pendingApprovals?.toString() || "0"} description="Awaiting review" icon="calendar" />
+        <StatCard title="Premium gated" value={premiumBooksCount.toString()} description="Bronze + Silver + Gold + Diamond" icon="crown" />
+        <StatCard title="Supported formats" value="4" description="PDF · EPUB · Audio · AI" icon="library" />
       </div>
 
       {/* ── Wizard + Dialogs + Drawers ── */}
@@ -479,48 +412,29 @@ export default function SuperAdminCatalogPage() {
         bookTitle={embedBook?.title}
       />
 
-      {/* Tabs — Premium Indic Navigation */}
-      <div className="relative bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)] backdrop-blur-xl overflow-hidden">
-        {/* Decorative top accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-bb-cobalt via-bb-cobalt to-bb-accent" />
-        
-        <div className="flex p-1.5 md:p-2 gap-1 md:gap-1.5 overflow-x-auto scrollbar-hide">
-          {[
-            { key: 'GLOBAL' as const, label: 'All Global Books', shortLabel: 'Global', icon: Globe, accent: 'from-bb-cobalt to-bb-cobalt' },
-            { key: 'PENDING' as const, label: 'Approval Requests', shortLabel: 'Pending', icon: Hourglass, count: statsData?.pendingApprovalsCount, accent: 'from-bb-accent to-bb-accent' },
-            { key: 'PUBLISHERS' as const, label: 'Institutional Publishers', shortLabel: 'Publishers', icon: Building2, accent: 'from-bb-cobalt to-bb-cobalt' },
-            { key: 'BIN' as const, label: 'Recycle Bin', shortLabel: 'Bin', icon: Trash, accent: 'from-bb-danger to-bb-danger' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`relative flex-1 min-w-0 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-2.5 px-3 md:px-5 py-3 md:py-3 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 whitespace-nowrap group ${
-                activeTab === tab.key
-                  ? 'bg-slate-50 dark:bg-white/[0.06] text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50/60 dark:hover:bg-white/[0.03]'
-              }`}
-            >
-              {/* Active underline bar */}
-              {activeTab === tab.key && (
-                <div className={`absolute bottom-0 left-3 right-3 md:left-4 md:right-4 h-[2.5px] rounded-full bg-gradient-to-r ${tab.accent}`} />
-              )}
-              <tab.icon className={`h-4 w-4 md:h-[18px] md:w-[18px] shrink-0 transition-colors duration-300 ${
-                activeTab === tab.key ? 'text-bb-text dark:text-bb-accent' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'
-              }`} />
-              {/* Show short label on mobile, full label on md+ */}
-              <span className="md:hidden truncate">{tab.shortLabel}</span>
-              <span className="hidden md:inline">{tab.label}</span>
-              {(tab.count || 0) > 0 && (
-                <span className="relative ml-0 md:ml-1">
-                  <span className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 animate-ping opacity-30" />
-                  <span className="relative bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                    {tab.count}
-                  </span>
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div className="overflow-x-auto scrollbar-hide">
+        <Segmented
+          aria-label="Library section"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          options={[
+            { value: 'GLOBAL', label: <><Icon name="globe" size={16} /> <span className="md:hidden">Global</span><span className="hidden md:inline">All global books</span></> },
+            {
+              value: 'PENDING',
+              label: (
+                <>
+                  <Icon name="calendar" size={16} /> <span className="md:hidden">Pending</span><span className="hidden md:inline">Approval requests</span>
+                  {(statsData?.pendingApprovalsCount || 0) > 0 && (
+                    <span className="ml-1 rounded-full bg-bb-accent px-2 py-0.5 text-[10px] font-bold text-white">{statsData?.pendingApprovalsCount}</span>
+                  )}
+                </>
+              ),
+            },
+            { value: 'PUBLISHERS', label: <><Icon name="institution" size={16} /> <span className="md:hidden">Publishers</span><span className="hidden md:inline">Institutional publishers</span></> },
+            { value: 'BIN', label: <><Icon name="trash" size={16} /> <span className="md:hidden">Bin</span><span className="hidden md:inline">Recycle bin</span></> },
+          ]}
+        />
       </div>
 
       {/* Tab Content: GLOBAL */}
@@ -552,7 +466,7 @@ export default function SuperAdminCatalogPage() {
             <div className="flex flex-col items-center justify-center py-20 px-4">
               <div className="relative mb-6">
                 <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl scale-150" />
-                <div className="relative flex items-center justify-center h-20 w-20 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
+                <div className="relative flex items-center justify-center h-20 w-20 bg-bb-progress rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
                   <BookMarked className="h-10 w-10 text-indigo-400 dark:text-indigo-500" />
                 </div>
               </div>
@@ -561,7 +475,7 @@ export default function SuperAdminCatalogPage() {
                 {search ? `No results for "${search}". Try a different search term.` : 'Your global library is empty. Add your first book to get started.'}
               </p>
               {!search && (
-                <EnhancedButton onClick={() => setIsAddBookOpen(true)} className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/20 rounded-xl">
+                <EnhancedButton onClick={() => setIsAddBookOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" /> Add First Book
                 </EnhancedButton>
               )}
@@ -582,7 +496,7 @@ export default function SuperAdminCatalogPage() {
                   >
                     {/* Cover Thumbnail */}
                     <div
-                      className="w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-sm cursor-pointer"
+                      className="w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-bb-surface-2 border border-slate-200/80 dark:border-slate-700/80 shadow-sm cursor-pointer"
                       onClick={() => { setViewBookId(book.id); setIsViewerOpen(true); }}
                     >
                       {book.coverUrl && !imageErrors[book.id] ? (
@@ -677,7 +591,7 @@ export default function SuperAdminCatalogPage() {
                           {/* Cover Thumbnail */}
                           <TableCell className="pr-0">
                             <div
-                              className="h-14 w-10 rounded-lg bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 overflow-hidden ring-1 ring-slate-200/80 dark:ring-slate-700/80 shadow-sm flex-shrink-0 cursor-pointer hover:shadow-lg hover:ring-indigo-300 dark:hover:ring-indigo-700 transition-all"
+                              className="h-14 w-10 rounded-lg bg-bb-surface-2 overflow-hidden ring-1 ring-slate-200/80 dark:ring-slate-700/80 shadow-sm flex-shrink-0 cursor-pointer hover:shadow-lg hover:ring-indigo-300 dark:hover:ring-indigo-700 transition-all"
                               onClick={() => { setViewBookId(book.id); setIsViewerOpen(true); }}
                             >
                               {book.coverUrl && !imageErrors[book.id] ? (
@@ -891,7 +805,7 @@ export default function SuperAdminCatalogPage() {
                     <TableCell colSpan={4} className="text-center py-16">
                       <div className="relative inline-block mb-4">
                         <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl scale-150" />
-                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-success-soft rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
                           <Inbox className="h-8 w-8 text-emerald-400 dark:text-emerald-500" />
                         </div>
                       </div>
@@ -981,7 +895,7 @@ export default function SuperAdminCatalogPage() {
                     <TableCell colSpan={4} className="text-center py-16">
                       <div className="relative inline-block mb-4">
                         <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-2xl scale-150" />
-                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/30 rounded-2xl border border-purple-100 dark:border-purple-900/40">
+                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-progress rounded-2xl border border-purple-100 dark:border-purple-900/40">
                           <Building2 className="h-8 w-8 text-purple-400 dark:text-purple-500" />
                         </div>
                       </div>
@@ -1010,7 +924,7 @@ export default function SuperAdminCatalogPage() {
                           size="sm" 
                           variant={pub.isGlobalPublisher ? 'outline' : 'default'} 
                           className={!pub.isGlobalPublisher
-                            ? 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white shadow-sm rounded-lg'
+                            ? 'bg-bb-success hover:brightness-95 text-white shadow-sm rounded-lg'
                             : 'text-slate-600 border-slate-200 hover:bg-slate-100 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-slate-800 rounded-lg'
                           }
                           onClick={() => publisherStatusMutation.mutate({ id: pub.id, val: !pub.isGlobalPublisher })}
@@ -1058,7 +972,7 @@ export default function SuperAdminCatalogPage() {
                       <TableCell colSpan={4} className="text-center py-16">
                         <div className="relative inline-block mb-4">
                           <div className="absolute inset-0 bg-slate-500/10 rounded-full blur-2xl scale-150" />
-                          <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/40 dark:to-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-700/40">
+                          <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-surface-2 rounded-2xl border border-slate-200 dark:border-slate-700/40">
                             <Trash className="h-8 w-8 text-slate-400 dark:text-slate-500" />
                           </div>
                         </div>

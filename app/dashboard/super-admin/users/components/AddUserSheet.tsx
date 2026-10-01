@@ -128,7 +128,7 @@ export function AddUserSheet({
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white dark:bg-bb-bg border-l border-slate-200/60 dark:border-slate-700/40" side="right">
         <SheetHeader className="pb-6 border-b border-slate-200/60 dark:border-slate-700/40 mb-6">
           <SheetTitle className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
-            <div className="p-2 rounded-xl bg-gradient-to-br from-[var(--deep-saffron)]/15 to-[var(--saffron)]/10 text-[var(--deep-saffron)]">
+            <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
               <UserCircle className="h-5 w-5" />
             </div>
             Add New User
@@ -147,7 +147,7 @@ export function AddUserSheet({
                 type="button"
                 onClick={() => form.setValue('accountType', 'INDEPENDENT')}
                 className={`flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all duration-300 ${accountType === 'INDEPENDENT' 
-                  ? 'bg-white dark:bg-bb-bg shadow-md text-[var(--deep-saffron)] border border-slate-200/60 dark:border-slate-700/40' 
+                  ? 'bg-white dark:bg-bb-bg shadow-md text-bb-accent-ink border border-slate-200/60 dark:border-slate-700/40' 
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Independent User (B2C)
@@ -156,7 +156,7 @@ export function AddUserSheet({
                 type="button"
                 onClick={() => form.setValue('accountType', 'INSTITUTIONAL')}
                 className={`flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all duration-300 ${accountType === 'INSTITUTIONAL' 
-                  ? 'bg-white dark:bg-bb-bg shadow-md text-[var(--deep-saffron)] border border-slate-200/60 dark:border-slate-700/40' 
+                  ? 'bg-white dark:bg-bb-bg shadow-md text-bb-accent-ink border border-slate-200/60 dark:border-slate-700/40' 
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Affiliated User (B2B)
@@ -171,7 +171,7 @@ export function AddUserSheet({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-slate-700 dark:text-slate-300">Full Name</FormLabel>
-                    <FormControl><Input placeholder="John Doe" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40 focus:border-[var(--deep-saffron)]/40" {...field} /></FormControl>
+                    <FormControl><Input placeholder="John Doe" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -182,7 +182,7 @@ export function AddUserSheet({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-slate-700 dark:text-slate-300">Email Address</FormLabel>
-                    <FormControl><Input type="email" placeholder="john@example.com" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40 focus:border-[var(--deep-saffron)]/40" {...field} /></FormControl>
+                    <FormControl><Input type="email" placeholder="john@example.com" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -193,7 +193,7 @@ export function AddUserSheet({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-slate-700 dark:text-slate-300">Password</FormLabel>
-                    <FormControl><Input type="password" placeholder="********" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40 focus:border-[var(--deep-saffron)]/40" {...field} /></FormControl>
+                    <FormControl><Input type="password" placeholder="********" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -274,7 +274,7 @@ export function AddUserSheet({
                   />
 
                   <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl space-y-4 border border-slate-200/60 dark:border-slate-700/40">
-                    <h4 className="font-bold text-sm text-[var(--deep-saffron)]">Academic & Personal Metadata</h4>
+                    <h4 className="font-bold text-sm text-bb-accent-ink">Academic & Personal Metadata</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField control={form.control} name="rollNo" render={({ field }) => (
                         <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Roll No / Student ID</FormLabel><FormControl><Input placeholder="e.g. 101" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
@@ -292,7 +292,7 @@ export function AddUserSheet({
                   </div>
 
                   <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl space-y-4 border border-slate-200/60 dark:border-slate-700/40">
-                    <h4 className="font-bold text-sm text-[var(--peacock-teal)]">Family & Contact Metadata</h4>
+                    <h4 className="font-bold text-sm text-bb-accent-ink">Family & Contact Metadata</h4>
                     <div className="grid grid-cols-1 gap-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="fatherName" render={({ field }) => (
@@ -314,7 +314,7 @@ export function AddUserSheet({
             <div className="pt-6">
               <EnhancedButton 
                 type="submit" 
-                className="w-full shadow-lg hover:shadow-[var(--saffron)]/20 transition-all duration-300 rounded-xl h-11 text-base font-semibold" 
+                className="w-full shadow-lg hover:shadow-e2 transition-all duration-300 rounded-xl h-11 text-base font-semibold" 
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating User...' : 'Create Account'}

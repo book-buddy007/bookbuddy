@@ -68,7 +68,7 @@ export function PurgeBookDialog({ open, onOpenChange, book }: PurgeBookDialogPro
         <DialogHeader>
           <div className="mx-auto mb-3 relative">
             <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl animate-pulse scale-150" />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950/60 dark:to-rose-950/40 border border-red-200 dark:border-red-800/50 shadow-sm">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-bb-danger-soft border border-red-200 dark:border-red-800/50 shadow-sm">
               <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
             </div>
           </div>
@@ -101,7 +101,7 @@ export function PurgeBookDialog({ open, onOpenChange, book }: PurgeBookDialogPro
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="delete"
             className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm
-              focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400
+ focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400
               bg-white dark:bg-slate-900 transition-all duration-200
               placeholder:text-slate-400 dark:placeholder:text-slate-600"
             disabled={purgeMutation.isPending}
@@ -123,7 +123,7 @@ export function PurgeBookDialog({ open, onOpenChange, book }: PurgeBookDialogPro
             disabled={!canConfirm || purgeMutation.isPending}
             className={`gap-2 rounded-xl text-white shadow-sm transition-all duration-200
               ${canConfirm
-                ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-red-500/20'
+                ? 'bg-bb-danger hover:brightness-95 shadow-red-500/20'
                 : 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
               }`}
           >

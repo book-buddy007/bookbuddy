@@ -39,7 +39,7 @@ export function BookContextHeader({ book }: Props) {
           height={64}
           loading="lazy"
           className="absolute right-5 top-1/2 -translate-y-1/2 h-16 w-12 object-cover
-                     rounded-lg shadow-xl opacity-90 ring-1 ring-white/20"
+ rounded-lg shadow-xl opacity-90 ring-1 ring-white/20"
         />
       )}
 

@@ -85,7 +85,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
         ) : (
           <>
             {/* Cover Header with Gradient */}
-            <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 p-6 pb-8 overflow-hidden">
+            <div className="relative bg-bb-progress p-6 pb-8 overflow-hidden">
               {/* Radiant shine overlay */}
               <div className="absolute inset-0 opacity-30" style={{backgroundImage: 'radial-gradient(circle at 30% 40%, rgba(255,255,255,0.2) 0%, transparent 50%)'}} />
               <SheetHeader>
@@ -158,7 +158,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
               {book.description && (
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-gradient-to-b from-indigo-500 to-purple-500" />
+                    <div className="w-1 h-4 rounded-full bg-bb-progress" />
                     Description
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">{book.description}</p>
@@ -170,7 +170,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
               {/* Formats Section */}
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                  <div className="w-1 h-4 rounded-full bg-gradient-to-b from-teal-500 to-emerald-500" />
+                  <div className="w-1 h-4 rounded-full bg-bb-success" />
                   <Layers className="h-4 w-4" /> Available Formats
                 </h4>
                 <FormatFileList
@@ -187,7 +187,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
                   <Separator className="bg-slate-200/60 dark:bg-slate-700/40" />
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-saffron-500 to-amber-500" style={{ background: 'linear-gradient(to bottom, #FFB547, #D93A00)' }} />
+                      <div className="w-1 h-4 rounded-full bg-bb-progress" style={{ background: 'linear-gradient(to bottom, #FFB547, #D93A00)' }} />
                       <ImageIcon className="h-4 w-4" /> Free Sample
                     </h4>
                     <a href={book.sampleFileUrl} target="_blank" rel="noopener noreferrer"
@@ -204,7 +204,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
                   <Separator className="bg-slate-200/60 dark:bg-slate-700/40" />
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-fuchsia-500 to-pink-500" />
+                      <div className="w-1 h-4 rounded-full bg-bb-progress" />
                       Genres / Categories
                     </h4>
                     <div className="flex flex-wrap gap-1.5">

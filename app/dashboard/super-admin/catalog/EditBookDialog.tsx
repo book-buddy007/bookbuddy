@@ -281,7 +281,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
               </EnhancedButton>
               <EnhancedButton
                 type="submit"
-                className="gap-2 rounded-xl bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white shadow-md transition-all hover:shadow-lg"
+                className="gap-2 rounded-xl text-white shadow-md transition-all hover:shadow-lg"
                 disabled={updateMutation.isPending || !formData.title || !formData.author}
               >
                 {updateMutation.isPending ? (

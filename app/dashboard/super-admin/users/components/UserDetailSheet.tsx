@@ -36,15 +36,15 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md border-l border-slate-200/60 dark:border-slate-700/40 shadow-2xl p-0 overflow-y-auto bg-slate-50 dark:bg-bb-bg">
         {/* Accent strip */}
-        <div className="absolute top-0 left-0 w-1 p-0 h-full bg-gradient-to-b from-[var(--deep-saffron)] to-[var(--gold)] opacity-80" />
+        <div className="absolute top-0 left-0 w-1 p-0 h-full bg-bb-progress opacity-80" />
 
         {/* Header with avatar */}
         <div className="p-6 pb-0 bg-white dark:bg-bb-bg border-b border-slate-200/60 dark:border-slate-700/40">
           <SheetHeader className="text-left">
             <div className="flex flex-col items-center text-center space-y-4 pt-6 pb-4">
-              <Avatar className="h-24 w-24 ring-4 ring-[var(--deep-saffron)]/20 shadow-xl">
+              <Avatar className="h-24 w-24 ring-4 ring-bb-accent/20 shadow-xl">
                 <AvatarImage src={`https://avatar.vercel.sh/${user.email}`} />
-                <AvatarFallback className="text-2xl bg-gradient-to-br from-[var(--deep-saffron)] to-[var(--saffron)] text-white font-semibold">
+                <AvatarFallback className="text-2xl bg-bb-progress text-white font-semibold">
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
@@ -53,13 +53,13 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
                   {user.name}
                 </SheetTitle>
                 <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
-                  <Badge variant="secondary" className="bg-[var(--deep-saffron)]/10 text-[var(--deep-saffron)] border border-[var(--deep-saffron)]/20 capitalize font-semibold">
+                  <Badge variant="secondary" className="bg-bb-accent-soft text-bb-accent-ink border border-bb-accent/20 capitalize font-semibold">
                     <Shield className="w-3 h-3 mr-1" />
                     {user.role?.replace('_', ' ') || 'User'}
                   </Badge>
                   <Badge
                     className={user.isActive 
-                      ? 'bg-[var(--peacock-teal)]/15 text-[var(--peacock-teal)] dark:bg-[var(--peacock-teal)]/20 dark:text-emerald-300 border border-[var(--peacock-teal)]/20 font-semibold' 
+                      ? 'bg-bb-accent-soft text-bb-accent-ink  dark:text-emerald-300 border border-bb-accent/20 font-semibold' 
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-semibold'}
                   >
                     {user.isActive ? 'Active' : 'Suspended'}
@@ -74,11 +74,11 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
           {/* Contact Info */}
           <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4 relative overflow-hidden">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
-              <UserCircle className="w-4 h-4 text-[var(--deep-saffron)]" /> Contact Information
+              <UserCircle className="w-4 h-4 text-bb-accent-ink" /> Contact Information
             </h4>
             <div className="space-y-3">
               <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                <div className="p-1.5 rounded-lg bg-[var(--deep-saffron)]/10 text-[var(--deep-saffron)] mt-0.5">
+                <div className="p-1.5 rounded-lg bg-bb-accent-soft text-bb-accent-ink mt-0.5">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
@@ -92,7 +92,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
           {/* Account Activity */}
           <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[var(--peacock-teal)]" /> Account Activity
+              <Clock className="w-4 h-4 text-bb-accent-ink" /> Account Activity
             </h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
@@ -118,7 +118,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
           <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-[var(--gold)]" /> Institution Access
+                <Building2 className="w-4 h-4 text-bb-accent-ink" /> Institution Access
               </h4>
               <Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 font-bold text-xs">
                 {user.tenantMemberships?.length || 0}
@@ -133,11 +133,11 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
                       {membership.tenant?.name || 'Unknown Institution'}
                     </p>
                     <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-[var(--deep-saffron)] capitalize font-medium flex items-center gap-1">
+                      <p className="text-xs text-bb-accent-ink capitalize font-medium flex items-center gap-1">
                         <Shield className="w-3 h-3" /> {membership.role.toLowerCase().replace('_', ' ')}
                       </p>
                       <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 rounded-md ${membership.status === 'ACTIVE' 
-                        ? 'text-[var(--peacock-teal)] border-[var(--peacock-teal)]/30 bg-[var(--peacock-teal)]/10' 
+                        ? 'text-bb-accent-ink border-bb-accent/30 bg-bb-accent-soft' 
                         : 'text-slate-500 border-slate-300 dark:border-slate-700'}`}>
                         {membership.status}
                       </Badge>

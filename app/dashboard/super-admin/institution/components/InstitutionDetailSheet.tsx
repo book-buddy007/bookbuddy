@@ -50,7 +50,7 @@ export function InstitutionDetailSheet({
           <div className="flex justify-between items-start">
             <div>
               <SheetTitle className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
-                <div className="p-2 rounded-xl bg-gradient-to-br from-[var(--deep-saffron)]/15 to-[var(--saffron)]/10 text-[var(--deep-saffron)]">
+                <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
                   <Building2 className="h-5 w-5" />
                 </div>
                 {institution.name}
@@ -62,7 +62,7 @@ export function InstitutionDetailSheet({
             <Badge 
               variant={(institution as any).isActive !== false ? "default" : "secondary"}
               className={(institution as any).isActive !== false 
-                ? "bg-[var(--peacock-teal)]/15 text-[var(--peacock-teal)] dark:bg-[var(--peacock-teal)]/20 dark:text-emerald-300 border border-[var(--peacock-teal)]/20 font-semibold" 
+                ? "bg-bb-accent-soft text-bb-accent-ink  dark:text-emerald-300 border border-bb-accent/20 font-semibold" 
                 : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-semibold"}
             >
               {(institution as any).isActive !== false ? "Active Tenant" : "Suspended"}
@@ -98,7 +98,7 @@ export function InstitutionDetailSheet({
           <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700/40 bg-slate-50/50 dark:bg-slate-800/30">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-                <ShieldCheck className="h-5 w-5 text-[var(--deep-saffron)]" /> 
+                <ShieldCheck className="h-5 w-5 text-bb-accent-ink" /> 
                 Administration & Contact
               </h3>
             </div>
@@ -109,7 +109,7 @@ export function InstitutionDetailSheet({
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 mb-3">Key Officials</h4>
                     <div className="space-y-4">
                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                        <div className="p-1.5 rounded-lg bg-[var(--deep-saffron)]/10 text-[var(--deep-saffron)] mt-0.5">
+                        <div className="p-1.5 rounded-lg bg-bb-accent-soft text-bb-accent-ink mt-0.5">
                           <User className="h-4 w-4" />
                         </div>
                         <div>
@@ -124,7 +124,7 @@ export function InstitutionDetailSheet({
                         </div>
                       </div>
                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                        <div className="p-1.5 rounded-lg bg-[var(--peacock-teal)]/10 text-[var(--peacock-teal)] mt-0.5">
+                        <div className="p-1.5 rounded-lg bg-bb-accent-soft text-bb-accent-ink mt-0.5">
                           <BookOpen className="h-4 w-4" />
                         </div>
                         <div>
@@ -145,18 +145,18 @@ export function InstitutionDetailSheet({
                     <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 mb-3">Contact Info</h4>
                     <div className="space-y-4">
                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                        <div className="p-1.5 rounded-lg bg-[var(--saffron)]/10 text-[var(--saffron)] mt-0.5">
+                        <div className="p-1.5 rounded-lg bg-bb-accent-soft text-bb-accent-ink mt-0.5">
                           <Globe className="h-4 w-4" />
                         </div>
                         <div>
                           <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">Website & Domain</p>
-                          <p className="text-xs text-[var(--deep-saffron)] truncate max-w-[200px] mt-0.5">
+                          <p className="text-xs text-bb-accent-ink truncate max-w-[200px] mt-0.5">
                             {website || "No website"}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                        <div className="p-1.5 rounded-lg bg-[var(--gold)]/10 text-[var(--gold)] mt-0.5">
+                        <div className="p-1.5 rounded-lg bg-[var(--gold)]/10 text-bb-accent-ink mt-0.5">
                           <Phone className="h-4 w-4" />
                         </div>
                         <div>
@@ -176,12 +176,12 @@ export function InstitutionDetailSheet({
           {branches.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-                <MapPin className="h-4 w-4 text-[var(--peacock-teal)]" /> Library Branches
+                <MapPin className="h-4 w-4 text-bb-accent-ink" /> Library Branches
               </h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 {branches.map((branch: any, idx: number) => (
                   <div key={idx} className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-slate-800/40 shadow-sm backdrop-blur-sm hover:shadow-md transition-shadow">
-                    <h4 className="font-semibold text-sm text-[var(--deep-saffron)] flex items-center gap-2 mb-2">
+                    <h4 className="font-semibold text-sm text-bb-accent-ink flex items-center gap-2 mb-2">
                        <MapPin className="h-4 w-4" /> {branch.name}
                     </h4>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{branch.address}</p>

@@ -122,7 +122,7 @@ function FeaturedBooksSelector({
           {selectedBooks.map(book => (
             <span
               key={book.id}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--peacock-teal)]/10 text-[var(--peacock-teal)] text-sm font-medium border border-[var(--peacock-teal)]/20"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bb-accent-soft text-bb-accent-ink text-sm font-medium border border-bb-accent/20"
             >
               <BookOpen className="h-3.5 w-3.5" />
               {book.title}
@@ -142,7 +142,7 @@ function FeaturedBooksSelector({
           placeholder="Search library to add books…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--peacock-teal)]/30 focus:border-[var(--peacock-teal)] outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent outline-none transition-all"
         />
       </div>
 

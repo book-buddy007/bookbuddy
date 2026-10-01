@@ -146,10 +146,10 @@ export function EmbeddingProgressDialog({
             <div
               className={`relative flex h-16 w-16 items-center justify-center rounded-2xl border shadow-sm ${
                 isFailed
-                  ? 'bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950/60 dark:to-rose-950/40 border-red-200 dark:border-red-800/50'
+                  ? 'bg-bb-danger-soft border-red-200 dark:border-red-800/50'
                   : isReady
-                    ? 'bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/60 dark:to-green-950/40 border-emerald-200 dark:border-emerald-800/50'
-                    : 'bg-gradient-to-br from-cyan-50 to-sky-100 dark:from-cyan-950/60 dark:to-sky-950/40 border-cyan-200 dark:border-cyan-800/50'
+                    ? 'bg-bb-success-soft border-emerald-200 dark:border-emerald-800/50'
+                    : 'bg-bb-info-soft border-transparent'
               }`}
             >
               {isFailed ? (
