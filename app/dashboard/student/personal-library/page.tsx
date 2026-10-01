@@ -2,13 +2,15 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  BookOpen, Search, Trash2, Upload, FileText, FileUp, Library, Clock,
-  ArrowRight, X, AlertCircle, CheckCircle2, Loader2, HardDrive, Edit3, 
-  Check, Folder, FolderPlus, MoreVertical, Star, List, Grid, ChevronRight, 
-  Plus, UploadCloud, FolderOpen, Settings2, Info, Bot, Tag, Menu, ChevronDown
-} from '@/components/ui/icons';
+import { Button } from '@/components/ui/button';
+import { BookCover } from '@/components/ui/book-cover';
+import { Chip } from '@/components/ui/chip';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Icon, type BBIconName } from '@/components/ui/icon';
+import { Progress } from '@/components/ui/progress';
+import { SearchInput } from '@/components/ui/search-input';
+import { Segmented } from '@/components/ui/segmented';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from '@/components/ui/dialog';
@@ -431,75 +433,61 @@ export default function PersonalLibraryPage() {
 
   const isSelected = (id: string) => selection.has(id);
 
+  const iconBtn =
+    'inline-flex h-9 w-9 items-center justify-center rounded-full text-bb-muted transition-colors hover:bg-bb-surface-2 hover:text-bb-text focus-visible:outline-none focus-visible:shadow-focus [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11';
+  const metaLabel = 'text-xs font-bold uppercase tracking-[0.08em] text-bb-muted';
+
   // ── Sidebar content (shared between desktop sidebar and mobile drawer) ─────
 
   const sidebarContent = (
     <>
       <div className="p-5 pb-2">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-5" style={{ fontFamily: 'var(--font-display)' }}>
-          <Library className="w-6 h-6 text-[var(--peacock-teal)]" /> My Library
+        <h2 className="mb-5 flex items-center gap-2 font-display text-xl font-extrabold tracking-[-0.02em]">
+          <Icon name="library" size={24} /> My library
         </h2>
-        
-        <button 
+
+        <Button
+          className="w-full"
           onClick={() => { fileInputRef.current?.click(); setMobileSidebarOpen(false); }}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--peacock-teal)] to-[var(--deep-saffron)] text-white font-bold rounded-xl py-3 shadow-lg hover:shadow-xl hover:opacity-90 transition-all active:scale-95"
         >
-          <UploadCloud className="w-5 h-5" /> New Upload
-        </button>
+          <Icon name="upload" size={18} /> New upload
+        </Button>
         <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".pdf,.epub" className="hidden" />
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-        <SidebarItem 
-          icon={<FolderOpen className="w-5 h-5" />} 
-          label="All Files" 
-          active={activeTab === 'library' && !currentFolderId && !searchQuery} 
-          onClick={() => navigateToFolder(null)} 
+      <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-4">
+        <SidebarItem
+          icon="folder"
+          label="All files"
+          active={activeTab === 'library' && !currentFolderId && !searchQuery}
+          onClick={() => navigateToFolder(null)}
         />
-        <SidebarItem 
-          icon={<Star className="w-5 h-5" />} 
-          label="Starred" 
-          active={activeTab === 'starred'} 
-          onClick={() => handleTabChange('starred')} 
-        />
-        <SidebarItem 
-          icon={<Clock className="w-5 h-5" />} 
-          label="Recent" 
-          active={activeTab === 'recent'} 
-          onClick={() => handleTabChange('recent')} 
-        />
-        
-        <div className="pt-6 pb-2 px-2">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tags</h3>
-          <div className="flex flex-wrap gap-1.5 px-1">
-            {allTags.length === 0 && <div className="text-xs text-slate-400 italic">No tags assigned</div>}
+        <SidebarItem icon="star" label="Starred" active={activeTab === 'starred'} onClick={() => handleTabChange('starred')} />
+        <SidebarItem icon="calendar" label="Recent" active={activeTab === 'recent'} onClick={() => handleTabChange('recent')} />
+
+        <div className="px-2 pb-2 pt-6">
+          <h3 className={`${metaLabel} mb-2`}>Tags</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {allTags.length === 0 && <p className="text-xs text-bb-muted">No tags assigned</p>}
             {allTags.map(tag => (
-              <button 
-                key={tag} 
-                onClick={() => { setSearchQuery(tag); setMobileSidebarOpen(false); }}
-                className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium rounded hover:bg-[var(--peacock-teal)] hover:text-white transition-colors"
-              >
+              <Chip key={tag} onClick={() => { setSearchQuery(tag); setMobileSidebarOpen(false); }}>
                 {tag}
-              </button>
+              </Chip>
             ))}
           </div>
         </div>
       </nav>
 
-      {/* Quota Widget */}
       {quota && (
-        <div className="p-4 mx-4 mb-6 mt-auto rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-sm">
-          <div className="flex justify-between text-xs font-semibold mb-2">
-            <span className="text-slate-500">Storage</span>
-            <span className="text-[var(--peacock-teal)]">{Math.round((quota.usedBytes/quota.maxStorageBytes)*100)}%</span>
+        <div className="mx-4 mb-6 mt-auto rounded-2xl bg-bb-surface-2 p-4">
+          <div className="mb-2 flex justify-between text-xs font-semibold">
+            <span className="text-bb-muted">Storage</span>
+            <span>{Math.round((quota.usedBytes / quota.maxStorageBytes) * 100)}%</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden mb-2">
-             <div 
-               className="h-full bg-gradient-to-r from-[var(--peacock-teal)] to-[var(--deep-saffron)]" 
-               style={{ width: `${Math.min(100, (quota.usedBytes/quota.maxStorageBytes)*100)}%` }} 
-             />
-          </div>
-          <p className="text-[10px] text-slate-500 text-center">{formatBytes(quota.usedBytes)} of {formatBytes(quota.maxStorageBytes)} used</p>
+          <Progress value={Math.min(100, (quota.usedBytes / quota.maxStorageBytes) * 100)} className="mb-2 h-1.5" />
+          <p className="text-center text-[11px] text-bb-muted">
+            {formatBytes(quota.usedBytes)} of {formatBytes(quota.maxStorageBytes)} used
+          </p>
         </div>
       )}
     </>
@@ -508,96 +496,96 @@ export default function PersonalLibraryPage() {
   // ── Info panel content (shared between desktop side-panel and mobile bottom sheet) ──
 
   const infoPanelContent = infoPanelItem && (
-    <div className="flex-1 overflow-y-auto p-5 scroll-smooth">
-       {/* Visual Preview */}
-       <div className="h-32 md:h-40 w-full rounded-2xl bg-slate-100 dark:bg-slate-800 mb-6 flex items-center justify-center border border-slate-200 dark:border-slate-700">
-         {infoPanelItem.type === 'file' ? (
-           infoPanelItem.format === 'pdf' ? <FileText className="w-14 h-14 text-red-500 opacity-80" /> : <FileUp className="w-14 h-14 text-emerald-500 opacity-80" />
-         ) : (
-           <Folder className="w-14 h-14 text-blue-500 opacity-80" />
-         )}
-       </div>
+    <div className="flex-1 overflow-y-auto scroll-smooth p-5">
+      <div className="mb-6 flex h-40 w-full items-center justify-center rounded-2xl bg-bb-surface-2">
+        {infoPanelItem.type === 'file' ? (
+          <BookCover title={infoPanelItem.title} coverUrl={infoPanelItem.coverUrl} width={84} />
+        ) : (
+          <Icon name="folder" size={56} />
+        )}
+      </div>
 
-       {/* Meta Info */}
-       <div className="mb-5">
-         <h4 className="text-lg md:text-xl font-bold leading-tight mb-1">{infoPanelItem.type === 'folder' ? infoPanelItem.name : infoPanelItem.title}</h4>
-         {infoPanelItem.type === 'file' && infoPanelItem.author && <p className="text-sm text-slate-500">{infoPanelItem.author}</p>}
-       </div>
+      <div className="mb-5">
+        <h4 className="mb-1 font-display text-xl font-extrabold leading-tight tracking-[-0.02em]">
+          {infoPanelItem.type === 'folder' ? infoPanelItem.name : infoPanelItem.title}
+        </h4>
+        {infoPanelItem.type === 'file' && infoPanelItem.author && <p className="text-sm text-bb-muted">{infoPanelItem.author}</p>}
+      </div>
 
-       {/* Varta Integration */}
-       {infoPanelItem.type === 'file' && (
-         <button 
-           onClick={() => router.push(`/dashboard/student/varta?personalFileId=${infoPanelItem.id}&title=${encodeURIComponent(infoPanelItem.title)}`)}
-           className="w-full mb-5 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold p-3 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
-         >
-           <Bot className="w-5 h-5" /> Ask Varta
-         </button>
-       )}
+      {infoPanelItem.type === 'file' && (
+        <Button
+          className="mb-5 w-full"
+          onClick={() => router.push(`/reader?personalFileId=${infoPanelItem.id}&format=${infoPanelItem.format}&tab=varta`)}
+        >
+          <Icon name="varta" size={18} /> Ask Varta
+        </Button>
+      )}
 
-       <div className="space-y-3 mb-6">
-         <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Properties</h5>
-         <div className="space-y-2 text-sm">
-           <div className="flex justify-between"><span className="text-slate-500">Type</span><span className="font-medium capitalize">{infoPanelItem.type === 'folder' ? 'Folder' : infoPanelItem.format.toUpperCase()} Document</span></div>
-           {infoPanelItem.type === 'file' && <div className="flex justify-between"><span className="text-slate-500">Size</span><span className="font-medium">{formatBytes(infoPanelItem.fileSize)}</span></div>}
-           <div className="flex justify-between"><span className="text-slate-500">Created</span><span className="font-medium">{new Date(infoPanelItem.createdAt).toLocaleDateString()}</span></div>
-           <div className="flex justify-between"><span className="text-slate-500">Modified</span><span className="font-medium">{new Date(infoPanelItem.updatedAt).toLocaleDateString()}</span></div>
-           {infoPanelItem.type === 'file' && infoPanelItem.lastReadAt && (
-              <div className="flex justify-between"><span className="text-slate-500">Last Read</span><span className="font-medium">{new Date(infoPanelItem.lastReadAt).toLocaleDateString()}</span></div>
-           )}
-         </div>
-       </div>
+      <div className="mb-6 space-y-3">
+        <h5 className={metaLabel}>Properties</h5>
+        <dl className="space-y-2 text-sm">
+          <div className="flex justify-between"><dt className="text-bb-muted">Type</dt><dd className="font-medium capitalize">{infoPanelItem.type === 'folder' ? 'Folder' : `${infoPanelItem.format.toUpperCase()} document`}</dd></div>
+          {infoPanelItem.type === 'file' && <div className="flex justify-between"><dt className="text-bb-muted">Size</dt><dd className="font-medium">{formatBytes(infoPanelItem.fileSize)}</dd></div>}
+          <div className="flex justify-between"><dt className="text-bb-muted">Created</dt><dd className="font-medium">{new Date(infoPanelItem.createdAt).toLocaleDateString()}</dd></div>
+          <div className="flex justify-between"><dt className="text-bb-muted">Modified</dt><dd className="font-medium">{new Date(infoPanelItem.updatedAt).toLocaleDateString()}</dd></div>
+          {infoPanelItem.type === 'file' && infoPanelItem.lastReadAt && (
+            <div className="flex justify-between"><dt className="text-bb-muted">Last read</dt><dd className="font-medium">{new Date(infoPanelItem.lastReadAt).toLocaleDateString()}</dd></div>
+          )}
+        </dl>
+      </div>
 
-       {/* Tags System */}
-       {infoPanelItem.type === 'file' && (
-         <div className="space-y-3 mb-6">
-           <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1"><Tag className="w-3.5 h-3.5"/> Tags</h5>
-           <div className="flex flex-wrap gap-2">
-             {infoPanelItem.tags?.map(tag => (
-               <Badge key={tag} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 border-none font-medium text-xs flex items-center gap-1">
-                 {tag}
-                 <button onClick={() => handleRemoveTag(tag)} className="hover:text-red-500 ml-1 rounded-full"><X className="w-3 h-3 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-full" /></button>
-               </Badge>
-             ))}
-             {(!infoPanelItem.tags || infoPanelItem.tags.length === 0) && <span className="text-xs italic text-slate-400">No tags.</span>}
-           </div>
-           <Input 
-             value={newTagInput} 
-             onChange={e => setNewTagInput(e.target.value)} 
-             onKeyDown={handleAddTag} 
-             placeholder="Add tag and press Enter..." 
-             className="text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm"
-           />
-         </div>
-       )}
+      {infoPanelItem.type === 'file' && (
+        <div className="mb-6 space-y-3">
+          <h5 className={`${metaLabel} flex items-center gap-1.5`}><Icon name="tag" size={14} /> Tags</h5>
+          <div className="flex flex-wrap gap-2">
+            {infoPanelItem.tags?.map(tag => (
+              <Chip key={tag} onRemove={() => handleRemoveTag(tag)}>{tag}</Chip>
+            ))}
+            {(!infoPanelItem.tags || infoPanelItem.tags.length === 0) && <span className="text-xs text-bb-muted">No tags.</span>}
+          </div>
+          <Input
+            value={newTagInput}
+            onChange={e => setNewTagInput(e.target.value)}
+            onKeyDown={handleAddTag}
+            placeholder="Add tag and press Enter"
+            className="h-10 text-sm"
+          />
+        </div>
+      )}
 
-       {/* Actions block */}
-       <div className="space-y-3">
-         <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</h5>
-         <div className="flex flex-wrap gap-2">
-           <button onClick={() => setEditingItem({ id: infoPanelItem.id, type: infoPanelItem.type, name: infoPanelItem.type === 'folder' ? infoPanelItem.name : undefined, title: infoPanelItem.type === 'file' ? infoPanelItem.title : undefined, author: infoPanelItem.type === 'file' ? infoPanelItem.author || '' : undefined })} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold text-sm transition-colors text-slate-700 dark:text-slate-300 active:scale-95">
-             <Edit3 className="w-4 h-4" /> Edit
-           </button>
-           <button onClick={() => setDeleteConfirmId({ id: infoPanelItem.id, type: infoPanelItem.type })} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 font-semibold text-sm transition-colors active:scale-95">
-             <Trash2 className="w-4 h-4" /> Delete
-           </button>
-         </div>
-       </div>
+      <div className="space-y-3">
+        <h5 className={metaLabel}>Actions</h5>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => setEditingItem({ id: infoPanelItem.id, type: infoPanelItem.type, name: infoPanelItem.type === 'folder' ? infoPanelItem.name : undefined, title: infoPanelItem.type === 'file' ? infoPanelItem.title : undefined, author: infoPanelItem.type === 'file' ? infoPanelItem.author || '' : undefined })}
+          >
+            <Icon name="edit" size={16} /> Edit
+          </Button>
+          <Button
+            variant="danger-soft"
+            size="sm"
+            className="flex-1"
+            onClick={() => setDeleteConfirmId({ id: infoPanelItem.id, type: infoPanelItem.type })}
+          >
+            <Icon name="trash" size={16} /> Delete
+          </Button>
+        </div>
+      </div>
     </div>
   );
 
   return (
-    <div className="flex h-full w-full bg-slate-50 dark:bg-bb-bg text-slate-900 dark:text-slate-100 font-sans overflow-hidden">
-      
-      {/* ══════════════════════════════════════════════════════════════════
-           MOBILE SIDEBAR DRAWER (overlay)
-         ══════════════════════════════════════════════════════════════════ */}
+    <div className="flex h-full w-full overflow-hidden rounded-[22px] bg-bb-surface text-bb-text shadow-e1">
+
+      {/* Mobile sidebar drawer */}
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileSidebarOpen(false)}>
-          {/* Scrim */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-vg-fade-in" />
-          {/* Drawer */}
-          <aside 
-            className="absolute top-0 left-0 bottom-0 w-72 bg-white dark:bg-slate-900 shadow-2xl flex flex-col"
+          <div className="absolute inset-0 bg-bb-ink/40 backdrop-blur-sm" />
+          <aside
+            className="absolute bottom-0 left-0 top-0 flex w-72 flex-col bg-bb-surface shadow-e2"
             style={{ animation: 'slideInFromLeft 0.25s ease-out' }}
             onClick={e => e.stopPropagation()}
           >
@@ -605,165 +593,162 @@ export default function PersonalLibraryPage() {
           </aside>
         </div>
       )}
-      
-      {/* ══════════════════════════════════════════════════════════════════
-           DESKTOP SIDEBAR (persistent)
-         ══════════════════════════════════════════════════════════════════ */}
-      <aside className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800/60 bg-white/50 dark:bg-slate-900/40 backdrop-blur-xl flex-col hidden md:flex">
+
+      {/* Desktop sidebar */}
+      <aside className="hidden w-64 flex-shrink-0 flex-col border-r border-bb-border bg-bb-bg md:flex">
         {sidebarContent}
       </aside>
 
-      {/* ══════════════════════════════════════════════════════════════════
-           MAIN VIEW WRAPPER
-         ══════════════════════════════════════════════════════════════════ */}
-      <div className="flex-1 flex overflow-hidden relative min-w-0">
-        
-        {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 flex flex-col min-w-0 relative">
-          
-          {/* Header Toolbar */}
-          <header className="h-14 md:h-16 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-slate-200 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-20 gap-2">
-            
-            {/* Mobile hamburger */}
-            <button onClick={() => setMobileSidebarOpen(true)} className="md:hidden p-2 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" aria-label="Open menu">
-              <Menu className="w-5 h-5" />
+      <div className="relative flex min-w-0 flex-1 overflow-hidden">
+        <main className="relative flex min-w-0 flex-1 flex-col">
+
+          {/* Header toolbar */}
+          <header className="z-20 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-bb-border bg-bb-surface px-4 md:h-16 md:px-6">
+            <button onClick={() => setMobileSidebarOpen(true)} className={`${iconBtn} -ml-1 md:hidden`} aria-label="Open menu">
+              <Icon name="menu" size={20} />
             </button>
 
             {/* Breadcrumbs */}
-            <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto no-scrollbar mask-fade-right flex-1 min-w-0">
-              <button onClick={() => navigateToFolder(null)} className="text-slate-500 hover:text-[var(--peacock-teal)] font-medium flex-shrink-0 text-sm md:text-base">
+            <nav aria-label="Breadcrumb" className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto md:gap-2 [scrollbar-width:none]">
+              <button onClick={() => navigateToFolder(null)} className="flex-shrink-0 text-sm font-medium text-bb-muted hover:text-bb-text md:text-base">
                 Home
               </button>
               {breadcrumb.map((crumb) => (
-                <div key={crumb.id} className="flex items-center gap-1.5 flex-shrink-0">
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  <button onClick={() => crumb.id !== 'search' && crumb.id !== 'starred' ? navigateToFolder(crumb.id) : null} className="text-slate-800 dark:text-slate-200 hover:text-[var(--peacock-teal)] font-medium max-w-[100px] md:max-w-[150px] truncate text-sm md:text-base">
+                <div key={crumb.id} className="flex flex-shrink-0 items-center gap-1.5">
+                  <Icon name="chevron-right" size={14} />
+                  <button
+                    onClick={() => crumb.id !== 'search' && crumb.id !== 'starred' ? navigateToFolder(crumb.id) : null}
+                    className="max-w-[100px] truncate text-sm font-semibold hover:text-bb-accent-ink md:max-w-[150px] md:text-base"
+                  >
                     {crumb.name}
                   </button>
                 </div>
               ))}
-            </div>
+            </nav>
 
-            <div className="flex items-center gap-2 md:gap-4 shrink-0">
-              {/* Mobile search toggle */}
-              <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)} className="sm:hidden p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
-                <Search className="w-5 h-5" />
+            <div className="flex shrink-0 items-center gap-2 md:gap-3">
+              <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)} className={`${iconBtn} sm:hidden`} aria-label="Search">
+                <Icon name="search" size={20} />
               </button>
 
-              {/* Desktop Search */}
-              <div className="relative w-64 hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input 
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search files & tags" 
-                  className="pl-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 transition-all text-sm"
-                />
-              </div>
+              <SearchInput
+                wrapperClassName="hidden w-64 sm:block"
+                className="h-10 text-sm"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search files & tags"
+              />
 
-              {/* View Toggles */}
-              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>
-                  <Grid className="w-4 h-4" />
-                </button>
-                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}>
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
-              
-              {/* New Folder */}
+              <Segmented
+                value={viewMode}
+                onValueChange={setViewMode}
+                size="sm"
+                options={[
+                  { value: 'grid', label: 'Grid' },
+                  { value: 'list', label: 'List' },
+                ]}
+                aria-label="View mode"
+              />
+
               {activeTab === 'library' && !searchQuery && (
-                <button onClick={() => setNewFolderOpen(true)} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 hidden sm:block" title="New Folder">
-                  <FolderPlus className="w-5 h-5" />
+                <button onClick={() => setNewFolderOpen(true)} className={`${iconBtn} hidden sm:inline-flex`} title="New folder" aria-label="New folder">
+                  <Icon name="folder" size={20} />
                 </button>
               )}
             </div>
           </header>
 
-          {/* Mobile Search Bar (slides in below header) */}
+          {/* Mobile search bar */}
           {mobileSearchOpen && (
-            <div className="sm:hidden px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 animate-vg-fade-in">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input 
-                  autoFocus
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search files & tags" 
-                  className="pl-9 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border-transparent text-sm"
-                />
-              </div>
+            <div className="border-b border-bb-border bg-bb-surface px-4 py-2 sm:hidden">
+              <SearchInput
+                autoFocus
+                className="h-10 text-sm"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search files & tags"
+              />
             </div>
           )}
 
-          {/* Multi-select ActionBar Overlay */}
+          {/* Multi-select action bar */}
           {selection.size > 0 && (
-            <div className="absolute top-16 md:top-20 left-1/2 -translate-x-1/2 z-30 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 md:px-6 py-2.5 md:py-3 rounded-full shadow-2xl flex items-center gap-4 md:gap-6 animate-vg-slide-up border border-slate-700 dark:border-slate-200">
-              <span className="font-bold text-sm">{selection.size} selected</span>
-              <div className="w-px h-5 bg-slate-700 dark:bg-slate-300" />
-              <div className="flex items-center gap-1">
-                <button onClick={handleBulkDelete} className="p-2 rounded-full hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors" aria-label="Delete selected">
-                  <Trash2 className="w-4 h-4 text-red-400 dark:text-red-600" />
-                </button>
-                <button onClick={clearSelection} className="p-2 rounded-full hover:bg-slate-800 dark:hover:bg-slate-100 text-slate-400 dark:text-slate-500 ml-1">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+            <div className="absolute left-1/2 top-16 z-30 flex -translate-x-1/2 items-center gap-4 rounded-full bg-bb-navy px-5 py-2.5 text-white shadow-[var(--bb-shadow-navy)] md:top-20">
+              <span className="text-sm font-bold">{selection.size} selected</span>
+              <span className="h-5 w-px bg-white/25" />
+              <button onClick={handleBulkDelete} className="rounded-full p-2 hover:bg-white/10" aria-label="Delete selected">
+                <Icon name="trash" size={18} />
+              </button>
+              <button onClick={clearSelection} className="rounded-full p-2 hover:bg-white/10" aria-label="Clear selection">
+                <Icon name="close" size={18} />
+              </button>
             </div>
           )}
 
-          {/* Upload Banner */}
+          {/* Upload banner */}
           {uploadState.status !== 'idle' && (
-            <div className="mx-4 md:mx-6 mt-4 rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4 shadow-md border animate-vg-fade-in z-10 relative bg-white/90 dark:bg-slate-800/90 backdrop-blur">
-              {uploadState.status === 'error' ? <AlertCircle className="w-5 h-5 text-red-500 shrink-0" /> :
-               uploadState.status === 'done' ? <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> : 
-               <Loader2 className="w-5 h-5 text-[var(--peacock-teal)] animate-spin shrink-0" />}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">{uploadState.status === 'uploading' ? `Uploading ${uploadState.filename} - ${uploadState.progress}%` : uploadState.status}</p>
-                {uploadState.status === 'uploading' && (
-                  <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                    <div className="bg-[var(--peacock-teal)] h-full transition-all" style={{width: `${uploadState.progress}%`}} />
-                  </div>
-                )}
+            <div
+              role="status"
+              className={`relative z-10 mx-4 mt-4 flex items-center gap-3 rounded-2xl p-3 md:mx-6 md:gap-4 md:p-4 ${
+                uploadState.status === 'error' ? 'bg-bb-danger-soft text-bb-danger-ink' : uploadState.status === 'done' ? 'bg-bb-success-soft text-bb-success-ink' : 'bg-bb-surface-2'
+              }`}
+            >
+              {uploadState.status === 'error' ? <Icon name="alert-circle" size={20} className="shrink-0" /> :
+               uploadState.status === 'done' ? <Icon name="check-circle" size={20} className="shrink-0" /> :
+               <Icon name="loader" size={20} className="shrink-0 animate-spin" />}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">
+                  {uploadState.status === 'uploading'
+                    ? `Uploading ${uploadState.filename} · ${uploadState.progress}%`
+                    : uploadState.status === 'error'
+                      ? `${uploadState.filename}: ${uploadState.error}`
+                      : uploadState.status}
+                </p>
+                {uploadState.status === 'uploading' && <Progress value={uploadState.progress} className="mt-2 h-1.5" />}
               </div>
-              <button onClick={() => setUploadState({ status: 'idle', progress: 0, filename: '' })} className="p-1 hover:bg-black/5 rounded shrink-0"><X className="w-4 h-4" /></button>
+              <button onClick={() => setUploadState({ status: 'idle', progress: 0, filename: '' })} className="shrink-0 rounded p-1 hover:bg-black/5" aria-label="Dismiss">
+                <Icon name="close" size={16} />
+              </button>
             </div>
           )}
 
-          {/* Scrollable Content Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 relative scroll-smooth" onClick={clearSelection}>
+          {/* Scrollable content */}
+          <div className="relative flex-1 overflow-y-auto scroll-smooth bg-bb-bg p-4 md:p-8" onClick={clearSelection}>
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center p-20 opacity-50">
-                 <Loader2 className="w-10 h-10 animate-spin text-slate-400 mb-4" />
-                 <p>Loading your space...</p>
+              <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-6 xl:grid-cols-4 2xl:grid-cols-5' : 'flex flex-col gap-3'}>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className={viewMode === 'grid' ? 'h-56 rounded-[18px]' : 'h-20 rounded-[18px]'} />
+                ))}
               </div>
             ) : error ? (
-              <div className="p-10 text-center text-red-500">{error}</div>
-            ) : (folders.length === 0 && files.length === 0) ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-400 text-center max-w-md mx-auto fade-in px-4">
-                <FolderOpen className="w-16 h-16 md:w-20 md:h-20 mb-6 opacity-20" />
-                <h3 className="text-xl md:text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">It's empty here</h3>
-                <p className="mb-8 text-sm md:text-base">Upload files or create folders to organize your personal reading library.</p>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                  className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all active:scale-95 text-sm md:text-base"
-                >
-                  Upload Document
-                </button>
+              <div role="alert" className="mx-auto max-w-md rounded-[18px] bg-bb-danger-soft p-8 text-center text-sm font-semibold text-bb-danger-ink">
+                {error}
+                <div className="mt-4">
+                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); fetchData(); }}>Retry</Button>
+                </div>
               </div>
+            ) : (folders.length === 0 && files.length === 0) ? (
+              <EmptyState
+                className="mx-auto h-full max-w-md"
+                icon="folder"
+                title="It's empty here"
+                description="Upload files or create folders to organize your personal reading library."
+                action={
+                  <Button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                    <Icon name="upload" size={18} /> Upload document
+                  </Button>
+                }
+              />
             ) : (
               <div className={`gap-3 md:gap-6 ${viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5' : 'flex flex-col'}`}>
-                
-                {/* ── Render Folders ── */}
                 {folders.map(folder => {
                   const sid = `folder:${folder.id}`;
-                  const selected = isSelected(sid);
                   return (
-                    <FolderCard 
+                    <FolderCard
                       key={folder.id}
                       folder={folder}
                       viewMode={viewMode}
-                      selected={selected}
+                      selected={isSelected(sid)}
                       highlighted={infoPanelItem?.id === folder.id}
                       onNavigate={() => navigateToFolder(folder.id)}
                       onSelect={(e) => toggleSelection(e, sid)}
@@ -774,16 +759,14 @@ export default function PersonalLibraryPage() {
                   );
                 })}
 
-                {/* ── Render Files ── */}
                 {files.map(file => {
                   const sid = `file:${file.id}`;
-                  const selected = isSelected(sid);
                   return (
-                    <FileCard 
+                    <FileCard
                       key={file.id}
                       file={file}
                       viewMode={viewMode}
-                      selected={selected}
+                      selected={isSelected(sid)}
                       highlighted={infoPanelItem?.id === file.id}
                       onOpen={() => router.push(`/reader?personalFileId=${file.id}&format=${file.format}`)}
                       onSelect={(e) => toggleSelection(e, sid)}
@@ -797,36 +780,26 @@ export default function PersonalLibraryPage() {
             )}
           </div>
 
-          {/* ── Mobile FAB (upload + new folder) ── */}
-          <div className="md:hidden fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3">
+          {/* Mobile FAB (upload + new folder) */}
+          <div className="fixed bottom-24 right-5 z-30 flex flex-col items-end gap-3 md:hidden">
             {activeTab === 'library' && !searchQuery && (
-              <button 
-                onClick={() => setNewFolderOpen(true)} 
-                className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg flex items-center justify-center text-slate-600 dark:text-slate-300 active:scale-90 transition-transform"
-              >
-                <FolderPlus className="w-5 h-5" />
-              </button>
+              <Button variant="glass" size="icon-md" onClick={() => setNewFolderOpen(true)} aria-label="New folder" className="shadow-e2">
+                <Icon name="folder" size={20} />
+              </Button>
             )}
-            <button 
-              onClick={() => fileInputRef.current?.click()} 
-              className="w-14 h-14 rounded-full bg-gradient-to-r from-[var(--peacock-teal)] to-[var(--deep-saffron)] text-white shadow-xl flex items-center justify-center active:scale-90 transition-transform"
-            >
-              <Plus className="w-6 h-6" />
-            </button>
+            <Button size="icon" onClick={() => fileInputRef.current?.click()} aria-label="Upload">
+              <Icon name="plus" size={24} />
+            </Button>
           </div>
         </main>
 
-        {/* ══════════════════════════════════════════════════════════════════
-             DESKTOP INFO PANEL (right sidebar, hidden on mobile)
-           ══════════════════════════════════════════════════════════════════ */}
+        {/* Desktop info panel */}
         {infoPanelItem && (
-          <aside className="w-80 shrink-0 border-l border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex-col animate-vg-fade-in shadow-l hidden md:flex">
-            <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <Info className="w-5 h-5 text-slate-400" /> Details
-              </h3>
-              <button onClick={() => setInfoPanelItem(null)} className="p-2 -mr-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
-                <X className="w-4 h-4" />
+          <aside className="hidden w-80 shrink-0 flex-col border-l border-bb-border bg-bb-surface md:flex">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-bb-border px-4">
+              <h3 className="flex items-center gap-2 font-semibold"><Icon name="info" size={20} /> Details</h3>
+              <button onClick={() => setInfoPanelItem(null)} className={iconBtn} aria-label="Close details">
+                <Icon name="close" size={16} />
               </button>
             </div>
             {infoPanelContent}
@@ -834,28 +807,22 @@ export default function PersonalLibraryPage() {
         )}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════════════
-           MOBILE BOTTOM SHEET (info panel on small screens)
-         ══════════════════════════════════════════════════════════════════ */}
+      {/* Mobile bottom sheet (info panel on small screens) */}
       {infoPanelItem && (
-        <div className="md:hidden fixed inset-0 z-50" onClick={() => setInfoPanelItem(null)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-vg-fade-in" />
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl flex flex-col max-h-[85vh]"
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setInfoPanelItem(null)}>
+          <div className="absolute inset-0 bg-bb-ink/30 backdrop-blur-sm" />
+          <div
+            className="absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-[28px] bg-bb-surface shadow-e2"
             style={{ animation: 'slideUpSheet 0.3s ease-out' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-2 shrink-0">
-              <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+            <div className="flex shrink-0 justify-center pb-2 pt-3">
+              <div className="h-1.5 w-10 rounded-full bg-bb-border" />
             </div>
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 pb-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <Info className="w-5 h-5 text-slate-400" /> Details
-              </h3>
-              <button onClick={() => setInfoPanelItem(null)} className="p-2 -mr-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
-                <X className="w-4 h-4" />
+            <div className="flex shrink-0 items-center justify-between border-b border-bb-border px-5 pb-3">
+              <h3 className="flex items-center gap-2 font-semibold"><Icon name="info" size={20} /> Details</h3>
+              <button onClick={() => setInfoPanelItem(null)} className={iconBtn} aria-label="Close details">
+                <Icon name="close" size={16} />
               </button>
             </div>
             {infoPanelContent}
@@ -863,37 +830,34 @@ export default function PersonalLibraryPage() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════
-           MOBILE CONTEXT MENU (long-press popup)
-         ══════════════════════════════════════════════════════════════════ */}
+      {/* Mobile context menu (long-press popup) */}
       {contextMenuTarget && (
         <div className="fixed inset-0 z-50" onClick={() => setContextMenuTarget(null)}>
-          <div className="absolute inset-0" />
-          <div 
-            className="absolute bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-[180px]"
-            style={{ 
-              top: Math.min(contextMenuTarget.y, window.innerHeight - 280), 
+          <div
+            className="absolute min-w-[190px] rounded-2xl bg-bb-surface py-2 shadow-e2"
+            style={{
+              top: Math.min(contextMenuTarget.y, window.innerHeight - 280),
               left: Math.min(contextMenuTarget.x - 90, window.innerWidth - 200),
               animation: 'scaleIn 0.15s ease-out'
             }}
             onClick={e => e.stopPropagation()}
           >
-            <ContextMenuItem icon={<Info className="w-4 h-4" />} label="Details" onClick={() => {
+            <ContextMenuItem icon="info" label="Details" onClick={() => {
               const item = [...files, ...folders as any[]].find(i => i.id === contextMenuTarget.id);
               if (item) {
                 setInfoPanelItem({ ...item, type: contextMenuTarget.type });
               }
               setContextMenuTarget(null);
             }} />
-            <ContextMenuItem icon={<Star className="w-4 h-4" />} label="Toggle Star" onClick={(e) => {
-              const item = contextMenuTarget.type === 'file' 
+            <ContextMenuItem icon="star" label="Toggle star" onClick={(e) => {
+              const item = contextMenuTarget.type === 'file'
                 ? files.find(f => f.id === contextMenuTarget.id)
                 : folders.find(f => f.id === contextMenuTarget.id);
               if (item) handleToggleStar(e as React.MouseEvent, item.id, contextMenuTarget.type, item.isStarred);
               setContextMenuTarget(null);
             }} />
-            <ContextMenuItem icon={<Edit3 className="w-4 h-4" />} label="Rename" onClick={() => {
-              const item = contextMenuTarget.type === 'file' 
+            <ContextMenuItem icon="edit" label="Rename" onClick={() => {
+              const item = contextMenuTarget.type === 'file'
                 ? files.find(f => f.id === contextMenuTarget.id)
                 : folders.find(f => f.id === contextMenuTarget.id);
               if (item) {
@@ -906,13 +870,13 @@ export default function PersonalLibraryPage() {
               }
               setContextMenuTarget(null);
             }} />
-            <ContextMenuItem icon={<Check className="w-4 h-4" />} label="Select" onClick={() => {
+            <ContextMenuItem icon="check" label="Select" onClick={() => {
               const prefix = contextMenuTarget.type === 'file' ? 'file:' : 'folder:';
               setSelection(prev => { const n = new Set(prev); n.add(prefix + contextMenuTarget.id); return n; });
               setContextMenuTarget(null);
             }} />
-            <div className="mx-3 my-1 border-t border-slate-200 dark:border-slate-700" />
-            <ContextMenuItem icon={<Trash2 className="w-4 h-4 text-red-500" />} label="Delete" danger onClick={() => {
+            <div className="mx-3 my-1 border-t border-bb-border" />
+            <ContextMenuItem icon="trash" label="Delete" danger onClick={() => {
               setDeleteConfirmId({ id: contextMenuTarget.id, type: contextMenuTarget.type });
               setContextMenuTarget(null);
             }} />
@@ -920,26 +884,20 @@ export default function PersonalLibraryPage() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════
-           DIALOGS
-         ══════════════════════════════════════════════════════════════════ */}
-
-      {/* New Folder */}
+      {/* New folder */}
       <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Create New Folder</DialogTitle></DialogHeader>
-          <div className="pt-2">
-            <Input autoFocus placeholder="Folder Name" value={newFolderName} onChange={e => setNewFolderName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreateFolder()} />
-          </div>
-          <DialogFooter className="mt-4"><button onClick={handleCreateFolder} className="px-4 py-2 bg-[var(--peacock-teal)] text-white font-bold rounded-lg hover:bg-teal-700 active:scale-95 transition-transform">Create</button></DialogFooter>
+          <DialogHeader><DialogTitle>Create new folder</DialogTitle></DialogHeader>
+          <Input autoFocus placeholder="Folder name" value={newFolderName} onChange={e => setNewFolderName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreateFolder()} />
+          <DialogFooter><Button onClick={handleCreateFolder}>Create</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Form */}
+      {/* Edit form */}
       <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Rename {editingItem?.type === 'folder' ? 'Folder' : 'File'}</DialogTitle></DialogHeader>
-          <div className="space-y-4 pt-2">
+          <DialogHeader><DialogTitle>Rename {editingItem?.type === 'folder' ? 'folder' : 'file'}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
             {editingItem?.type === 'folder' ? (
               <Input value={editingItem.name || ''} onChange={e => editingItem && setEditingItem({...editingItem, name: e.target.value, type: 'folder'})} />
             ) : (
@@ -949,27 +907,24 @@ export default function PersonalLibraryPage() {
               </>
             )}
           </div>
-          <DialogFooter className="mt-4">
-             <button onClick={handleSaveEdit} className="px-4 py-2 bg-[var(--peacock-teal)] text-white font-bold rounded-lg hover:bg-teal-700 active:scale-95 transition-transform">Save</button>
-          </DialogFooter>
+          <DialogFooter><Button onClick={handleSaveEdit}>Save</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
+      {/* Delete confirm */}
       <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Delete Item</DialogTitle>
+            <DialogTitle>Delete item</DialogTitle>
             <DialogDescription>This action will permanently delete the {deleteConfirmId?.type} and all its contents if it is a folder.</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-4">
-             <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 text-slate-600 font-semibold bg-slate-100 rounded-lg mr-2 hover:bg-slate-200 active:scale-95">Cancel</button>
-             <button onClick={handleDeleteItem} className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 active:scale-95">Delete</button>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteItem}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── Inline CSS for mobile animations ── */}
       <style jsx global>{`
         @keyframes slideInFromLeft {
           from { transform: translateX(-100%); }
@@ -983,6 +938,9 @@ export default function PersonalLibraryPage() {
           from { opacity: 0; transform: scale(0.9); }
           to { opacity: 1; transform: scale(1); }
         }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="slideInFromLeft"], [style*="slideUpSheet"], [style*="scaleIn"] { animation: none !important; }
+        }
       `}</style>
     </div>
   );
@@ -992,31 +950,53 @@ export default function PersonalLibraryPage() {
 // Sub-Components
 // ══════════════════════════════════════════════════════════════════════════════
 
-function SidebarItem({ icon, label, active, onClick }: any) {
+function SidebarItem({ icon, label, active, onClick }: { icon: BBIconName; label: string; active: boolean; onClick: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
-      className={`
-        w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all active:scale-95
-        ${active ? 'bg-white dark:bg-slate-800 text-[var(--peacock-teal)] shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'}
-      `}
+      aria-current={active ? 'page' : undefined}
+      className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:shadow-focus ${
+        active ? 'bg-bb-accent-soft text-bb-accent-ink' : 'text-bb-muted hover:bg-bb-surface-2 hover:text-bb-text'
+      }`}
     >
-      <div className={`${active ? 'opacity-100' : 'opacity-70'} transition-opacity`}>{icon}</div>
+      <Icon name={icon} size={20} />
       {label}
     </button>
   );
 }
 
-function ContextMenuItem({ icon, label, onClick, danger }: { icon: React.ReactNode, label: string, onClick: (e: React.MouseEvent) => void, danger?: boolean }) {
+function ContextMenuItem({ icon, label, onClick, danger }: { icon: BBIconName; label: string; onClick: (e: React.MouseEvent) => void; danger?: boolean }) {
   return (
-    <button 
+    <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors active:bg-slate-100 dark:active:bg-slate-700
-        ${danger ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}
-      `}
+      className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-bb-surface-2 ${danger ? 'text-bb-danger-ink' : ''}`}
     >
-      {icon}
+      <Icon name={icon} size={16} />
       {label}
+    </button>
+  );
+}
+
+const cardBase =
+  'group relative cursor-pointer select-none bg-bb-surface shadow-e1 transition-[transform,box-shadow] duration-bb-ui ease-bb';
+const cardSelected = 'ring-2 ring-bb-accent bg-bb-accent-soft';
+const cardHighlighted = 'ring-2 ring-bb-border';
+const hoverActions =
+  'absolute right-2 top-2 hidden items-center rounded-full bg-bb-surface/90 shadow-e1 backdrop-blur md:flex opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100';
+const hoverBtn = 'inline-flex h-8 w-8 items-center justify-center rounded-full text-bb-muted hover:text-bb-text focus-visible:outline-none focus-visible:shadow-focus';
+
+function SelectTick() {
+  return (
+    <div className="absolute left-2 top-2 z-20 flex h-6 w-6 items-center justify-center rounded-md bg-bb-primary text-white shadow-e1 md:left-3 md:top-3">
+      <Icon name="check" size={16} />
+    </div>
+  );
+}
+
+function StarBtn({ starred, onClick }: { starred: boolean; onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <button onClick={(e) => { e.stopPropagation(); onClick(e); }} className={hoverBtn} aria-label={starred ? 'Unstar' : 'Star'} aria-pressed={starred}>
+      <Icon name="star" size={16} className={starred ? 'text-bb-accent' : undefined} />
     </button>
   );
 }
@@ -1031,10 +1011,10 @@ function FolderCard({ folder, viewMode, selected, highlighted, onNavigate, onSel
 }) {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
+  const cancel = () => { if (longPressTimer.current) clearTimeout(longPressTimer.current); };
 
   return (
-    <div 
-      key={folder.id}
+    <div
       onClick={(e) => { e.stopPropagation(); if (didLongPress.current) { didLongPress.current = false; return; } if (e.ctrlKey || e.metaKey) onSelect(e); else onNavigate(); }}
       onTouchStart={(e) => {
         didLongPress.current = false;
@@ -1045,44 +1025,28 @@ function FolderCard({ folder, viewMode, selected, highlighted, onNavigate, onSel
           onLongPress(touch);
         }, 500);
       }}
-      onTouchEnd={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-      onTouchCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-      onTouchMove={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-      className={`
-        group relative flex ${viewMode === 'grid' ? 'flex-col items-center p-4 md:p-6 text-center' : 'flex-row items-center p-3 md:p-4 text-left'}
-        bg-white dark:bg-slate-900 border rounded-2xl cursor-pointer transition-all duration-200 select-none
-        ${selected ? 'border-[var(--peacock-teal)] ring-2 ring-[var(--peacock-teal)]/20 shadow-md bg-[var(--peacock-teal)]/5' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md'}
-        ${highlighted ? 'ring-2 ring-slate-300 dark:ring-slate-600' : ''}
-      `}
+      onTouchEnd={cancel}
+      onTouchCancel={cancel}
+      onTouchMove={cancel}
+      className={`${cardBase} flex rounded-[18px] ${viewMode === 'grid' ? 'flex-col items-center p-4 text-center md:p-6' : 'flex-row items-center p-3 text-left md:p-4'} ${selected ? cardSelected : 'md:hover:-translate-y-0.5 md:hover:shadow-e2'} ${highlighted ? cardHighlighted : ''}`}
     >
-      <div className={`${viewMode === 'grid' ? 'w-12 h-12 md:w-16 md:h-16 mb-3 md:mb-4' : 'w-10 h-10 mr-3 md:mr-4'} shrink-0 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl flex items-center justify-center`}>
-        <Folder className={`${viewMode === 'grid' ? 'w-6 h-6 md:w-8 md:h-8' : 'w-5 h-5'} fill-current opacity-80`} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-slate-800 dark:text-slate-200 truncate text-sm md:text-base">{folder.name}</h4>
-        {viewMode === 'list' && <p className="text-xs text-slate-500 mt-0.5">Folder • {new Date(folder.updatedAt).toLocaleDateString()}</p>}
-      </div>
-
-      {/* Quick actions (desktop hover-only) */}
-      <div className={`absolute top-2 right-2 hidden md:flex ${viewMode === 'grid' ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
-        <button onClick={(e) => { e.stopPropagation(); onInfo(); }} className="p-1.5 text-slate-400 hover:text-[var(--peacock-teal)]"><Info className="w-4 h-4" /></button>
-        <button onClick={(e) => { e.stopPropagation(); onStar(e); }} className="p-1.5 text-slate-400 hover:text-yellow-500">
-           <Star className={`w-4 h-4 ${folder.isStarred ? 'fill-yellow-400 text-yellow-500' : ''}`} />
-        </button>
+      <span className={`${viewMode === 'grid' ? 'mb-3 h-14 w-14 md:mb-4 md:h-16 md:w-16' : 'mr-3 h-11 w-11 md:mr-4'} flex shrink-0 items-center justify-center rounded-[14px] bg-bb-accent-soft`}>
+        <Icon name="folder" size={viewMode === 'grid' ? 32 : 22} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <h4 className="truncate text-sm font-semibold md:text-base">{folder.name}</h4>
+        {viewMode === 'list' && <p className="mt-0.5 text-xs text-bb-muted">Folder · {new Date(folder.updatedAt).toLocaleDateString()}</p>}
       </div>
 
-      {/* Star indicator (small, always visible on mobile if starred) */}
+      <div className={hoverActions}>
+        <button onClick={(e) => { e.stopPropagation(); onInfo(); }} className={hoverBtn} aria-label="Details"><Icon name="info" size={16} /></button>
+        <StarBtn starred={folder.isStarred} onClick={onStar} />
+      </div>
+
       {folder.isStarred && (
-        <div className="md:hidden absolute top-2 right-2">
-          <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-500" />
-        </div>
+        <div className="absolute right-2 top-2 md:hidden"><Icon name="star" size={14} className="text-bb-accent" /></div>
       )}
-
-      {selected && (
-        <div className="absolute top-2 left-2 md:top-3 md:left-3 bg-[var(--peacock-teal)] text-white w-5 h-5 md:w-6 md:h-6 rounded-md flex items-center justify-center shadow-sm z-20">
-           <Check className="w-3 h-3 md:w-4 md:h-4" />
-        </div>
-      )}
+      {selected && <SelectTick />}
     </div>
   );
 }
@@ -1097,10 +1061,11 @@ function FileCard({ file, viewMode, selected, highlighted, onOpen, onSelect, onI
 }) {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
+  const cancel = () => { if (longPressTimer.current) clearTimeout(longPressTimer.current); };
+  const pct = Math.min(100, Math.round(file.progress * 100));
 
   return (
-    <div 
-      key={file.id}
+    <div
       onClick={(e) => { e.stopPropagation(); if (didLongPress.current) { didLongPress.current = false; return; } if (e.ctrlKey || e.metaKey) onSelect(e); else onOpen(); }}
       onTouchStart={(e) => {
         didLongPress.current = false;
@@ -1111,78 +1076,51 @@ function FileCard({ file, viewMode, selected, highlighted, onOpen, onSelect, onI
           onLongPress(touch);
         }, 500);
       }}
-      onTouchEnd={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-      onTouchCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-      onTouchMove={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); }}
-      className={`
-        group relative flex ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-center'}
-        bg-white dark:bg-slate-900 border rounded-2xl cursor-pointer overflow-hidden transition-all duration-300 select-none
-        ${selected ? 'border-[var(--peacock-teal)] ring-2 ring-[var(--peacock-teal)]/20 shadow-md ring-inset' : 'border-slate-200 dark:border-slate-800 md:hover:-translate-y-1 hover:shadow-xl'}
-        ${highlighted ? 'ring-2 ring-slate-300 dark:ring-slate-600' : ''}
-      `}
+      onTouchEnd={cancel}
+      onTouchCancel={cancel}
+      onTouchMove={cancel}
+      className={`${cardBase} flex overflow-hidden rounded-[18px] ${viewMode === 'grid' ? 'flex-col' : 'flex-row items-center gap-3 p-3'} ${selected ? cardSelected : 'md:hover:-translate-y-0.5 md:hover:shadow-e2'} ${highlighted ? cardHighlighted : ''}`}
     >
-      {/* Cover */}
-      <div className={`${viewMode === 'grid' ? 'h-36 md:h-48' : 'w-14 h-14 md:w-16 md:h-16 shrink-0 m-2.5 md:m-3 rounded-lg'} bg-slate-50 dark:bg-slate-800 flex items-center justify-center relative overflow-hidden`}>
-         {file.format === 'pdf' ? (
-           <FileText className={`${viewMode === 'grid' ? 'w-12 h-12 md:w-16 md:h-16' : 'w-7 h-7 md:w-8 md:h-8'} text-red-400 opacity-80 group-hover:scale-110 transition-transform`} />
-         ) : (
-           <FileUp className={`${viewMode === 'grid' ? 'w-12 h-12 md:w-16 md:h-16' : 'w-7 h-7 md:w-8 md:h-8'} text-emerald-400 opacity-80 group-hover:scale-110 transition-transform`} />
-         )}
-         {viewMode === 'grid' && (
-           <Badge className="absolute top-2 left-2 md:top-3 md:left-3 bg-white/90 dark:bg-slate-900/90 text-[10px] md:text-xs py-0 shadow-sm backdrop-blur border-0">
-             {file.format.toUpperCase()}
-           </Badge>
-         )}
-      </div>
+      {viewMode === 'grid' ? (
+        <div className="relative flex h-48 items-center justify-center bg-bb-surface-2">
+          <BookCover title={file.title} subject={file.format} coverUrl={file.coverUrl} width={96} />
+          <span className="absolute left-2 top-2 md:left-3 md:top-3">
+            {!selected && <Chip className="h-6 bg-bb-surface/90 text-[11px]">{file.format.toUpperCase()}</Chip>}
+          </span>
+        </div>
+      ) : (
+        <BookCover title={file.title} subject={file.format} coverUrl={file.coverUrl} width={40} />
+      )}
 
-      {/* Metadata */}
-      <div className={`flex flex-col flex-1 min-w-0 ${viewMode === 'grid' ? 'p-3 md:p-4 border-t border-slate-100 dark:border-slate-800' : 'py-2.5 md:py-3 pr-3 md:pr-4'}`}>
-        <h4 className="font-bold text-slate-800 dark:text-white truncate group-hover:text-[var(--peacock-teal)] transition-colors text-sm md:text-base">{file.title}</h4>
-        <p className="text-[11px] md:text-xs text-slate-500 truncate mt-0.5">{file.author || 'Unknown author'}</p>
-        
-        {viewMode === 'grid' && (
-          <div className="flex items-center justify-between mt-3 md:mt-4">
-             <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 md:px-2 rounded-md py-0.5">{formatBytes(file.fileSize)}</span>
-             <span className="text-[11px] md:text-xs font-semibold text-[var(--peacock-teal)]">{file.progress > 0 ? `${Math.round(file.progress * 100)}%` : 'New'}</span>
+      <div className={`flex min-w-0 flex-1 flex-col ${viewMode === 'grid' ? 'p-3 md:p-4' : ''}`}>
+        <h4 className="truncate text-sm font-semibold md:text-base">{file.title}</h4>
+        <p className="mt-0.5 truncate text-xs text-bb-muted">{file.author || 'Unknown author'}</p>
+
+        {viewMode === 'grid' ? (
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold text-bb-muted">{formatBytes(file.fileSize)}</span>
+            <span className="text-xs font-bold text-bb-accent-ink">{file.progress > 0 ? `${pct}%` : 'New'}</span>
+          </div>
+        ) : (
+          <div className="mt-1 flex items-center gap-3 text-xs text-bb-muted">
+            <span>{formatBytes(file.fileSize)}</span>
+            <span>{file.format.toUpperCase()}</span>
+            {file.progress > 0 && <span className="ml-auto pr-8 font-bold text-bb-accent-ink">{pct}%</span>}
           </div>
         )}
-        
-        {viewMode === 'list' && (
-           <div className="flex items-center gap-3 md:gap-4 mt-1">
-             <span className="text-[11px] md:text-xs text-slate-400">{formatBytes(file.fileSize)}</span>
-             <span className="text-[11px] md:text-xs text-slate-400">{file.format.toUpperCase()}</span>
-             <span className="text-[11px] md:text-xs font-semibold text-[var(--peacock-teal)] ml-auto pr-6 md:pr-8">{file.progress > 0 ? `${Math.round(file.progress * 100)}%` : ''}</span>
-           </div>
-        )}
       </div>
 
-      {/* Progress bar overlay (grid) */}
-      {file.progress > 0 && viewMode === 'grid' && (
-        <div className="absolute top-36 md:top-48 left-0 right-0 h-1 bg-slate-100 dark:bg-slate-800 -mt-1 z-10">
-           <div className="h-full bg-[var(--peacock-teal)]" style={{ width: `${Math.min(100, file.progress * 100)}%` }} />
-        </div>
-      )}
+      {file.progress > 0 && viewMode === 'grid' && <Progress value={pct} className="h-1 rounded-none" />}
 
-      {/* Desktop hover actions */}
-      <div className={`absolute top-2 right-2 hidden md:flex bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-lg shadow-sm border border-slate-200/50 dark:border-slate-700/50 opacity-0 group-hover:opacity-100 transition-opacity ${viewMode === 'list' && 'top-1/2 -translate-y-1/2 shadow-none border-0 bg-transparent dark:bg-transparent mr-2'}`}>
-        <button onClick={(e) => { e.stopPropagation(); onInfo(); }} className="p-1.5 text-slate-400 hover:text-[var(--peacock-teal)]"><Info className="w-4 h-4" /></button>
-        <button onClick={(e) => { e.stopPropagation(); onStar(e); }} className="p-1.5 text-slate-400 hover:text-yellow-500">
-           <Star className={`w-4 h-4 ${file.isStarred ? 'fill-yellow-400 text-yellow-500' : ''}`} />
-        </button>
+      <div className={`${hoverActions} ${viewMode === 'list' ? 'top-1/2 -translate-y-1/2' : ''}`}>
+        <button onClick={(e) => { e.stopPropagation(); onInfo(); }} className={hoverBtn} aria-label="Details"><Icon name="info" size={16} /></button>
+        <StarBtn starred={file.isStarred} onClick={onStar} />
       </div>
 
-      {/* Star indicator (mobile) */}
       {file.isStarred && (
-        <div className="md:hidden absolute top-2 right-2">
-          <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-500" />
-        </div>
+        <div className="absolute right-2 top-2 md:hidden"><Icon name="star" size={14} className="text-bb-accent" /></div>
       )}
-
-      {selected && (
-        <div className="absolute top-2 left-2 md:top-3 md:left-3 bg-[var(--peacock-teal)] text-white w-5 h-5 md:w-6 md:h-6 rounded-md flex items-center justify-center shadow-sm z-20">
-           <Check className="w-3 h-3 md:w-4 md:h-4" />
-        </div>
-      )}
+      {selected && <SelectTick />}
     </div>
   );
 }

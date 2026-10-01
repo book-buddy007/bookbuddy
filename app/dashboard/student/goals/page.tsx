@@ -3,28 +3,17 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import apiClient from "@/lib/apiClient";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
-import { StatCard } from "@/components/ui/stat-card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  BookOpen,
-  Trophy,
-  Target,
-  Calendar as CalendarIcon,
-  Clock,
-  Star,
-  BookMarked,
-  Award,
-  ChevronRight,
-  ChevronDown,
-  TrendingUp
-} from "@/components/ui/icons";
-import { Badge } from "@/components/ui/badge";
+import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FormField } from "@/components/ui/form-field";
+import { Icon, type BBIconName } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -43,20 +32,27 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import adminStyles from "@/app/admin.module.css";
+
+const EMPTY_GOAL = {
+  title: "",
+  type: "books",
+  target: "",
+  deadline: new Date(),
+  category: "General",
+  notes: "",
+};
+
+const ACHIEVEMENT_ICON: Record<string, BBIconName> = {
+  book: "read",
+  clock: "calendar",
+  graduation: "goals",
+};
 
 export default function GoalsPage() {
   const { isAuthenticated } = useAuthStore();
   const [timeframe, setTimeframe] = useState("monthly");
   const [showNewGoalDialog, setShowNewGoalDialog] = useState(false);
-  const [newGoal, setNewGoal] = useState({
-    title: "",
-    type: "books",
-    target: "",
-    deadline: new Date(),
-    category: "General",
-    notes: "",
-  });
+  const [newGoal, setNewGoal] = useState({ ...EMPTY_GOAL });
 
   const [isLoading, setIsLoading] = useState(true);
   const [readingStats, setReadingStats] = useState({
@@ -118,38 +114,33 @@ export default function GoalsPage() {
     },
   ];
 
-  const GoalCreationForm = () => (
+  // Rendered inline (not as an inner component) so typing doesn't remount the inputs.
+  const goalForm = (
     <form className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Goal Title</Label>
+      <FormField label="Goal title" htmlFor="title">
         <Input
           id="title"
           placeholder="e.g., Read 5 books this month"
           value={newGoal.title}
           onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
         />
-      </div>
+      </FormField>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="type">Goal Type</Label>
-          <Select
-            value={newGoal.type}
-            onValueChange={(value) => setNewGoal({ ...newGoal, type: value })}
-          >
-            <SelectTrigger>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField label="Goal type" htmlFor="type">
+          <Select value={newGoal.type} onValueChange={(value) => setNewGoal({ ...newGoal, type: value })}>
+            <SelectTrigger id="type">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="books">Number of Books</SelectItem>
-              <SelectItem value="pages">Number of Pages</SelectItem>
-              <SelectItem value="time">Reading Time</SelectItem>
+              <SelectItem value="books">Number of books</SelectItem>
+              <SelectItem value="pages">Number of pages</SelectItem>
+              <SelectItem value="time">Reading time</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="target">Target</Label>
+        <FormField label="Target" htmlFor="target">
           <Input
             id="target"
             type="number"
@@ -157,17 +148,13 @@ export default function GoalsPage() {
             value={newGoal.target}
             onChange={(e) => setNewGoal({ ...newGoal, target: e.target.value })}
           />
-        </div>
+        </FormField>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={newGoal.category}
-            onValueChange={(value) => setNewGoal({ ...newGoal, category: value })}
-          >
-            <SelectTrigger>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField label="Category" htmlFor="category">
+          <Select value={newGoal.category} onValueChange={(value) => setNewGoal({ ...newGoal, category: value })}>
+            <SelectTrigger id="category">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -176,17 +163,13 @@ export default function GoalsPage() {
               <SelectItem value="Personal">Personal</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label>Deadline</Label>
+        <FormField label="Deadline">
           <Popover>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="w-full justify-start text-left font-normal">
+                <Icon name="calendar" size={18} />
                 {newGoal.deadline ? format(newGoal.deadline, "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
@@ -199,25 +182,20 @@ export default function GoalsPage() {
               />
             </PopoverContent>
           </Popover>
-        </div>
+        </FormField>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+      <FormField label="Notes" htmlFor="notes">
         <Textarea
           id="notes"
           placeholder="Add any additional details about your goal..."
           value={newGoal.notes}
           onChange={(e) => setNewGoal({ ...newGoal, notes: e.target.value })}
         />
-      </div>
+      </FormField>
 
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={() => setShowNewGoalDialog(false)}
-          type="button"
-        >
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="outline" onClick={() => setShowNewGoalDialog(false)} type="button">
           Cancel
         </Button>
         <Button
@@ -226,262 +204,209 @@ export default function GoalsPage() {
             // Here you would typically make an API call to save the goal
             console.log("New goal:", newGoal);
             setShowNewGoalDialog(false);
-            setNewGoal({
-              title: "",
-              type: "books",
-              target: "",
-              deadline: new Date(),
-              category: "General",
-              notes: "",
-            });
+            setNewGoal({ ...EMPTY_GOAL, deadline: new Date() });
           }}
           type="submit"
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          Create Goal
+          Create goal
         </Button>
       </div>
     </form>
   );
 
-  return (
-    <div className="space-y-8 animate-vg-fade-in relative z-10">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <Target className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
-            Reading Goals & Analytics
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Track your reading progress and achievements
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select value={timeframe} onValueChange={setTimeframe}>
-            <SelectTrigger className="w-[180px] border-indigo-200 focus:border-indigo-500">
-              <SelectValue placeholder="Select timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="weekly">This Week</SelectItem>
-              <SelectItem value="monthly">This Month</SelectItem>
-              <SelectItem value="yearly">This Year</SelectItem>
-            </SelectContent>
-          </Select>
-          <Dialog open={showNewGoalDialog} onOpenChange={setShowNewGoalDialog}>
-            <DialogTrigger asChild>
-              <EnhancedButton
-                className="shadow-lg border-transparent"
-                icon={<Target className="h-4 w-4" />}
-              >
-                New Goal
-              </EnhancedButton>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create New Reading Goal</DialogTitle>
-                <DialogDescription>
-                  Set a new reading goal to track your progress
-                </DialogDescription>
-              </DialogHeader>
-              <GoalCreationForm />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+  const maxPages = Math.max(50, ...readingHistory.map((d) => d.pages || 0));
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-4">
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Student"
+        title="Reading goals"
+        description="Track your reading progress and achievements."
+        actions={
+          <>
+            <Select value={timeframe} onValueChange={setTimeframe}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Select timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="weekly">This week</SelectItem>
+                <SelectItem value="monthly">This month</SelectItem>
+                <SelectItem value="yearly">This year</SelectItem>
+              </SelectContent>
+            </Select>
+            <Dialog open={showNewGoalDialog} onOpenChange={setShowNewGoalDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Icon name="plus" size={18} /> New goal
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Create new reading goal</DialogTitle>
+                  <DialogDescription>Set a new reading goal to track your progress</DialogDescription>
+                </DialogHeader>
+                {goalForm}
+              </DialogContent>
+            </Dialog>
+          </>
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          title="Books Read"
-          value={readingStats.totalBooks.toString()}
-          description="+2 from last month"
-          icon={BookOpen}
-          iconColor="text-indigo-600 dark:text-indigo-400"
-          iconBgColor="bg-indigo-50 dark:bg-indigo-900/20"
-          variant="primary"
-          trend="up"
+          variant="featured"
+          title="Books read"
+          value={readingStats.totalBooks}
+          icon="library"
+          loading={isLoading}
+        />
+        <StatCard title="Pages read" value={readingStats.totalPages} icon="read" loading={isLoading} />
+        <StatCard
+          title="Reading time"
+          value={`${readingStats.readingTimeHours || 0}h`}
+          icon="calendar"
+          loading={isLoading}
         />
         <StatCard
-          title="Pages Read"
-          value={readingStats.totalPages.toString()}
-          description="+456 from last month"
-          icon={BookMarked}
-          iconColor="text-emerald-600 dark:text-emerald-400"
-          iconBgColor="bg-emerald-50 dark:bg-emerald-900/20"
-          variant="success"
-          trend="up"
-        />
-        <StatCard
-          title="Reading Time"
-          value={readingStats.readingTimeHours ? `${readingStats.readingTimeHours}h` : "0h"}
-          description="+0h from last month"
-          icon={Clock}
-          iconColor="text-purple-600 dark:text-purple-400"
-          iconBgColor="bg-purple-50 dark:bg-purple-900/20"
-          variant="info"
-          trend="up"
-        />
-        <StatCard
-          title="Current Streak"
+          title="Current streak"
           value={`${readingStats.streak} days`}
           description="Keep it up!"
-          icon={Star}
-          iconColor="text-amber-600 dark:text-amber-400"
-          iconBgColor="bg-amber-50 dark:bg-amber-900/20"
-          variant="warning"
+          icon="streak"
+          loading={isLoading}
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
-          <div className={adminStyles.archMotif} />
-          <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
-              <Trophy className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              Current Goals
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-slate-600 dark:text-slate-400">
-              Track your progress towards your reading goals
-            </EnhancedCardDescription>
-          </EnhancedCardHeader>
-          <EnhancedCardContent className="relative z-10">
-            <div className="space-y-6">
-              {isLoading ? (
-                <div className="text-center py-6 text-slate-500">Loading goals...</div>
-              ) : currentGoals.length === 0 ? (
-                <div className="text-center py-6 text-slate-500">No active goals found. Set one up!</div>
-              ) : currentGoals.map((goal) => (
-                <div key={goal.id} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-slate-800 dark:text-slate-200">{goal.title}</h4>
-                      <p className="text-sm text-slate-500 flex items-center gap-1 mt-0.5">
-                        <CalendarIcon className="h-3 w-3" /> Due: {new Date(goal.deadline).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
-                      {goal.category}
-                    </Badge>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-sm font-medium">
-                      <span className="text-slate-600 dark:text-slate-400">{goal.progress} of {goal.target} {goal.type === "books" ? "books" : "pages"}</span>
-                      <span className="text-indigo-600 dark:text-indigo-400">{Math.min(100, Math.round((goal.progress / goal.target) * 100))}%</span>
-                    </div>
-                    <Progress value={Math.min(100, (goal.progress / goal.target) * 100)} className="h-2 bg-indigo-100 dark:bg-indigo-900/30" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="space-y-4">
+          <div>
+            <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Current goals</h2>
+            <p className="text-[13px] text-bb-muted">Track your progress towards your reading goals</p>
+          </div>
 
-        <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
-          <div className={adminStyles.archMotif} />
-          <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
-              <Award className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              Achievements
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-slate-600 dark:text-slate-400">
-              Your reading accomplishments and badges
-            </EnhancedCardDescription>
-          </EnhancedCardHeader>
-          <EnhancedCardContent className="relative z-10">
-            <div className="space-y-4">
-              {achievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${!achievement.unlocked
-                    ? "opacity-60 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
-                    : "border-indigo-100 dark:border-indigo-900/30 bg-white dark:bg-slate-900 shadow-sm"
-                    }`}
-                >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${achievement.unlocked ? "bg-indigo-50 dark:bg-indigo-900/20" : "bg-slate-100 dark:bg-slate-800"
-                    }`}>
-                    <Award className={`h-6 w-6 ${achievement.unlocked ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400"}`} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 className={`font-semibold ${achievement.unlocked ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>
-                        {achievement.title}
-                      </h4>
-                      {achievement.unlocked && (
-                        <Badge variant="default" className="bg-indigo-600 text-white border-transparent">Unlocked</Badge>
-                      )}
-                    </div>
-                    <p className={`text-sm mt-0.5 ${achievement.unlocked ? "text-slate-600 dark:text-slate-400" : "text-slate-400 dark:text-slate-500"}`}>
-                      {achievement.description}
-                    </p>
-                    {achievement.unlocked && achievement.date && (
-                      <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-1.5 font-medium">
-                        Unlocked on {new Date(achievement.date).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} className="h-24 rounded-[18px]" />
               ))}
             </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
+          ) : currentGoals.length === 0 ? (
+            <EmptyState
+              icon="goals"
+              title="No active goals yet"
+              description="Set a goal for books, pages or reading time and watch your progress here."
+              action={
+                <Button onClick={() => setShowNewGoalDialog(true)}>
+                  <Icon name="plus" size={18} /> New goal
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {currentGoals.map((goal) => {
+                const pct = goal.target ? Math.min(100, Math.round((goal.progress / goal.target) * 100)) : 0;
+                return (
+                  <article key={goal.id} className="rounded-[18px] bg-bb-surface p-4 shadow-e1 sm:p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold">{goal.title}</h3>
+                        <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-bb-muted">
+                          <Icon name="calendar" size={14} /> Due {new Date(goal.deadline).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Chip>{goal.category}</Chip>
+                    </div>
+                    <div className="mt-4 flex items-center gap-3">
+                      <Progress value={pct} className="flex-1" />
+                      <span className="text-sm font-bold tabular-nums">{pct}%</span>
+                    </div>
+                    <p className="mt-1.5 text-[13px] text-bb-muted">
+                      {goal.progress} of {goal.target} {goal.type === "books" ? "books" : "pages"}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Achievements</h2>
+            <p className="text-[13px] text-bb-muted">Your reading accomplishments and badges</p>
+          </div>
+          <div className="space-y-3">
+            {achievements.map((a) => (
+              <article
+                key={a.id}
+                className={`flex items-start gap-4 rounded-[18px] p-4 sm:p-5 ${
+                  a.unlocked ? "bg-bb-surface shadow-e1" : "bg-bb-surface-2"
+                }`}
+              >
+                <span
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
+                    a.unlocked ? "bg-bb-accent-soft" : "bg-bb-surface"
+                  }`}
+                >
+                  <Icon
+                    name={a.unlocked ? ACHIEVEMENT_ICON[a.icon] ?? "star" : "lock"}
+                    size={24}
+                    className={a.unlocked ? undefined : "opacity-50"}
+                  />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className={`font-semibold ${a.unlocked ? "" : "text-bb-muted"}`}>{a.title}</h3>
+                    {a.unlocked && <Chip selected>Unlocked</Chip>}
+                  </div>
+                  <p className="mt-0.5 text-sm text-bb-muted">{a.description}</p>
+                  {a.unlocked && a.date && (
+                    <p className="mt-1.5 text-xs font-semibold text-bb-accent-ink">
+                      Unlocked on {new Date(a.date).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
 
-      <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
-        <div className={adminStyles.archMotif} />
-        <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
-            <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            Reading History
-          </EnhancedCardTitle>
-          <EnhancedCardDescription className="text-slate-600 dark:text-slate-400">
-            Your reading activity over time
-          </EnhancedCardDescription>
-        </EnhancedCardHeader>
-        <EnhancedCardContent className="relative z-10">
-          <div className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              <EnhancedCard variant="outline" className="border-indigo-100 dark:border-indigo-900/30">
-                <EnhancedCardHeader className="pb-2">
-                  <EnhancedCardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pages Read</EnhancedCardTitle>
-                </EnhancedCardHeader>
-                <EnhancedCardContent>
-                  <div className="h-[200px] relative">
-                    <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
-                      {isLoading ? (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">Loading Chart...</div>
-                      ) : readingHistory.map((day, index) => {
-                        // Dynamically scale based on max pages. Assuming 50 pages is average scale if low volume.
-                        const maxPages = Math.max(50, ...readingHistory.map(d => d.pages || 0));
-                        return (
-                          <div key={index} className="flex flex-col items-center w-full">
-                            <div
-                              className="w-[60%] sm:w-8 bg-indigo-500 dark:bg-indigo-600 rounded-t-sm transition-all hover:bg-indigo-600"
-                              style={{ height: `${Math.max(2, ((day.pages || 0) / maxPages) * 100)}%` }}
-                            />
-                            <span className="text-xs mt-2 text-slate-500 font-medium">{day.date}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Reading history</h2>
+          <p className="text-[13px] text-bb-muted">Your reading activity over time</p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="rounded-[22px] bg-bb-surface p-5 shadow-e1">
+            <h3 className="mb-4 text-sm font-semibold">Pages read</h3>
+            <div className="flex h-[200px] items-end justify-between gap-1">
+              {isLoading ? (
+                <Skeleton className="h-full w-full" />
+              ) : readingHistory.length === 0 ? (
+                <p className="m-auto text-sm text-bb-muted">No reading activity yet.</p>
+              ) : (
+                readingHistory.map((day, index) => (
+                  <div key={index} className="flex h-full w-full flex-col items-center justify-end">
+                    <div
+                      title={`${day.pages || 0} pages`}
+                      className="w-[60%] rounded-t-md bg-bb-navy sm:w-8"
+                      style={{ height: `${Math.max(2, ((day.pages || 0) / maxPages) * 100)}%` }}
+                    />
+                    <span className="mt-2 text-xs font-medium text-bb-muted">{day.date}</span>
                   </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
-
-              <EnhancedCard variant="outline" className="border-emerald-100 dark:border-emerald-900/30 md:col-span-2">
-                <EnhancedCardHeader className="pb-2">
-                  <EnhancedCardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-300">Aggregated View</EnhancedCardTitle>
-                </EnhancedCardHeader>
-                <EnhancedCardContent>
-                  <div className="h-[200px] flex items-center justify-center text-slate-500">
-                    Detailed insights currently compiling from reading sources. Keep reading to unlock detailed metrics!
-                  </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
+                ))
+              )}
             </div>
           </div>
-        </EnhancedCardContent>
-      </EnhancedCard>
+
+          <div className="flex items-center justify-center rounded-[22px] bg-bb-surface p-5 text-center shadow-e1 md:col-span-2">
+            <p className="max-w-sm text-sm text-bb-muted">
+              Detailed insights are still compiling from your reading sources. Keep reading to unlock detailed metrics.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
