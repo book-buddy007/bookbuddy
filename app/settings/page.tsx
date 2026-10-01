@@ -72,12 +72,12 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full backdrop-blur-md bg-white/70 dark:bg-gray-800/70 border border-white/20">
-          <TabsTrigger value="account" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-600 data-[state=active]:to-vg-sanskrit-600 data-[state=active]:text-white">Account</TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-600 data-[state=active]:to-vg-sanskrit-600 data-[state=active]:text-white">Security</TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-600 data-[state=active]:to-vg-sanskrit-600 data-[state=active]:text-white">Notifications</TabsTrigger>
-          <TabsTrigger value="appearance" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-600 data-[state=active]:to-vg-sanskrit-600 data-[state=active]:text-white">Appearance</TabsTrigger>
-          <TabsTrigger value="advanced" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-600 data-[state=active]:to-vg-sanskrit-600 data-[state=active]:text-white">Advanced</TabsTrigger>
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
+          <TabsTrigger value="account" className="data-[state=active]:text-white">Account</TabsTrigger>
+          <TabsTrigger value="security" className="data-[state=active]:text-white">Security</TabsTrigger>
+          <TabsTrigger value="notifications" className="data-[state=active]:text-white">Notifications</TabsTrigger>
+          <TabsTrigger value="appearance" className="data-[state=active]:text-white">Appearance</TabsTrigger>
+          <TabsTrigger value="advanced" className="data-[state=active]:text-white">Advanced</TabsTrigger>
         </TabsList>
 
         <TabsContent value="account" className="space-y-6">
@@ -507,9 +507,8 @@ export default function SettingsPage() {
                         <SelectValue placeholder="Select font" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Inter">Inter</SelectItem>
-                        <SelectItem value="Merriweather">Merriweather</SelectItem>
-                        <SelectItem value="Source Serif Pro">Source Serif Pro</SelectItem>
+                        <SelectItem value="Newsreader">Newsreader</SelectItem>
+                        <SelectItem value="Familjen Grotesk">Familjen Grotesk</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

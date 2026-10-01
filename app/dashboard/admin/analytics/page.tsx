@@ -118,7 +118,7 @@ const BorrowingTrendsChart = () => {
             {/* Audiobooks line */}
             <polyline
               points="0,180 100,178 200,176 300,174 400,170 500,168"
-              stroke="#f59e0b"
+              stroke="#FFB547"
               strokeWidth="2"
               fill="none"
             />
@@ -211,7 +211,7 @@ const OverduePieChart = () => {
             ].join(' ');
             
             // Assign different colors
-            const colors = ['#10b981', '#f59e0b', '#f97316', '#ef4444'];
+            const colors = ['#10b981', '#FFB547', '#f97316', '#ef4444'];
             
             return (
               <path
@@ -236,7 +236,7 @@ const OverduePieChart = () => {
       {/* Legend */}
       <div className="ml-8 space-y-1">
         {mockOverdueStats.map((item, index) => {
-          const colors = ['#10b981', '#f59e0b', '#f97316', '#ef4444'];
+          const colors = ['#10b981', '#FFB547', '#f97316', '#ef4444'];
           return (
             <div key={index} className="flex items-center">
               <div className="w-4 h-4 rounded-sm mr-2" style={{ backgroundColor: colors[index] }} />
@@ -341,21 +341,21 @@ export default function AdminAnalyticsPage() {
           <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
             <TabsTrigger
               value="engagement"
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:text-white"
             >
               <BarChart className="w-4 h-4" />
               User Engagement
             </TabsTrigger>
             <TabsTrigger
               value="borrowing"
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:text-white"
             >
               <LineChart className="w-4 h-4" />
               Borrowing Trends
             </TabsTrigger>
             <TabsTrigger
               value="overdue"
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:text-white"
             >
               <PieChart className="w-4 h-4" />
               Return Compliance

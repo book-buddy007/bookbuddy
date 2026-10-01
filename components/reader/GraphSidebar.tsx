@@ -436,19 +436,19 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
           <TabsList className="grid grid-cols-3 mx-4 mt-4 mb-2 p-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm min-h-[44px]">
             <TabsTrigger
               value="map"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md flex items-center gap-1.5"
+              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white flex items-center gap-1.5"
             >
               <Waypoints className="h-3.5 w-3.5" /> Map
             </TabsTrigger>
             <TabsTrigger
               value="entities"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white"
             >
               Entities
             </TabsTrigger>
             <TabsTrigger
               value="summary"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white"
             >
               Throughlines
             </TabsTrigger>

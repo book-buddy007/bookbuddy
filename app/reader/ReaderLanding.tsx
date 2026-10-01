@@ -24,9 +24,9 @@ const ALL = '__ALL__';
 // SVG's stop-color falls back to black. --gold IS live (styles/indic-design-
 // system.css), so only the other two need a local scope override.
 const mandalaVars = {
-  '--gold': 'var(--gold, #FFD700)',
-  '--accent-primary': 'var(--deep-saffron, #FF9933)',
-  '--accent-strong': 'var(--saffron, #FF6B35)',
+  '--gold': 'var(--gold, #FFB547)',
+  '--accent-primary': 'var(--deep-saffron, #FF4D00)',
+  '--accent-strong': 'var(--saffron, #FF8A3D)',
 } as React.CSSProperties;
 
 // Entrance animations use the deployed vg-animations.css keyframes (pure
@@ -163,7 +163,7 @@ const VOCAB_WORDS: Record<string, { pronunciation: string; definition: string; e
 };
 
 const HIGHLIGHT_COLORS: { value: string; class: string }[] = [
-  { value: '#FFD700', class: 'bg-bb-accent' },
+  { value: '#FFB547', class: 'bg-bb-accent' },
   { value: '#00B8A9', class: 'bg-bb-cobalt' },
   { value: '#42A5F5', class: 'bg-bb-info' },
   { value: '#FF6EB4', class: 'bg-bb-danger' },
@@ -513,7 +513,7 @@ export function ReaderLanding() {
         </div>
 
         <div className="animate-vg-fade-in-down relative z-10 flex justify-center mb-6">
-          <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,153,51,0.35)] relative">
+          <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,77,0,0.35)] relative">
             <BrandMark height={35} />
             <BookOpen className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
           </div>

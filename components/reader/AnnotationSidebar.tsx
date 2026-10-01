@@ -291,11 +291,11 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
         <TabsList className="grid grid-cols-2 mx-4 mt-4 mb-2 p-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm min-h-[44px]">
             <TabsTrigger
               value="notes"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-slate-200/50 dark:hover:bg-slate-800/50 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400"
+              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
             >Notes</TabsTrigger>
             <TabsTrigger
               value="vocab"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-slate-200/50 dark:hover:bg-slate-800/50 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400"
+              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
             >Vocabulary</TabsTrigger>
         </TabsList>
         )}

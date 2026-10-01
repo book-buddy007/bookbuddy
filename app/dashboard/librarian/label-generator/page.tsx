@@ -155,21 +155,21 @@ const LabelGeneratorPage = () => {
         <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
           <TabsTrigger
             value="single"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
             Single Label
           </TabsTrigger>
           <TabsTrigger
             value="batch"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             <Barcode className="h-4 w-4 mr-2" />
             Batch Labels
           </TabsTrigger>
           <TabsTrigger
             value="templates"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             <FileText className="h-4 w-4 mr-2" />
             Templates

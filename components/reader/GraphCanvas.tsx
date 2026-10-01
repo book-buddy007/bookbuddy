@@ -57,7 +57,7 @@ type SimLink = SimulationLinkDatum<SimNode> & { id: string; relation: string };
 const TYPE_COLOR: Record<string, string> = {
   person: '#6366f1', // indigo
   place: '#10b981', // emerald
-  term: '#f59e0b', // amber
+  term: '#FFB547', // amber
   event: '#ec4899', // pink
   concept: '#8b5cf6', // violet
 };

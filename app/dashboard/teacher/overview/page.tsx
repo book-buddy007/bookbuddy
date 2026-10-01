@@ -77,19 +77,19 @@ export default function OverviewPage() {
         <TabsList className="grid w-full grid-cols-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
           <TabsTrigger
             value="classes"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             Classes
           </TabsTrigger>
           <TabsTrigger
             value="assignments"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             Assignments
           </TabsTrigger>
           <TabsTrigger
             value="resources"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             Resources
           </TabsTrigger>

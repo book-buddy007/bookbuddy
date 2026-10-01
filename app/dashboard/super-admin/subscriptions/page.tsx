@@ -450,21 +450,21 @@ export default function SubscriptionsPage() {
         <TabsList className="inline-flex h-12 items-center justify-center rounded-full bg-white/70 dark:bg-[var(--night-ink)]/50 backdrop-blur-md shadow-sm border border-slate-200/50 dark:border-white/[0.05] p-1 text-slate-500 dark:text-slate-400 mx-auto sm:mx-0 w-full sm:w-auto">
           <TabsTrigger
             value="active-subscriptions"
-            className="rounded-full px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--deep-saffron)] data-[state=active]:to-bb-accent data-[state=active]:text-black text-slate-600 dark:text-slate-400 font-semibold transition-all data-[state=active]:shadow-md"
+            className="rounded-full px-6 py-2.5 data-[state=active]:text-black text-slate-600 dark:text-slate-400 font-semibold transition-all"
           >
             <Users className="h-4 w-4 mr-2" />
             Active Subscriptions
           </TabsTrigger>
           <TabsTrigger
             value="plans"
-            className="rounded-full px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--deep-saffron)] data-[state=active]:to-bb-accent data-[state=active]:text-black text-slate-600 dark:text-slate-400 font-semibold transition-all data-[state=active]:shadow-md"
+            className="rounded-full px-6 py-2.5 data-[state=active]:text-black text-slate-600 dark:text-slate-400 font-semibold transition-all"
           >
             <Crown className="h-4 w-4 mr-2" />
             Pricing Plans
           </TabsTrigger>
           <TabsTrigger
             value="payment-gateways"
-            className="rounded-full px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--deep-saffron)] data-[state=active]:to-bb-accent data-[state=active]:text-black text-slate-600 dark:text-slate-400 font-semibold transition-all data-[state=active]:shadow-md"
+            className="rounded-full px-6 py-2.5 data-[state=active]:text-black text-slate-600 dark:text-slate-400 font-semibold transition-all"
           >
             <CreditCard className="h-4 w-4 mr-2" />
             Global Gateways

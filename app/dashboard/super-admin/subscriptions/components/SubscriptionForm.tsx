@@ -125,7 +125,7 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                     className="relative overflow-hidden px-6 pt-6 pb-8 shrink-0" 
                     style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}
                 >
-                    <div className="absolute inset-0 opacity-25 pointer-events-none" style={{backgroundImage: 'radial-gradient(ellipse at 80% 20%, rgba(255,153,51,0.35) 0%, transparent 55%), radial-gradient(circle at 15% 60%, rgba(0,106,110,0.25) 0%, transparent 50%)'}} />
+                    <div className="absolute inset-0 opacity-25 pointer-events-none" style={{backgroundImage: 'radial-gradient(ellipse at 80% 20%, rgba(255,77,0,0.35) 0%, transparent 55%), radial-gradient(circle at 15% 60%, rgba(30,58,138,0.25) 0%, transparent 50%)'}} />
                     <div className="absolute -top-16 -right-16 w-40 h-40 bg-[var(--deep-saffron)]/[0.06] rounded-full blur-3xl opacity-50" />
                     
                     <button onClick={onClose} className="absolute right-4 top-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors z-20">

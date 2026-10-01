@@ -140,7 +140,7 @@ export const useReaderStore = create<ReaderState>()(
       // Initial state
       fontSize: 16,
       lineHeight: 1.5,
-      fontFamily: 'Inter',
+      fontFamily: 'Newsreader',
       margins: 2,
       theme: 'light',
       colorTemperature: 0,
@@ -381,7 +381,7 @@ export const useReaderStore = create<ReaderState>()(
       resetSettings: () => set({
         fontSize: 16,
         lineHeight: 1.5,
-        fontFamily: 'Inter',
+        fontFamily: 'Newsreader',
         margins: 2,
         theme: 'light',
         colorTemperature: 0,

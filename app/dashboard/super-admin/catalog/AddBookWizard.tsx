@@ -606,8 +606,8 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
           <div className="flex flex-col max-h-[90dvh] overflow-hidden">
             {/* Header */}
             {/* Header — Indic Warm Gradient */}
-            <div className="relative overflow-hidden px-6 pt-5 pb-7 shrink-0" style={{background: 'linear-gradient(135deg, #0A0F1E 0%, #0D1B6E 30%, #006A6E 60%, #FF9933 100%)'}}>
-              <div className="absolute inset-0 opacity-25 pointer-events-none" style={{backgroundImage: 'radial-gradient(ellipse at 80% 20%, rgba(255,153,51,0.35) 0%, transparent 55%), radial-gradient(circle at 15% 60%, rgba(0,106,110,0.25) 0%, transparent 50%)'}} />
+            <div className="relative overflow-hidden px-6 pt-5 pb-7 shrink-0" style={{background: 'linear-gradient(135deg, #0A0F24 0%, #0F1F5C 30%, #1E3A8A 60%, #FF4D00 100%)'}}>
+              <div className="absolute inset-0 opacity-25 pointer-events-none" style={{backgroundImage: 'radial-gradient(ellipse at 80% 20%, rgba(255,77,0,0.35) 0%, transparent 55%), radial-gradient(circle at 15% 60%, rgba(30,58,138,0.25) 0%, transparent 50%)'}} />
               <div className="absolute -top-16 -right-16 w-40 h-40 bg-bb-accent/[0.06] rounded-full blur-3xl" />
               <div className="relative z-10">
                 <DialogHeader className="space-y-1">

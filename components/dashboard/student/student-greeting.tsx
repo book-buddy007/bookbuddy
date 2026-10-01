@@ -8,9 +8,9 @@ import { BrandMark } from '@/components/ui/brand-mark';
 // live in this app's design system, but scoped here too so the mark never
 // silently falls back to black if load order ever changes.
 const mandalaVars = {
-  '--gold': 'var(--gold, #FFD700)',
-  '--accent-primary': 'var(--deep-saffron, #FF9933)',
-  '--accent-strong': 'var(--peacock-teal, #006A6E)',
+  '--gold': 'var(--gold, #FFB547)',
+  '--accent-primary': 'var(--deep-saffron, #FF4D00)',
+  '--accent-strong': 'var(--peacock-teal, #1E3A8A)',
 } as React.CSSProperties;
 
 interface StudentGreetingProps {
@@ -77,7 +77,7 @@ export function StudentGreeting({
         {/* Left — Greeting text */}
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-3">
-            <div style={mandalaVars} className="hidden sm:block shrink-0 drop-shadow-[0_0_16px_rgba(255,153,51,0.35)] relative">
+            <div style={mandalaVars} className="hidden sm:block shrink-0 drop-shadow-[0_0_16px_rgba(255,77,0,0.35)] relative">
               <BrandMark height={22} />
               <BookOpen className="absolute -bottom-0.5 -right-0.5 h-4 w-4 text-white bg-[var(--peacock-teal)] rounded-full p-0.5 shadow-md" />
             </div>

@@ -187,7 +187,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
                   <Separator className="bg-slate-200/60 dark:bg-slate-700/40" />
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-saffron-500 to-amber-500" style={{ background: 'linear-gradient(to bottom, #f59e0b, #d97706)' }} />
+                      <div className="w-1 h-4 rounded-full bg-gradient-to-b from-saffron-500 to-amber-500" style={{ background: 'linear-gradient(to bottom, #FFB547, #D93A00)' }} />
                       <ImageIcon className="h-4 w-4" /> Free Sample
                     </h4>
                     <a href={book.sampleFileUrl} target="_blank" rel="noopener noreferrer"

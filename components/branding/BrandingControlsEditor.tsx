@@ -7,7 +7,7 @@ import type { BrandingControlsEditorProps } from '@/types/branding.types';
 
 const PRESET_THEMES = [
   { id: 'aurora', name: 'Aurora Spark', primary: '#4F46E5', secondary: '#9333EA', description: 'Indigo & Purple' },
-  { id: 'sunset', name: 'Sunset Horizon', primary: '#E65100', secondary: '#BE123C', description: 'Saffron & Crimson' },
+  { id: 'sunset', name: 'Sunset Horizon', primary: '#D93A00', secondary: '#BE123C', description: 'Saffron & Crimson' },
   { id: 'ocean', name: 'Ocean Depths', primary: '#0F766E', secondary: '#06B6D4', description: 'Teal & Cyan' },
   { id: 'forest', name: 'Forest Canopy', primary: '#059669', secondary: '#65A30D', description: 'Emerald & Lime' },
   { id: 'midnight', name: 'Midnight Neon', primary: '#2E1065', secondary: '#DB2777', description: 'Violet & Pink' },

@@ -267,13 +267,13 @@ export default function TeacherDashboard() {
       {/* Tabs Section */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white">
+          <TabsTrigger value="overview" className="data-[state=active]:text-white">
             Overview
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white">
+          <TabsTrigger value="analytics" className="data-[state=active]:text-white">
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="activities" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white">
+          <TabsTrigger value="activities" className="data-[state=active]:text-white">
             Recent Activities
           </TabsTrigger>
         </TabsList>

@@ -21,9 +21,9 @@ const ALL = '__ALL__';
 // SVG's stop-color falls back to black. --gold IS live (styles/indic-design-
 // system.css), so only the other two need a local scope override.
 const mandalaVars = {
-  '--gold': 'var(--gold, #FFD700)',
-  '--accent-primary': 'var(--deep-saffron, #FF9933)',
-  '--accent-strong': 'var(--saffron, #FF6B35)',
+  '--gold': 'var(--gold, #FFB547)',
+  '--accent-primary': 'var(--deep-saffron, #FF4D00)',
+  '--accent-strong': 'var(--saffron, #FF8A3D)',
 } as React.CSSProperties;
 
 function useInView<T extends HTMLElement>() {
@@ -175,7 +175,7 @@ function AudioPlayerPrototype() {
           <div className="relative shrink-0 mx-auto sm:mx-0">
             <div
               className={`h-28 w-28 sm:h-32 sm:w-32 rounded-2xl flex items-center justify-center ${isPlaying ? 'animate-vg-cultural-glow' : ''}`}
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+              style={{ background: 'linear-gradient(135deg, #FFB547, #D93A00)' }}
             >
               <Headphones className="h-10 w-10 text-white/90" />
             </div>
@@ -185,7 +185,7 @@ function AudioPlayerPrototype() {
                   <span
                     key={i}
                     className="w-1 rounded-full animate-vg-bounce-subtle"
-                    style={{ background: '#f59e0b', height: 6 + (i % 3) * 4, animationDelay: `${i * 120}ms` }}
+                    style={{ background: '#FFB547', height: 6 + (i % 3) * 4, animationDelay: `${i * 120}ms` }}
                   />
                 ))}
               </div>
@@ -212,7 +212,7 @@ function AudioPlayerPrototype() {
                     <span
                       key={i}
                       className="flex-1 rounded-full transition-colors"
-                      style={{ height: `${h}%`, background: played ? '#f59e0b' : 'rgba(255,255,255,0.12)' }}
+                      style={{ height: `${h}%`, background: played ? '#FFB547' : 'rgba(255,255,255,0.12)' }}
                     />
                   );
                 })}
@@ -241,7 +241,7 @@ function AudioPlayerPrototype() {
           <button
             onClick={() => setIsPlaying(p => !p)}
             className="h-14 w-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', boxShadow: '0 8px 24px rgba(245,158,11,0.35)' }}
+            style={{ background: 'linear-gradient(135deg, #FFB547, #D93A00)', boxShadow: '0 8px 24px rgba(245,158,11,0.35)' }}
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? <Pause size={26} className="text-white" strokeWidth={2.5} /> : <Play size={26} className="text-white ml-0.5" strokeWidth={2.5} />}
@@ -266,7 +266,7 @@ function AudioPlayerPrototype() {
               key={s}
               onClick={() => setSpeed(s)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
-              style={speed === s ? { background: '#f59e0b', color: '#0a0a0f' } : { background: 'rgba(255,255,255,0.06)', color: '#a0a0b0' }}
+              style={speed === s ? { background: '#FFB547', color: '#0a0a0f' } : { background: 'rgba(255,255,255,0.06)', color: '#a0a0b0' }}
             >
               {s}x
             </button>
@@ -283,7 +283,7 @@ function AudioPlayerPrototype() {
             <button
               onClick={() => setSleepOpen(o => !o)}
               className={`p-1.5 rounded-full transition-colors hover:bg-white/5 ${isActive('sleep') ? 'ring-2 ring-amber-400 animate-vg-educational-pulse' : ''}`}
-              style={{ color: sleepMin ? '#f59e0b' : '#a0a0b0' }}
+              style={{ color: sleepMin ? '#FFB547' : '#a0a0b0' }}
               aria-label="Sleep timer"
             >
               <Clock size={18} />
@@ -325,7 +325,7 @@ function AudioPlayerPrototype() {
                   <div
                     key={ch}
                     className="text-xs font-medium px-3 py-2 rounded-lg"
-                    style={i === 1 ? { background: 'rgba(245,158,11,0.12)', color: '#f59e0b' } : { color: '#a0a0b0' }}
+                    style={i === 1 ? { background: 'rgba(245,158,11,0.12)', color: '#FFB547' } : { color: '#a0a0b0' }}
                   >
                     {ch}
                   </div>
@@ -341,7 +341,7 @@ function AudioPlayerPrototype() {
 
         {sleepMin && (
           <div className="mt-4 flex justify-center">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full" style={{ background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full" style={{ background: 'rgba(245,158,11,0.12)', color: '#FFB547' }}>
               <Clock size={12} /> Sleep in {sleepMin} min
             </span>
           </div>
@@ -350,7 +350,7 @@ function AudioPlayerPrototype() {
 
       {/* Guide caption bar */}
       <div className="relative z-10 border-t px-5 sm:px-7 py-3" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-        <p key={guideStep} className="animate-vg-fade-in text-xs sm:text-[13px] font-medium text-center" style={{ color: '#f59e0b' }}>
+        <p key={guideStep} className="animate-vg-fade-in text-xs sm:text-[13px] font-medium text-center" style={{ color: '#FFB547' }}>
           {GUIDE_STEPS[guideStep].label}
         </p>
         <div className="flex justify-center gap-1.5 mt-2">
@@ -359,7 +359,7 @@ function AudioPlayerPrototype() {
               key={step.key}
               onClick={() => { setGuideStep(i); setGuidePaused(true); }}
               className="h-1.5 rounded-full transition-all"
-              style={{ width: i === guideStep ? 18 : 6, background: i === guideStep ? '#f59e0b' : 'rgba(255,255,255,0.15)' }}
+              style={{ width: i === guideStep ? 18 : 6, background: i === guideStep ? '#FFB547' : 'rgba(255,255,255,0.15)' }}
               aria-label={`Guide step ${i + 1}`}
             />
           ))}
@@ -446,7 +446,7 @@ function AudioPicker() {
         </div>
 
         <div className="animate-vg-fade-in-down relative z-10 flex justify-center mb-6">
-          <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,153,51,0.35)] relative">
+          <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,77,0,0.35)] relative">
             <BrandMark height={35} />
             <Headphones className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
           </div>

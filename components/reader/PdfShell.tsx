@@ -77,13 +77,13 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
         background: 'rgba(255, 248, 240, 0.95)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(255, 215, 0, 0.25)',
+        border: '1px solid rgba(255,181,71, 0.25)',
         borderRadius: 14,
         padding: '6px 10px',
         boxShadow: '0 12px 40px rgba(217, 119, 6, 0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
       }}
     >
-      <FileSearch style={{ width: 14, height: 14, color: '#92400E', flexShrink: 0 }} />
+      <FileSearch style={{ width: 14, height: 14, color: '#B83300', flexShrink: 0 }} />
       <input
         ref={searchInputRef}
         type="text"
@@ -102,8 +102,8 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
           }
         }}
         style={{
-          background: 'rgba(255, 153, 51, 0.06)',
-          border: '1.5px solid rgba(255, 153, 51, 0.2)',
+          background: 'rgba(255,77,0, 0.06)',
+          border: '1.5px solid rgba(255,77,0, 0.2)',
           borderRadius: 8,
           padding: '6px 10px',
           fontSize: 13,
@@ -113,11 +113,11 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
           transition: 'border-color 0.2s ease',
         }}
         onFocus={(e) => {
-          e.currentTarget.style.borderColor = '#FF9933';
-          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255, 153, 51, 0.15)';
+          e.currentTarget.style.borderColor = '#FF4D00';
+          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,77,0, 0.15)';
         }}
         onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255, 153, 51, 0.2)';
+          e.currentTarget.style.borderColor = 'rgba(255,77,0, 0.2)';
           e.currentTarget.style.boxShadow = 'none';
         }}
       />
@@ -125,9 +125,9 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
         <span 
           style={{ 
             fontSize: 12, 
-            color: '#92400E',
+            color: '#B83300',
             fontWeight: 600,
-            backgroundColor: 'rgba(255, 153, 51, 0.1)',
+            backgroundColor: 'rgba(255,77,0, 0.1)',
             padding: '4px 8px',
             borderRadius: 6,
             minWidth: 46,
@@ -208,23 +208,23 @@ function NoteInputPopup({
         style={{
           background: 'rgba(255,248,240,0.98)',
           backdropFilter: 'blur(20px) saturate(180%)',
-          border: '1px solid rgba(255,215,0,0.3)',
+          border: '1px solid rgba(255,181,71,0.3)',
           borderRadius: 14,
           padding: '12px 14px',
           boxShadow: '0 12px 40px rgba(217,119,6,0.15), inset 0 1px 0 rgba(255,255,255,0.7)',
           width: 260,
         }}
       >
-        <div style={{ fontSize: 11, color: '#92400E', fontWeight: 600, marginBottom: 6, opacity: 0.7 }}>ADD NOTE</div>
+        <div style={{ fontSize: 11, color: '#B83300', fontWeight: 600, marginBottom: 6, opacity: 0.7 }}>ADD NOTE</div>
         <div
           style={{
             fontSize: 12,
             color: '#5A4E3C',
-            background: 'rgba(255,153,51,0.06)',
+            background: 'rgba(255,77,0,0.06)',
             borderRadius: 8,
             padding: '6px 8px',
             marginBottom: 8,
-            borderLeft: '3px solid #FF9933',
+            borderLeft: '3px solid #FF4D00',
             maxHeight: 60,
             overflow: 'auto',
             lineHeight: 1.4,
@@ -247,18 +247,18 @@ function NoteInputPopup({
             width: '100%',
             minHeight: 60,
             resize: 'vertical',
-            border: '1.5px solid rgba(255,153,51,0.2)',
+            border: '1.5px solid rgba(255,77,0,0.2)',
             borderRadius: 8,
             padding: '8px 10px',
             fontSize: 13,
             color: '#1A1A2E',
-            background: 'rgba(255,153,51,0.04)',
+            background: 'rgba(255,77,0,0.04)',
             outline: 'none',
             fontFamily: 'inherit',
             transition: 'border-color 0.2s ease',
           }}
-          onFocus={e => { e.currentTarget.style.borderColor = '#FF9933'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,153,51,0.12)'; }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,153,51,0.2)'; e.currentTarget.style.boxShadow = 'none'; }}
+          onFocus={e => { e.currentTarget.style.borderColor = '#FF4D00'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,77,0,0.12)'; }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,77,0,0.2)'; e.currentTarget.style.boxShadow = 'none'; }}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginTop: 8 }}>
           <button
@@ -284,7 +284,7 @@ function NoteInputPopup({
               padding: '5px 14px',
               borderRadius: 8,
               border: 'none',
-              background: 'linear-gradient(135deg, #FF9933, #FF6B35)',
+              background: 'linear-gradient(135deg, #FF4D00, #FF8A3D)',
               color: 'white',
               fontSize: 12,
               fontWeight: 600,
@@ -515,13 +515,13 @@ function SelectionQuickToolbar({
             </button>
           ))}
 
-          <div style={{ width: 1, height: 18, background: 'rgba(255,153,51,0.2)', margin: '0 2px', flexShrink: 0 }} />
+          <div style={{ width: 1, height: 18, background: 'rgba(255,77,0,0.2)', margin: '0 2px', flexShrink: 0 }} />
 
           <button
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }}
             title="Add Note"
-            style={quickBtnStyle('#92400E', 'rgba(255,153,51,0.1)', 'rgba(255,107,53,0.06)')}
+            style={quickBtnStyle('#B83300', 'rgba(255,77,0,0.1)', 'rgba(255,107,53,0.06)')}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
           >
@@ -531,7 +531,7 @@ function SelectionQuickToolbar({
 
           {onSpeakText && (
             <>
-              <div style={{ width: 1, height: 18, background: 'rgba(255,153,51,0.2)', margin: '0 2px', flexShrink: 0 }} />
+              <div style={{ width: 1, height: 18, background: 'rgba(255,77,0,0.2)', margin: '0 2px', flexShrink: 0 }} />
               <button
                 onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSpeakText(selectedText); }}
@@ -546,7 +546,7 @@ function SelectionQuickToolbar({
             </>
           )}
 
-          <div style={{ width: 1, height: 18, background: 'rgba(255,153,51,0.2)', margin: '0 2px', flexShrink: 0 }} />
+          <div style={{ width: 1, height: 18, background: 'rgba(255,77,0,0.2)', margin: '0 2px', flexShrink: 0 }} />
           <button
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onClick={(e) => {
@@ -580,7 +580,7 @@ function SelectionQuickToolbar({
 
           {onAskVarta && (
             <>
-              <div style={{ width: 1, height: 18, background: 'rgba(255,153,51,0.2)', margin: '0 2px', flexShrink: 0 }} />
+              <div style={{ width: 1, height: 18, background: 'rgba(255,77,0,0.2)', margin: '0 2px', flexShrink: 0 }} />
               <button
                 onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAskVarta(selectedText); cancel(); }}
@@ -597,12 +597,12 @@ function SelectionQuickToolbar({
 
           {onSaveToSanchika && (
             <>
-              <div style={{ width: 1, height: 18, background: 'rgba(255,153,51,0.2)', margin: '0 2px', flexShrink: 0 }} />
+              <div style={{ width: 1, height: 18, background: 'rgba(255,77,0,0.2)', margin: '0 2px', flexShrink: 0 }} />
               <button
                 onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSaveToSanchika(selectedText); cancel(); }}
                 title="Save to Sanchika"
-                style={quickBtnStyle('#E65100', 'rgba(255,183,77,0.1)', 'rgba(255,152,0,0.06)')}
+                style={quickBtnStyle('#D93A00', 'rgba(255,183,77,0.1)', 'rgba(255,152,0,0.06)')}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
               >
@@ -616,7 +616,7 @@ function SelectionQuickToolbar({
         {/* Row 2: plain-text actions. Read-only content — copy and select-all
             only, deliberately no paste/cut (there's nothing to paste into or
             cut from in a rendered PDF page). */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingTop: 4, borderTop: '1px solid rgba(255,153,51,0.15)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingTop: 4, borderTop: '1px solid rgba(255,77,0,0.15)' }}>
           <button
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCopy(); }}
@@ -1038,7 +1038,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
         >
           <TriangleAlert
             size={28}
-            style={{ color: is204 ? '#D97706' : '#DC2626' }}
+            style={{ color: is204 ? '#D93A00' : '#DC2626' }}
           />
         </div>
 
@@ -1081,7 +1081,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
           <div
             style={{
               background: 'rgba(255,248,240,0.95)',
-              border: '1px solid rgba(255,215,0,0.3)',
+              border: '1px solid rgba(255,181,71,0.3)',
               borderRadius: 12,
               padding: '16px 20px',
               maxWidth: 480,
@@ -1092,7 +1092,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
               marginBottom: 16,
             }}
           >
-            <strong style={{ color: '#92400E' }}>How to fix this:</strong>
+            <strong style={{ color: '#B83300' }}>How to fix this:</strong>
             <ol style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
               <li>Open <strong>Internet Download Manager</strong>.</li>
               <li>
@@ -1103,7 +1103,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
                 {' '}<strong>Add exception</strong> and add{' '}
                 <code
                   style={{
-                    background: 'rgba(255,153,51,0.1)',
+                    background: 'rgba(255,77,0,0.1)',
                     padding: '1px 6px',
                     borderRadius: 4,
                   }}
@@ -1126,7 +1126,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
             padding: '10px 24px',
             borderRadius: 10,
             border: 'none',
-            background: 'linear-gradient(135deg, #FF9933, #FF6B35)',
+            background: 'linear-gradient(135deg, #FF4D00, #FF8A3D)',
             color: 'white',
             fontSize: 14,
             fontWeight: 600,
@@ -1203,10 +1203,10 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
               background: 'rgba(255, 248, 240, 0.88)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              border: '1px solid rgba(255, 215, 0, 0.25)',
+              border: '1px solid rgba(255,181,71, 0.25)',
               borderRadius: 14,
               padding: '4px 6px',
-              boxShadow: '0 8px 32px rgba(217, 119, 6, 0.10), 0 0 40px rgba(255, 153, 51, 0.04), inset 0 1px 0 rgba(255,255,255,0.7)',
+              boxShadow: '0 8px 32px rgba(217, 119, 6, 0.10), 0 0 40px rgba(255,77,0, 0.04), inset 0 1px 0 rgba(255,255,255,0.7)',
             }}
           >
             {/* Search Toggle */}
@@ -1237,14 +1237,14 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
                 borderRadius: 8,
                 fontSize: 12,
                 fontWeight: 700,
-                color: '#92400E',
+                color: '#B83300',
                 letterSpacing: '0.02em',
                 minWidth: 48,
                 textAlign: 'center',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 153, 51, 0.12)';
+                e.currentTarget.style.background = 'rgba(255,77,0, 0.12)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'none';
@@ -1358,20 +1358,20 @@ function ToolbarButton({
         height: 32,
         borderRadius: 10,
         border: active
-          ? '1px solid #FF9933'
+          ? '1px solid #FF4D00'
           : '1px solid transparent',
         background: active
-          ? 'linear-gradient(135deg, rgba(255, 153, 51, 0.18), rgba(255, 107, 53, 0.12))'
+          ? 'linear-gradient(135deg, rgba(255,77,0, 0.18), rgba(255, 107, 53, 0.12))'
           : 'transparent',
-        color: active ? '#D97706' : '#5A4E3C',
+        color: active ? '#D93A00' : '#5A4E3C',
         cursor: 'pointer',
         transition: 'all 0.25s ease',
         padding: 0,
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.background = 'rgba(255, 153, 51, 0.12)';
-          e.currentTarget.style.borderColor = 'rgba(255, 153, 51, 0.5)';
+          e.currentTarget.style.background = 'rgba(255,77,0, 0.12)';
+          e.currentTarget.style.borderColor = 'rgba(255,77,0, 0.5)';
           e.currentTarget.style.transform = 'translateY(-1px)';
         }
       }}
@@ -1395,7 +1395,7 @@ function ToolbarDivider() {
       style={{
         width: 1,
         height: 20,
-        background: 'linear-gradient(180deg, transparent, rgba(255, 153, 51, 0.3), transparent)',
+        background: 'linear-gradient(180deg, transparent, rgba(255,77,0, 0.3), transparent)',
         margin: '0 2px',
       }}
     />

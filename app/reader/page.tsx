@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
-import styles from './reader.module.css';
 import { useToast } from "@/components/ui/use-toast";
 import { fetchWithRetry } from '@/lib/utils/fetch-with-retry';
 
@@ -55,7 +54,7 @@ interface Page {
 export default function ReaderPage() {
   return (
     <Suspense fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'linear-gradient(180deg, #FFFCF7 0%, #FFF8F0 100%)' }}>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'linear-gradient(180deg, #FBFBFD 0%, #F2F4F8 100%)' }}>
         <p className="text-sm font-medium text-amber-800 tracking-wide">Opening your book...</p>
       </div>
     }>
@@ -889,15 +888,15 @@ function ReaderContent() {
               <TabsList className="grid grid-cols-3 mx-0 mb-4 p-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm min-h-[44px]">
                 <TabsTrigger 
                   value="contents" 
-                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--deep-saffron)] data-[state=active]:to-[var(--saffron)] data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-slate-200/50 dark:hover:bg-slate-800/50 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400"
+                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
                 >Index</TabsTrigger>
                 <TabsTrigger 
                   value="pages" 
-                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--deep-saffron)] data-[state=active]:to-[var(--saffron)] data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-slate-200/50 dark:hover:bg-slate-800/50 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400"
+                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
                 >Pages</TabsTrigger>
                 <TabsTrigger 
                   value="bookmarks" 
-                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--deep-saffron)] data-[state=active]:to-[var(--saffron)] data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-slate-200/50 dark:hover:bg-slate-800/50 data-[state=inactive]:text-slate-600 dark:data-[state=inactive]:text-slate-400 flex items-center gap-1"
+                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400 flex items-center gap-1"
                 >
                   <Bookmark className="h-3.5 w-3.5" /> Bookmarks
                 </TabsTrigger>

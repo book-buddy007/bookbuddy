@@ -323,7 +323,7 @@ export function AnnotationCanvas({ pageNumber, bookId, width, height, scale }: A
               width: 40,
               height: 40,
               borderRadius: '50%',
-              border: '1px solid rgba(255,215,0,0.3)',
+              border: '1px solid rgba(255,181,71,0.3)',
               background: 'rgba(255,248,240,0.92)',
               backdropFilter: 'blur(12px)',
               boxShadow: '0 4px 20px rgba(217,119,6,0.15)',
@@ -331,7 +331,7 @@ export function AnnotationCanvas({ pageNumber, bookId, width, height, scale }: A
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#92400E',
+              color: '#B83300',
               transition: 'all 0.2s ease',
             }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; }}
@@ -348,7 +348,7 @@ export function AnnotationCanvas({ pageNumber, bookId, width, height, scale }: A
               gap: 4,
               background: 'rgba(255, 248, 240, 0.92)',
               backdropFilter: 'blur(16px) saturate(180%)',
-              border: '1px solid rgba(255,215,0,0.25)',
+              border: '1px solid rgba(255,181,71,0.25)',
               borderRadius: 16,
               padding: '6px 10px',
               boxShadow: '0 8px 32px rgba(217,119,6,0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
@@ -381,7 +381,7 @@ export function AnnotationCanvas({ pageNumber, bookId, width, height, scale }: A
                     width: 18,
                     height: 18,
                     borderRadius: '50%',
-                    border: activeColor === hex ? '2px solid #92400E' : '2px solid transparent',
+                    border: activeColor === hex ? '2px solid #B83300' : '2px solid transparent',
                     background: hex,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
@@ -401,7 +401,7 @@ export function AnnotationCanvas({ pageNumber, bookId, width, height, scale }: A
               value={brushWidth}
               onChange={e => setBrushWidth(Number(e.target.value))}
               title={`Brush width: ${brushWidth}px`}
-              style={{ width: 60, accentColor: '#D97706' }}
+              style={{ width: 60, accentColor: '#D93A00' }}
             />
 
             <ToolbarDivider />
@@ -469,11 +469,11 @@ function CanvasToolBtn({
         width: 30,
         height: 30,
         borderRadius: 8,
-        border: active ? '1px solid #FF9933' : '1px solid transparent',
+        border: active ? '1px solid #FF4D00' : '1px solid transparent',
         background: active
-          ? 'linear-gradient(135deg, rgba(255,153,51,0.18), rgba(255,107,53,0.12))'
+          ? 'linear-gradient(135deg, rgba(255,77,0,0.18), rgba(255,107,53,0.12))'
           : 'transparent',
-        color: active ? '#D97706' : '#5A4E3C',
+        color: active ? '#D93A00' : '#5A4E3C',
         cursor: 'pointer',
         display: 'inline-flex',
         alignItems: 'center',
@@ -483,8 +483,8 @@ function CanvasToolBtn({
       }}
       onMouseEnter={e => {
         if (!active) {
-          e.currentTarget.style.background = 'rgba(255,153,51,0.1)';
-          e.currentTarget.style.borderColor = 'rgba(255,153,51,0.4)';
+          e.currentTarget.style.background = 'rgba(255,77,0,0.1)';
+          e.currentTarget.style.borderColor = 'rgba(255,77,0,0.4)';
         }
       }}
       onMouseLeave={e => {
@@ -506,7 +506,7 @@ function ToolbarDivider() {
       style={{
         width: 1,
         height: 20,
-        background: 'linear-gradient(180deg, transparent, rgba(255,153,51,0.3), transparent)',
+        background: 'linear-gradient(180deg, transparent, rgba(255,77,0,0.3), transparent)',
         margin: '0 3px',
       }}
     />

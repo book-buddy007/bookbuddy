@@ -50,21 +50,21 @@ const CatalogingPage = () => {
         <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
           <TabsTrigger
             value="add-item"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-cyan-600 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
             Add New Item
           </TabsTrigger>
           <TabsTrigger
             value="batch-edit"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-cyan-600 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             <FileEdit className="h-4 w-4 mr-2" />
             Batch Edit
           </TabsTrigger>
           <TabsTrigger
             value="templates"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white"
+            className="data-[state=active]:text-white"
           >
             <FileText className="h-4 w-4 mr-2" />
             Templates

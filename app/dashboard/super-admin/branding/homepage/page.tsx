@@ -328,7 +328,7 @@ export default function HomepageEditorPage() {
 
     const primary = colors?.primary || '#16213e';
     const secondary = colors?.secondary || '#0f3460';
-    const accent = '#E65100';
+    const accent = '#D93A00';
 
     const builders: Record<string, () => string> = {
       hero: () => `

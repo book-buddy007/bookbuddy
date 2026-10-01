@@ -17,11 +17,11 @@
 
 .user-table thead tr {
   background: linear-gradient(90deg, #FFF8E1 0%, #FFF3E0 50%, #FFF8E1 100%) !important;
-  border-bottom: 2px solid rgba(255, 153, 51, 0.15) !important;
+  border-bottom: 2px solid rgba(255,77,0, 0.15) !important;
 }
 
 .user-table thead th {
-  color: #1A237E !important;
+  color: #0F1F5C !important;
   font-weight: 600 !important;
   font-size: 0.8125rem !important;
   text-transform: uppercase !important;
@@ -42,7 +42,7 @@
 }
 
 .user-table tbody td {
-  color: #3E2723;
+  color: #0A0F24;
 }
 
 /* Responsive adjustments */

@@ -25,14 +25,14 @@ export default function BulkUploadPage() {
         <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
           <TabsTrigger
             value="books"
-            className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-cyan-600 data-[state=active]:text-white"
+            className="flex items-center data-[state=active]:text-white"
           >
             <FileText className="mr-2 h-4 w-4" />
             Books
           </TabsTrigger>
           <TabsTrigger
             value="students"
-            className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-700 data-[state=active]:to-cyan-600 data-[state=active]:text-white"
+            className="flex items-center data-[state=active]:text-white"
           >
             <Users className="mr-2 h-4 w-4" />
             Students

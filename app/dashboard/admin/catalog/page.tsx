@@ -344,13 +344,13 @@ export default function AdminCatalogPage() {
         {/* Tabs Section */}
         <Tabs defaultValue="approvals" onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-            <TabsTrigger value="approvals" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white">
+            <TabsTrigger value="approvals" className="data-[state=active]:text-white">
               Pending Approvals
             </TabsTrigger>
-            <TabsTrigger value="genres" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white">
+            <TabsTrigger value="genres" className="data-[state=active]:text-white">
               Categories
             </TabsTrigger>
-            <TabsTrigger value="subjects" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-vg-primary-500 data-[state=active]:to-vg-sanskrit-500 data-[state=active]:text-white">
+            <TabsTrigger value="subjects" className="data-[state=active]:text-white">
               Tags
             </TabsTrigger>
           </TabsList>

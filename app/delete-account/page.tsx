@@ -122,7 +122,7 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: '22px',
     fontWeight: 700,
-    color: '#FF9933',
+    color: '#FF4D00',
     marginBottom: '12px',
   },
   subtitle: {
@@ -197,7 +197,7 @@ const styles: Record<string, React.CSSProperties> = {
   link: {
     display: 'inline-block',
     marginTop: '16px',
-    color: '#FF9933',
+    color: '#FF4D00',
     fontWeight: 600,
     textDecoration: 'underline',
   },
