@@ -35,11 +35,14 @@ function Ok([string]$m)   { Write-Host "    $m" -ForegroundColor Green }
 # ("dubious ownership"), and silence per-file line-ending warnings.
 $GitPrefix = @('-c', ('safe.directory=' + ($Root -replace '\\', '/')), '-c', 'core.safecrlf=false')
 
-function Run([string]$Exe, [string[]]$Argv, [switch]$AllowFail) {
+function Run([string]$Exe, [string[]]$Argv, [switch]$AllowFail, [switch]$Interactive) {
     if ($Exe -eq 'git') { $Argv = $GitPrefix + $Argv }
     $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
     try {
-        & $Exe @Argv 2>&1 | ForEach-Object { Write-Host "    $_" }
+        # -Interactive: leave git attached to this console window (no pipe), so
+        # the GitHub sign-in window / username+password prompt can appear.
+        if ($Interactive) { & $Exe @Argv | Out-Host }
+        else { & $Exe @Argv 2>&1 | ForEach-Object { Write-Host "    $_" } }
         $code = $LASTEXITCODE
     } finally { $ErrorActionPreference = $old }
     if ($code -ne 0 -and -not $AllowFail) { throw "'$Exe $($Argv -join ' ')' failed (exit $code)" }
@@ -97,8 +100,20 @@ try {
     if ($remotes -contains 'origin') { Run 'git' @('remote', 'set-url', 'origin', $Remote) | Out-Null }
     else { Run 'git' @('remote', 'add', 'origin', $Remote) | Out-Null }
 
-    # May open a GitHub sign-in window the first time (sign in as the repo owner).
-    if ((Run 'git' @('fetch', 'origin') -AllowFail) -ne 0) {
+    # Sign-in: use Git Credential Manager (ships with Git for Windows) so a
+    # GitHub sign-in window opens. Drop any askpass helper inherited from an
+    # editor - it cannot prompt from here and was the cause of
+    # "could not read Password ... /dev/tty".
+    foreach ($v in 'GIT_ASKPASS', 'SSH_ASKPASS', 'GIT_TERMINAL_PROMPT') { Remove-Item "Env:$v" -ErrorAction SilentlyContinue }
+    $auth = @('-c', 'core.askPass=')
+    if ((Run 'git' @('credential-manager', '--version') -AllowFail) -eq 0) {
+        $auth += @('-c', 'credential.helper=', '-c', 'credential.helper=manager')
+        Ok 'a GitHub sign-in window may open - sign in as book-buddy007'
+    } else {
+        Ok 'Git will ask for username and password here - use book-buddy007 and a GitHub personal access token as the password'
+    }
+
+    if ((Run 'git' ($auth + @('fetch', 'origin')) -AllowFail -Interactive) -ne 0) {
         throw "GitHub refused access to $Remote. Make sure the repository exists, and sign in as an account that can push to it when Git asks."
     }
     $remoteHead = Capture 'git' @('rev-parse', '--verify', '-q', "origin/$Branch")
@@ -113,7 +128,7 @@ try {
     }
 
     Step 'Pushing'
-    Run 'git' @('push', '-u', 'origin', $Branch) | Out-Null
+    Run 'git' ($auth + @('push', '-u', 'origin', $Branch)) -Interactive | Out-Null
     Ok "pushed to $Remote ($Branch)"
     Run 'git' @('log', '--oneline', '-1') | Out-Null
 } catch {
