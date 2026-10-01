@@ -41,3 +41,48 @@ User preferences: no screenshot-driven workflow, work as a code editor, be token
 3. Reader: permanent contents rail on xl, restyle `ReaderBottomBar`, tablet floating toolbar; add `?page=` support (Varta "Open in reader" links use it).
 4. Player: phone swipe-down to mini player; MiniPlayerDock already reads `useAudioPlayerStore`.
 5. Mobile app tokens/icons; remove unused deps (lucide-react, fontsource Indic fonts) when safe; run ESLint, tests, Lighthouse; check dark mode and 1280/834/390 on every route once a login is available.
+
+
+---
+
+# Session 2 addendum: all five role dashboards rebuilt
+
+Supersedes the "Status vs the 14-step plan" rows 7-13 above. Commits are local only (nothing pushed); none carry Claude attribution (repo CLAUDE.md). Same working rules as session 1: code-editor workflow, no screenshot loop, verify with `npx tsc --noEmit` (filter to touched files) and `next build`. **Nothing behind login has been viewed in a browser.** The last `next build` (after the super-admin work) was started but its result was not seen; rerun it first.
+
+## What was done (commit order)
+| Role | Commits | Notes |
+|------|---------|-------|
+| Student (10 pages) | 6d0d778, ce726fb, 2feb2ec | Home, library, borrow, review, recommendations, goals, reading-list, requests, profile, personal-library |
+| Admin (8 routes) | 23193d6 | Fixed a render crash on `/dashboard/admin/borrowing` (policy defaults added in `hooks/use-admin-state.tsx`). Deleted dead legacy `components/admin/*` and the fake "System health" panel |
+| Librarian (7 routes) | 237e031 | New `components/librarian/analytics-charts.tsx` |
+| Teacher (4 routes) | 84a790b | |
+| Super-admin | 6e781a9, abd7f1b, 0fc7c53 | See depth table below |
+
+## Super-admin depth (important)
+- **Rebuilt** on PageHeader/StatCard/DataTable/StatusBadge: overview, branding hub, logo, users, institutions, subscriptions, media (storage analytics + 5 storage cards), audit (now on the real `getAuditLogs` API with real CSV/JSON export), plus `stats`, `institutions-list`, `audit-logs` widgets.
+- **Chrome only:** branding/homepage editor (form body and field editors untouched) and the catalog page (hero/stats/tabs/badges replaced; table and card bodies unchanged).
+- **Codemod pass only (not rebuilt):** AddBookWizard, AddFormatDialog, EditBookDialog, BookDetailDrawer, delete/purge/embedding dialogs, audiobook builder, user/institution sheets, SubscriptionForm. Gradients removed, `--deep-saffron/--peacock-teal/--night-ink` mapped to bb tokens; the old slate/indigo/red classes still render correctly only through the Tailwind palette shim.
+- Codemod scripts live in the session scratchpad, not the repo. Heredocs with quotes break in the bash tool: write scripts with the file tool.
+
+## Data honesty rules adopted (keep following)
+Many pages have no backend yet. Rather than fake it:
+- Mock/in-memory pages carry a **"Sample data"** chip (admin home/users/analytics/reports/overdue, librarian home/circulation/inventory/analytics, all 4 teacher pages) or "Not available yet" (bulk upload, label printing, borrowing policies "not saved to server").
+- Buttons with no backend show a **"coming soon" toast** instead of console.log/alert or a fake success.
+- Removed fabricated numbers (fake CPU/uptime, "+456 from last month", hardcoded 4.6 rating, random trending rank, fake AI recommendations).
+- Working in-memory only (lost on refresh): admin users delete/activate, circulation renew/return/approve, inventory status, teacher resource linker and reservation cancel.
+- Real API-backed: student pages, admin join-requests and catalog, librarian cataloging (POST /api/v1/books), all super-admin pages.
+
+## Known pre-existing issues / stubs not fixed
+- Student: borrow requests are hardcoded 2023 sample rows; Recommendations category/format selects and "Explore" do nothing (catalog ignores `?q=`); library "Return" uses `alert()`, "Renew" inert; reading-list has no remove endpoint (bulk/remove UI was removed); goals "Create goal" only logs; achievements are hardcoded demo data; personal-library "Recent" tab loads the same list as All files.
+- `/varta` chat cannot scope to a personal file, so personal-library "Ask Varta" opens `/reader?personalFileId=..&tab=varta` instead.
+- Remaining tsc errors outside the role dashboards: `app/catalog/[id]/page.tsx` (nullable `book`) and `.next/types/.../catalog/builder/[bookId]/page.ts` (PageProps). Super-admin and student `profile` errors from session 1 are now fixed.
+
+## Next steps
+1. Rerun `npx next build` (stop `next dev` first) and confirm exit 0.
+2. Dead `animate-vg-*` / `hover-vg-*` / transparenttextures classes remain in: `app/catalog/*`, `app/login`, `register`, `forgot-password`, `reset-password`, `onboarding`, `settings`, `institutions/join-request`, `reader/ReaderLanding`, `components/TrialExpirationBanner.tsx`, `components/ui/stat-pill.tsx` (StatPill is now unused by role pages; delete once those are clean). Mechanical cleanup.
+3. Public/auth pages (plan steps 7-8), catalog detail `app/catalog/[id]` (also fix its nullable `book` errors), subscription compare, legal pages, onboarding stepper, institutions browse/join: not rebuilt.
+4. Real rebuild (not codemod) of super-admin catalog dialogs/wizard/builder and homepage-editor field editors if desired.
+5. Reader gaps from session 1 (contents rail, bottom bar, `?page=` support, PDF themes), player swipe-down mini player.
+6. Mobile app tokens/icons (`mobile/` still imports `shared/design/tokens.ts`); remove unused deps (lucide-react, fontsource Indic fonts) when safe.
+7. ESLint, unit tests, Lighthouse; dark mode and 1280/834/390 checks on every route once a login exists.
+8. Consider building real backends for the sample-data pages (admin users/analytics/reports/overdue, librarian circulation/inventory/analytics, teacher assignments/resources, student borrow requests), then drop the Sample data chips.
