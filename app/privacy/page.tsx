@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LegalPage, Section, Fill } from '@/components/legal/legal-page';
+import { LegalPage, Section, Fill, DraftNotice } from '@/components/legal/legal-page';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Book Buddy',
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
  */
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="22 August 2026">
-      <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-900/20 dark:text-amber-200">
-        <strong>Draft pending legal review.</strong> The processing described
+    <LegalPage title="Privacy Policy" updated="22 August 2026" current="/privacy">
+      <DraftNotice>
+        The processing described
         below reflects how the software actually behaves, but the highlighted
         values must be completed and the whole document reviewed by a qualified
         adviser before it is relied upon.
-      </p>
+      </DraftNotice>
 
       <Section heading="Who we are">
         <p>

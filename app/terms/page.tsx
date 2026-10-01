@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LegalPage, Section, Fill } from '@/components/legal/legal-page';
+import { LegalPage, Section, Fill, DraftNotice } from '@/components/legal/legal-page';
 
 export const metadata: Metadata = {
   title: 'Terms of Service — Book Buddy',
@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 /** DRAFT — see the notice in the body. Needs review before it is relied upon. */
 export default function TermsPage() {
   return (
-    <LegalPage title="Terms of Service" updated="22 August 2026">
-      <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-900/20 dark:text-amber-200">
-        <strong>Draft pending legal review.</strong> Complete the highlighted
+    <LegalPage title="Terms of Service" updated="22 August 2026" current="/terms">
+      <DraftNotice>
+        Complete the highlighted
         values and have this reviewed by a qualified adviser before relying on
         it.
-      </p>
+      </DraftNotice>
 
       <Section heading="Agreement">
         <p>
