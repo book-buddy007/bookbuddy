@@ -165,3 +165,36 @@ A preview config `bookbuddy-web` (port 3010, frontend only) is in `H:\.claude\la
 2. Super-admin codemod-only dialogs/wizard/builder.
 3. Backend gaps from session 3 (deletion endpoint, proof upload, sample-data pages); privacy-policy wording about in-app deletion.
 4. Mobile app tokens, ESLint, tests, Lighthouse; logged-in checks of reader/player on phone, tablet and desktop.
+
+
+---
+
+# Session 5 addendum: landing demos and settings
+
+`next build` exited 0 (98 pages). tsc errors unchanged (PdfShell, AnnotationCanvas, lib/auth, scripts/setup-r2-cors).
+
+## Commits
+| Commit | What |
+|--------|------|
+| 3efb269 | `/catalog?format=AUDIOBOOK` landing (`app/catalog/AudioPlayerDashboard.tsx`) and `/reader` with no book (`app/reader/ReaderLanding.tsx`) |
+| cdf9294 | Settings, accessibility preferences, two dev previews |
+
+## Landings
+- Shared `components/landing/feature-landing.tsx`: `FeatureHero` (navy grid + glow band, `inset` for shell pages), `Reveal`, `FeatureSectionTitle`.
+- **Integration fix:** the audiobook landing used to embed the whole `AudiobookPlayerV2` when the URL had `bookId`. With the session 4 audio bridge (active on any non-`/player` path) both would have handled track end and double-advanced. Picking a book now goes to `/player?bookId=`; old `/catalog?format=AUDIOBOOK&bookId=` links are forwarded there.
+- Player demo: navy/blaze tokens, real narrator names (Aarav / Meera, as the real player shows), working chapters/mute/read-along (previous/next, volume and transcript used to be dead), keyboard seek on the waveform.
+- Reader demo uses the real `EpubSelectionPopover` and the reader's highlight colours; dictionary is a `Modal` (sheet on phone). Toasts say what would happen in a real book rather than claiming it was saved.
+- Fixed in both: the Subject filter never matched (list API nests `categories[].category.name`), load failures showed as "No audiobooks available", and the reader landing's Borrow marked books borrowed even when the request failed.
+
+## Settings (`app/settings/page.tsx`)
+- Was a mock-up (John Doe, fake Google connection, fake iPhone/Firefox sessions, fake API key, inert Save buttons and switches). Now: signed-in account details (+ Edit profile for students), password via `/forgot-password`, **real sessions** via better-auth `listSessions` / `revokeSession` / `revokeOtherSessions`, app theme, reader defaults (embeds `ReaderDisplayContent` under `data-reader`), accessibility, data & privacy (legal links, `/delete-account`).
+- Labelled "Not available yet": two-factor, notification preferences (no backend), data export.
+- Password change is deliberately not done in-page: better-auth's `changePassword` only updates `Account`, not the NestJS `User.password` the mobile app uses (see CLAUDE.md "Two auth systems").
+- **Reduce motion / High contrast** were stored but never applied. `components/a11y-preferences.tsx` (root layout) sets `data-reduce-motion` / `data-contrast="high"` on `<html>`; rules are in `styles/bb-tokens.css` ("Accessibility preferences").
+- Previews (dev only): `/design-system/reader-landing`, `/design-system/settings` (signed out there, so sessions show "Unauthorized").
+
+## Still to do
+1. Player CSS module (`app/player/v2/playerV2.module.css`) review; super-admin codemod-only dialogs/wizard/builder.
+2. Backend: deletion request endpoint, join-request proof upload, notification preferences, data export, sample-data pages; then revisit the privacy-policy wording on deletion.
+3. Minor: `/catalog` still fetches its book list once when it is about to show the audiobook landing.
+4. Mobile app tokens, ESLint, tests, Lighthouse; logged-in checks (settings sessions, reader, player swipe) on phone/tablet/desktop.
