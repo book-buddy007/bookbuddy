@@ -30,7 +30,7 @@ export function TenantSelector() {
         <Building2 className="h-4 w-4 text-[var(--peacock-teal)]" />
       </div>
       <Select value={selectedTenantId} onValueChange={setSelectedTenantId}>
-        <SelectTrigger className="w-[280px] border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md focus:ring-[var(--peacock-teal)] text-slate-700 dark:text-slate-300 rounded-xl">
+        <SelectTrigger className="w-[280px] border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md focus:ring-[var(--peacock-teal)] text-slate-700 dark:text-slate-300 rounded-xl">
           <SelectValue placeholder="Select institution…" />
         </SelectTrigger>
         <SelectContent>

@@ -29,7 +29,7 @@ export default function BrandingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Logo Management Card */}
         <Link href="/dashboard/super-admin/branding/logo" className="group block">
-          <div className="relative overflow-hidden rounded-2xl p-6 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--peacock-teal)]/30">
+          <div className="relative overflow-hidden rounded-2xl p-6 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--peacock-teal)]/30">
             {/* Glow accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--peacock-teal)]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 group-hover:bg-[var(--peacock-teal)]/20 transition-colors duration-500" />
             
@@ -55,13 +55,13 @@ export default function BrandingPage() {
 
         {/* Homepage Editor Card */}
         <Link href="/dashboard/super-admin/branding/homepage" className="group block">
-          <div className="relative overflow-hidden rounded-2xl p-6 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--deep-saffron)]/30">
+          <div className="relative overflow-hidden rounded-2xl p-6 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--deep-saffron)]/30">
             {/* Glow accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--deep-saffron)]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 group-hover:bg-[var(--deep-saffron)]/20 transition-colors duration-500" />
             
             <div className="relative z-10 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center h-12 w-12 rounded-2xl bg-gradient-to-br from-[var(--deep-saffron)] to-[#FFAE42] shadow-lg shadow-[var(--deep-saffron)]/20">
+                <div className="flex items-center justify-center h-12 w-12 rounded-2xl bg-gradient-to-br from-[var(--deep-saffron)] to-bb-accent shadow-lg shadow-[var(--deep-saffron)]/20">
                   <Home className="h-6 w-6 text-white" />
                 </div>
                 <div>

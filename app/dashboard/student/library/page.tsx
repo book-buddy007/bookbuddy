@@ -47,7 +47,7 @@ export default function LibraryPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <Library className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
             Personal Library
           </h1>
@@ -56,7 +56,7 @@ export default function LibraryPage() {
           </p>
         </div>
         <EnhancedButton
-          className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white shadow-lg hover:shadow-xl border-transparent"
+          className="shadow-lg hover:shadow-xl border-transparent"
           icon={<BookOpen className="h-4 w-4" />}
           onClick={() => window.location.href = "/catalog"}
         >
@@ -100,7 +100,7 @@ export default function LibraryPage() {
         <EnhancedCardHeader className="relative z-10 pb-2">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
                 <BookMarked className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                 Borrowed Books
               </EnhancedCardTitle>

@@ -570,7 +570,7 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
                     displayedVocab.map(entry => (
                         <div key={entry.id} className="p-4 rounded-md border bg-card text-card-foreground shadow-sm">
                             <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-serif font-bold text-lg text-primary capitalize flex items-center gap-2">
+                                <h4 className="font-display font-bold text-lg text-primary capitalize flex items-center gap-2">
                                     <BookA className="w-4 h-4 text-primary/70" />
                                     {entry.word}
                                 </h4>
@@ -617,7 +617,7 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
                         <div className="space-y-2 pl-2">
                           {group.entries.map(entry => (
                             <div key={entry.id} className="p-3 rounded-md border bg-card text-card-foreground shadow-sm">
-                                <h4 className="font-serif font-bold text-base text-primary capitalize flex items-center gap-2 mb-1">
+                                <h4 className="font-display font-bold text-base text-primary capitalize flex items-center gap-2 mb-1">
                                     <BookA className="w-3.5 h-3.5 text-primary/70" />
                                     {entry.word}
                                 </h4>

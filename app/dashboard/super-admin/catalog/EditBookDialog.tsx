@@ -125,12 +125,12 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
           {/* Header — Indic Warm Gradient */}
           <div className="relative overflow-hidden px-6 py-5 shrink-0" style={{background: 'linear-gradient(135deg, #0A0F1E 0%, #0D1B6E 30%, #006A6E 60%, #FF9933 100%)'}}>
             <div className="absolute inset-0 opacity-25 pointer-events-none" style={{backgroundImage: 'radial-gradient(ellipse at 80% 20%, rgba(255,153,51,0.35) 0%, transparent 55%), radial-gradient(circle at 15% 60%, rgba(0,106,110,0.25) 0%, transparent 50%)'}} />
-            <div className="absolute -top-16 -right-16 w-40 h-40 bg-[#FF9933]/[0.06] rounded-full blur-3xl" />
+            <div className="absolute -top-16 -right-16 w-40 h-40 bg-bb-accent/[0.06] rounded-full blur-3xl" />
             <div className="relative z-10">
               <DialogHeader className="space-y-1">
                 <DialogTitle className="text-xl font-bold text-white flex items-center gap-2.5">
                   <div className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 border border-white/10"><BookOpen className="h-5 w-5" /></div>
-                  Edit Book <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FFD700] to-[#FF9933]">Details</span>
+                  Edit Book <span className="text-bb-accent">Details</span>
                 </DialogTitle>
               </DialogHeader>
             </div>
@@ -145,14 +145,14 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
 
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
             {/* Body */}
-            <div className="px-6 py-6 flex-1 overflow-y-auto bg-[#FAFBFC] dark:bg-slate-900 space-y-6">
+            <div className="px-6 py-6 flex-1 overflow-y-auto bg-bb-bg dark:bg-slate-900 space-y-6">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="md:col-span-2 space-y-1.5">
                   <Label className="text-sm font-semibold">Book Title <span className="text-red-500">*</span></Label>
                   <Input 
                     placeholder="e.g. The AI Revolution" 
-                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all font-medium" 
+                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all font-medium" 
                     value={formData.title || ''} 
                     onChange={e => updateForm('title', e.target.value)} 
                   />
@@ -162,7 +162,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
                   <Label className="text-sm font-semibold">Author(s) <span className="text-red-500">*</span></Label>
                   <Input 
                     placeholder="Author names" 
-                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" 
+                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" 
                     value={formData.author || ''} 
                     onChange={e => updateForm('author', e.target.value)} 
                   />
@@ -171,7 +171,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
                 <div className="space-y-1.5">
                   <Label className="text-sm font-semibold">Language</Label>
                   <Select value={formData.language || 'en'} onValueChange={v => updateForm('language', v)}>
-                    <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25">
+                    <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -191,7 +191,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
                   <Label className="text-sm font-semibold">ISBN (Optional)</Label>
                   <Input 
                     placeholder="ISBN-13 or ISBN-10" 
-                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" 
+                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" 
                     value={formData.isbn || ''} 
                     onChange={e => updateForm('isbn', e.target.value)} 
                   />
@@ -238,7 +238,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
                   <Label className="text-sm font-semibold">Publisher (Optional)</Label>
                   <Input 
                     placeholder="Publisher name" 
-                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" 
+                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" 
                     value={formData.publisher || ''} 
                     onChange={e => updateForm('publisher', e.target.value)} 
                   />
@@ -250,7 +250,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
                     type="number" 
                     placeholder="e.g. 2024" 
                     min={1900} max={2100}
-                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all"
+                    className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all"
                     value={formData.publishYear || ''} 
                     onChange={e => updateForm('publishYear', e.target.value)} 
                   />
@@ -260,7 +260,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
                   <Label className="text-sm font-semibold">Description</Label>
                   <Textarea 
                     placeholder="Write a compelling summary of the book..." 
-                    className="min-h-[120px] resize-none rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all leading-relaxed" 
+                    className="min-h-[120px] resize-none rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all leading-relaxed" 
                     value={formData.description || ''} 
                     onChange={e => updateForm('description', e.target.value)} 
                   />
@@ -281,7 +281,7 @@ export function EditBookDialog({ open, onOpenChange, book }: EditBookDialogProps
               </EnhancedButton>
               <EnhancedButton
                 type="submit"
-                className="gap-2 rounded-xl bg-gradient-to-r from-[#006A6E] to-[#00897B] hover:from-[#005A5E] hover:to-[#007A6B] text-white shadow-md transition-all hover:shadow-lg"
+                className="gap-2 rounded-xl bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white shadow-md transition-all hover:shadow-lg"
                 disabled={updateMutation.isPending || !formData.title || !formData.author}
               >
                 {updateMutation.isPending ? (

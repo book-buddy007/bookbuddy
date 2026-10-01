@@ -430,7 +430,7 @@ export default function CatalogPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0F1E] text-slate-900 dark:text-[var(--ivory-cream)] selection:bg-[var(--deep-saffron)]/30">
+    <div className="min-h-screen relative overflow-hidden bg-bb-bg dark:bg-bb-bg text-slate-900 dark:text-[var(--ivory-cream)] selection:bg-[var(--deep-saffron)]/30">
       {/* ── Ambient Background Glows (Matching Landing/Dashboard) ── */}
       <div className="absolute top-0 right-0 -mr-40 w-[800px] h-[800px] bg-gradient-to-bl from-[var(--saffron)]/10 via-[var(--gold)]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-40 w-[600px] h-[600px] bg-gradient-to-tr from-[var(--peacock-teal)]/10 to-transparent rounded-full blur-3xl pointer-events-none" />

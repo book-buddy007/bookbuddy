@@ -54,7 +54,7 @@ export function AssignTenantRoleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+      <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
             <div className="p-2 rounded-xl bg-gradient-to-br from-[var(--deep-saffron)]/15 to-[var(--saffron)]/10 text-[var(--deep-saffron)]">
@@ -74,7 +74,7 @@ export function AssignTenantRoleDialog({
               <SelectTrigger id="tenant" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40">
                 <SelectValue placeholder="Select an institution" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl bg-white dark:bg-[#0F172A] border-slate-200/60 dark:border-slate-700/40">
+              <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
                 {institutions.map((inst) => (
                   <SelectItem key={inst.id} value={inst.id}>
                     {inst.name}
@@ -90,7 +90,7 @@ export function AssignTenantRoleDialog({
               <SelectTrigger id="role" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[var(--deep-saffron)]/40">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl bg-white dark:bg-[#0F172A] border-slate-200/60 dark:border-slate-700/40">
+              <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
                 <SelectItem value="student">Student</SelectItem>
                 <SelectItem value="teacher">Teacher</SelectItem>
                 <SelectItem value="librarian">Librarian</SelectItem>
@@ -114,7 +114,7 @@ export function AssignTenantRoleDialog({
             type="button"
             onClick={handleSubmit}
             disabled={isLoading || !selectedTenant || !selectedRole}
-            className="!bg-gradient-to-r !from-[var(--deep-saffron)] !to-[var(--saffron)] hover:!from-[var(--saffron)] hover:!to-[var(--gold)] !text-white rounded-xl shadow-md"
+            className="rounded-xl shadow-md"
           >
             {isLoading ? 'Assigning...' : 'Assign Role'}
           </EnhancedButton>

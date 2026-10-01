@@ -105,9 +105,9 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
           </Avatar>
           <div className="space-y-1 flex-1">
             <p className="text-sm text-slate-800">
-              <span className="font-bold text-[#1A237E]">{log.user?.name || log.userId || 'System'}</span>
+              <span className="font-bold text-bb-text">{log.user?.name || log.userId || 'System'}</span>
               {' '}
-              <span className="text-[#5D4037] font-medium">
+              <span className="text-bb-muted font-medium">
                 {getActionLabel(log.action)} a {getResourceTypeLabel(log.entityType)}
                 {log.entityId && (
                   <span className="text-[10px] bg-amber-100 text-amber-800 rounded px-1.5 py-0.5 ml-1 font-bold">
@@ -116,7 +116,7 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
                 )}
               </span>
             </p>
-            <p className="text-xs text-[#5D4037]/70 font-medium italic">
+            <p className="text-xs text-bb-muted/70 font-medium italic">
               {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
             </p>
           </div>

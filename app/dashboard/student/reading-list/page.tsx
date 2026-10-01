@@ -280,7 +280,7 @@ export default function ReadingListPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <BookMarked className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
             Reading List
           </h1>
@@ -361,7 +361,7 @@ export default function ReadingListPage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             Your Reading List
           </EnhancedCardTitle>
           <EnhancedCardDescription className="text-slate-600 dark:text-slate-400">Track your reading progress and manage your books</EnhancedCardDescription>
@@ -377,7 +377,7 @@ export default function ReadingListPage() {
                 className="pl-9 bg-white/50 dark:bg-slate-900/50 border-indigo-200/50 focus:border-indigo-500"
               />
             </div>
-            <EnhancedButton className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white border-transparent">
+            <EnhancedButton className="border-transparent">
               Search
             </EnhancedButton>
           </div>
@@ -459,7 +459,7 @@ export default function ReadingListPage() {
       <Dialog open={!!selectedBook} onOpenChange={() => setSelectedBook(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Reading Interface</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-bb-accent">Reading Interface</DialogTitle>
           </DialogHeader>
           {selectedBook && <ReadingInterface book={selectedBook} />}
         </DialogContent>

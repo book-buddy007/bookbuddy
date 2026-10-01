@@ -45,7 +45,7 @@ export function InstitutionDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl md:max-w-3xl overflow-y-auto bg-white dark:bg-[#0F172A] border-l border-slate-200/60 dark:border-slate-700/40" side="right">
+      <SheetContent className="w-full sm:max-w-2xl md:max-w-3xl overflow-y-auto bg-white dark:bg-bb-bg border-l border-slate-200/60 dark:border-slate-700/40" side="right">
         <SheetHeader className="pb-6 border-b border-slate-200/60 dark:border-slate-700/40 mb-6">
           <div className="flex justify-between items-start">
             <div>
@@ -95,7 +95,7 @@ export function InstitutionDetailSheet({
           </div>
 
           {/* Administration & Contact Card */}
-          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700/40 bg-slate-50/50 dark:bg-slate-800/30">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
                 <ShieldCheck className="h-5 w-5 text-[var(--deep-saffron)]" /> 

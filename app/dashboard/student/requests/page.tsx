@@ -222,7 +222,7 @@ export default function StudentRequestsPage() {
             <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-6 mb-6 shadow-xl text-white flex items-center justify-center">
               <Building2 className="h-10 w-10" />
             </div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            <h2 className="text-3xl font-bold mb-4 text-bb-accent">
               Institution Access
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-lg max-w-md mx-auto mb-8">
@@ -230,7 +230,7 @@ export default function StudentRequestsPage() {
             </p>
             <EnhancedButton
               size="lg"
-              className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white border-transparent"
+              className="border-transparent"
               onClick={() => router.push('/dashboard/student')}
             >
               Back to Dashboard
@@ -242,7 +242,7 @@ export default function StudentRequestsPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+              <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
                 <Send className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
                 Institution Access Requests
               </h1>
@@ -253,7 +253,7 @@ export default function StudentRequestsPage() {
             <div className="flex items-center gap-3">
               <EnhancedButton
                 size="lg"
-                className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white shadow-lg hover:shadow-xl border-transparent"
+                className="shadow-lg hover:shadow-xl border-transparent"
                 onClick={() => router.push('/institutions/browse')}
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -321,7 +321,7 @@ export default function StudentRequestsPage() {
                 </p>
                 <EnhancedButton
                   size="lg"
-                  className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white transition-all shadow-md group"
+                  className="transition-all shadow-md group"
                   onClick={() => router.push('/institutions/browse')}
                 >
                   <Sparkles className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />

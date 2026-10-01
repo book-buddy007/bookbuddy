@@ -400,7 +400,7 @@ export default function SuperAdminCatalogPage() {
             </EnhancedButton>
             <EnhancedButton
               size="lg"
-              className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold !px-6"
+              className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
               onClick={() => setIsAddBookOpen(true)}
             >
               <Plus className="h-5 w-5 mr-2" />
@@ -482,14 +482,14 @@ export default function SuperAdminCatalogPage() {
       {/* Tabs — Premium Indic Navigation */}
       <div className="relative bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.3)] backdrop-blur-xl overflow-hidden">
         {/* Decorative top accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#0D1B6E] via-[#006A6E] to-[#FF9933]" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-bb-cobalt via-bb-cobalt to-bb-accent" />
         
         <div className="flex p-1.5 md:p-2 gap-1 md:gap-1.5 overflow-x-auto scrollbar-hide">
           {[
-            { key: 'GLOBAL' as const, label: 'All Global Books', shortLabel: 'Global', icon: Globe, accent: 'from-[#0D1B6E] to-[#006A6E]' },
-            { key: 'PENDING' as const, label: 'Approval Requests', shortLabel: 'Pending', icon: Hourglass, count: statsData?.pendingApprovalsCount, accent: 'from-[#FF9933] to-[#FF6B35]' },
-            { key: 'PUBLISHERS' as const, label: 'Institutional Publishers', shortLabel: 'Publishers', icon: Building2, accent: 'from-[#006A6E] to-[#00897B]' },
-            { key: 'BIN' as const, label: 'Recycle Bin', shortLabel: 'Bin', icon: Trash, accent: 'from-[#9B1C1C] to-[#DC2626]' },
+            { key: 'GLOBAL' as const, label: 'All Global Books', shortLabel: 'Global', icon: Globe, accent: 'from-bb-cobalt to-bb-cobalt' },
+            { key: 'PENDING' as const, label: 'Approval Requests', shortLabel: 'Pending', icon: Hourglass, count: statsData?.pendingApprovalsCount, accent: 'from-bb-accent to-bb-accent' },
+            { key: 'PUBLISHERS' as const, label: 'Institutional Publishers', shortLabel: 'Publishers', icon: Building2, accent: 'from-bb-cobalt to-bb-cobalt' },
+            { key: 'BIN' as const, label: 'Recycle Bin', shortLabel: 'Bin', icon: Trash, accent: 'from-bb-danger to-bb-danger' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -505,7 +505,7 @@ export default function SuperAdminCatalogPage() {
                 <div className={`absolute bottom-0 left-3 right-3 md:left-4 md:right-4 h-[2.5px] rounded-full bg-gradient-to-r ${tab.accent}`} />
               )}
               <tab.icon className={`h-4 w-4 md:h-[18px] md:w-[18px] shrink-0 transition-colors duration-300 ${
-                activeTab === tab.key ? 'text-[#006A6E] dark:text-[#FF9933]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'
+                activeTab === tab.key ? 'text-bb-text dark:text-bb-accent' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'
               }`} />
               {/* Show short label on mobile, full label on md+ */}
               <span className="md:hidden truncate">{tab.shortLabel}</span>

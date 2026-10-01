@@ -268,7 +268,7 @@ export default function AdminAnalyticsPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <TrendingUp className="h-10 w-10 text-blue-700 dark:text-blue-500" />
             Analytics & Insights
           </h1>
@@ -366,7 +366,7 @@ export default function AdminAnalyticsPage() {
             <EnhancedCardContent className="p-6">
               <TabsContent value="engagement" className="mt-0 space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                  <h3 className="text-xl font-semibold text-bb-accent">
                     Daily User Activity
                   </h3>
                   <EnhancedButton variant="outline" size="sm" icon={<Download className="h-4 w-4" />}>

@@ -12,7 +12,7 @@ export default function BulkUploadPage() {
     <div className="space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <Upload className="h-10 w-10 text-blue-700 dark:text-blue-500" />
           Bulk Upload
         </h1>
@@ -50,7 +50,7 @@ export default function BulkUploadPage() {
 
       <EnhancedCard variant="elevated">
         <EnhancedCardHeader>
-          <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
+          <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
             <FileSpreadsheet className="h-5 w-5 text-blue-700 dark:text-blue-500" />
             Bulk Upload Guidelines
           </EnhancedCardTitle>

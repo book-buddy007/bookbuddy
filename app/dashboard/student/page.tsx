@@ -107,7 +107,7 @@ export default function StudentDashboard() {
                 <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-6">
                   <span className="text-3xl">✖</span>
                 </div>
-                <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
                   Request Declined
                 </EnhancedCardTitle>
               </EnhancedCardHeader>
@@ -131,7 +131,7 @@ export default function StudentDashboard() {
                 <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full flex items-center justify-center mb-6">
                   <Clock className="w-8 h-8" />
                 </div>
-                <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
                   Waiting for Approval
                 </EnhancedCardTitle>
               </EnhancedCardHeader>
@@ -284,7 +284,7 @@ export default function StudentDashboard() {
 
       {/* ③ Continue learning — Phase 2: EnhancedCard wrapper + stagger 200ms */}
       <StaggerWrapper delay={200}>
-        <EnhancedCard className="border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md shadow-sm hover-vg-lift-safe">
+        <EnhancedCard className="border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md shadow-sm hover-vg-lift-safe">
           <EnhancedCardContent className="pt-6 pb-4 px-4 sm:px-6">
             <ContinueLearningRow
               books={continueBooks}
@@ -303,7 +303,7 @@ export default function StudentDashboard() {
       {/* ④ Study streams + sidebar — Phase 2: EnhancedCard wrapper + stagger 300ms */}
       <StaggerWrapper delay={300}>
         <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px]">
-          <EnhancedCard className="border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md shadow-sm hover-vg-lift-safe">
+          <EnhancedCard className="border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md shadow-sm hover-vg-lift-safe">
             <EnhancedCardContent className="pt-6 pb-4 px-4 sm:px-6">
               <StudyStreamsGrid data={streamsData} isLoading={isDataLoading} />
             </EnhancedCardContent>
@@ -388,19 +388,19 @@ function StatPill({
 }) {
   const themes = {
     saffron: {
-      card: 'bg-gradient-to-br from-[#FFF4E6] via-[#FFE8CC] to-[#FFDAB8] dark:from-[#2D1A0A] dark:via-[#3D2212] dark:to-[#1A0F05] border-[#E8A060]/30',
-      iconBg: 'bg-gradient-to-br from-[#E8843C] to-[#D4622A] text-white shadow-lg shadow-[#E8843C]/30',
-      valueColor: 'text-[#A84A1A] dark:text-[#FFB877]',
+      card: 'bg-gradient-to-br from-bb-accent-soft via-bb-accent-soft to-bb-accent-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-accent/30',
+      iconBg: 'bg-gradient-to-br from-bb-accent to-bb-accent text-white shadow-lg shadow-bb-accent/30',
+      valueColor: 'text-bb-accent dark:text-bb-accent',
     },
     teal: {
-      card: 'bg-gradient-to-br from-[#E6FFF9] via-[#CCF5EE] to-[#B8EEDF] dark:from-[#0A2D26] dark:via-[#0F3D33] dark:to-[#051A15] border-[#30B892]/30',
-      iconBg: 'bg-gradient-to-br from-[#1A9E7A] to-[#0E8367] text-white shadow-lg shadow-[#1A9E7A]/30',
-      valueColor: 'text-[#0E6B54] dark:text-[#6EE7C0]',
+      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-cobalt/30',
+      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
+      valueColor: 'text-bb-text dark:text-bb-text',
     },
     gold: {
-      card: 'bg-gradient-to-br from-[#F5EDFF] via-[#EBE0FF] to-[#DFD0FF] dark:from-[#1A0F2E] dark:via-[#221640] dark:to-[#130A24] border-[#9063D4]/30',
-      iconBg: 'bg-gradient-to-br from-[#8B5CF6] to-[#7040D4] text-white shadow-lg shadow-[#8B5CF6]/30',
-      valueColor: 'text-[#6D28D9] dark:text-[#C4A8FF]',
+      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-cobalt/30',
+      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
+      valueColor: 'text-bb-text dark:text-bb-text',
     },
   };
   const theme = themes[accent];

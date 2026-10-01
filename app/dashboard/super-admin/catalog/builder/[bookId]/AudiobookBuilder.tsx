@@ -237,7 +237,7 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
           <EnhancedButton
             onClick={saveOrder}
             loading={reorderMutation.isPending}
-            className="gap-2 rounded-xl bg-gradient-to-r from-[#006A6E] to-[#00897B] hover:from-[#005A5E] hover:to-[#007A6B] text-white shadow-md"
+            className="gap-2 rounded-xl bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white shadow-md"
           >
             {!reorderMutation.isPending && <Save className="w-4 h-4" />}
             Save Order

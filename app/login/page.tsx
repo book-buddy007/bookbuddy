@@ -156,10 +156,10 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-[#1A237E] to-[#4A148C] bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
               Welcome Back
             </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-base text-[#5D4037]">
+            <EnhancedCardDescription className="text-base text-bb-muted">
               Sign in to access your digital library
             </EnhancedCardDescription>
           </div>
@@ -184,10 +184,10 @@ export default function LoginPage() {
                 <div className="flex items-start gap-2">
                   <Mail className="h-5 w-5 text-amber-600 mt-0.5" />
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-[#1A237E] mb-1">
+                    <h4 className="text-sm font-bold text-bb-text mb-1">
                       Email Not Verified
                     </h4>
-                    <p className="text-xs text-[#5D4037] mb-3">
+                    <p className="text-xs text-bb-muted mb-3">
                       Please verify your email address to log in. Click below to resend the verification email.
                     </p>
 
@@ -232,7 +232,7 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-bold text-[#1A237E]">
+              <Label htmlFor="email" className="text-sm font-bold text-bb-text">
                 Email Address
               </Label>
               <Input
@@ -252,7 +252,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-bold text-[#1A237E]">
+                <Label htmlFor="password" className="text-sm font-bold text-bb-text">
                   Password
                 </Label>
                 <Link
@@ -291,7 +291,7 @@ export default function LoginPage() {
             <EnhancedButton
               type="submit"
               size="lg"
-              className="w-full !bg-gradient-to-r !from-amber-600 !to-amber-500 hover:!from-amber-700 hover:!to-amber-600 !text-white !shadow-[0_8px_30px_rgba(217,119,6,0.2)] hover:!shadow-[0_12px_40px_rgba(217,119,6,0.3)] border-transparent transition-all duration-300"
+              className="w-full border-transparent transition-all duration-300"
               loading={isLoading}
               loadingText="Signing in..."
               icon={<LogIn className="h-5 w-5" />}

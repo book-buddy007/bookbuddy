@@ -94,7 +94,7 @@ export default function SuperAdminStoragePage() {
             size="lg"
             onClick={() => refetch()}
             disabled={isLoading}
-            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold !px-6"
+            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
           >
             <RefreshCw
               className={`h-5 w-5 mr-2 ${isLoading ? "animate-spin" : ""}`}

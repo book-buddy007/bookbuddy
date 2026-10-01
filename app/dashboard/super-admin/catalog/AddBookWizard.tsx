@@ -570,7 +570,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                 <EnhancedButton variant="outline" onClick={handleAddAnother} className="gap-2">
                   <PlusCircle className="w-4 h-4" /> Add Another Book
                 </EnhancedButton>
-                <EnhancedButton onClick={handleViewInCatalog} className="bg-gradient-to-r from-[#006A6E] to-[#00897B] hover:from-[#005A5E] hover:to-[#007A6B] text-white gap-2 shadow-md shadow-[#006A6E]/20">
+                <EnhancedButton onClick={handleViewInCatalog} className="bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white gap-2 shadow-md shadow-bb-cobalt/20">
                   <Eye className="w-4 h-4" /> View in Library
                 </EnhancedButton>
               </div>
@@ -595,7 +595,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
               <EnhancedButton variant="outline" onClick={() => { setView('form'); setStep(4); }} className="text-slate-600">
                 <ChevronLeft className="w-4 h-4 mr-1" /> Back to Form
               </EnhancedButton>
-              <EnhancedButton onClick={handleRetry} className="bg-gradient-to-r from-[#006A6E] to-[#00897B] hover:from-[#005A5E] hover:to-[#007A6B] text-white gap-2 shadow-md">
+              <EnhancedButton onClick={handleRetry} className="bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-cobalt hover:to-bb-cobalt text-white gap-2 shadow-md">
                 <RotateCcw className="w-4 h-4" /> Retry Upload
               </EnhancedButton>
             </div>
@@ -608,12 +608,12 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
             {/* Header — Indic Warm Gradient */}
             <div className="relative overflow-hidden px-6 pt-5 pb-7 shrink-0" style={{background: 'linear-gradient(135deg, #0A0F1E 0%, #0D1B6E 30%, #006A6E 60%, #FF9933 100%)'}}>
               <div className="absolute inset-0 opacity-25 pointer-events-none" style={{backgroundImage: 'radial-gradient(ellipse at 80% 20%, rgba(255,153,51,0.35) 0%, transparent 55%), radial-gradient(circle at 15% 60%, rgba(0,106,110,0.25) 0%, transparent 50%)'}} />
-              <div className="absolute -top-16 -right-16 w-40 h-40 bg-[#FF9933]/[0.06] rounded-full blur-3xl" />
+              <div className="absolute -top-16 -right-16 w-40 h-40 bg-bb-accent/[0.06] rounded-full blur-3xl" />
               <div className="relative z-10">
                 <DialogHeader className="space-y-1">
                   <DialogTitle className="text-xl font-bold text-white flex items-center gap-2.5">
                     <div className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 border border-white/10"><Sparkles className="h-5 w-5" /></div>
-                    Premium Publishing <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FFD700] to-[#FF9933]">Studio</span>
+                    Premium Publishing <span className="text-bb-accent">Studio</span>
                   </DialogTitle>
                 </DialogHeader>
                 {/* Indic step indicators */}
@@ -622,11 +622,11 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                     <div key={num} className="flex-1">
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <div className={`flex items-center justify-center h-5 w-5 rounded-full text-[10px] font-bold transition-all duration-300
-                          ${step > num ? 'bg-[#FFD700] text-[#0A0F1E] scale-100' : step === num ? 'bg-white text-[#0D1B6E] ring-2 ring-[#FFD700]/50 ring-offset-1 ring-offset-transparent' : 'bg-white/15 text-white/50'}`}>
+                          ${step > num ? 'bg-bb-accent text-bb-text scale-100' : step === num ? 'bg-white text-bb-text ring-2 ring-bb-accent/50 ring-offset-1 ring-offset-transparent' : 'bg-white/15 text-white/50'}`}>
                           {step > num ? '✓' : num}
                         </div>
                       </div>
-                      <div className={`h-1 rounded-full transition-all duration-300 ${step >= num ? 'bg-gradient-to-r from-[#FFD700] to-[#FF9933]' : 'bg-white/10'}`} />
+                      <div className={`h-1 rounded-full transition-all duration-300 ${step >= num ? 'bg-gradient-to-r from-bb-accent to-bb-accent' : 'bg-white/10'}`} />
                       <span className={`text-[10px] font-semibold uppercase mt-1 block transition-colors ${step >= num ? 'text-white' : 'text-white/35'}`}>
                         {num === 1 ? 'Details' : num === 2 ? 'Classification' : num === 3 ? 'Media' : 'Review'}
                       </span>
@@ -637,27 +637,27 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
             </div>
 
             {/* Body Steps */}
-            <div className="px-6 py-6 flex-1 overflow-y-auto bg-[#FAFBFC] dark:bg-slate-900">
+            <div className="px-6 py-6 flex-1 overflow-y-auto bg-bb-bg dark:bg-slate-900">
               
               {/* STEP 1: Details */}
               <div className={step === 1 ? 'block animate-in fade-in slide-in-from-right-4' : 'hidden'}>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 pb-3 mb-4 flex items-center gap-2.5 border-b border-slate-200/60 dark:border-slate-700/40">
-                  <div className="w-1 h-5 rounded-full bg-gradient-to-b from-[#0D1B6E] to-[#006A6E]" />
-                  <BookOpen className="h-5 w-5 text-[#006A6E]" /> Book Information
+                  <div className="w-1 h-5 rounded-full bg-gradient-to-b from-bb-cobalt to-bb-cobalt" />
+                  <BookOpen className="h-5 w-5 text-bb-text" /> Book Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="md:col-span-2 space-y-1.5">
                     <Label className="text-sm font-semibold">Book Title <span className="text-red-500">*</span></Label>
-                    <Input placeholder="e.g. The AI Revolution" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" value={formData.title} onChange={e => updateForm('title', e.target.value)} />
+                    <Input placeholder="e.g. The AI Revolution" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" value={formData.title} onChange={e => updateForm('title', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-semibold">Author(s) <span className="text-red-500">*</span></Label>
-                    <Input placeholder="Author names" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" value={formData.author} onChange={e => updateForm('author', e.target.value)} />
+                    <Input placeholder="Author names" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" value={formData.author} onChange={e => updateForm('author', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-semibold">Language</Label>
                     <Select value={formData.language} onValueChange={v => updateForm('language', v)}>
-                      <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="en">English</SelectItem>
                         <SelectItem value="hi">Hindi</SelectItem>
@@ -672,11 +672,11 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-semibold">ISBN (Optional)</Label>
-                    <Input placeholder="ISBN-13 or ISBN-10" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" value={formData.isbn} onChange={e => updateForm('isbn', e.target.value)} />
+                    <Input placeholder="ISBN-13 or ISBN-10" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" value={formData.isbn} onChange={e => updateForm('isbn', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-semibold">Publisher (Optional)</Label>
-                    <Input placeholder="Publisher name" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" value={formData.publisher} onChange={e => updateForm('publisher', e.target.value)} />
+                    <Input placeholder="Publisher name" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" value={formData.publisher} onChange={e => updateForm('publisher', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-semibold">Publish Year</Label>
@@ -684,14 +684,14 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                       type="number" 
                       placeholder="e.g. 2024" 
                       min={1900} max={2100}
-                      className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all"
+                      className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all"
                       value={formData.publishYear} 
                       onChange={e => updateForm('publishYear', e.target.value)} 
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
                     <Label className="text-sm font-semibold">Description</Label>
-                    <Textarea placeholder="Write a compelling summary of the book..." className="min-h-[100px] resize-none rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25 focus:border-[#006A6E]/50 transition-all" value={formData.description} onChange={e => updateForm('description', e.target.value)} />
+                    <Textarea placeholder="Write a compelling summary of the book..." className="min-h-[100px] resize-none rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25 focus:border-bb-cobalt/50 transition-all" value={formData.description} onChange={e => updateForm('description', e.target.value)} />
                   </div>
                 </div>
               </div>
@@ -713,7 +713,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                     <div className="space-y-1.5">
                       <Label className="text-sm font-semibold">Access Tier</Label>
                       <Select value={formData.accessTier} onValueChange={v => updateForm('accessTier', v)}>
-                        <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="FREE">Free</SelectItem>
                           <SelectItem value="BRONZE">Bronze</SelectItem>
@@ -728,7 +728,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                     <div className="space-y-1.5">
                       <Label className="text-sm font-semibold">AI Embed License</Label>
                       <Select value={formData.licenseType} onValueChange={v => updateForm('licenseType', v)}>
-                        <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="UNKNOWN">Unknown / Implicit</SelectItem>
                           <SelectItem value="AI_PERMITTED">AI Context Sync Permitted</SelectItem>
@@ -793,13 +793,13 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                   <Check className="h-5 w-5 text-emerald-500" /> Finalize & Book Format
                 </h3>
                 
-                <div className="bg-gradient-to-br from-[#F0FDF8] to-[#ECFDF5] dark:from-[#006A6E]/10 dark:to-[#0D1B6E]/10 border border-[#006A6E]/15 dark:border-[#006A6E]/25 rounded-2xl p-5 mb-6">
-                  <h4 className="font-bold text-[#0D1B6E] dark:text-teal-200 mb-3 flex items-center gap-2"><Eye className="w-4 h-4 text-[#006A6E]" /> Publishing Summary</h4>
+                <div className="bg-gradient-to-br from-bb-success-soft to-bb-success-soft dark:from-bb-cobalt/10 dark:to-bb-cobalt/10 border border-bb-cobalt/15 dark:border-bb-cobalt/25 rounded-2xl p-5 mb-6">
+                  <h4 className="font-bold text-bb-text dark:text-teal-200 mb-3 flex items-center gap-2"><Eye className="w-4 h-4 text-bb-text" /> Publishing Summary</h4>
                   <ul className="text-sm space-y-2 text-slate-700 dark:text-slate-300">
                     <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Title:</span> <span className="truncate">{formData.title || '(Missing)'}</span></li>
                     <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Author:</span> <span className="truncate">{formData.author || '(Missing)'}</span></li>
                     {formData.publishYear && <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Year:</span> {formData.publishYear}</li>}
-                    <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Access:</span> <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#FF9933]/10 text-[#B45309] border border-[#FF9933]/20">{formData.accessTier}</span></li>
+                    <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Access:</span> <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-bb-accent/10 text-bb-accent border border-bb-accent/20">{formData.accessTier}</span></li>
                     <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Genres:</span> {formData.categoryIds.length} selected</li>
                     <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Artwork:</span> {coverFile ? '✅ Front' : '❌ Front'}, {backCoverFile ? '✅ Back' : '—  Back'}</li>
                     <li className="flex items-start gap-2"><span className="font-semibold text-slate-900 dark:text-slate-100 shrink-0">Preview:</span> {sampleFile ? '✅ Sample attached' : '—  No sample'}</li>
@@ -811,16 +811,16 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                     retrieval to a student's institute curriculum. Optional. */}
                 <div className="space-y-3 mb-6">
                   <Label className="text-base font-semibold flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-[#006A6E]" /> Curriculum Taxonomy <span className="text-xs font-normal text-slate-400">(optional)</span>
+                    <Tag className="w-4 h-4 text-bb-text" /> Curriculum Taxonomy <span className="text-xs font-normal text-slate-400">(optional)</span>
                   </Label>
 
                   {taxonomySelections.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {taxonomySelections.map((sel) => (
-                        <div key={sel.nodeId} className={`flex items-center gap-2 pl-3 pr-1.5 py-1 rounded-full text-xs font-medium border ${sel.isPrimary ? 'bg-[#0D1B6E]/10 border-[#0D1B6E]/30 text-[#0D1B6E]' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+                        <div key={sel.nodeId} className={`flex items-center gap-2 pl-3 pr-1.5 py-1 rounded-full text-xs font-medium border ${sel.isPrimary ? 'bg-bb-cobalt/10 border-bb-cobalt/30 text-bb-text' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
                           <span className="truncate max-w-[220px]">{sel.label}</span>
                           {!sel.isPrimary && (
-                            <button type="button" onClick={() => setPrimaryTaxonomySelection(sel.nodeId)} className="text-[10px] uppercase font-bold text-slate-400 hover:text-[#0D1B6E]">
+                            <button type="button" onClick={() => setPrimaryTaxonomySelection(sel.nodeId)} className="text-[10px] uppercase font-bold text-slate-400 hover:text-bb-text">
                               Set primary
                             </button>
                           )}
@@ -843,7 +843,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                     {taxonomyPath.map((n, i) => (
                       <div key={n.id} className="flex items-center gap-1 text-xs text-slate-500">
                         <ChevronRight className="w-3 h-3" />
-                        <button type="button" onClick={() => setTaxonomyPath(taxonomyPath.slice(0, i))} className="hover:text-[#0D1B6E] font-medium">
+                        <button type="button" onClick={() => setTaxonomyPath(taxonomyPath.slice(0, i))} className="hover:text-bb-text font-medium">
                           {n.name}
                         </button>
                       </div>
@@ -883,7 +883,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                     <div className="space-y-1.5">
                       <Label className="text-xs">Select Format Type</Label>
                       <Select value={mainFormat} onValueChange={v => setMainFormat(v)} disabled={isSubmitting}>
-                        <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-[#006A6E]/25"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/50 focus:ring-2 focus:ring-bb-cobalt/25"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="NONE">None (Metadata Only)</SelectItem>
                           {FORMAT_CONFIG.map(f => (
@@ -920,13 +920,13 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                       >
                          {progress['main']?.status === 'uploading' ? (
                             <div className="flex flex-col items-center w-full max-w-sm">
-                              <Loader2 className="w-8 h-8 text-[#006A6E] animate-spin mb-3" />
+                              <Loader2 className="w-8 h-8 text-bb-text animate-spin mb-3" />
                               <div className="w-full flex justify-between text-xs font-bold text-slate-600 mb-2">
                                 <span className="truncate pr-4">{mainContentFile?.name}</span>
                                 <span>{progress['main'].pct}%</span>
                               </div>
                               <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-[#0D1B6E] via-[#006A6E] to-[#FF9933] rounded-full transition-all duration-300" style={{ width: `${progress['main'].pct}%` }} />
+                                <div className="h-full bg-gradient-to-r from-bb-cobalt via-bb-cobalt to-bb-accent rounded-full transition-all duration-300" style={{ width: `${progress['main'].pct}%` }} />
                               </div>
                             </div>
                          ) : progress['main']?.status === 'done' ? (
@@ -971,7 +971,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
             <div className="shrink-0 px-6 py-4 bg-white dark:bg-slate-950 border-t border-slate-200/60 dark:border-slate-700/40 flex flex-wrap gap-4 items-center justify-between">
               <div className="flex-1 flex items-center min-w-0">
                 {isSubmitting && globalStatus && (
-                  <div className="flex items-center text-[#006A6E] dark:text-teal-400 font-semibold text-sm animate-pulse w-full">
+                  <div className="flex items-center text-bb-text dark:text-teal-400 font-semibold text-sm animate-pulse w-full">
                     <Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />
                     <span className="truncate">{globalStatus}</span>
                   </div>
@@ -990,7 +990,7 @@ export function AddBookWizard({ open, onOpenChange, onBookCreated }: AddBookWiza
                 )}
 
                 {step < 4 ? (
-                  <EnhancedButton onClick={nextStep} className="bg-gradient-to-r from-[#0D1B6E] to-[#006A6E] hover:from-[#0A1558] hover:to-[#005A5E] text-white font-semibold shadow-md shadow-[#0D1B6E]/15 rounded-xl transition-all">
+                  <EnhancedButton onClick={nextStep} className="bg-gradient-to-r from-bb-cobalt to-bb-cobalt hover:from-bb-ink hover:to-bb-cobalt text-white font-semibold shadow-md shadow-bb-cobalt/15 rounded-xl transition-all">
                     Next Step <ChevronRight className="w-4 h-4 ml-1" />
                   </EnhancedButton>
                 ) : (

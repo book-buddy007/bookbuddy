@@ -53,7 +53,7 @@ export default function BorrowPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <BookPlus className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
             Borrow Requests
           </h1>
@@ -64,7 +64,7 @@ export default function BorrowPage() {
         <div className="flex items-center gap-3">
           <EnhancedButton
             size="lg"
-            className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white shadow-lg hover:shadow-xl border-transparent"
+            className="shadow-lg hover:shadow-xl border-transparent"
           >
             <BookPlus className="h-5 w-5 mr-2" /> New Request
           </EnhancedButton>
@@ -106,7 +106,7 @@ export default function BorrowPage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative pb-2 z-10">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <BookOpen className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
             Request History
           </EnhancedCardTitle>

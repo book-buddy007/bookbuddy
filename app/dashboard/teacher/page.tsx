@@ -144,7 +144,7 @@ export default function TeacherDashboard() {
     <div className="space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <GraduationCap className="h-10 w-10 text-blue-700 dark:text-blue-500" />
           Teacher Dashboard
         </h1>
@@ -282,7 +282,7 @@ export default function TeacherDashboard() {
           <div className="grid gap-6 md:grid-cols-2">
             <EnhancedCard variant="elevated" className="col-span-1">
               <EnhancedCardHeader>
-                <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-bb-accent">
                   Reading Activity
                 </EnhancedCardTitle>
                 <EnhancedCardDescription>Monthly book and resource usage</EnhancedCardDescription>
@@ -308,7 +308,7 @@ export default function TeacherDashboard() {
 
             <EnhancedCard variant="elevated" className="col-span-1">
               <EnhancedCardHeader>
-                <EnhancedCardTitle className="bg-gradient-to-r from-vg-sanskrit-600 to-vg-cultural-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-bb-accent">
                   Resource Usage
                 </EnhancedCardTitle>
                 <EnhancedCardDescription>Distribution by resource type</EnhancedCardDescription>
@@ -346,7 +346,7 @@ export default function TeacherDashboard() {
 
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-cultural-600 to-vg-primary-600 bg-clip-text text-transparent">
+              <EnhancedCardTitle className="text-bb-accent">
                 Upcoming Events
               </EnhancedCardTitle>
               <EnhancedCardDescription>Books and assignments due dates</EnhancedCardDescription>
@@ -375,7 +375,7 @@ export default function TeacherDashboard() {
         <TabsContent value="analytics" className="space-y-6">
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-success-600 to-blue-700 bg-clip-text text-transparent">
+              <EnhancedCardTitle className="text-bb-accent">
                 Student Engagement
               </EnhancedCardTitle>
               <EnhancedCardDescription>Assignment completion vs. reading progress</EnhancedCardDescription>
@@ -411,7 +411,7 @@ export default function TeacherDashboard() {
           <div className="grid gap-4 md:grid-cols-2">
             <EnhancedCard variant="elevated">
               <EnhancedCardHeader>
-                <EnhancedCardTitle className="bg-gradient-to-r from-vg-cultural-600 to-vg-primary-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-bb-accent">
                   Top Performing Students
                 </EnhancedCardTitle>
                 <EnhancedCardDescription>Based on activity and completion rates</EnhancedCardDescription>
@@ -441,7 +441,7 @@ export default function TeacherDashboard() {
 
             <EnhancedCard variant="elevated">
               <EnhancedCardHeader>
-                <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-bb-accent">
                   Most Popular Resources
                 </EnhancedCardTitle>
                 <EnhancedCardDescription>Based on usage analytics</EnhancedCardDescription>

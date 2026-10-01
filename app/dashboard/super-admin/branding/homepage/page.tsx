@@ -480,7 +480,7 @@ export default function HomepageEditorPage() {
             <EnhancedButton
               onClick={onPublish}
               disabled={isAnyActionLoading || !selectedTenantId}
-              className="bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
+              className="bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
               size="sm"
             >
               {pageAction === 'publishing' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
@@ -491,7 +491,7 @@ export default function HomepageEditorPage() {
       </div>
 
       {/* Tenant Selector + Status Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white/70 dark:bg-[#0A0F1E]/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">Configure for:</span>
           <TenantSelector />
@@ -514,7 +514,7 @@ export default function HomepageEditorPage() {
       </div>
 
       {/* Main Editor */}
-      <div className="rounded-2xl bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--peacock-teal)]/10 dark:bg-[var(--peacock-teal)]/20">
@@ -796,7 +796,7 @@ export default function HomepageEditorPage() {
       </div>
 
       {/* Live Preview Window */}
-      <div id="preview-anchor" className="rounded-2xl bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
+      <div id="preview-anchor" className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--deep-saffron)]/10 dark:bg-[var(--deep-saffron)]/20">
@@ -845,7 +845,7 @@ export default function HomepageEditorPage() {
       </div>
 
       {/* Content Guidelines */}
-      <div className="rounded-2xl bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm p-6">
+      <div className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm p-6">
         <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Content Guidelines</h3>
         <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2.5 ml-1">
           <li className="flex items-start gap-2">

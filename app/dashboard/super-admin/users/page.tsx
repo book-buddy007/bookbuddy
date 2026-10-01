@@ -228,7 +228,7 @@ export default function UsersPage() {
           
           <EnhancedButton 
             size="lg"
-            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold !px-6"
+            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
             onClick={() => { setSelectedUser(null); setIsCreateOpen(true); }}
           >
             <Plus className="h-5 w-5 mr-2" />
@@ -265,7 +265,7 @@ export default function UsersPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col gap-3 bg-white/70 dark:bg-[#0A0F1E]/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
+      <div className="flex flex-col gap-3 bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
         {/* Search row */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -293,7 +293,7 @@ export default function UsersPage() {
             <SelectTrigger className="w-full sm:flex-1 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-700 dark:text-slate-300">
               <SelectValue placeholder="All Institutions" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
               <SelectItem value="All Institutions">All Institutions</SelectItem>
               {institutions.map(inst => (
                 <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
@@ -304,7 +304,7 @@ export default function UsersPage() {
             <SelectTrigger className="w-full sm:w-[160px] bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-700 dark:text-slate-300">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
               <SelectItem value="All Roles">All Roles</SelectItem>
               <SelectItem value="super_admin">Super Admin</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
@@ -317,7 +317,7 @@ export default function UsersPage() {
             <SelectTrigger className="w-full sm:w-[140px] bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-700 dark:text-slate-300">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
               <SelectItem value="All">All Status</SelectItem>
               <SelectItem value="Active">Active</SelectItem>
               <SelectItem value="Inactive">Suspended</SelectItem>
@@ -327,7 +327,7 @@ export default function UsersPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 shadow-sm overflow-hidden backdrop-blur-md">
+      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 shadow-sm overflow-hidden backdrop-blur-md">
         <div className="overflow-x-auto">
           <Table className="min-w-[640px]">
             <TableHeader className="bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-700/40">
@@ -413,7 +413,7 @@ export default function UsersPage() {
                             <span className="sr-only">Open menu</span>
                           </EnhancedButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[200px] p-2 rounded-xl shadow-lg border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+                        <DropdownMenuContent align="end" className="w-[200px] p-2 rounded-xl shadow-lg border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
                           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsDetailOpen(true); }, 100); }} className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2">
                             <Eye className="h-4 w-4 text-[var(--peacock-teal)]" /> View Details
                           </DropdownMenuItem>
@@ -449,7 +449,7 @@ export default function UsersPage() {
                     <SelectTrigger className="h-8 w-[70px] bg-white dark:bg-slate-800 rounded-lg border-slate-200 dark:border-slate-700">
                         <SelectValue placeholder="10" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl bg-white dark:bg-[#0F172A]">
+                    <SelectContent className="rounded-xl bg-white dark:bg-bb-bg">
                         {[10, 25, 50, 100].map(v => (
                             <SelectItem key={v} value={v.toString()}>{v}</SelectItem>
                         ))}

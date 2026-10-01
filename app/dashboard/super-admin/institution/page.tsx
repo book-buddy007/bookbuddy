@@ -225,7 +225,7 @@ export default function InstitutionPage() {
           
           <EnhancedButton 
             size="lg"
-            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold !px-6"
+            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
             onClick={() => setIsAddOpen(true)}
           >
             <Plus className="h-5 w-5 mr-2" />
@@ -262,7 +262,7 @@ export default function InstitutionPage() {
       </div>
 
       {/* Search & Refresh Bar */}
-      <div className="flex flex-col md:flex-row gap-4 bg-white/70 dark:bg-[#0A0F1E]/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
+      <div className="flex flex-col md:flex-row gap-4 bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
@@ -284,7 +284,7 @@ export default function InstitutionPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 shadow-sm overflow-hidden backdrop-blur-md">
+      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 shadow-sm overflow-hidden backdrop-blur-md">
         <div className="overflow-x-auto">
           <Table className="min-w-[640px]">
             <TableHeader className="bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-700/40">
@@ -336,7 +336,7 @@ export default function InstitutionPage() {
                             <span className="sr-only">Open menu</span>
                           </EnhancedButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px] p-2 rounded-xl shadow-lg border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+                        <DropdownMenuContent align="end" className="w-[180px] p-2 rounded-xl shadow-lg border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
                           <DropdownMenuItem className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2" onSelect={(e) => { e.preventDefault(); setTimeout(() => setSelectedInstitution(inst), 100); }}>
                             <Eye className="h-4 w-4 text-[var(--peacock-teal)]" /> View Profile
                           </DropdownMenuItem>
@@ -384,7 +384,7 @@ export default function InstitutionPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-[#0F172A]">
+        <AlertDialogContent className="rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>Delete Institution?</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-500 dark:text-slate-400">

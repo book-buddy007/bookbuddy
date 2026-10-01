@@ -335,7 +335,7 @@ export default function JoinRequestPage() {
           <ArrowLeft className="h-4 w-4" />
         </EnhancedButton>
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold tracking-tight text-bb-accent">
             Request Institution Access
           </h1>
           <p className="text-muted-foreground text-lg">

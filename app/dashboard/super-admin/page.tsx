@@ -56,7 +56,7 @@ export default function SuperAdminOverviewPage() {
           <Link href="/dashboard/super-admin/institution" className="relative z-10">
             <EnhancedButton 
               size="lg"
-              className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold !px-6"
+              className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
             >
               <Plus className="h-5 w-5 mr-2" />
               New Institution
@@ -119,7 +119,7 @@ export default function SuperAdminOverviewPage() {
             Recent Activity
           </h2>
           <div className="grid gap-6 md:grid-cols-2">
-            <EnhancedCard className="col-span-1 border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md relative overflow-hidden shadow-sm">
+            <EnhancedCard className="col-span-1 border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md relative overflow-hidden shadow-sm">
               <EnhancedCardHeader className="relative z-10 border-b border-slate-100 dark:border-slate-700/40">
                 <EnhancedCardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
                   <div className="h-2 w-2 rounded-full bg-[var(--saffron)] animate-pulse" />
@@ -134,7 +134,7 @@ export default function SuperAdminOverviewPage() {
               </EnhancedCardContent>
             </EnhancedCard>
 
-            <EnhancedCard className="col-span-1 border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md relative overflow-hidden shadow-sm">
+            <EnhancedCard className="col-span-1 border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md relative overflow-hidden shadow-sm">
               <EnhancedCardHeader className="relative z-10 border-b border-slate-100 dark:border-slate-700/40">
                 <EnhancedCardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
                   <Activity className="h-4 w-4 text-[var(--peacock-teal)]" />

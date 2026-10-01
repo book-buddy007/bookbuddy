@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { purgeTrash } from "@/lib/api/adminApi";
 
-const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md relative overflow-hidden shadow-sm";
+const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md relative overflow-hidden shadow-sm";
 const headerClass = "relative z-10 border-b border-slate-100 dark:border-slate-700/40";
 
 interface BloatFile {

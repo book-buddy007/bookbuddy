@@ -74,7 +74,7 @@ export function DictionaryModal() {
         <Dialog open={isOpen} onOpenChange={(open) => !open && closeDictionary()}>
             <DialogContent className="sm:max-w-[500px]" overlayBgClass="bg-black/30" overlayClassName="backdrop-blur-sm">
                 <DialogHeader>
-                    <DialogTitle className="flex justify-between items-center text-xl font-serif">
+                    <DialogTitle className="flex justify-between items-center text-xl font-display">
                         <div className="flex items-center gap-2">
                             <span className="capitalize">{word}</span>
                             {lookupData?.pronunciation && (
@@ -175,7 +175,7 @@ export function DictionaryModal() {
                                             <p key={index} className="mb-5 text-justify last:mb-0">
                                                 {index === 0 && paragraph.length > 0 ? (
                                                     <>
-                                                        <span className="float-left text-5xl leading-[0.85] font-bold text-indigo-500 dark:text-indigo-400 mr-3 mt-1 font-serif">
+                                                        <span className="float-left text-5xl leading-[0.85] font-bold text-indigo-500 dark:text-indigo-400 mr-3 mt-1 font-display">
                                                             {paragraph.charAt(0)}
                                                         </span>
                                                         <span className="font-medium text-slate-900 dark:text-slate-100">

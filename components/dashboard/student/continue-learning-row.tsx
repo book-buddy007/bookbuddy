@@ -136,8 +136,8 @@ export function ContinueLearningRow({ books, isLoading, recentBooks = [] }: Cont
                 rounded-2xl p-6 shadow-sm transition-all duration-300
                 hover:shadow-xl hover:shadow-[var(--deep-saffron)]/10 hover:-translate-y-1.5
                 ${idx === 0
-                  ? 'bg-gradient-to-br from-[#FFFCF7] to-[#FFF3E6] dark:from-[#1A1A2E] dark:to-[#0F3460] ring-1 ring-[var(--deep-saffron)]'
-                  : 'bg-white/90 dark:bg-[#0F172A] ring-1 ring-slate-100 hover:ring-[var(--deep-saffron)]/30 dark:ring-slate-700/60 dark:hover:ring-[var(--deep-saffron)]/30'
+                  ? 'bg-gradient-to-br from-bb-bg to-bb-accent-soft dark:from-bb-bg dark:to-bb-cobalt ring-1 ring-[var(--deep-saffron)]'
+                  : 'bg-white/90 dark:bg-bb-bg ring-1 ring-slate-100 hover:ring-[var(--deep-saffron)]/30 dark:ring-slate-700/60 dark:hover:ring-[var(--deep-saffron)]/30'
                 }
               `}
             >
@@ -308,8 +308,8 @@ function RecentBooksCarousel({ books }: { books: RecentBook[] }) {
         ))}
       </div>
       {/* Edge fades — themed to the card's own surface in both modes. */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white/90 dark:from-[#0F172A]/90 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/90 dark:from-[#0F172A]/90 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white/90 dark:from-bb-bg/90 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/90 dark:from-bb-bg/90 to-transparent" />
     </div>
   );
 }

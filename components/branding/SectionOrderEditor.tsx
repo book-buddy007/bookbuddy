@@ -33,7 +33,7 @@ export function SectionOrderEditor({ sectionsOrder = [], onChange }: { sectionsO
                     >
                         <GripVertical className="h-5 w-5 text-muted-foreground mr-3" aria-hidden="true" />
                         <span className="sr-only">Drag handle</span>
-                        <span className="font-medium text-sm text-[#3E2723]">
+                        <span className="font-medium text-sm text-bb-muted">
                             {SECTION_LABELS[sectionId] || sectionId}
                         </span>
                     </Reorder.Item>

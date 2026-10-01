@@ -32,6 +32,10 @@ const buttonVariants = cva(
         destructive: "bg-bb-danger text-white hover:brightness-95",
         // soft orange-tinted action (design-system "danger-soft"), radius 10
         "danger-soft": "rounded-bb-sm bg-bb-accent-soft text-bb-accent-ink hover:brightness-95",
+        // semantic fills used by legacy call sites (success is the only green in the system)
+        success: "bg-bb-success text-white hover:brightness-95",
+        warning: "bg-bb-warning text-bb-ink hover:brightness-95",
+        glass: "border border-bb-border bg-bb-surface/70 text-bb-text backdrop-blur hover:bg-bb-surface",
         link: "rounded-none px-0 text-bb-accent underline-offset-4 hover:underline motion-safe:hover:translate-y-0",
       },
       size: {
@@ -39,6 +43,7 @@ const buttonVariants = cva(
         md: "h-11 px-5 text-[15px]",
         sm: "h-9 px-4 text-sm [@media(pointer:coarse)]:min-h-11",
         lg: "h-[52px] px-[26px] text-base",
+        xl: "h-[58px] px-[30px] text-[17px]",
         icon: "h-[52px] w-[52px] p-0",
         "icon-md": "h-11 w-11 p-0",
         "icon-sm": "h-9 w-9 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",

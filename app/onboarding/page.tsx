@@ -304,7 +304,7 @@ export default function OnboardingPage() {
           {currentStep === 1 && (
             <>
               <EnhancedCardHeader className="text-center space-y-2">
-                <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
                   Secure Your Account
                 </EnhancedCardTitle>
                 <EnhancedCardDescription>
@@ -431,7 +431,7 @@ export default function OnboardingPage() {
           {currentStep === 2 && (
             <>
               <EnhancedCardHeader className="text-center space-y-2">
-                <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
+                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
                   Choose Your Path
                 </EnhancedCardTitle>
                 <EnhancedCardDescription>

@@ -270,7 +270,7 @@ export default function AdminJoinRequestsPage() {
     <div className="p-6 space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold text-bb-accent">
           Join Requests
         </h1>
         <p className="text-muted-foreground mt-2">

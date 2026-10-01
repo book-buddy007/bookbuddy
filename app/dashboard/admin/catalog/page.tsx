@@ -58,7 +58,7 @@ const ApprovalWorkflow = ({ pendingBooks, onApprove, onReject }: {
           <EnhancedCardContent className="p-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <h3 className="font-semibold text-lg bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                <h3 className="font-semibold text-lg text-bb-accent">
                   {book.title}
                 </h3>
                 <p className="text-muted-foreground">by {book.author}</p>
@@ -110,7 +110,7 @@ const GenreTreeEditor = ({ genres, onAdd, onEdit, onDelete }: {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+        <h3 className="text-lg font-semibold text-bb-accent">
           Category Hierarchy
         </h3>
         <EnhancedButton variant="outline" size="sm" onClick={onAdd} icon={<Plus className="h-4 w-4" />}>
@@ -300,7 +300,7 @@ export default function AdminCatalogPage() {
     <div className="p-6 space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <BookOpen className="h-10 w-10 text-blue-700 dark:text-blue-500" />
           Library Management
         </h1>

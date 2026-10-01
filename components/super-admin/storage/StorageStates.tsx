@@ -16,7 +16,7 @@ export function StorageSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center gap-5 rounded-3xl border border-slate-200/40 dark:border-slate-700/30 bg-white/50 dark:bg-[#0A0F1E]/50 backdrop-blur-md px-6 py-5 shadow-lg"
+            className="flex items-center gap-5 rounded-3xl border border-slate-200/40 dark:border-slate-700/30 bg-white/50 dark:bg-bb-bg/50 backdrop-blur-md px-6 py-5 shadow-lg"
           >
             <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />
             <div className="space-y-2 flex-1">
@@ -35,7 +35,7 @@ export function StorageSkeleton() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md p-6 space-y-4 shadow-sm"
+              className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md p-6 space-y-4 shadow-sm"
             >
               <div className="border-b border-slate-100 dark:border-slate-700/40 pb-3 space-y-1.5">
                 <Skeleton className="h-5 w-36" />
@@ -60,7 +60,7 @@ export function StorageSkeleton() {
       {/* Full-width bloat files card */}
       <div className="space-y-3">
         <Skeleton className="h-6 w-36" />
-        <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md p-6 space-y-4 shadow-sm">
+        <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md p-6 space-y-4 shadow-sm">
           <div className="border-b border-slate-100 dark:border-slate-700/40 pb-3 space-y-1.5">
             <Skeleton className="h-5 w-44" />
             <Skeleton className="h-3 w-56" />

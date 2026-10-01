@@ -171,7 +171,7 @@ export default function InventoryPage() {
     <div className="space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <Package className="h-10 w-10 text-blue-700 dark:text-blue-500" />
           Inventory Management
         </h1>

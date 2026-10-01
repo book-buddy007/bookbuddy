@@ -615,7 +615,7 @@ function ReaderContent() {
           <div className="h-12 w-12 border-4 border-slate-200 dark:border-slate-700/50 rounded-full" />
           <div className="h-12 w-12 border-4 border-transparent border-t-[var(--deep-saffron)] rounded-full animate-spin absolute inset-0" />
         </div>
-        <p className="text-sm font-semibold bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent tracking-wide">Opening your book...</p>
+        <p className="text-sm font-semibold tracking-wide text-bb-accent">Opening your book...</p>
       </div>
     );
   }
@@ -718,7 +718,7 @@ function ReaderContent() {
                <div className="h-10 w-10 border-4 border-slate-200 dark:border-slate-700/30 rounded-full" />
                <div className="h-10 w-10 border-4 border-transparent border-t-[var(--deep-saffron)] rounded-full animate-spin absolute inset-0" />
              </div>
-             <p className="text-xs font-semibold bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent tracking-wide">Loading content...</p>
+             <p className="text-xs font-semibold tracking-wide text-bb-accent">Loading content...</p>
            </div>
         )}
         
@@ -868,7 +868,7 @@ function ReaderContent() {
       <div className={`absolute inset-y-0 left-0 w-[88vw] max-w-[300px] sm:max-w-none sm:w-[300px] lg:w-[340px] pb-[env(safe-area-inset-bottom)] shadow-2xl z-[47] transform transition-transform duration-300 flex flex-col ${activePanel === 'toc' && !isFocusMode ? 'translate-x-0' : '-translate-x-full'} border-r border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] text-[color:var(--rd-ink)] backdrop-blur-md`}>
          <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50 flex flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between">
-               <h3 className="text-xl font-bold tracking-tight bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent flex items-center gap-2">
+               <h3 className="text-xl font-bold tracking-tight flex items-center gap-2 text-bb-accent">
                  <List className="h-5 w-5 text-[var(--peacock-teal)] dark:text-[var(--saffron)]" />
                  Index & Bookmarks
                </h3>

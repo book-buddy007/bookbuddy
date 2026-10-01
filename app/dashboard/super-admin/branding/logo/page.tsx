@@ -140,7 +140,7 @@ export default function LogoManagementPage() {
       </div>
 
       {/* Tenant Selector Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/70 dark:bg-[#0A0F1E]/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
         <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">Configure for:</span>
         <TenantSelector />
       </div>
@@ -149,7 +149,7 @@ export default function LogoManagementPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Column: Live Logo Display */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden flex flex-col">
+        <div className="lg:col-span-4 rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -183,7 +183,7 @@ export default function LogoManagementPage() {
         </div>
 
         {/* Right Column: Upload Tool */}
-        <div className="lg:col-span-8 rounded-2xl bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
+        <div className="lg:col-span-8 rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--peacock-teal)]/10 dark:bg-[var(--peacock-teal)]/20">
@@ -229,7 +229,7 @@ export default function LogoManagementPage() {
       </div>
 
       {/* Best Practices Card */}
-      <div className="rounded-2xl bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm p-6">
+      <div className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-[var(--deep-saffron)]/10 dark:bg-[var(--deep-saffron)]/20">
             <Info className="h-4 w-4 text-[var(--deep-saffron)]" />

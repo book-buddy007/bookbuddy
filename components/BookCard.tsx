@@ -178,7 +178,7 @@ export function BookCard({
         <div className="hidden-on-touch absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-end justify-center pb-4 z-10">
           <EnhancedButton
             size="sm"
-            className="!bg-white/90 !text-indigo-700 hover:!bg-white shadow-lg backdrop-blur-sm border-transparent"
+            className="shadow-lg backdrop-blur-sm border-transparent"
             onClick={(e) => { e.stopPropagation(); onView(book); }}
           >
             <Eye className="h-4 w-4 mr-1.5" /> Quick View
@@ -305,7 +305,7 @@ export function BookCard({
           ) : book.available ? (
             <EnhancedButton
               size="sm"
-              className="flex-1 !bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white border-transparent text-xs"
+              className="flex-1 border-transparent text-xs"
               onClick={(e) => { e.stopPropagation(); onBorrow(book); }}
             >
               <Library className="w-3.5 h-3.5 mr-1.5" />

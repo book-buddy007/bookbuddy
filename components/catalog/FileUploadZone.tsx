@@ -235,7 +235,7 @@ export function FileUploadZone({
 
       {status === 'success' && (
         <Alert className="border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-400">
-          <CheckCircle className="h-4 w-4 !text-green-600 dark:!text-green-400" />
+          <CheckCircle className="h-4 w-4" />
           <AlertTitle>Upload Successful</AlertTitle>
           <AlertDescription>Your file has been uploaded securely.</AlertDescription>
           <Button size="sm" variant="outline" className="mt-2" onClick={reset}>

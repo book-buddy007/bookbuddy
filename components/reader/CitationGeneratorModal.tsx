@@ -49,7 +49,7 @@ export function CitationGeneratorModal({ isOpen, onClose, bookData }: CitationGe
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl font-serif">
+                    <DialogTitle className="flex items-center gap-2 text-xl font-display">
                         <BookMarked className="h-5 w-5 text-indigo-500" />
                         Cite This Book
                     </DialogTitle>

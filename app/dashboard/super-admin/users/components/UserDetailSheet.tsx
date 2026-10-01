@@ -34,12 +34,12 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md border-l border-slate-200/60 dark:border-slate-700/40 shadow-2xl p-0 overflow-y-auto bg-slate-50 dark:bg-[#0A0F1E]">
+      <SheetContent className="w-full sm:max-w-md border-l border-slate-200/60 dark:border-slate-700/40 shadow-2xl p-0 overflow-y-auto bg-slate-50 dark:bg-bb-bg">
         {/* Accent strip */}
         <div className="absolute top-0 left-0 w-1 p-0 h-full bg-gradient-to-b from-[var(--deep-saffron)] to-[var(--gold)] opacity-80" />
 
         {/* Header with avatar */}
-        <div className="p-6 pb-0 bg-white dark:bg-[#0F172A] border-b border-slate-200/60 dark:border-slate-700/40">
+        <div className="p-6 pb-0 bg-white dark:bg-bb-bg border-b border-slate-200/60 dark:border-slate-700/40">
           <SheetHeader className="text-left">
             <div className="flex flex-col items-center text-center space-y-4 pt-6 pb-4">
               <Avatar className="h-24 w-24 ring-4 ring-[var(--deep-saffron)]/20 shadow-xl">
@@ -72,7 +72,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
 
         <div className="p-6 space-y-5">
           {/* Contact Info */}
-          <div className="bg-white dark:bg-[#0F172A] p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4 relative overflow-hidden">
+          <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4 relative overflow-hidden">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
               <UserCircle className="w-4 h-4 text-[var(--deep-saffron)]" /> Contact Information
             </h4>
@@ -90,7 +90,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
           </div>
 
           {/* Account Activity */}
-          <div className="bg-white dark:bg-[#0F172A] p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
             <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
               <Clock className="w-4 h-4 text-[var(--peacock-teal)]" /> Account Activity
             </h4>
@@ -115,7 +115,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
           </div>
 
           {/* Institution Memberships */}
-          <div className="bg-white dark:bg-[#0F172A] p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[var(--gold)]" /> Institution Access

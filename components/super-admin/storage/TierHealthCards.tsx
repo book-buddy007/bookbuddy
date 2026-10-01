@@ -9,7 +9,7 @@ import { Bell, Loader2, AlertTriangle, ShieldAlert, Users } from "@/components/u
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md relative overflow-hidden shadow-sm";
+const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md relative overflow-hidden shadow-sm";
 const headerClass = "relative z-10 border-b border-slate-100 dark:border-slate-700/40";
 
 // ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ export function TierStorageBars({ data, className }: TierStorageBarsProps) {
       <EnhancedCardContent className="relative z-10 pt-4">
         {data.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-[#1A9E7A] to-[#0E8367] text-white shadow-lg shadow-[#1A9E7A]/30">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30">
               <Users className="h-6 w-6" />
             </div>
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">

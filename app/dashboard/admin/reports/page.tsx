@@ -116,7 +116,7 @@ const ReportTemplateGrid = ({ templates, onSelect }: {
             <div className="p-3 rounded-vg-lg bg-gradient-to-br from-vg-primary-50 to-vg-sanskrit-50 dark:from-vg-primary-900/20 dark:to-vg-sanskrit-900/20">
               {template.icon}
             </div>
-            <h3 className="font-semibold text-lg mt-4 bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+            <h3 className="font-semibold text-lg mt-4 text-bb-accent">
               {template.name}
             </h3>
             <p className="text-sm text-muted-foreground mt-2">
@@ -406,7 +406,7 @@ export default function ReportsPage() {
     <div className="p-6 space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <BarChart3 className="h-10 w-10 text-blue-700 dark:text-blue-500" />
           Reports
         </h1>
@@ -451,7 +451,7 @@ export default function ReportsPage() {
           {!selectedTemplate ? (
             <>
               <div>
-                <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-semibold mb-6 text-bb-accent">
                   Report Templates
                 </h2>
                 <ReportTemplateGrid
@@ -461,7 +461,7 @@ export default function ReportsPage() {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-6 bg-gradient-to-r from-vg-success-600 to-vg-primary-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-semibold mb-6 text-bb-accent">
                   Recent Reports
                 </h2>
                 <RecentReportsTable

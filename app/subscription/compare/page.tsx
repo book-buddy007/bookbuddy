@@ -48,7 +48,7 @@ function includes(tier: AccessTier, minTier: AccessTier | null): boolean {
 
 export default function ComparePlansPage() {
   return (
-    <main className="min-h-screen bg-[#FFFCF7] dark:bg-[#0A0F1E] text-slate-800 dark:text-slate-200">
+    <main className="min-h-screen bg-bb-bg dark:bg-bb-bg text-slate-800 dark:text-slate-200">
       <div className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
         <Link
           href="/dashboard/student"
@@ -71,7 +71,7 @@ export default function ComparePlansPage() {
         </p>
 
         <div className="mt-10 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
-          <table className="w-full min-w-[720px] border-collapse bg-white text-sm dark:bg-[#0F172A]">
+          <table className="w-full min-w-[720px] border-collapse bg-white text-sm dark:bg-bb-bg">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700">
                 <th className="px-5 py-4 text-left font-semibold text-slate-500 dark:text-slate-400">

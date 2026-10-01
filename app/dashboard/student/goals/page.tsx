@@ -249,7 +249,7 @@ export default function GoalsPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <Target className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
             Reading Goals & Analytics
           </h1>
@@ -271,7 +271,7 @@ export default function GoalsPage() {
           <Dialog open={showNewGoalDialog} onOpenChange={setShowNewGoalDialog}>
             <DialogTrigger asChild>
               <EnhancedButton
-                className="!bg-gradient-to-r !from-indigo-600 !to-indigo-500 hover:!from-indigo-700 hover:!to-indigo-600 !text-white shadow-lg border-transparent"
+                className="shadow-lg border-transparent"
                 icon={<Target className="h-4 w-4" />}
               >
                 New Goal
@@ -337,7 +337,7 @@ export default function GoalsPage() {
         <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
           <div className={adminStyles.archMotif} />
           <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
               <Trophy className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               Current Goals
             </EnhancedCardTitle>
@@ -380,7 +380,7 @@ export default function GoalsPage() {
         <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
           <div className={adminStyles.archMotif} />
           <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
               <Award className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               Achievements
             </EnhancedCardTitle>
@@ -430,7 +430,7 @@ export default function GoalsPage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             Reading History
           </EnhancedCardTitle>

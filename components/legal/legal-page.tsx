@@ -19,7 +19,7 @@ export function LegalPage({
   children: ReactNode;
 }) {
   return (
-    <main className="min-h-screen bg-[#FFFCF7] dark:bg-[#0A0F1E] text-slate-800 dark:text-slate-200">
+    <main className="min-h-screen bg-bb-bg dark:bg-bb-bg text-slate-800 dark:text-slate-200">
       <div className="mx-auto w-full max-w-3xl px-5 py-14 sm:px-8 sm:py-20">
         <Link
           href="/"

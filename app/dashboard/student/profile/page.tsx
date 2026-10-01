@@ -326,7 +326,7 @@ export default function StudentProfilePage() {
             <div className="h-14 w-14 border-4 border-amber-100 dark:border-amber-900/30 rounded-full" />
             <div className="h-14 w-14 border-4 border-transparent border-t-amber-600 rounded-full animate-spin absolute inset-0" />
           </div>
-          <p className="text-sm font-semibold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent tracking-wide">
+          <p className="text-sm font-semibold tracking-wide text-bb-accent">
             Loading your profile...
           </p>
         </div>
@@ -354,7 +354,7 @@ export default function StudentProfilePage() {
 
       {/* ===== Page Header ===== */}
       <div className="space-y-2">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <User className="h-9 w-9 text-amber-600 dark:text-amber-400" />
           My Profile
         </h1>
@@ -428,7 +428,7 @@ export default function StudentProfilePage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <User className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             Personal Information
           </EnhancedCardTitle>
@@ -501,7 +501,7 @@ export default function StudentProfilePage() {
                     size="sm"
                     onClick={handleVerifyEmailOtp}
                     disabled={isVerifyingEmail || emailOtp.length < 4}
-                    className="!bg-gradient-to-r !from-emerald-600 !to-emerald-500 !text-white text-xs h-9 gap-1"
+                    className="text-xs h-9 gap-1"
                   >
                     {isVerifyingEmail ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
                     Verify
@@ -569,7 +569,7 @@ export default function StudentProfilePage() {
                     size="sm"
                     onClick={handleVerifyPhoneOtp}
                     disabled={isVerifyingPhone || phoneOtp.length < 4}
-                    className="!bg-gradient-to-r !from-emerald-600 !to-emerald-500 !text-white text-xs h-9 gap-1"
+                    className="text-xs h-9 gap-1"
                   >
                     {isVerifyingPhone ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
                     Verify
@@ -624,7 +624,7 @@ export default function StudentProfilePage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <Settings className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             Preferences
           </EnhancedCardTitle>
@@ -670,7 +670,7 @@ export default function StudentProfilePage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             Accessibility
           </EnhancedCardTitle>
@@ -715,7 +715,7 @@ export default function StudentProfilePage() {
       <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             Security
           </EnhancedCardTitle>
@@ -769,7 +769,7 @@ export default function StudentProfilePage() {
                 <EnhancedButton
                   onClick={handleChangePassword}
                   disabled={isSavingPassword || !currentPassword || !newPassword || !confirmPassword}
-                  className="!bg-gradient-to-r !from-amber-600 !to-amber-500 hover:!from-amber-700 hover:!to-amber-600 !text-white shadow-lg hover:shadow-xl border-transparent gap-2"
+                  className="shadow-lg hover:shadow-xl border-transparent gap-2"
                 >
                   {isSavingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
                   Update Password
@@ -795,7 +795,7 @@ export default function StudentProfilePage() {
       <EnhancedCard variant="elevated" className={`${adminStyles.scallopedArch} border-amber-200/30 dark:border-amber-900/20`}>
         <div className={adminStyles.archMotif} />
         <EnhancedCardHeader className="relative z-10 pb-2">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
+          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
             <Crown className="h-5 w-5 text-amber-500" />
             Subscription & Account
           </EnhancedCardTitle>
@@ -845,7 +845,7 @@ export default function StudentProfilePage() {
             <EnhancedButton
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="!bg-gradient-to-r !from-amber-600 !to-orange-600 hover:!from-amber-700 hover:!to-orange-700 !text-white shadow-lg hover:shadow-xl border-transparent gap-2 min-w-[130px]"
+              className="shadow-lg hover:shadow-xl border-transparent gap-2 min-w-[130px]"
             >
               {isSaving ? (
                 <>

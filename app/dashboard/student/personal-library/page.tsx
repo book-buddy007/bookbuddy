@@ -586,7 +586,7 @@ export default function PersonalLibraryPage() {
   );
 
   return (
-    <div className="flex h-full w-full bg-slate-50 dark:bg-[#0B1120] text-slate-900 dark:text-slate-100 font-sans overflow-hidden">
+    <div className="flex h-full w-full bg-slate-50 dark:bg-bb-bg text-slate-900 dark:text-slate-100 font-sans overflow-hidden">
       
       {/* ══════════════════════════════════════════════════════════════════
            MOBILE SIDEBAR DRAWER (overlay)

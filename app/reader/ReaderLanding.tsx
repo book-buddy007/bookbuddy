@@ -165,11 +165,11 @@ const VOCAB_WORDS: Record<string, { pronunciation: string; definition: string; e
 };
 
 const HIGHLIGHT_COLORS: { value: string; class: string }[] = [
-  { value: '#FFD700', class: 'bg-[#FFD700]' },
-  { value: '#00B8A9', class: 'bg-[#00B8A9]' },
-  { value: '#42A5F5', class: 'bg-[#42A5F5]' },
-  { value: '#FF6EB4', class: 'bg-[#FF6EB4]' },
-  { value: '#AB47BC', class: 'bg-[#AB47BC]' },
+  { value: '#FFD700', class: 'bg-bb-accent' },
+  { value: '#00B8A9', class: 'bg-bb-cobalt' },
+  { value: '#42A5F5', class: 'bg-bb-info' },
+  { value: '#FF6EB4', class: 'bg-bb-danger' },
+  { value: '#AB47BC', class: 'bg-bb-cobalt' },
 ];
 
 interface DemoHighlight { start: number; end: number; color: string; }
@@ -265,7 +265,7 @@ function LiveFeatureDemo() {
       <div
         ref={textRef}
         onMouseUp={handleMouseUp}
-        className="relative select-text text-[17px] sm:text-[19px] leading-relaxed text-slate-700 font-serif p-6 sm:p-8 rounded-2xl bg-white border-2 border-dashed border-[var(--deep-saffron)]/25"
+        className="relative select-text text-[17px] sm:text-[19px] leading-relaxed text-slate-700 font-display p-6 sm:p-8 rounded-2xl bg-white border-2 border-dashed border-[var(--deep-saffron)]/25"
       >
         {segments.map((seg, i) =>
           seg.vocab ? (
@@ -336,7 +336,7 @@ function LiveFeatureDemo() {
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <div className="flex items-center gap-2">
-                <h4 className="text-xl font-bold text-slate-900 capitalize font-serif">{activeWord}</h4>
+                <h4 className="text-xl font-bold text-slate-900 capitalize font-display">{activeWord}</h4>
                 <span className="text-sm text-slate-400">{activeVocab.pronunciation}</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -381,7 +381,7 @@ function LiveFeatureDemo() {
               )}
               {dictTab === 'translation' && (
                 <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <p className="text-3xl font-semibold text-[var(--indigo-deep)] font-serif">{activeVocab.hindi}</p>
+                  <p className="text-3xl font-semibold text-[var(--indigo-deep)] font-display">{activeVocab.hindi}</p>
                   <p className="text-xs text-slate-400">Hindi translation</p>
                 </div>
               )}
@@ -530,7 +530,7 @@ export function ReaderLanding() {
           style={{ fontFamily: 'var(--font-display)', animationDelay: '100ms', animationFillMode: 'both' }}
         >
           Your Reader,{' '}
-          <span className="bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--gold)] bg-clip-text text-transparent">
+          <span className="text-bb-accent">
             Ready When You Are
           </span>
         </h1>

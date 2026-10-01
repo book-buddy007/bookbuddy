@@ -115,7 +115,7 @@ export function CreateFlashcardModal({ isOpen, onClose, initialFrontText, bookId
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl font-serif">
+                    <DialogTitle className="flex items-center gap-2 text-xl font-display">
                         <Layers className="h-5 w-5 text-emerald-500" />
                         Create Flashcard
                     </DialogTitle>

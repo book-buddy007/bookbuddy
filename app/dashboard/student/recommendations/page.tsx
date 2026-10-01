@@ -53,7 +53,7 @@ export default function RecommendationsPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <Sparkles className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
             Book Recommendations
           </h1>
@@ -123,7 +123,7 @@ export default function RecommendationsPage() {
         <EnhancedCard variant="elevated" className={`xl:col-span-1 border-indigo-100 dark:border-indigo-900/30 ${adminStyles.scallopedArch}`}>
           <div className={adminStyles.archMotif} />
           <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
               <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               Personalized for You
             </EnhancedCardTitle>
@@ -186,7 +186,7 @@ export default function RecommendationsPage() {
         <EnhancedCard variant="elevated" className={`xl:col-span-1 border-purple-100 dark:border-purple-900/30 ${adminStyles.scallopedArch}`}>
           <div className={adminStyles.archMotif} />
           <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
               <Star className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               Trending Now
             </EnhancedCardTitle>
@@ -243,7 +243,7 @@ export default function RecommendationsPage() {
                   />
                   <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                 </div>
-                <EnhancedButton className="!bg-gradient-to-r !from-purple-600 !to-indigo-600 hover:!from-purple-700 hover:!to-indigo-700 !text-white shadow-md sm:w-auto w-24">
+                <EnhancedButton className="shadow-md sm:w-auto w-24">
                   Explore
                 </EnhancedButton>
               </div>

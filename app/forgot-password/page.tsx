@@ -79,10 +79,10 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-[#1A237E] to-[#4A148C] bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
               {success ? 'Check Your Email' : 'Forgot Password?'}
             </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-base text-[#5D4037]">
+            <EnhancedCardDescription className="text-base text-bb-muted">
               {success 
                 ? "We've sent you a password reset link" 
                 : "Enter your email and we'll send you a reset link"}
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
               <div className="space-y-3">
                 <EnhancedButton
                   size="lg"
-                  className="w-full !bg-gradient-to-r !from-amber-600 !to-amber-500 hover:!from-amber-700 hover:!to-amber-600 !text-white !shadow-[0_8px_30px_rgba(217,119,6,0.2)] hover:!shadow-[0_12px_40px_rgba(217,119,6,0.3)] border-transparent transition-all duration-300"
+                  className="w-full border-transparent transition-all duration-300"
                   onClick={() => router.push('/login')}
                   icon={<ArrowLeft className="h-5 w-5" />}
                   iconPosition="left"
@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-bold text-[#1A237E]">
+                <Label htmlFor="email" className="text-sm font-bold text-bb-text">
                   Email Address
                 </Label>
                 <div className="relative">
@@ -163,7 +163,7 @@ export default function ForgotPasswordPage() {
               <EnhancedButton
                 type="submit"
                 size="lg"
-                className="w-full !bg-gradient-to-r !from-amber-600 !to-amber-500 hover:!from-amber-700 hover:!to-amber-600 !text-white !shadow-[0_8px_30px_rgba(217,119,6,0.2)] hover:!shadow-[0_12px_40px_rgba(217,119,6,0.3)] border-transparent transition-all duration-300"
+                className="w-full border-transparent transition-all duration-300"
                 loading={isLoading}
                 loadingText="Sending reset link..."
                 icon={<Mail className="h-5 w-5" />}

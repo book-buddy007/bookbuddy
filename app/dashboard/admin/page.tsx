@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <LayoutDashboard className="h-10 w-10 text-blue-700 dark:text-blue-500" />
             Admin Dashboard
           </h1>
@@ -33,7 +33,7 @@ export default function AdminDashboard() {
         {/* Quick Statistics Section */}
         <EnhancedCard variant="elevated">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-2xl bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-2xl text-bb-accent">
               Quick Statistics
             </EnhancedCardTitle>
           </EnhancedCardHeader>
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
         {/* System Health Section */}
         <EnhancedCard variant="elevated">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-2xl bg-gradient-to-r from-vg-success-600 to-blue-700 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-2xl text-bb-accent">
               System Health
             </EnhancedCardTitle>
           </EnhancedCardHeader>
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
 
         {/* Navigation Cards */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-semibold text-bb-accent">
             Quick Actions
           </h2>
           <NavigationCards />
@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         {/* Activity Overview */}
         <EnhancedCard variant="elevated">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-2xl bg-gradient-to-r from-teal-600 to-blue-700 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-2xl text-bb-accent">
               Activity Overview
             </EnhancedCardTitle>
           </EnhancedCardHeader>

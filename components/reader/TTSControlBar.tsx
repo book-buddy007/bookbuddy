@@ -200,7 +200,7 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
             <PopoverContent className="w-80 bg-[var(--night-ink)]/95 backdrop-blur-lg border-[var(--gold)]/15 rounded-lg" side="top">
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-slate-200 mb-3 bg-[var(--accent-strong)] bg-clip-text text-transparent">
+                  <h4 className="font-semibold text-slate-200 mb-3 bg-[var(--accent-strong)] text-bb-accent">
                     Voice Settings
                   </h4>
                 </div>

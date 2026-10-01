@@ -99,7 +99,7 @@ export function StudentGreeting({
             style={{ fontFamily: 'var(--font-display)' }}
           >
             {greeting},{' '}
-            <span className="bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--gold)] bg-clip-text text-transparent">
+            <span className="text-bb-accent">
               {displayName}.
             </span>
           </h1>

@@ -142,7 +142,7 @@ const LabelGeneratorPage = () => {
     <div className="p-6 space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <Tag className="h-10 w-10 text-vg-primary-600" />
           Label Generator
         </h1>
@@ -181,7 +181,7 @@ const LabelGeneratorPage = () => {
             <div className="md:col-span-2">
               <EnhancedCard variant="elevated">
                 <EnhancedCardHeader>
-                  <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">
+                  <EnhancedCardTitle className="text-bb-accent">
                     Generate Single Label
                   </EnhancedCardTitle>
                   <EnhancedCardDescription>

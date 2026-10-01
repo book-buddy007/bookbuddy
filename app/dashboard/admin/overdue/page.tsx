@@ -224,7 +224,7 @@ export default function OverduePage() {
     <div className="p-6 space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-vg-error-600 to-vg-warning-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <AlertCircle className="h-10 w-10 text-vg-error-600" />
           Overdue Management
         </h1>

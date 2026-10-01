@@ -102,7 +102,7 @@ export function FilterBottomSheet({ open, onClose, initialFilters, genres, onApp
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0F1E] border-t border-white/10 rounded-t-2xl pb-[env(safe-area-inset-bottom)] max-h-[85vh] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-bb-ink border-t border-white/10 rounded-t-2xl pb-[env(safe-area-inset-bottom)] max-h-[85vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag handle */}

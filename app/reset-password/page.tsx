@@ -114,10 +114,10 @@ function ResetPasswordForm() {
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold bg-gradient-to-r from-[#1A237E] to-[#4A148C] bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
               {success ? 'Password Reset!' : 'Reset Password'}
             </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-base text-[#5D4037]">
+            <EnhancedCardDescription className="text-base text-bb-muted">
               {success 
                 ? "Your password has been successfully reset" 
                 : "Enter your new password below"}
@@ -145,7 +145,7 @@ function ResetPasswordForm() {
 
               <EnhancedButton
                 size="lg"
-                className="w-full !bg-gradient-to-r !from-amber-600 !to-amber-500 hover:!from-amber-700 hover:!to-amber-600 !text-white !shadow-[0_8px_30px_rgba(217,119,6,0.2)] hover:!shadow-[0_12px_40px_rgba(217,119,6,0.3)] border-transparent transition-all duration-300"
+                className="w-full border-transparent transition-all duration-300"
                 onClick={() => router.push('/login')}
                 icon={<ArrowRight className="h-5 w-5" />}
                 iconPosition="right"
@@ -163,7 +163,7 @@ function ResetPasswordForm() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-bold text-[#1A237E]">
+                <Label htmlFor="password" className="text-sm font-bold text-bb-text">
                   New Password
                 </Label>
                 <div className="relative">
@@ -195,7 +195,7 @@ function ResetPasswordForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-bold text-[#1A237E]">
+                <Label htmlFor="confirmPassword" className="text-sm font-bold text-bb-text">
                   Confirm New Password
                 </Label>
                 <div className="relative">
@@ -226,7 +226,7 @@ function ResetPasswordForm() {
               <EnhancedButton
                 type="submit"
                 size="lg"
-                className="w-full !bg-gradient-to-r !from-amber-600 !to-amber-500 hover:!from-amber-700 hover:!to-amber-600 !text-white !shadow-[0_8px_30px_rgba(217,119,6,0.2)] hover:!shadow-[0_12px_40px_rgba(217,119,6,0.3)] border-transparent transition-all duration-300"
+                className="w-full border-transparent transition-all duration-300"
                 loading={isLoading}
                 loadingText="Resetting password..."
                 icon={<Lock className="h-5 w-5" />}
@@ -241,7 +241,7 @@ function ResetPasswordForm() {
 
         {!success && (
           <EnhancedCardFooter className="flex flex-col space-y-4 relative z-10">
-            <div className="text-center text-sm text-[#5D4037]">
+            <div className="text-center text-sm text-bb-muted">
               Remember your password?{' '}
               <Link href="/login" className="text-amber-600 hover:text-amber-800 hover:underline font-semibold">
                 Back to Login
@@ -257,7 +257,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#FFFCF3]">
+      <div className="min-h-screen flex items-center justify-center bg-bb-accent-soft">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
       </div>
     }>

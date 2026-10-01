@@ -26,29 +26,29 @@ export function StatPill({
 }: StatPillProps) {
   const themes: Record<StatPillAccent, { card: string; iconBg: string; valueColor: string }> = {
     saffron: {
-      card: 'bg-gradient-to-br from-[#FFF4E6] via-[#FFE8CC] to-[#FFDAB8] dark:from-[#2D1A0A] dark:via-[#3D2212] dark:to-[#1A0F05] border-[#E8A060]/30 hover:border-[#E8A060]/50',
-      iconBg: 'bg-gradient-to-br from-[#E8843C] to-[#D4622A] text-white shadow-lg shadow-[#E8843C]/30',
-      valueColor: 'text-[#A84A1A] dark:text-[#FFB877]',
+      card: 'bg-gradient-to-br from-bb-accent-soft via-bb-accent-soft to-bb-accent-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-accent/30 hover:border-bb-accent/50',
+      iconBg: 'bg-gradient-to-br from-bb-accent to-bb-accent text-white shadow-lg shadow-bb-accent/30',
+      valueColor: 'text-bb-accent dark:text-bb-accent',
     },
     teal: {
-      card: 'bg-gradient-to-br from-[#E6FFF9] via-[#CCF5EE] to-[#B8EEDF] dark:from-[#0A2D26] dark:via-[#0F3D33] dark:to-[#051A15] border-[#30B892]/30 hover:border-[#30B892]/50',
-      iconBg: 'bg-gradient-to-br from-[#1A9E7A] to-[#0E8367] text-white shadow-lg shadow-[#1A9E7A]/30',
-      valueColor: 'text-[#0E6B54] dark:text-[#6EE7C0]',
+      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-cobalt/30 hover:border-bb-cobalt/50',
+      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
+      valueColor: 'text-bb-text dark:text-bb-text',
     },
     gold: {
-      card: 'bg-gradient-to-br from-[#F5EDFF] via-[#EBE0FF] to-[#DFD0FF] dark:from-[#1A0F2E] dark:via-[#221640] dark:to-[#130A24] border-[#9063D4]/30 hover:border-[#9063D4]/50',
-      iconBg: 'bg-gradient-to-br from-[#8B5CF6] to-[#7040D4] text-white shadow-lg shadow-[#8B5CF6]/30',
-      valueColor: 'text-[#6D28D9] dark:text-[#C4A8FF]',
+      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-cobalt/30 hover:border-bb-cobalt/50',
+      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
+      valueColor: 'text-bb-text dark:text-bb-text',
     },
     kumkum: {
-      card: 'bg-gradient-to-br from-[#FFF0F0] via-[#FFE4E4] to-[#FFD1D1] dark:from-[#330F0F] dark:via-[#421616] dark:to-[#1C0808] border-[#E85C5C]/30 hover:border-[#E85C5C]/50',
-      iconBg: 'bg-gradient-to-br from-[#E84343] to-[#C72E2E] text-white shadow-lg shadow-[#E84343]/30',
-      valueColor: 'text-[#9E1B1B] dark:text-[#FF8F8F]',
+      card: 'bg-gradient-to-br from-bb-danger-soft via-bb-danger-soft to-bb-danger-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-danger/30 hover:border-bb-danger/50',
+      iconBg: 'bg-gradient-to-br from-bb-danger to-bb-danger text-white shadow-lg shadow-bb-danger/30',
+      valueColor: 'text-bb-danger-ink dark:text-bb-danger-ink',
     },
     indigo: {
-      card: 'bg-gradient-to-br from-[#EEF2FF] via-[#E0E7FF] to-[#C7D2FE] dark:from-[#0F172A] dark:via-[#1E293B] dark:to-[#0F172A] border-[#6366F1]/30 hover:border-[#6366F1]/50',
-      iconBg: 'bg-gradient-to-br from-[#6366F1] to-[#4F46E5] text-white shadow-lg shadow-[#6366F1]/30',
-      valueColor: 'text-[#4338CA] dark:text-[#818CF8]',
+      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-bg dark:via-bb-surface dark:to-bb-bg border-bb-cobalt/30 hover:border-bb-cobalt/50',
+      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
+      valueColor: 'text-bb-text dark:text-bb-text',
     }
   };
 

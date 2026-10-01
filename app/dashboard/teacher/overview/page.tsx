@@ -16,7 +16,7 @@ export default function OverviewPage() {
     <div className="space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <LayoutDashboard className="h-10 w-10 text-vg-primary-600" />
           Dashboard
         </h1>
@@ -96,14 +96,14 @@ export default function OverviewPage() {
         </TabsList>
 
         <TabsContent value="classes" className="space-y-6">
-          <h2 className="text-2xl font-semibold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-semibold tracking-tight text-bb-accent">
             Your Classes
           </h2>
           <div className="grid gap-6 md:grid-cols-2">
             <EnhancedCard variant="elevated">
               <EnhancedCardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                  <EnhancedCardTitle className="text-bb-accent">
                     English Literature
                   </EnhancedCardTitle>
                   <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
@@ -144,7 +144,7 @@ export default function OverviewPage() {
             <EnhancedCard variant="elevated">
               <EnhancedCardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                  <EnhancedCardTitle className="text-bb-accent">
                     World History
                   </EnhancedCardTitle>
                   <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
@@ -185,7 +185,7 @@ export default function OverviewPage() {
             <EnhancedCard variant="elevated">
               <EnhancedCardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                  <EnhancedCardTitle className="text-bb-accent">
                     Science
                   </EnhancedCardTitle>
                   <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
@@ -226,7 +226,7 @@ export default function OverviewPage() {
             <EnhancedCard variant="elevated">
               <EnhancedCardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                  <EnhancedCardTitle className="text-bb-accent">
                     Mathematics
                   </EnhancedCardTitle>
                   <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">

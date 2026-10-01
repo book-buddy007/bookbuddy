@@ -49,8 +49,8 @@ export function InstitutionsList({ limit }: InstitutionsListProps) {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-bold text-[#1A237E] leading-none">{institution.name}</p>
-              <p className="text-xs text-[#5D4037] font-medium">{institution.domain}</p>
+              <p className="text-sm font-bold text-bb-text leading-none">{institution.name}</p>
+              <p className="text-xs text-bb-muted font-medium">{institution.domain}</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">

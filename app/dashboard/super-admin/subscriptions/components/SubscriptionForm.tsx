@@ -120,7 +120,7 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-slate-200/60 dark:border-white/[0.07] bg-[#FAFBFC] dark:bg-[var(--night-ink)] shadow-2xl flex flex-col max-h-[90dvh]">
+            <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-slate-200/60 dark:border-white/[0.07] bg-bb-bg dark:bg-[var(--night-ink)] shadow-2xl flex flex-col max-h-[90dvh]">
                 <div 
                     className="relative overflow-hidden px-6 pt-6 pb-8 shrink-0" 
                     style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}
@@ -357,7 +357,7 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                     <EnhancedButton
                         onClick={form.handleSubmit(handleSubmit)}
                         disabled={isLoading}
-                        className="bg-gradient-to-r from-[var(--deep-saffron)] to-[#FFAE42] hover:from-[#E68A2E] hover:to-[#FF9933] text-black font-semibold shadow-md shadow-[var(--deep-saffron)]/20 border-transparent"
+                        className="bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black font-semibold shadow-md shadow-[var(--deep-saffron)]/20 border-transparent"
                     >
                         {isLoading ? "Saving..." : (isEditing ? "Update Plan" : "Create Plan")}
                     </EnhancedButton>

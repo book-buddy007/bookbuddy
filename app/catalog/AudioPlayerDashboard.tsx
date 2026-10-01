@@ -335,7 +335,7 @@ function AudioPlayerPrototype() {
             )}
           </div>
           <div className="w-px h-4" style={{ background: 'rgba(255,255,255,0.1)' }} />
-          <div className="flex items-center gap-1.5 p-1.5 rounded-full text-[#a0a0b0]" aria-label="Transcript">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-full text-bb-faint" aria-label="Transcript">
             <FileText size={18} />
           </div>
         </div>
@@ -462,7 +462,7 @@ function AudioPicker() {
           style={{ fontFamily: 'var(--font-display)', animationDelay: '100ms', animationFillMode: 'both' }}
         >
           Press Play,{' '}
-          <span className="bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--gold)] bg-clip-text text-transparent">
+          <span className="text-bb-accent">
             Learn on the Go
           </span>
         </h1>

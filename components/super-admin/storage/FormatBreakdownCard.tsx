@@ -14,7 +14,7 @@ interface FormatBreakdownCardProps {
   className?: string;
 }
 
-const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-[#0A0F1E]/70 backdrop-blur-md relative overflow-hidden shadow-sm";
+const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md relative overflow-hidden shadow-sm";
 const headerClass = "relative z-10 border-b border-slate-100 dark:border-slate-700/40";
 
 export function FormatBreakdownCard({ data, className }: FormatBreakdownCardProps) {

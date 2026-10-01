@@ -125,7 +125,7 @@ export function AddUserSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white dark:bg-[#0F172A] border-l border-slate-200/60 dark:border-slate-700/40" side="right">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white dark:bg-bb-bg border-l border-slate-200/60 dark:border-slate-700/40" side="right">
         <SheetHeader className="pb-6 border-b border-slate-200/60 dark:border-slate-700/40 mb-6">
           <SheetTitle className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
             <div className="p-2 rounded-xl bg-gradient-to-br from-[var(--deep-saffron)]/15 to-[var(--saffron)]/10 text-[var(--deep-saffron)]">
@@ -147,7 +147,7 @@ export function AddUserSheet({
                 type="button"
                 onClick={() => form.setValue('accountType', 'INDEPENDENT')}
                 className={`flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all duration-300 ${accountType === 'INDEPENDENT' 
-                  ? 'bg-white dark:bg-[#0F172A] shadow-md text-[var(--deep-saffron)] border border-slate-200/60 dark:border-slate-700/40' 
+                  ? 'bg-white dark:bg-bb-bg shadow-md text-[var(--deep-saffron)] border border-slate-200/60 dark:border-slate-700/40' 
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Independent User (B2C)
@@ -156,7 +156,7 @@ export function AddUserSheet({
                 type="button"
                 onClick={() => form.setValue('accountType', 'INSTITUTIONAL')}
                 className={`flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all duration-300 ${accountType === 'INSTITUTIONAL' 
-                  ? 'bg-white dark:bg-[#0F172A] shadow-md text-[var(--deep-saffron)] border border-slate-200/60 dark:border-slate-700/40' 
+                  ? 'bg-white dark:bg-bb-bg shadow-md text-[var(--deep-saffron)] border border-slate-200/60 dark:border-slate-700/40' 
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Affiliated User (B2B)
@@ -208,7 +208,7 @@ export function AddUserSheet({
                       <FormControl>
                         <SelectTrigger className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select a role" /></SelectTrigger>
                       </FormControl>
-                      <SelectContent className="rounded-xl bg-white dark:bg-[#0F172A] border-slate-200/60 dark:border-slate-700/40">
+                      <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
                         <SelectItem value="student">Student</SelectItem>
                         <SelectItem value="teacher">Teacher</SelectItem>
                         <SelectItem value="librarian">Librarian</SelectItem>
@@ -239,7 +239,7 @@ export function AddUserSheet({
                         <FormControl>
                           <SelectTrigger className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select a tier" /></SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl bg-white dark:bg-[#0F172A] border-slate-200/60 dark:border-slate-700/40">
+                        <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
                           <SelectItem value="trial">Free Trial</SelectItem>
                           <SelectItem value="basic">Basic Plan</SelectItem>
                           <SelectItem value="premium">Premium Plan</SelectItem>
@@ -262,7 +262,7 @@ export function AddUserSheet({
                           <FormControl>
                             <SelectTrigger className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"><SelectValue placeholder="Search or select an institution" /></SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl bg-white dark:bg-[#0F172A] border-slate-200/60 dark:border-slate-700/40">
+                          <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
                             {institutions.map(inst => (
                               <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
                             ))}
@@ -314,7 +314,7 @@ export function AddUserSheet({
             <div className="pt-6">
               <EnhancedButton 
                 type="submit" 
-                className="w-full !bg-gradient-to-r !from-[var(--deep-saffron)] !to-[var(--saffron)] hover:!from-[var(--saffron)] hover:!to-[var(--gold)] !text-white shadow-lg hover:shadow-[var(--saffron)]/20 transition-all duration-300 rounded-xl h-11 text-base font-semibold" 
+                className="w-full shadow-lg hover:shadow-[var(--saffron)]/20 transition-all duration-300 rounded-xl h-11 text-base font-semibold" 
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating User...' : 'Create Account'}

@@ -56,7 +56,7 @@ const RateCalculator = ({
   return (
     <EnhancedCard variant="glass" className="mt-4">
       <EnhancedCardHeader className="pb-2">
-        <EnhancedCardTitle className="text-sm flex items-center gap-2 bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+        <EnhancedCardTitle className="text-sm flex items-center gap-2 text-bb-accent">
           <Calculator className="w-4 h-4 text-blue-700 dark:text-blue-500" />
           Fine Calculator
         </EnhancedCardTitle>
@@ -177,7 +177,7 @@ export default function BorrowingPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <Settings className="h-10 w-10 text-blue-700 dark:text-blue-500" />
             Borrowing Policies
           </h1>
@@ -352,7 +352,7 @@ export default function BorrowingPage() {
         {/* Fine Calculator Preview */}
         <EnhancedCard variant="elevated">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="bg-gradient-to-r from-vg-cultural-600 to-vg-primary-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-bb-accent">
               Fine Calculator Preview
             </EnhancedCardTitle>
           </EnhancedCardHeader>

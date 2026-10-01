@@ -61,7 +61,7 @@ export default function SettingsPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <Settings className="h-10 w-10 text-vg-primary-600" />
             Settings
           </h1>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
         <TabsContent value="account" className="space-y-6">
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-2">
+              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
                 <User className="h-5 w-5 text-vg-primary-600" />
                 Account Information
               </EnhancedCardTitle>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
         <TabsContent value="security" className="space-y-6">
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-2">
+              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
                 <Shield className="h-5 w-5 text-vg-primary-600" />
                 Security Settings
               </EnhancedCardTitle>
@@ -170,7 +170,7 @@ export default function SettingsPage() {
             </EnhancedCardHeader>
             <EnhancedCardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Change Password</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Change Password</h3>
                 <div className="space-y-4">
                   <div className="grid gap-2">
                     <Label htmlFor="current-password">Current Password</Label>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Two-Factor Authentication</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Two-Factor Authentication</h3>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Two-Factor Authentication</p>
@@ -239,7 +239,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Session Management</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Session Management</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -276,7 +276,7 @@ export default function SettingsPage() {
         <TabsContent value="notifications" className="space-y-6">
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-2">
+              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
                 <Bell className="h-5 w-5 text-vg-primary-600" />
                 Notification Settings
               </EnhancedCardTitle>
@@ -284,7 +284,7 @@ export default function SettingsPage() {
             </EnhancedCardHeader>
             <EnhancedCardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Email Notifications</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Email Notifications</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -322,7 +322,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">In-App Notifications</h3>
+                <h3 className="text-lg font-medium text-bb-accent">In-App Notifications</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -355,7 +355,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Push Notifications</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Push Notifications</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -397,7 +397,7 @@ export default function SettingsPage() {
         <TabsContent value="appearance" className="space-y-6">
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-2">
+              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
                 <Palette className="h-5 w-5 text-vg-primary-600" />
                 Appearance Settings
               </EnhancedCardTitle>
@@ -405,7 +405,7 @@ export default function SettingsPage() {
             </EnhancedCardHeader>
             <EnhancedCardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Theme</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Theme</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div 
                     className={`border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-primary ${theme === 'light' ? 'border-primary' : ''}`}
@@ -434,7 +434,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Reader Preferences</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Reader Preferences</h3>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="reader-theme">Default Reader Theme</Label>
@@ -604,7 +604,7 @@ export default function SettingsPage() {
         <TabsContent value="advanced" className="space-y-6">
           <EnhancedCard variant="elevated">
             <EnhancedCardHeader>
-              <EnhancedCardTitle className="bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent flex items-center gap-2">
+              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
                 <Settings className="h-5 w-5 text-vg-primary-600" />
                 Advanced Settings
               </EnhancedCardTitle>
@@ -612,7 +612,7 @@ export default function SettingsPage() {
             </EnhancedCardHeader>
             <EnhancedCardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">Data Management</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Data Management</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -635,7 +635,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-primary-600 to-vg-sanskrit-600 bg-clip-text text-transparent">API Access</h3>
+                <h3 className="text-lg font-medium text-bb-accent">API Access</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -660,7 +660,7 @@ export default function SettingsPage() {
               <Separator />
 
               <div className="space-y-4">
-                <h3 className="text-lg font-medium bg-gradient-to-r from-vg-error-600 to-vg-error-700 bg-clip-text text-transparent">Danger Zone</h3>
+                <h3 className="text-lg font-medium text-bb-accent">Danger Zone</h3>
                 <div className="space-y-4 border border-destructive/20 rounded-md p-4">
                   <div className="flex items-center justify-between">
                     <div>

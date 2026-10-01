@@ -130,7 +130,7 @@ const AnalyticsPage = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
             <TrendingUp className="h-10 w-10 text-blue-700 dark:text-blue-500" />
             Analytics
           </h1>

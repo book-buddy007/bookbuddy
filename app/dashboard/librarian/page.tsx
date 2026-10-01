@@ -65,7 +65,7 @@ export default function LibrarianDashboard() {
     <div className="p-3 md:p-6 space-y-8 animate-vg-fade-in">
       {/* Header Section */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
           <Library className="h-10 w-10 text-blue-700 dark:text-blue-500" />
           Librarian Dashboard
         </h1>
@@ -140,7 +140,7 @@ export default function LibrarianDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <EnhancedCard variant="elevated" className="md:col-span-2 lg:col-span-1">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-bb-accent">
               Quick Actions
             </EnhancedCardTitle>
           </EnhancedCardHeader>
@@ -175,7 +175,7 @@ export default function LibrarianDashboard() {
 
         <EnhancedCard variant="elevated">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="bg-gradient-to-r from-vg-success-600 to-vg-primary-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-bb-accent">
               Recent Activity
             </EnhancedCardTitle>
           </EnhancedCardHeader>
@@ -207,7 +207,7 @@ export default function LibrarianDashboard() {
 
         <EnhancedCard variant="elevated">
           <EnhancedCardHeader>
-            <EnhancedCardTitle className="bg-gradient-to-r from-vg-warning-600 to-vg-error-600 bg-clip-text text-transparent">
+            <EnhancedCardTitle className="text-bb-accent">
               Inventory Alerts
             </EnhancedCardTitle>
           </EnhancedCardHeader>
