@@ -50,8 +50,11 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
 EXPOSE 3333
 
-# Apply any pending migrations (idempotent), then boot the API.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+# docker-entrypoint.sh: apply pending migrations (idempotent), make sure the media
+# bucket exists, optionally seed (create-only), then boot the API.
+CMD ["sh", "docker-entrypoint.sh"]

@@ -3,7 +3,7 @@
 # slim (Debian/glibc), NOT alpine: the frontend uses Prisma directly
 # (lib/prisma.ts, better-auth), and Prisma's query engine needs glibc + openssl.
 #
-# The frontend talks to the SAME MySQL database as the backend, so DATABASE_URL
+# The frontend talks to the SAME Postgres database as the backend, so DATABASE_URL
 # is injected by Coolify at runtime. NEXT_PUBLIC_* vars, by contrast, are inlined
 # into the client bundle at BUILD time, so they are passed as build args below
 # (in Coolify: add them as env vars and tick "Build Variable / Build Time").
@@ -26,11 +26,15 @@ RUN pnpm install --frozen-lockfile --ignore-scripts && npx prisma generate
 
 # NEXT_PUBLIC_* must exist at build time to be baked into the client bundle.
 ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_CDN_BASE_URL
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_DRM_KEY
 ARG NEXT_PUBLIC_FEDERATION_ENABLED
 ARG NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL \
+    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_CDN_BASE_URL=$NEXT_PUBLIC_CDN_BASE_URL \
     NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_DRM_KEY=$NEXT_PUBLIC_DRM_KEY \
     NEXT_PUBLIC_FEDERATION_ENABLED=$NEXT_PUBLIC_FEDERATION_ENABLED \
