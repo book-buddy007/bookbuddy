@@ -83,6 +83,11 @@ const initialPolicies: Policies = {
   canDeleteUsers: true,
   canEditRoles: true,
   maxUsersPerInstitution: 100,
+  // The borrowing-policies page and the overdue calculator read these during
+  // render; without defaults /dashboard/admin/borrowing threw on `limits.student`.
+  limits: { student: 5, teacher: 10, maxRenewals: 2 },
+  fines: { enabled: true, dailyRate: 0.5, gracePeriod: 3, maxFine: 20 },
+  periods: { book: 14, ebook: 14, audiobook: 14 },
 };
 
 const initialCatalog: Catalog = {

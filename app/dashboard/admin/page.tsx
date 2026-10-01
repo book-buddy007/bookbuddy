@@ -1,81 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
 import { QuickStats } from "@/components/admin/dashboard/QuickStats";
-import { SystemHealthWidgets } from "@/components/admin/dashboard/SystemHealthWidgets";
 import { NavigationCards } from "@/components/admin/dashboard/NavigationCards";
-import { DashboardOverview } from "@/components/admin/dashboard/DashboardOverview";
-import { Bell, LayoutDashboard } from "@/components/ui/icons";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default function AdminDashboard() {
   return (
-    <div className="p-6 md:ml-64 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <LayoutDashboard className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Comprehensive overview of your library management system
-          </p>
-        </div>
-        <EnhancedButton variant="outline" size="icon">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
-        </EnhancedButton>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Admin"
+        title="Dashboard"
+        description="Overview of your library management system."
+        actions={<Chip icon="info">Sample data</Chip>}
+      />
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Quick Statistics Section */}
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-2xl text-bb-accent">
-              Quick Statistics
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <QuickStats />
-          </EnhancedCardContent>
-        </EnhancedCard>
+      <QuickStats />
 
-        {/* System Health Section */}
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-2xl text-bb-accent">
-              System Health
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <SystemHealthWidgets />
-          </EnhancedCardContent>
-        </EnhancedCard>
+      <section className="space-y-4">
+        <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Quick actions</h2>
+        <NavigationCards />
+      </section>
 
-        {/* Navigation Cards */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-bb-accent">
-            Quick Actions
-          </h2>
-          <NavigationCards />
-        </div>
-
-        {/* Activity Overview */}
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-2xl text-bb-accent">
-              Activity Overview
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <DashboardOverview>
-              <p className="text-muted-foreground">Recent activity will be displayed here.</p>
-            </DashboardOverview>
-          </EnhancedCardContent>
-        </EnhancedCard>
-      </div>
+      <section className="space-y-4">
+        <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Activity overview</h2>
+        <EmptyState icon="analytics" title="No recent activity" description="Borrowing and approval activity will appear here." />
+      </section>
     </div>
   );
 }

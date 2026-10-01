@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { SectionHeader } from "@/components/admin/shared/SectionHeader";
-import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
+import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { FormField } from "@/components/ui/form-field";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
   AccordionContent,
@@ -12,116 +14,81 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAdminState, Policies } from "@/hooks/use-admin-state";
-import { Save, Calculator, AlertCircle, BookOpen, Settings } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/use-toast";
 
-type MaterialType = 'book' | 'ebook' | 'audiobook';
+const PolicySectionAccordion = ({
+  value,
+  title,
+  children
+}: {
+  value: string;
+  title: string;
+  children: React.ReactNode
+}) => (
+  <AccordionItem value={value}>
+    <AccordionTrigger className="font-display text-lg font-extrabold tracking-[-0.02em]">{title}</AccordionTrigger>
+    <AccordionContent className="px-1 pb-2 pt-4">{children}</AccordionContent>
+  </AccordionItem>
+);
 
-const PolicySectionAccordion = ({ 
-  title, 
-  children 
-}: { 
-  title: string; 
-  children: React.ReactNode 
+const RateCalculator = ({
+  dailyRate,
+  days,
+  gracePeriod,
+  maxFine
+}: {
+  dailyRate: number;
+  days: number;
+  gracePeriod: number;
+  maxFine: number
 }) => {
-  return (
-    <AccordionItem value={title.toLowerCase()}>
-      <AccordionTrigger className="text-lg font-medium">{title}</AccordionTrigger>
-      <AccordionContent className="pt-4 pb-2 px-2">
-        {children}
-      </AccordionContent>
-    </AccordionItem>
-  );
-};
-
-const RateCalculator = ({ 
-  dailyRate, 
-  days, 
-  gracePeriod, 
-  maxFine 
-}: { 
-  dailyRate: number; 
-  days: number; 
-  gracePeriod: number; 
-  maxFine: number 
-}) => {
-  const calculateFine = () => {
-    if (days <= gracePeriod) return 0;
-    const fine = (days - gracePeriod) * dailyRate;
-    return Math.min(fine, maxFine);
-  };
+  const fine = days <= gracePeriod ? 0 : Math.min((days - gracePeriod) * dailyRate, maxFine);
+  const capped = days > gracePeriod && fine === maxFine;
 
   return (
-    <EnhancedCard variant="glass" className="mt-4">
-      <EnhancedCardHeader className="pb-2">
-        <EnhancedCardTitle className="text-sm flex items-center gap-2 text-bb-accent">
-          <Calculator className="w-4 h-4 text-blue-700 dark:text-blue-500" />
-          Fine Calculator
-        </EnhancedCardTitle>
-      </EnhancedCardHeader>
-      <EnhancedCardContent>
-        <div className="text-sm space-y-1">
-          <p>Days overdue: <strong className="text-blue-700 dark:text-blue-500">{days}</strong></p>
-          <p>Grace period: <strong className="text-vg-success-600">{gracePeriod} days</strong></p>
-          <p>Daily rate: <strong className="text-teal-600 dark:text-teal-500">${dailyRate.toFixed(2)}</strong></p>
-          <p>Calculated fine: <strong className="text-vg-error-600">${calculateFine().toFixed(2)}</strong></p>
-          {calculateFine() === maxFine && (
-            <p className="text-vg-warning-600 flex items-center mt-2 font-medium">
-              <AlertCircle className="w-3 h-3 mr-1" />
-              Max fine limit reached
-            </p>
-          )}
-        </div>
-      </EnhancedCardContent>
-    </EnhancedCard>
+    <div className="mt-4 rounded-2xl bg-bb-surface-2 p-4">
+      <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+        <Icon name="analytics" size={18} /> Fine calculator
+      </h4>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
+        <div><dt className="text-bb-muted">Days overdue</dt><dd className="font-bold tabular-nums">{days}</dd></div>
+        <div><dt className="text-bb-muted">Grace period</dt><dd className="font-bold tabular-nums">{gracePeriod} days</dd></div>
+        <div><dt className="text-bb-muted">Daily rate</dt><dd className="font-bold tabular-nums">${dailyRate.toFixed(2)}</dd></div>
+        <div><dt className="text-bb-muted">Calculated fine</dt><dd className="font-bold tabular-nums">${fine.toFixed(2)}</dd></div>
+      </dl>
+      {capped && (
+        <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-bb-warning-ink">
+          <Icon name="alert" size={16} /> Max fine limit reached
+        </p>
+      )}
+    </div>
   );
 };
 
 const ComplianceChecker = ({ policies }: { policies: Policies }) => {
-  const checkCompliance = () => {
-    const issues = [];
-    
-    if (policies.limits.student <= 0) {
-      issues.push("Student book limit should be greater than 0");
-    }
-    
-    if (policies.limits.teacher <= 0) {
-      issues.push("Teacher book limit should be greater than 0");
-    }
-    
-    if (policies.fines.dailyRate <= 0) {
-      issues.push("Daily fine rate should be greater than 0");
-    }
-    
-    if (policies.periods.book <= 0 || policies.periods.ebook <= 0 || policies.periods.audiobook <= 0) {
-      issues.push("Borrowing periods should be greater than 0");
-    }
-    
-    return issues;
-  };
-  
-  const issues = checkCompliance();
-  
+  const issues: string[] = [];
+  if (policies.limits.student <= 0) issues.push("Student book limit should be greater than 0");
+  if (policies.limits.teacher <= 0) issues.push("Teacher book limit should be greater than 0");
+  if (policies.fines.dailyRate <= 0) issues.push("Daily fine rate should be greater than 0");
+  if (policies.periods.book <= 0 || policies.periods.ebook <= 0 || policies.periods.audiobook <= 0) {
+    issues.push("Borrowing periods should be greater than 0");
+  }
+
   if (issues.length === 0) {
     return (
-      <div className="bg-vg-success-50 dark:bg-vg-success-900/20 text-vg-success-700 dark:text-vg-success-400 p-4 rounded-vg-lg mt-4 text-sm border border-vg-success-200 dark:border-vg-success-800 animate-vg-fade-in">
-        <p className="font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />
-          All policies are compliant
-        </p>
-      </div>
+      <p role="status" className="mt-4 flex items-center gap-2 rounded-xl bg-bb-success-soft px-4 py-3 text-sm font-semibold text-bb-success-ink">
+        <Icon name="check-circle" size={18} /> All policies are compliant
+      </p>
     );
   }
 
   return (
-    <div className="bg-vg-warning-50 dark:bg-vg-warning-900/20 text-vg-warning-700 dark:text-vg-warning-400 p-4 rounded-vg-lg mt-4 text-sm border border-vg-warning-200 dark:border-vg-warning-800 animate-vg-fade-in">
-      <p className="font-semibold mb-2 flex items-center gap-2">
-        <AlertCircle className="w-4 h-4" />
-        Policy compliance issues:
+    <div role="alert" className="mt-4 rounded-xl bg-bb-warning-soft px-4 py-3 text-sm text-bb-warning-ink">
+      <p className="mb-2 flex items-center gap-2 font-semibold">
+        <Icon name="alert" size={18} /> Policy compliance issues
       </p>
-      <ul className="list-disc pl-5 space-y-1">
+      <ul className="list-disc space-y-1 pl-5">
         {issues.map((issue, index) => (
           <li key={index}>{issue}</li>
         ))}
@@ -142,17 +109,17 @@ export default function BorrowingPage() {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
   const handleInputChange = (
-    section: keyof Policies, 
-    field: string, 
+    section: keyof Policies,
+    field: string,
     value: string
   ) => {
     const numericValue = parseFloat(value);
-    
+
     if (!isNaN(numericValue)) {
       setLocalPolicies({
         ...localPolicies,
@@ -167,217 +134,104 @@ export default function BorrowingPage() {
   const handleSave = () => {
     setPolicies(localPolicies);
     toast({
-      title: "Policies Updated",
-      description: "Your policy changes have been saved successfully."
+      title: "Policies updated",
+      description: "Saved for this session. Policies aren't stored on the server yet."
     });
   };
 
-  return (
-    <div className="p-6 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <Settings className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-            Borrowing Policies
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Configure borrowing limits, fines, and periods
-          </p>
-        </div>
-        <EnhancedButton
-          onClick={handleSave}
-          variant="vg-primary"
-          icon={<Save className="h-4 w-4" />}
-        >
-          Save Changes
-        </EnhancedButton>
-      </div>
+  const numberField = (
+    id: string,
+    label: string,
+    hint: string,
+    section: keyof Policies,
+    field: string,
+    step?: string
+  ) => (
+    <FormField label={label} htmlFor={id} hint={hint}>
+      <Input
+        id={id}
+        type="number"
+        step={step}
+        value={(localPolicies[section] as any)[field]}
+        onChange={(e) => handleInputChange(section, field, e.target.value)}
+      />
+    </FormField>
+  );
 
-      <LoadingSkeleton loading={isLoading}>
-        <EnhancedCard variant="elevated">
-          <EnhancedCardContent className="p-6">
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Admin"
+        title="Borrowing policies"
+        description="Configure borrowing limits, fines, and periods."
+        actions={
+          <>
+            <Chip icon="info">Not saved to server</Chip>
+            <Button onClick={handleSave}>
+              <Icon name="save" size={18} /> Save changes
+            </Button>
+          </>
+        }
+      />
+
+      {isLoading ? (
+        <Skeleton className="h-96 rounded-[22px]" />
+      ) : (
+        <>
+          <section className="rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6">
             <Accordion type="single" collapsible defaultValue="limits">
-              <PolicySectionAccordion title="Borrowing Limits">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="student-limit">Student Book Limit</Label>
-                    <Input 
-                      id="student-limit" 
-                      type="number" 
-                      value={localPolicies.limits.student} 
-                      onChange={(e) => handleInputChange('limits', 'student', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Maximum number of books a student can borrow at once
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="teacher-limit">Teacher Book Limit</Label>
-                    <Input 
-                      id="teacher-limit" 
-                      type="number" 
-                      value={localPolicies.limits.teacher} 
-                      onChange={(e) => handleInputChange('limits', 'teacher', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Maximum number of books a teacher can borrow at once
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="renewal-limit">Maximum Renewals</Label>
-                    <Input 
-                      id="renewal-limit" 
-                      type="number" 
-                      value={localPolicies.limits.maxRenewals} 
-                      onChange={(e) => handleInputChange('limits', 'maxRenewals', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Maximum number of times a book can be renewed
-                    </p>
-                  </div>
+              <PolicySectionAccordion value="limits" title="Borrowing limits">
+                <div className="grid gap-5 md:grid-cols-2">
+                  {numberField("student-limit", "Student book limit", "Maximum number of books a student can borrow at once", "limits", "student")}
+                  {numberField("teacher-limit", "Teacher book limit", "Maximum number of books a teacher can borrow at once", "limits", "teacher")}
+                  {numberField("renewal-limit", "Maximum renewals", "Maximum number of times a book can be renewed", "limits", "maxRenewals")}
                 </div>
               </PolicySectionAccordion>
-              
-              <PolicySectionAccordion title="Fine Rates">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="daily-rate">Daily Fine Rate ($)</Label>
-                    <Input 
-                      id="daily-rate" 
-                      type="number" 
-                      step="0.01" 
-                      value={localPolicies.fines.dailyRate} 
-                      onChange={(e) => handleInputChange('fines', 'dailyRate', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Fine charged per day for overdue items
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="grace-period">Grace Period (days)</Label>
-                    <Input 
-                      id="grace-period" 
-                      type="number" 
-                      value={localPolicies.fines.gracePeriod} 
-                      onChange={(e) => handleInputChange('fines', 'gracePeriod', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Days before fines begin to accrue
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="max-fine">Maximum Fine ($)</Label>
-                    <Input 
-                      id="max-fine" 
-                      type="number" 
-                      step="0.01" 
-                      value={localPolicies.fines.maxFine} 
-                      onChange={(e) => handleInputChange('fines', 'maxFine', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Maximum fine amount per item
-                    </p>
-                  </div>
+
+              <PolicySectionAccordion value="fines" title="Fine rates">
+                <div className="grid gap-5 md:grid-cols-3">
+                  {numberField("daily-rate", "Daily fine rate ($)", "Fine charged per day for overdue items", "fines", "dailyRate", "0.01")}
+                  {numberField("grace-period", "Grace period (days)", "Days before fines begin to accrue", "fines", "gracePeriod")}
+                  {numberField("max-fine", "Maximum fine ($)", "Maximum fine amount per item", "fines", "maxFine", "0.01")}
                 </div>
-                
+
                 <div className="mt-6">
-                  <Label htmlFor="days-overdue">Simulate days overdue:</Label>
-                  <Input 
-                    id="days-overdue" 
-                    type="range" 
-                    min="0" 
-                    max="30" 
-                    value={daysOverdue} 
+                  <label htmlFor="days-overdue" className="text-[13px] font-semibold">
+                    Simulate days overdue: <span className="tabular-nums">{daysOverdue}</span>
+                  </label>
+                  <input
+                    id="days-overdue"
+                    type="range"
+                    min="0"
+                    max="30"
+                    value={daysOverdue}
                     onChange={(e) => setDaysOverdue(parseInt(e.target.value))}
-                    className="mt-2"
+                    className="mt-2 w-full accent-[var(--bb-accent)]"
                   />
-                  <p className="text-sm text-center mt-1">{daysOverdue} days</p>
                 </div>
-                
-                <RateCalculator 
-                  dailyRate={localPolicies.fines.dailyRate} 
-                  days={daysOverdue} 
-                  gracePeriod={localPolicies.fines.gracePeriod} 
-                  maxFine={localPolicies.fines.maxFine} 
+
+                <RateCalculator
+                  dailyRate={localPolicies.fines.dailyRate}
+                  days={daysOverdue}
+                  gracePeriod={localPolicies.fines.gracePeriod}
+                  maxFine={localPolicies.fines.maxFine}
                 />
               </PolicySectionAccordion>
-              
-              <PolicySectionAccordion title="Borrowing Periods">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="book-period">Physical Books (days)</Label>
-                    <Input 
-                      id="book-period" 
-                      type="number" 
-                      value={localPolicies.periods.book} 
-                      onChange={(e) => handleInputChange('periods', 'book', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Standard borrowing period for physical books
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="ebook-period">E-Books (days)</Label>
-                    <Input 
-                      id="ebook-period" 
-                      type="number" 
-                      value={localPolicies.periods.ebook} 
-                      onChange={(e) => handleInputChange('periods', 'ebook', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Standard borrowing period for e-books
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="audiobook-period">Audiobooks (days)</Label>
-                    <Input 
-                      id="audiobook-period" 
-                      type="number" 
-                      value={localPolicies.periods.audiobook} 
-                      onChange={(e) => handleInputChange('periods', 'audiobook', e.target.value)}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Standard borrowing period for audiobooks
-                    </p>
-                  </div>
+
+              <PolicySectionAccordion value="periods" title="Borrowing periods">
+                <div className="grid gap-5 md:grid-cols-3">
+                  {numberField("book-period", "Physical books (days)", "Standard borrowing period for physical books", "periods", "book")}
+                  {numberField("ebook-period", "E-books (days)", "Standard borrowing period for e-books", "periods", "ebook")}
+                  {numberField("audiobook-period", "Audiobooks (days)", "Standard borrowing period for audiobooks", "periods", "audiobook")}
                 </div>
               </PolicySectionAccordion>
             </Accordion>
 
             <ComplianceChecker policies={localPolicies} />
-          </EnhancedCardContent>
-        </EnhancedCard>
-
-        {/* Fine Calculator Preview */}
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-bb-accent">
-              Fine Calculator Preview
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="days-overdue">Days Overdue (for preview)</Label>
-                <Input
-                  id="days-overdue"
-                  type="number"
-                  value={daysOverdue}
-                  onChange={(e) => setDaysOverdue(parseInt(e.target.value) || 0)}
-                  className="max-w-xs"
-                />
-              </div>
-              <RateCalculator
-                dailyRate={localPolicies.fines.dailyRate}
-                days={daysOverdue}
-                gracePeriod={localPolicies.fines.gracePeriod}
-                maxFine={localPolicies.fines.maxFine}
-              />
-            </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
-      </LoadingSkeleton>
+          </section>
+        </>
+      )}
     </div>
   );
 }

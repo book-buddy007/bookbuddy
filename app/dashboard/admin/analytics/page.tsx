@@ -1,17 +1,23 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { StatCard } from "@/components/ui/stat-card";
-import { SectionHeader } from "@/components/admin/shared/SectionHeader";
+import { Chip } from "@/components/ui/chip";
+import { PageHeader } from "@/components/ui/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { useAdminState } from "@/hooks/use-admin-state";
-import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
-import { BarChart, LineChart, PieChart, TrendingUp, Users, BookOpen, Download } from "@/components/ui/icons";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock data for analytics
+// Sample data for analytics. There is no admin analytics endpoint behind this page yet.
 const mockBorrowingTrends = [
   { month: "Jan", physical: 145, ebook: 82, audiobook: 37 },
   { month: "Feb", physical: 158, ebook: 97, audiobook: 42 },
@@ -22,10 +28,10 @@ const mockBorrowingTrends = [
 ];
 
 const mockOverdueStats = [
-  { name: "On Time", value: 78 },
-  { name: "1-3 Days Late", value: 12 },
-  { name: "4-7 Days Late", value: 6 },
-  { name: "8+ Days Late", value: 4 },
+  { name: "On time", value: 78 },
+  { name: "1-3 days late", value: 12 },
+  { name: "4-7 days late", value: 6 },
+  { name: "8+ days late", value: 4 },
 ];
 
 const mockUserEngagement = [
@@ -38,417 +44,212 @@ const mockUserEngagement = [
   { day: "Sun", visitors: 152, actions: 286 },
 ];
 
-// Bar Chart Component
-const EngagementBarChart = () => {
-  return (
-    <div className="w-full h-72 relative">
-      <div className="absolute bottom-0 left-0 right-0 h-64 flex items-end">
-        {mockUserEngagement.map((day, index) => (
-          <div key={index} className="flex-1 flex flex-col items-center gap-1">
-            <div className="flex flex-col items-center w-full gap-1">
-              <div 
-                className="w-5/6 bg-blue-500 rounded-t" 
-                style={{ height: `${day.actions / 6}px` }}
-                title={`${day.actions} actions`}
-              />
-              <div 
-                className="w-5/6 bg-blue-300 rounded-t" 
-                style={{ height: `${day.visitors / 3}px` }}
-                title={`${day.visitors} visitors`}
-              />
-            </div>
-            <span className="text-xs mt-1">{day.day}</span>
-          </div>
-        ))}
-      </div>
-      <div className="absolute top-0 right-2 flex gap-4">
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-blue-500 mr-1" />
-          <span className="text-xs">Actions</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-blue-300 mr-1" />
-          <span className="text-xs">Visitors</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 
-// Line Chart Component
-const BorrowingTrendsChart = () => {
-  return (
-    <div className="w-full h-72 relative">
-      <div className="absolute inset-0 flex flex-col">
-        <div className="flex-1 relative">
-          {/* Y-axis labels */}
-          <div className="absolute top-0 left-0 bottom-0 w-10 flex flex-col justify-between text-xs text-muted-foreground">
-            <span>200</span>
-            <span>150</span>
-            <span>100</span>
-            <span>50</span>
-            <span>0</span>
-          </div>
-          
-          {/* Grid lines */}
-          <div className="absolute top-0 left-10 right-0 bottom-0">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="absolute w-full border-t border-gray-100" style={{ top: `${i * 25}%` }} />
-            ))}
-          </div>
-          
-          {/* Line chart paths */}
-          <svg className="absolute top-0 left-10 right-0 bottom-0" viewBox="0 0 600 200" preserveAspectRatio="none">
-            {/* Physical books line */}
-            <polyline
-              points="0,110 100,84 200,70 300,124 400,96 500,152"
-              stroke="#0ea5e9"
-              strokeWidth="2"
-              fill="none"
-            />
-            
-            {/* E-books line */}
-            <polyline
-              points="0,158 100,150 200,145 300,140 400,130 500,125"
-              stroke="#8b5cf6"
-              strokeWidth="2"
-              fill="none"
-            />
-            
-            {/* Audiobooks line */}
-            <polyline
-              points="0,180 100,178 200,176 300,174 400,170 500,168"
-              stroke="#FFB547"
-              strokeWidth="2"
-              fill="none"
-            />
-          </svg>
-          
-          {/* Data points */}
-          <div className="absolute top-0 left-10 right-0 bottom-0 pointer-events-none">
-            {mockBorrowingTrends.map((point, idx) => {
-              const x = `${(idx / (mockBorrowingTrends.length - 1)) * 100}%`;
-              return (
-                <div key={idx} className="absolute flex flex-col items-center" style={{ left: x }}>
-                  <div 
-                    className="absolute w-2 h-2 rounded-full bg-blue-500 border border-white"
-                    style={{ top: `${(200 - point.physical) * 0.5}px` }}
-                  />
-                  <div 
-                    className="absolute w-2 h-2 rounded-full bg-purple-500 border border-white"
-                    style={{ top: `${(200 - point.ebook) * 0.5}px` }}
-                  />
-                  <div 
-                    className="absolute w-2 h-2 rounded-full bg-amber-500 border border-white"
-                    style={{ top: `${(200 - point.audiobook) * 0.5}px` }}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* X-axis labels */}
-        <div className="h-6 flex items-center pl-10">
-          {mockBorrowingTrends.map((point, idx) => (
-            <div key={idx} className="flex-1 text-center text-xs text-muted-foreground">
-              {point.month}
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      {/* Legend */}
-      <div className="absolute top-0 right-2 flex flex-col gap-1">
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-blue-500 mr-1" />
-          <span className="text-xs">Physical</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-purple-500 mr-1" />
-          <span className="text-xs">E-books</span>
-        </div>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full bg-amber-500 mr-1" />
-          <span className="text-xs">Audiobooks</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+const engagementConfig = {
+  actions: { label: "Actions", color: "hsl(var(--chart-1))" },
+  visitors: { label: "Visitors", color: "hsl(var(--chart-3))" },
+} satisfies ChartConfig;
 
-// Pie Chart Component
-const OverduePieChart = () => {
-  const total = mockOverdueStats.reduce((sum, item) => sum + item.value, 0);
-  let currentAngle = 0;
-  
-  return (
-    <div className="w-full h-72 flex items-center justify-center">
-      <div className="relative w-48 h-48">
-        <svg viewBox="0 0 100 100">
-          {mockOverdueStats.map((segment, index) => {
-            const startAngle = currentAngle;
-            const segmentPercent = segment.value / total;
-            const segmentAngle = segmentPercent * 360;
-            currentAngle += segmentAngle;
-            
-            // Convert to radians and calculate path
-            const startRad = (startAngle - 90) * Math.PI / 180;
-            const endRad = (startAngle + segmentAngle - 90) * Math.PI / 180;
-            const x1 = 50 + 48 * Math.cos(startRad);
-            const y1 = 50 + 48 * Math.sin(startRad);
-            const x2 = 50 + 48 * Math.cos(endRad);
-            const y2 = 50 + 48 * Math.sin(endRad);
-            
-            // Determine if it's a large arc
-            const largeArcFlag = segmentAngle > 180 ? 1 : 0;
-            
-            const pathData = [
-              `M 50 50`,
-              `L ${x1} ${y1}`,
-              `A 48 48 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-              `Z`
-            ].join(' ');
-            
-            // Assign different colors
-            const colors = ['#10b981', '#FFB547', '#f97316', '#ef4444'];
-            
-            return (
-              <path
-                key={index}
-                d={pathData}
-                fill={colors[index]}
-                stroke="#fff"
-                strokeWidth="0.5"
-              />
-            );
-          })}
-          <circle cx="50" cy="50" r="20" fill="white" />
-        </svg>
-        
-        {/* Percentage in center */}
-        <div className="absolute inset-0 flex items-center justify-center text-lg font-semibold">
-          {mockOverdueStats[0].value}%
-          <span className="text-xs ml-1">On Time</span>
-        </div>
-      </div>
-      
-      {/* Legend */}
-      <div className="ml-8 space-y-1">
-        {mockOverdueStats.map((item, index) => {
-          const colors = ['#10b981', '#FFB547', '#f97316', '#ef4444'];
-          return (
-            <div key={index} className="flex items-center">
-              <div className="w-4 h-4 rounded-sm mr-2" style={{ backgroundColor: colors[index] }} />
-              <span className="text-sm">{item.name}: {item.value}%</span>
-            </div>
-          );
-        })}
-      </div>
+const borrowingConfig = {
+  physical: { label: "Physical", color: "hsl(var(--chart-3))" },
+  ebook: { label: "E-books", color: "hsl(var(--chart-1))" },
+  audiobook: { label: "Audiobooks", color: "hsl(var(--chart-2))" },
+} satisfies ChartConfig;
+
+// Orange is the highlight series: use it for the worst band only.
+const overdueColors = ["hsl(var(--chart-1))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--chart-2))"];
+
+const StatTile = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-2xl bg-bb-surface-2 p-4">
+    <div className="text-[13px] text-bb-muted">{label}</div>
+    <div className="font-display text-xl font-extrabold tracking-[-0.02em]">{value}</div>
+  </div>
+);
+
+const ChartSection = ({ title, children, tiles }: { title: string; children: React.ReactNode; tiles: [string, string][] }) => (
+  <section className="space-y-5 rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6">
+    <h3 className="font-display text-lg font-extrabold tracking-[-0.02em]">{title}</h3>
+    {children}
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      {tiles.map(([label, value]) => (
+        <StatTile key={label} label={label} value={value} />
+      ))}
     </div>
-  );
-};
+  </section>
+);
 
 export default function AdminAnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("engagement");
   const [timeRange, setTimeRange] = useState("week");
-  
+
   // Simulate loading data from API
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
-  return (
-    <div className="p-6 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <TrendingUp className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-            Analytics & Insights
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Track library usage, borrowing trends, and user engagement
-          </p>
-        </div>
+  const totals = {
+    physical: sum(mockBorrowingTrends.map((m) => m.physical)),
+    ebook: sum(mockBorrowingTrends.map((m) => m.ebook)),
+    audiobook: sum(mockBorrowingTrends.map((m) => m.audiobook)),
+  };
+  const avgVisitors = Math.round(sum(mockUserEngagement.map((d) => d.visitors)) / mockUserEngagement.length);
+  const busiest = [...mockUserEngagement].sort((a, b) => b.actions - a.actions)[0].day;
 
-        <div className="flex items-center gap-3">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-40 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md">
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-            </SelectContent>
-          </Select>
-          <EnhancedButton variant="outline" icon={<Download className="h-4 w-4" />}>
-            Export
-          </EnhancedButton>
-        </div>
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Admin"
+        title="Analytics & insights"
+        description="Track library usage, borrowing trends, and user engagement."
+        actions={
+          <>
+            <Chip icon="info">Sample data</Chip>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-40" aria-label="Time range">
+                <SelectValue placeholder="Time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Today</SelectItem>
+                <SelectItem value="week">This week</SelectItem>
+                <SelectItem value="month">This month</SelectItem>
+                <SelectItem value="quarter">This quarter</SelectItem>
+                <SelectItem value="year">This year</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard
+          variant="featured"
+          title="Total checkouts"
+          value="2,874"
+          description={`+12% from previous ${timeRange}`}
+          icon="library"
+          trend="up"
+          trendValue="+12%"
+          loading={isLoading}
+        />
+        <StatCard
+          title="Active users"
+          value="843"
+          description={`+5% from previous ${timeRange}`}
+          icon="class"
+          trend="up"
+          trendValue="+5%"
+          loading={isLoading}
+        />
+        <StatCard
+          title="Overdue items"
+          value="37"
+          description={`-8% from previous ${timeRange}`}
+          icon="overdue"
+          trend="down"
+          trendValue="-8%"
+          loading={isLoading}
+        />
       </div>
 
-      <LoadingSkeleton loading={isLoading}>
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard
-            title="Total Checkouts"
-            value="2,874"
-            description={`+12% from previous ${timeRange}`}
-            icon={BookOpen}
-            iconColor="text-blue-700 dark:text-blue-500"
-            iconBgColor="bg-blue-50 dark:bg-blue-900/20"
-            variant="primary"
-            trend="up"
-            trendValue="+12%"
-          />
-
-          <StatCard
-            title="Active Users"
-            value="843"
-            description={`+5% from previous ${timeRange}`}
-            icon={Users}
-            iconColor="text-vg-success-600"
-            iconBgColor="bg-vg-success-50 dark:bg-vg-success-900/20"
-            variant="success"
-            trend="up"
-            trendValue="+5%"
-          />
-
-          <StatCard
-            title="Overdue Items"
-            value="37"
-            description={`-8% from previous ${timeRange}`}
-            icon={TrendingUp}
-            iconColor="text-vg-warning-600"
-            iconBgColor="bg-vg-warning-50 dark:bg-vg-warning-900/20"
-            variant="warning"
-            trend="down"
-            trendValue="-8%"
-          />
-        </div>
-
-        {/* Charts Section */}
-        <Tabs defaultValue="engagement" onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-            <TabsTrigger
-              value="engagement"
-              className="flex items-center gap-2 data-[state=active]:text-white"
-            >
-              <BarChart className="w-4 h-4" />
-              User Engagement
-            </TabsTrigger>
-            <TabsTrigger
-              value="borrowing"
-              className="flex items-center gap-2 data-[state=active]:text-white"
-            >
-              <LineChart className="w-4 h-4" />
-              Borrowing Trends
-            </TabsTrigger>
-            <TabsTrigger
-              value="overdue"
-              className="flex items-center gap-2 data-[state=active]:text-white"
-            >
-              <PieChart className="w-4 h-4" />
-              Return Compliance
-            </TabsTrigger>
+      {isLoading ? (
+        <Skeleton className="h-96 rounded-[22px]" />
+      ) : (
+        <Tabs defaultValue="engagement" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="engagement">User engagement</TabsTrigger>
+            <TabsTrigger value="borrowing">Borrowing trends</TabsTrigger>
+            <TabsTrigger value="overdue">Return compliance</TabsTrigger>
           </TabsList>
 
-          <EnhancedCard variant="elevated">
-            <EnhancedCardContent className="p-6">
-              <TabsContent value="engagement" className="mt-0 space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-bb-accent">
-                    Daily User Activity
-                  </h3>
-                  <EnhancedButton variant="outline" size="sm" icon={<Download className="h-4 w-4" />}>
-                    Export Data
-                  </EnhancedButton>
-                </div>
-                <EngagementBarChart />
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Avg. Daily Visitors</div>
-                    <div className="text-xl font-semibold">244</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Avg. Actions/User</div>
-                    <div className="text-xl font-semibold">1.8</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Busiest Day</div>
-                    <div className="text-xl font-semibold">Wednesday</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Peak Hour</div>
-                    <div className="text-xl font-semibold">2-3 PM</div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="borrowing" className="mt-0">
-                <div className="mb-2 flex justify-between">
-                  <h3 className="text-lg font-medium">Material Borrowing by Type</h3>
-                  <EnhancedButton variant="outline" size="sm">Export Data</EnhancedButton>
-                </div>
-                <BorrowingTrendsChart />
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Physical Books</div>
-                    <div className="text-xl font-semibold">889</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">E-Books</div>
-                    <div className="text-xl font-semibold">658</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Audiobooks</div>
-                    <div className="text-xl font-semibold">301</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Growth</div>
-                    <div className="text-xl font-semibold">+8.4%</div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="overdue" className="mt-0">
-                <div className="mb-2 flex justify-between">
-                  <h3 className="text-lg font-medium">Return Compliance Rate</h3>
-                  <EnhancedButton variant="outline" size="sm">Export Data</EnhancedButton>
-                </div>
-                <OverduePieChart />
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Compliance Rate</div>
-                    <div className="text-xl font-semibold">78%</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Avg. Overdue Days</div>
-                    <div className="text-xl font-semibold">2.3</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Total Fines</div>
-                    <div className="text-xl font-semibold">$349.50</div>
-                  </div>
-                  <div className="bg-muted/40 p-3 rounded-md">
-                    <div className="text-muted-foreground text-sm">Collected</div>
-                    <div className="text-xl font-semibold">$287.25</div>
-                  </div>
-                </div>
-              </TabsContent>
-            </EnhancedCardContent>
-          </EnhancedCard>
+          <TabsContent value="engagement" className="mt-0">
+            <ChartSection
+              title="Daily user activity"
+              tiles={[
+                ["Avg. daily visitors", String(avgVisitors)],
+                ["Avg. actions/user", "1.8"],
+                ["Busiest day", busiest],
+                ["Peak hour", "2-3 PM"],
+              ]}
+            >
+              <ChartContainer config={engagementConfig} className="h-72 w-full">
+                <BarChart data={mockUserEngagement} accessibilityLayer>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} width={36} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar dataKey="actions" fill="var(--color-actions)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="visitors" fill="var(--color-visitors)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            </ChartSection>
+          </TabsContent>
+
+          <TabsContent value="borrowing" className="mt-0">
+            <ChartSection
+              title="Material borrowing by type"
+              tiles={[
+                ["Physical books", String(totals.physical)],
+                ["E-books", String(totals.ebook)],
+                ["Audiobooks", String(totals.audiobook)],
+                ["Growth", "+8.4%"],
+              ]}
+            >
+              <ChartContainer config={borrowingConfig} className="h-72 w-full">
+                <LineChart data={mockBorrowingTrends} accessibilityLayer>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} width={36} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line dataKey="physical" type="monotone" stroke="var(--color-physical)" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line dataKey="ebook" type="monotone" stroke="var(--color-ebook)" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line dataKey="audiobook" type="monotone" stroke="var(--color-audiobook)" strokeWidth={2.5} dot={{ r: 3 }} />
+                </LineChart>
+              </ChartContainer>
+            </ChartSection>
+          </TabsContent>
+
+          <TabsContent value="overdue" className="mt-0">
+            <ChartSection
+              title="Return compliance rate"
+              tiles={[
+                ["Compliance rate", "78%"],
+                ["Avg. overdue days", "2.3"],
+                ["Total fines", "$349.50"],
+                ["Collected", "$287.25"],
+              ]}
+            >
+              <div className="flex flex-col items-center gap-6 md:flex-row md:justify-center">
+                <ChartContainer config={{}} className="h-56 w-56">
+                  <PieChart accessibilityLayer>
+                    <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                    <Pie data={mockOverdueStats} dataKey="value" nameKey="name" innerRadius={55} outerRadius={100} strokeWidth={2}>
+                      {mockOverdueStats.map((_, i) => (
+                        <Cell key={i} fill={overdueColors[i]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+                <ul className="space-y-2">
+                  {mockOverdueStats.map((item, i) => (
+                    <li key={item.name} className="flex items-center gap-2 text-sm">
+                      <span className="h-3.5 w-3.5 rounded-sm" style={{ backgroundColor: overdueColors[i] }} />
+                      {item.name}: <span className="font-semibold tabular-nums">{item.value}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </ChartSection>
+          </TabsContent>
         </Tabs>
-      </LoadingSkeleton>
+      )}
     </div>
   );
 }

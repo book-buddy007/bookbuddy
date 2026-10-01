@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import {
-  EnhancedCard,
-  EnhancedCardContent,
-  EnhancedCardHeader,
-  EnhancedCardTitle,
-  EnhancedCardDescription,
-} from "@/components/ui/enhanced-card";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard } from "@/components/ui/stat-card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { FormField } from "@/components/ui/form-field";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -30,17 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  UserCheck,
-  UserX,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Mail,
-  Calendar,
-  FileText,
-  Loader2,
-} from "@/components/ui/icons";
 import { toast } from "@/hooks/use-toast";
 
 interface JoinRequest {
@@ -218,21 +206,19 @@ export default function AdminJoinRequestsPage() {
     }
   };
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
+        return <StatusBadge status="pending" />;
       case "APPROVED":
-        return <Badge className="bg-green-500">Approved</Badge>;
+        return <StatusBadge status="returned" label="Approved" />;
       case "REJECTED":
-        return <Badge className="bg-red-500">Rejected</Badge>;
+        return <StatusBadge status="overdue" label="Rejected" />;
       default:
-        return <Badge>{status}</Badge>;
+        return <Chip>{status}</Chip>;
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -249,328 +235,227 @@ export default function AdminJoinRequestsPage() {
 
   if (!isAdminOrLibrarian) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <EnhancedCard variant="elevated">
-          <EnhancedCardContent className="flex flex-col items-center justify-center py-12">
-            <XCircle className="h-16 w-16 text-red-500 mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-            <p className="text-muted-foreground mb-6 text-center">
-              This page is only accessible to administrators and librarians.
-            </p>
-            <EnhancedButton onClick={() => router.push("/dashboard/admin")}>
-              Back to Dashboard
-            </EnhancedButton>
-          </EnhancedCardContent>
-        </EnhancedCard>
-      </div>
+      <EmptyState
+        className="mx-auto mt-8 max-w-xl"
+        icon="lock"
+        title="Access denied"
+        description="This page is only accessible to administrators and librarians."
+        action={<Button onClick={() => router.push("/dashboard/admin")}>Back to dashboard</Button>}
+      />
     );
   }
 
+  const requesterSummary = (r: JoinRequest) => (
+    <div className="flex items-center gap-3 rounded-xl bg-bb-surface-2 p-3">
+      <Avatar>
+        <AvatarFallback className="bg-bb-navy text-white">{r.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="truncate font-semibold">{r.user.name}</p>
+        <p className="truncate text-sm text-bb-muted">{r.user.email}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-bb-accent">
-          Join Requests
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Review and manage student access requests to your institution
-        </p>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Admin"
+        title="Join requests"
+        description="Review and manage student access requests to your institution."
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard variant="featured" title="Total requests" value={stats.total} description="All time requests" icon="send" loading={loading} />
+        <StatCard title="Pending" value={stats.pending} description="Awaiting review" icon="calendar" loading={loading} />
+        <StatCard title="Approved" value={stats.approved} description="Accepted requests" icon="check-circle" loading={loading} />
+        <StatCard title="Rejected" value={stats.rejected} description="Declined requests" icon="x-circle" loading={loading} />
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Requests"
-          value={stats.total.toString()}
-          description="All time requests"
-          icon={FileText}
-          iconColor="text-blue-600"
-          iconBgColor="bg-blue-100"
-          variant="default"
-        />
-        <StatCard
-          title="Pending"
-          value={stats.pending.toString()}
-          description="Awaiting review"
-          icon={Clock}
-          iconColor="text-yellow-600"
-          iconBgColor="bg-yellow-100"
-          variant="default"
-        />
-        <StatCard
-          title="Approved"
-          value={stats.approved.toString()}
-          description="Accepted requests"
-          icon={CheckCircle}
-          iconColor="text-green-600"
-          iconBgColor="bg-green-100"
-          variant="default"
-        />
-        <StatCard
-          title="Rejected"
-          value={stats.rejected.toString()}
-          description="Declined requests"
-          icon={XCircle}
-          iconColor="text-red-600"
-          iconBgColor="bg-red-100"
-          variant="default"
-        />
-      </div>
-
-      {/* Filter */}
-      <div className="flex items-center gap-4">
-        <label className="text-sm font-medium">Filter by status:</label>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Requests</h2>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Requests" />
+          <SelectTrigger className="w-[180px]" aria-label="Filter by status">
+            <SelectValue placeholder="All requests" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Requests</SelectItem>
-            <SelectItem value= "PENDING">Pending</SelectItem>
-            <SelectItem value= "APPROVED">Approved</SelectItem>
-            <SelectItem value= "REJECTED">Rejected</SelectItem>
+            <SelectItem value="all">All requests</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="APPROVED">Approved</SelectItem>
+            <SelectItem value="REJECTED">Rejected</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Loading State */}
       {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-vg-primary-600" />
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!loading && filteredRequests.length === 0 && (
-        <EnhancedCard variant="elevated">
-          <EnhancedCardContent className="flex flex-col items-center justify-center py-12">
-            <UserCheck className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No Requests Found</h3>
-            <p className="text-muted-foreground text-center">
-              {statusFilter === "all"
-                ? "No join requests have been submitted yet."
-                : `No ${statusFilter} requests found.`}
-            </p>
-          </EnhancedCardContent>
-        </EnhancedCard>
-      )}
-
-      {/* Requests List */}
-      {!loading && filteredRequests.length > 0 && (
         <div className="space-y-4">
-          {filteredRequests.map((request) => (
-            <EnhancedCard key={request.id} variant="elevated" interactive>
-              <EnhancedCardContent className="p-6">
-                <div className="flex items-start justify-between gap-4">
-                  {/* User Info */}
-                  <div className="flex items-start gap-4 flex-1">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src="" alt={request.user.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-vg-primary-500 to-vg-sanskrit-500 text-white">
-                        {request.user.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-lg">
-                          {request.user.name}
-                        </h3>
-                        {getStatusBadge(request.status)}
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-4 w-4" />
-                          {request.user.email}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDate(request.createdAt)}
-                        </div>
-                      </div>
-
-                      <div className="text-sm">
-                        <span className="font-medium">Requested Role:</span>{" "}
-                        <Badge variant="outline" className="ml-1">
-                          {request.requestedRole}
-                        </Badge>
-                      </div>
-
-                      {request.message && (
-                        <div className="mt-3 p-3 bg-muted rounded-lg">
-                          <p className="text-sm font-medium mb-1">Message:</p>
-                          <p className="text-sm text-muted-foreground">
-                            {request.message}
-                          </p>
-                        </div>
-                      )}
-
-                      {request.proofDocument && (
-                        <div className="flex items-center gap-2 text-sm text-blue-600">
-                          <FileText className="h-4 w-4" />
-                          <a
-                            href={request.proofDocument}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            View Proof Document
-                          </a>
-                        </div>
-                      )}
-
-                      {request.status === "REJECTED" && request.rejectionReason && (
-                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-sm font-medium text-red-900 mb-1">
-                            Rejection Reason:
-                          </p>
-                          <p className="text-sm text-red-700">
-                            {request.rejectionReason}
-                          </p>
-                        </div>
-                      )}
-
-                      {request.reviewedAt && (
-                        <div className="text-xs text-muted-foreground mt-2">
-                          Reviewed on {formatDate(request.reviewedAt)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  {request.status === "PENDING" && (
-                    <div className="flex gap-2">
-                      <EnhancedButton
-                        variant="vg-primary"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setShowApproveDialog(true);
-                        }}
-                      >
-                        <UserCheck className="h-4 w-4 mr-1" />
-                        Approve
-                      </EnhancedButton>
-                      <EnhancedButton
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setShowRejectDialog(true);
-                        }}
-                      >
-                        <UserX className="h-4 w-4 mr-1" />
-                        Reject
-                      </EnhancedButton>
-                    </div>
-                  )}
-                </div>
-              </EnhancedCardContent>
-            </EnhancedCard>
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-36 rounded-[22px]" />
           ))}
         </div>
       )}
 
-      {/* Approve Dialog */}
+      {!loading && filteredRequests.length === 0 && (
+        <EmptyState
+          icon="user-check"
+          title="No requests found"
+          description={
+            statusFilter === "all"
+              ? "No join requests have been submitted yet."
+              : `No ${statusFilter.toLowerCase()} requests found.`
+          }
+        />
+      )}
+
+      {!loading && filteredRequests.length > 0 && (
+        <div className="space-y-4">
+          {filteredRequests.map((request) => (
+            <article key={request.id} className="rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 flex-1 items-start gap-4">
+                  <Avatar className="h-12 w-12 shrink-0">
+                    <AvatarImage src="" alt={request.user.name} />
+                    <AvatarFallback className="bg-bb-navy text-white">
+                      {request.user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold">{request.user.name}</h3>
+                      {getStatusBadge(request.status)}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-bb-muted">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon name="mail" size={16} /> {request.user.email}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon name="calendar" size={16} /> {formatDate(request.createdAt)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-semibold">Requested role</span>
+                      <Chip>{request.requestedRole}</Chip>
+                    </div>
+
+                    {request.message && (
+                      <div className="rounded-xl bg-bb-surface-2 px-4 py-3">
+                        <p className="mb-1 text-xs font-bold uppercase tracking-[0.08em] text-bb-muted">Message</p>
+                        <p className="text-sm">{request.message}</p>
+                      </div>
+                    )}
+
+                    {request.proofDocument && (
+                      <a
+                        href={request.proofDocument}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-bb-accent-ink hover:underline"
+                      >
+                        <Icon name="pdf" size={16} /> View proof document
+                      </a>
+                    )}
+
+                    {request.status === "REJECTED" && request.rejectionReason && (
+                      <div role="alert" className="rounded-xl bg-bb-danger-soft px-4 py-3 text-bb-danger-ink">
+                        <p className="text-sm font-semibold">Rejection reason</p>
+                        <p className="mt-0.5 text-sm">{request.rejectionReason}</p>
+                      </div>
+                    )}
+
+                    {request.reviewedAt && (
+                      <p className="text-xs text-bb-muted">Reviewed on {formatDate(request.reviewedAt)}</p>
+                    )}
+                  </div>
+                </div>
+
+                {request.status === "PENDING" && (
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setShowApproveDialog(true);
+                      }}
+                    >
+                      <Icon name="user-check" size={16} /> Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setShowRejectDialog(true);
+                      }}
+                    >
+                      <Icon name="x-circle" size={16} /> Reject
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {/* Approve dialog */}
       <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Join Request</DialogTitle>
+            <DialogTitle>Approve join request</DialogTitle>
             <DialogDescription>
-              Are you sure you want to approve this request? The user will be
-              granted access to your institution as a{" "}
+              Are you sure you want to approve this request? The user will be granted access to your institution as a{" "}
               <strong>{selectedRequest?.requestedRole}</strong>.
             </DialogDescription>
           </DialogHeader>
-          {selectedRequest && (
-            <div className="py-4">
-              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                <Avatar>
-                  <AvatarFallback className="bg-gradient-to-br from-vg-primary-500 to-vg-sanskrit-500 text-white">
-                    {selectedRequest.user.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{selectedRequest.user.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedRequest.user.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <EnhancedButton
-              variant="outline"
-              onClick={() => setShowApproveDialog(false)}
-              disabled={processing}
-            >
+          {selectedRequest && requesterSummary(selectedRequest)}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowApproveDialog(false)} disabled={processing}>
               Cancel
-            </EnhancedButton>
-            <EnhancedButton
-              variant="vg-primary"
-              onClick={handleApprove}
-              disabled={processing}
-            >
+            </Button>
+            <Button onClick={handleApprove} disabled={processing}>
               {processing ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Approving...
+                  <Icon name="loader" size={16} className="animate-spin" /> Approving…
                 </>
               ) : (
                 <>
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Approve Request
+                  <Icon name="user-check" size={16} /> Approve request
                 </>
               )}
-            </EnhancedButton>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog */}
+      {/* Reject dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Join Request</DialogTitle>
+            <DialogTitle>Reject join request</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting this request. The user will
-              be notified.
+              Please provide a reason for rejecting this request. The user will be notified.
             </DialogDescription>
           </DialogHeader>
           {selectedRequest && (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                <Avatar>
-                  <AvatarFallback className="bg-gradient-to-br from-vg-primary-500 to-vg-sanskrit-500 text-white">
-                    {selectedRequest.user.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{selectedRequest.user.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedRequest.user.email}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Rejection Reason (Optional)
-                </label>
+            <div className="space-y-4">
+              {requesterSummary(selectedRequest)}
+              <FormField label="Rejection reason (optional)" htmlFor="rejection-reason">
                 <Textarea
-                  placeholder="e.g., Insufficient documentation, Does not meet requirements..."
+                  id="rejection-reason"
+                  placeholder="e.g., Insufficient documentation, does not meet requirements"
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={4}
                 />
-              </div>
+              </FormField>
             </div>
           )}
-          <DialogFooter>
-            <EnhancedButton
+          <DialogFooter className="gap-2">
+            <Button
               variant="outline"
               onClick={() => {
                 setShowRejectDialog(false);
@@ -579,28 +464,21 @@ export default function AdminJoinRequestsPage() {
               disabled={processing}
             >
               Cancel
-            </EnhancedButton>
-            <EnhancedButton
-              variant="destructive"
-              onClick={handleReject}
-              disabled={processing}
-            >
+            </Button>
+            <Button variant="destructive" onClick={handleReject} disabled={processing}>
               {processing ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Rejecting...
+                  <Icon name="loader" size={16} className="animate-spin" /> Rejecting…
                 </>
               ) : (
                 <>
-                  <UserX className="h-4 w-4 mr-2" />
-                  Reject Request
+                  <Icon name="x-circle" size={16} /> Reject request
                 </>
               )}
-            </EnhancedButton>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-

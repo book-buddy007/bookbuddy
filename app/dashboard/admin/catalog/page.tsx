@@ -2,15 +2,25 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
 import { StatCard } from "@/components/ui/stat-card";
-import { SectionHeader } from "@/components/admin/shared/SectionHeader";
+import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Button } from "@/components/ui/button";
-import { Check, X, Plus, Edit, Trash2, FolderTree, CheckSquare, BookOpen, TrendingUp } from "@/components/ui/icons";
+import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon, type BBIconName } from "@/components/ui/icon";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
 import { catalogKeys } from "@/lib/query-keys";
 
 // Types
@@ -41,173 +51,105 @@ export interface Subject {
 const ApprovalWorkflow = ({ pendingBooks, onApprove, onReject }: {
   pendingBooks: PendingBook[];
   onApprove: (id: string | number) => void;
-  onReject: (id: string | number) => void;
+  onReject: (book: PendingBook) => void;
 }) => {
   if (pendingBooks.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p>No pending books awaiting approval</p>
-      </div>
+      <EmptyState
+        icon="check-circle"
+        title="Nothing awaiting approval"
+        description="Books submitted for review will show up here."
+      />
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {pendingBooks.map((book) => (
-        <EnhancedCard key={book.id} variant="elevated" className="overflow-hidden border-l-4 border-blue-600 dark:border-blue-500">
-          <EnhancedCardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg text-bb-accent">
-                  {book.title}
-                </h3>
-                <p className="text-muted-foreground">by {book.author}</p>
-                <div className="grid grid-cols-2 gap-x-8 mt-3 text-sm">
-                  <div className="space-y-1">
-                    <p><span className="font-medium text-blue-700 dark:text-blue-500">ISBN:</span> {book.isbn}</p>
-                    <p><span className="font-medium text-blue-700 dark:text-blue-500">Format:</span> {book.format || 'Physical'}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p><span className="font-medium text-teal-600 dark:text-teal-500">Status:</span> {book.status}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 ml-4">
-                <EnhancedButton
-                  variant="outline"
-                  size="sm"
-                  className="text-vg-success-600 hover:text-vg-success-700 hover:bg-vg-success-50 dark:hover:bg-vg-success-900/20"
-                  onClick={() => onApprove(book.id)}
-                  icon={<Check className="h-4 w-4" />}
-                >
-                  Approve
-                </EnhancedButton>
-                <EnhancedButton
-                  variant="outline"
-                  size="sm"
-                  className="text-vg-error-600 hover:text-vg-error-700 hover:bg-vg-error-50 dark:hover:bg-vg-error-900/20"
-                  onClick={() => onReject(book.id)}
-                  icon={<X className="h-4 w-4" />}
-                >
-                  Reject
-                </EnhancedButton>
-              </div>
+        <article
+          key={book.id}
+          className="flex flex-col gap-4 rounded-[18px] bg-bb-surface p-4 shadow-e1 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+        >
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold leading-snug">{book.title}</h3>
+            <p className="text-[13px] text-bb-muted">by {book.author}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <Chip>ISBN {book.isbn}</Chip>
+              <Chip>{book.format || 'Physical'}</Chip>
+              <StatusBadge status="pending" label={book.status === 'DRAFT' ? 'Draft' : book.status} />
             </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button size="sm" onClick={() => onApprove(book.id)}>
+              <Icon name="check" size={16} /> Approve
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => onReject(book)}>
+              <Icon name="close" size={16} /> Reject
+            </Button>
+          </div>
+        </article>
       ))}
     </div>
   );
 };
 
-// Genre Management Components
-const GenreTreeEditor = ({ genres, onAdd, onEdit, onDelete }: {
-  genres: Genre[];
+// Shared list for categories and tags
+const TaxonomyList = ({ title, noun, icon, items, onAdd, onEdit, onDelete }: {
+  title: string;
+  noun: string;
+  icon: BBIconName;
+  items: (Genre | Subject)[];
   onAdd: () => void;
   onEdit: (id: string | number) => void;
   onDelete: (id: string | number) => void;
-}) => {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-bb-accent">
-          Category Hierarchy
-        </h3>
-        <EnhancedButton variant="outline" size="sm" onClick={onAdd} icon={<Plus className="h-4 w-4" />}>
-          Add Category
-        </EnhancedButton>
-      </div>
-
-      {genres.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <FolderTree className="h-16 w-16 mx-auto mb-3 text-vg-primary-300 dark:text-vg-primary-700" />
-          <p className="text-lg mb-3">No categories defined yet</p>
-          <EnhancedButton variant="vg-primary" size="sm" onClick={onAdd} icon={<Plus className="h-4 w-4" />}>
-            Add your first category
-          </EnhancedButton>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {genres.map((genre) => (
-            <div key={genre.id} className="flex items-center justify-between p-2 bg-muted/40 rounded-md">
-              <div>
-                <span className="font-medium">{genre.name}</span>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {genre.count} books
-                </span>
-              </div>
-              <div className="flex space-x-1">
-                <Button variant="ghost" size="icon" onClick={() => onEdit(genre.id)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => onDelete(genre.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+}) => (
+  <div>
+    <div className="mb-4 flex items-center justify-between gap-3">
+      <h3 className="font-display text-lg font-extrabold tracking-[-0.02em]">{title}</h3>
+      <Button variant="outline" size="sm" onClick={onAdd}>
+        <Icon name="plus" size={16} /> Add {noun}
+      </Button>
     </div>
-  );
-};
 
-// Subject Management Components
-const SubjectTaxonomyManager = ({ subjects, onAdd, onEdit, onDelete }: {
-  subjects: Subject[];
-  onAdd: () => void;
-  onEdit: (id: string | number) => void;
-  onDelete: (id: string | number) => void;
-}) => {
-  return (
-    <div>
-      <div className="flex justify-between mb-4">
-        <h3 className="text-lg font-medium">Tag Taxonomy</h3>
-        <Button variant="outline" size="sm" onClick={onAdd}>
-          <Plus className="h-4 w-4 mr-1" /> Add Tag
-        </Button>
-      </div>
-      
-      {subjects.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <CheckSquare className="h-12 w-12 mx-auto mb-2 text-muted-foreground/60" />
-          <p>No tags defined yet</p>
-          <Button variant="outline" size="sm" className="mt-2" onClick={onAdd}>
-            <Plus className="h-4 w-4 mr-1" /> Add your first tag
+    {items.length === 0 ? (
+      <EmptyState
+        icon={icon}
+        title={`No ${noun}s defined yet`}
+        action={
+          <Button size="sm" onClick={onAdd}>
+            <Icon name="plus" size={16} /> Add your first {noun}
           </Button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {subjects.map((subject) => (
-            <div key={subject.id} className="flex items-center justify-between p-2 bg-muted/40 rounded-md">
-              <div>
-                <span className="font-medium">{subject.name}</span>
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {subject.count} books
-                </span>
-              </div>
-              <div className="flex space-x-1">
-                <Button variant="ghost" size="icon" onClick={() => onEdit(subject.id)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => onDelete(subject.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+        }
+      />
+    ) : (
+      <ul className="divide-y divide-bb-border overflow-hidden rounded-[18px] bg-bb-surface shadow-e1">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <span className="font-semibold">{item.name}</span>
+              <span className="ml-2 text-xs text-bb-muted">{item.count} books</span>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+            <div className="flex shrink-0 gap-1">
+              <Button variant="ghost" size="icon-sm" onClick={() => onEdit(item.id)} aria-label={`Edit ${item.name}`}>
+                <Icon name="edit" size={16} />
+              </Button>
+              <Button variant="ghost" size="icon-sm" onClick={() => onDelete(item.id)} aria-label={`Delete ${item.name}`}>
+                <Icon name="trash" size={16} />
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+);
 
 export default function AdminCatalogPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("approvals");
+  const [bookToReject, setBookToReject] = useState<PendingBook | null>(null);
 
-  // Fetch pending approvals (books mapping to 'DRAFT' status as mock)
+  // Fetch pending approvals (books in 'DRAFT' status)
   const { data: pendingBooks = [], isLoading: loadingBooks } = useQuery({
     queryKey: catalogKeys.bookList({ status: 'DRAFT' }),
     queryFn: async () => {
@@ -297,95 +239,89 @@ export default function AdminCatalogPage() {
   const handleDeleteGenre = () => toast({ title: "Feature Coming Soon", description: "Taxonomy delete in next version." });
 
   return (
-    <div className="p-6 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-          <BookOpen className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-          Library Management
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Manage book approvals, categories, and tags
-        </p>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Admin"
+        title="Library oversight"
+        description="Manage book approvals, categories, and tags."
+      />
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatCard
+          variant="featured"
+          title="Pending approvals"
+          value={pendingBooks.length}
+          description="Books awaiting review"
+          icon="check-circle"
+          loading={isLoading}
+        />
+        <StatCard title="Total categories" value={categories.length} description="Active categorizations" icon="layers" loading={isLoading} />
+        <StatCard title="Total tags" value={tags.length} description="Defined tags" icon="tag" loading={isLoading} />
       </div>
 
-      <LoadingSkeleton loading={isLoading}>
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard
-            title="Pending Approvals"
-            value={pendingBooks.length.toString()}
-            description="Books awaiting review"
-            icon={CheckSquare}
-            iconColor="text-vg-warning-600"
-            iconBgColor="bg-vg-warning-50 dark:bg-vg-warning-900/20"
-            variant="warning"
+      <Tabs defaultValue="approvals" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="approvals">Pending approvals</TabsTrigger>
+          <TabsTrigger value="genres">Categories</TabsTrigger>
+          <TabsTrigger value="subjects">Tags</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="approvals" className="mt-0">
+          <ApprovalWorkflow
+            pendingBooks={pendingBooks}
+            onApprove={(id) => approveMutation.mutate(id)}
+            onReject={setBookToReject}
           />
-          <StatCard
-            title="Total Categories"
-            value={categories.length.toString()}
-            description="Active categorizations"
-            icon={FolderTree}
-            iconColor="text-blue-700 dark:text-blue-500"
-            iconBgColor="bg-blue-50 dark:bg-blue-900/20"
-            variant="primary"
+        </TabsContent>
+
+        <TabsContent value="genres" className="mt-0">
+          <TaxonomyList
+            title="Category hierarchy"
+            noun="category"
+            icon="layers"
+            items={categories}
+            onAdd={handleAddGenre}
+            onEdit={handleEditGenre}
+            onDelete={handleDeleteGenre}
           />
-          <StatCard
-            title="Total Tags"
-            value={tags.length.toString()}
-            description="Defined tags"
-            icon={CheckSquare}
-            iconColor="text-teal-600 dark:text-teal-500"
-            iconBgColor="bg-teal-50 dark:bg-teal-900/20"
-            variant="cultural"
+        </TabsContent>
+
+        <TabsContent value="subjects" className="mt-0">
+          <TaxonomyList
+            title="Tag taxonomy"
+            noun="tag"
+            icon="tag"
+            items={tags}
+            onAdd={handleAddGenre}
+            onEdit={handleEditGenre}
+            onDelete={handleDeleteGenre}
           />
-        </div>
+        </TabsContent>
+      </Tabs>
 
-        {/* Tabs Section */}
-        <Tabs defaultValue="approvals" onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-            <TabsTrigger value="approvals" className="data-[state=active]:text-white">
-              Pending Approvals
-            </TabsTrigger>
-            <TabsTrigger value="genres" className="data-[state=active]:text-white">
-              Categories
-            </TabsTrigger>
-            <TabsTrigger value="subjects" className="data-[state=active]:text-white">
-              Tags
-            </TabsTrigger>
-          </TabsList>
-
-          <EnhancedCard variant="elevated">
-            <EnhancedCardContent className="p-6">
-              <TabsContent value="approvals" className="mt-0">
-                <ApprovalWorkflow
-                  pendingBooks={pendingBooks}
-                  onApprove={(id) => approveMutation.mutate(id)}
-                  onReject={(id) => rejectMutation.mutate(id)}
-                />
-              </TabsContent>
-
-              <TabsContent value="genres" className="mt-0">
-                <GenreTreeEditor
-                  genres={categories}
-                  onAdd={handleAddGenre}
-                  onEdit={handleEditGenre}
-                  onDelete={handleDeleteGenre}
-                />
-              </TabsContent>
-
-              <TabsContent value="subjects" className="mt-0">
-                <SubjectTaxonomyManager
-                  subjects={tags}
-                  onAdd={handleAddGenre}
-                  onEdit={handleEditGenre}
-                  onDelete={handleDeleteGenre}
-                />
-              </TabsContent>
-            </EnhancedCardContent>
-          </EnhancedCard>
-        </Tabs>
-      </LoadingSkeleton>
+      <AlertDialog open={!!bookToReject} onOpenChange={(open) => !open && setBookToReject(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject this book?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="font-semibold text-bb-text">{bookToReject?.title}</span> will be removed from the review queue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-bb-danger text-white hover:brightness-95"
+              onClick={() => {
+                if (bookToReject) rejectMutation.mutate(bookToReject.id);
+                setBookToReject(null);
+              }}
+            >
+              Reject book
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
