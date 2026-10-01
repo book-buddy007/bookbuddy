@@ -86,3 +86,45 @@ Many pages have no backend yet. Rather than fake it:
 6. Mobile app tokens/icons (`mobile/` still imports `shared/design/tokens.ts`); remove unused deps (lucide-react, fontsource Indic fonts) when safe.
 7. ESLint, unit tests, Lighthouse; dark mode and 1280/834/390 checks on every route once a login exists.
 8. Consider building real backends for the sample-data pages (admin users/analytics/reports/overdue, librarian circulation/inventory/analytics, teacher assignments/resources, student borrow requests), then drop the Sample data chips.
+
+
+---
+
+# Session 3 addendum: public, auth and catalogue pages
+
+Handoff items 1 and 2 from session 2 are done. Same rules as before (local commits only, no Claude attribution, verify with filtered `npx tsc --noEmit` + `next build`). `next build` exited 0 after this session (96 pages). Remaining tsc errors are all outside the redesigned pages: `components/reader/PdfShell.tsx`, `components/reader/pdf/AnnotationCanvas.tsx`, `lib/auth.ts`, `scripts/setup-r2-cors.ts`, and the `.next/types` PageProps one for the catalog builder.
+
+## Commits (in order)
+| Commit | What |
+|--------|------|
+| 0e84ba9 | `animate-vg-*` classes replaced with tailwindcss-animate (`animate-in fade-in-0 …`); `vg-*` keyframes removed from tailwind config; `StatPill` deleted (InstitutionDetailSheet now uses StatCard) |
+| d1fa2c9 | Auth: new `components/auth/auth-card.tsx` (AuthCard, AuthCardSkeleton, AuthDivider, PasswordInput, AuthButton, GoogleMark). login, register, forgot/reset password, verify-email, logout, delete-account rebuilt. `Alert` gained `success`/`warning`/`info` variants (destructive is now the soft danger tint, app-wide). `/delete-account` added to middleware public routes |
+| b7d6907 | Legal shell (`components/legal/legal-page.tsx`): slim header with policy switcher, navy footer, `DraftNotice`, token `Fill` |
+| 82f0976 | **Token fix:** `bb` colours defined as bare `var(--x)` emitted NO CSS for opacity modifiers (`bg-bb-surface/80`, `ring-bb-accent/30`, `border-bb-accent/40` … ~50 uses, incl. focus rings). They now go through `a()` in `tailwind.config.ts` → `color-mix(in srgb, var(--x) calc(<alpha-value> * 100%), transparent)`. Compare-plans page rebuilt |
+| ae7cfe3 | Onboarding in the auth frame (`AuthBackdrop` gained `wide` + `actions`), 2-step stepper |
+| 1b9d232 | Catalog detail `app/catalog/[id]` rebuilt; nullable-`book` tsc errors gone |
+| f92a68b | Institutions browse + join-request rebuilt |
+| 35926b9 | Catalog list rebuilt; shared filter definitions in `lib/catalog-filters.ts`; `FilterBottomSheet` now sits on `Modal` |
+
+## Bugs found and fixed on the way
+- Onboarding institution search read `data.data` but `/api/institutions/browse` returns a plain array, so search never showed a result.
+- `/delete-account` (the Play Store deletion URL) redirected signed-out users to login, and its form called a backend route that doesn't exist (`/auth/request-account-deletion`) then showed "confirmation link sent" anyway. Now public, and on failure it says so and offers a prefilled email to support@bookbuddyvpd.com. **A real deletion-request endpoint still needs building.**
+- Join request "supporting document" never uploaded; it sent `placeholder-url/<file>` as the proof URL. Now shown as "Not available yet" and nothing fake is sent.
+- Institutions browse: cards linked to `/institutions/:id` (no such route); type labels/icons used lowercase keys against uppercase enum values.
+- Catalog detail: `router.push` during render on 401; a book with no free copies said "Requires X tier"; a book with no formats showed a fake "PDF" badge.
+- Catalog list: Featured/New/Trending/Resources tabs and the whole advanced-search panel (title, author, ISBN, publisher, year, pages) did nothing; "Rating" sort sorted by createdAt; multi-select formats sent only the first; "Physical" format isn't a real format. Filters are now only what `GET /books` honours (search, one category, one format, sort by title/author/createdAt/publishYear). The infinite-scroll observer fired on mount and skipped to page 2 before page 1 loaded.
+- My own slip, fixed: an interim codemod wrote `text-danger-ink` (not a class); correct name is `text-bb-danger-ink`.
+
+## Verified in the browser (no login needed)
+login (incl. validation errors, dark mode, 375px), register, reset-password (missing token), verify-email (no token), delete-account, privacy, compare plans, catalog list (error state; API is 401 without a session). Onboarding, catalog detail, institutions and the populated catalog grid need a session and are tsc/build-verified only.
+
+## Dev server note
+A preview config `bookbuddy-web` (port 3010, frontend only) is in `H:\.claude\launch.json`. If the Tailwind config is edited in two quick steps while it runs, webpack can cache a failed `globals.css` compile ("a is not defined"); restart the dev server.
+
+## Still to do
+1. Reader gaps (contents rail, `ReaderBottomBar`, `?page=`, PDF themes) and the player's swipe-down mini player.
+2. `app/catalog/AudioPlayerDashboard.tsx` and `app/reader/ReaderLanding.tsx` (the ?format=AUDIOBOOK and reader landing demos) still use hex colours and the old look; `app/settings/page.tsx` only had its animation class swapped.
+3. Super-admin codemod-only pieces (wizard, dialogs, builder, homepage field editors) if a real rebuild is wanted.
+4. Backend: a public account-deletion request endpoint; proof-document upload for join requests; real backends for the sample-data pages.
+5. Privacy policy says accounts can be deleted "from your profile"; there is no in-app delete UI (only `DELETE /user/account` in the backend). Either build the UI or fix the wording before publishing.
+6. Mobile app tokens, ESLint, tests, Lighthouse; dark mode and 1280/834/390 checks behind login.
