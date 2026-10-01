@@ -1,0 +1,25 @@
+# Use slim (Debian/glibc) — NOT alpine. bcrypt and Prisma require glibc.
+FROM node:20-slim
+
+# Prisma on Debian needs openssl
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files first for layer caching
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install all deps (including devDependencies for hot reload)
+RUN npm install --legacy-peer-deps
+
+# Generate Prisma Linux client (overrides any Windows-compiled client)
+RUN npx prisma generate
+
+# Source is bind-mounted at runtime — don't COPY src here
+EXPOSE 3333
+
+# Use "dev" script (not "start:dev") — start:dev uses dotenv-cli which
+# overrides Docker's environment variables with .env file values.
+# The "dev" script lets Docker's DATABASE_URL/REDIS_URL take effect.
+CMD ["npx", "cross-env", "NODE_ENV=development", "nest", "start", "--watch", "--legacy-watch"]

@@ -1,0 +1,184 @@
+/* ============================================================
+   UX foundation — the cross-cutting rules from the Reader &
+   Player UX audit (findings 3, 6, 7, 16, 17).
+
+   Imported LAST in app/globals.css so it wins against the four
+   older design systems without needing !important on every rule.
+
+   Three jobs:
+     1. Touch targets grow on touch, they do not shrink (fix 3).
+     2. Every hover affordance has a :focus-visible twin (fix 17).
+     3. Student content colours are not brand chrome colours (fix 7).
+   Motion policy lives at the bottom (fixes 4, 6).
+   ============================================================ */
+
+:root {
+  /* ---- 1. Touch target scale (fix 3) -------------------------------
+     The old rule shrank .toolbarBtn from 44px to 40px under 767px —
+     exactly backwards. These two tokens invert it: the *icon* stays
+     small, the *hit area* grows. Components read --hit-min rather
+     than hardcoding px so the coarse-pointer override below is the
+     single place the size changes. */
+  --hit-min: 40px;        /* mouse: 40px is comfortable          */
+  --hit-min-primary: 44px;/* mouse: primary/destructive actions  */
+
+  /* ---- 2. Highlight palette (fix 7) --------------------------------
+     Student highlights must never be the same gold as active toolbar
+     state, progress fill and dark-mode accents — otherwise content
+     and chrome are indistinguishable. Saffron/gold is reserved for
+     chrome; these five are content-only and appear nowhere else.
+     Fixed opacity, so a second highlight over the first does not
+     compound into an unreadable slab. */
+  --hl-butter: #FFE9A8;
+  --hl-mint:   #C7EFD8;
+  --hl-sky:    #C9E4FB;
+  --hl-rose:   #FBD0DA;
+  --hl-lilac:  #E0D4F7;
+
+  /* Ink to draw over each highlight — all five clear 7:1 on their
+     own background, so highlighted text stays as readable as
+     unhighlighted text rather than merely legible. */
+  --hl-ink: #1F2933;
+
+  /* ---- 3. Secondary text floor (fix 7, second half) ---------------
+     .floatingStatLabel was 10px uppercase at 0.7 opacity. Nothing in
+     the reader may go below this, and nothing dims text with opacity
+     — if it needs to recede it gets a lighter colour token, which
+     keeps its contrast ratio knowable. */
+  --text-secondary-min: 0.75rem; /* 12px */
+}
+
+.dark {
+  /* Dark-mode highlights: same five hues, dropped to a luminance that
+     sits on night-ink without glowing, with light ink over them. */
+  --hl-butter: #6B5A1F;
+  --hl-mint:   #24543C;
+  --hl-sky:    #1F4666;
+  --hl-rose:   #6B2A3C;
+  --hl-lilac:  #45336B;
+  --hl-ink: #FFF8F0;
+}
+
+/* ============================================================
+   1. Touch targets — grow where fingers replace a mouse (fix 3)
+   ============================================================ */
+
+/* `pointer: coarse` is the honest test — it asks about the input
+   device, not the viewport. A 1024px tablet gets big targets; a
+   narrow desktop window does not, because a mouse does not need
+   them. Width media queries got this wrong in both directions. */
+@media (pointer: coarse) {
+  :root {
+    --hit-min: 44px;
+    --hit-min-primary: 48px;
+  }
+
+  /* Any control that opted in by class. The visual box is untouched;
+     only the tappable area grows, via min-* rather than fixed size,
+     so labelled buttons still size to their text. */
+  .hit-target,
+  button.hit-target,
+  a.hit-target {
+    min-width: var(--hit-min);
+    min-height: var(--hit-min);
+  }
+
+  .hit-target-primary {
+    min-width: var(--hit-min-primary);
+    min-height: var(--hit-min-primary);
+  }
+}
+
+/* ============================================================
+   2. Focus-visible parity (fix 17)
+   ============================================================ */
+
+/* Hover carried meaning across the reader, TOC, search results and
+   player — lift, glow, translateX, title tooltips — and a phone or a
+   keyboard saw none of it. Every interactive element now has a
+   focus ring by default; components may restyle it, but they cannot
+   silently have none. */
+:where(a, button, [role='button'], [role='tab'], [role='option'],
+       [role='menuitem'], input, select, textarea, summary,
+       [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 2px solid var(--accent-strong, #B45309);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+.dark :where(a, button, [role='button'], [role='tab'], [role='option'],
+             [role='menuitem'], input, select, textarea, summary,
+             [tabindex]:not([tabindex='-1'])):focus-visible {
+  /* --accent-strong is tuned for white backgrounds; on night-ink it
+     disappears into the surface. */
+  outline-color: var(--accent-primary-dark, #FF8A5B);
+}
+
+/* A press state, so touch gets the feedback hover was giving the
+   mouse. Touch devices never fire :hover, and a control that does
+   nothing visible when tapped reads as broken. */
+@media (pointer: coarse) {
+  :where(button, [role='button'], a.hit-target):active {
+    transform: scale(0.97);
+    transition: transform 80ms ease-out;
+  }
+}
+
+/* ============================================================
+   3. Motion policy (fixes 4 and 6)
+   ============================================================ */
+
+/* The audit asked for a global reduced-motion block. One already
+   existed in styles/landing-animations.css and it does work — an
+   `!important` on `*` beats CSS-module rules regardless of import
+   order. What it could not do is help the overwhelming majority of
+   students who have never set the OS flag, which is why the
+   decorative infinite loops were deleted at their source (reader
+   brass halo + mandala breath, player ambient blobs + cover pulse)
+   rather than merely guarded here.
+
+   This block is the backstop for whatever is left, and it is
+   deliberately stricter than the old one: it also stops smooth
+   scrolling and pins looping animations to their final frame
+   instead of replaying them once. */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ambient decoration is a landing-page device. Inside a study
+   session it competes with the words being read, so anything
+   marked as ambient is static by construction — this class is the
+   contract, not a suggestion. */
+.ambient-static,
+.ambient-static::before,
+.ambient-static::after {
+  animation: none !important;
+}
+
+/* ============================================================
+   4. Safe area (fix 2)
+   ============================================================ */
+
+/* Nothing in the reader or player used env(safe-area-inset-*), so
+   every fixed bottom element sat under the iOS home indicator.
+   These are the two shapes that need it. */
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.safe-bottom-flush {
+  padding-bottom: env(safe-area-inset-bottom);
+}

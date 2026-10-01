@@ -1,0 +1,797 @@
+/* ============================================================
+   READER INDIC DESIGN SYSTEM
+   Warm Indic-inspired styles for the ebook reader
+   ============================================================ */
+
+/* ----- Reader Header ----- */
+.readerHeader {
+    background: linear-gradient(180deg, #FFFCF7 0%, #FFF8F0 60%, #FFF3E6 100%);
+    border-bottom: 2px solid rgba(255, 153, 51, 0.18);
+    box-shadow: 0 4px 24px rgba(255, 153, 51, 0.06);
+}
+
+.dark .readerHeader,
+.readerHeaderDark {
+    background: linear-gradient(180deg, #0A0F1E 0%, #0B1233 60%, #0D1B6E 100%);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ----- Header Toolbar Button ----- */
+/* Audit fix 3: this was a fixed 44px that a `max-width: 767px` block
+   then shrank to 40px — the target got smaller on the one surface
+   where a finger replaces a mouse. Both sizes now come from
+   --hit-min (styles/ux-foundation.css), which is 40px for a pointer
+   and 44px for touch. The icon inside is unchanged; only the box
+   around it moves. */
+.toolbarBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--hit-min, 40px);
+    height: var(--hit-min, 40px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 153, 51, 0.25);
+    background: rgba(255, 248, 240, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #5A4E3C;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.toolbarBtn:hover {
+    background: rgba(255, 153, 51, 0.12);
+    border-color: rgba(255, 153, 51, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(255, 153, 51, 0.15);
+}
+
+.toolbarBtn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.toolbarBtnActive {
+    background: linear-gradient(135deg, rgba(255, 153, 51, 0.18) 0%, rgba(255, 107, 53, 0.12) 100%);
+    border-color: #FF9933;
+    color: #D97706;
+    box-shadow: 0 0 20px rgba(255, 153, 51, 0.15);
+}
+
+/* Dark variant */
+.toolbarBtnDark {
+    background: rgba(255, 248, 240, 0.06);
+    border-color: rgba(255, 215, 0, 0.2);
+    color: #FFF8F0;
+}
+
+.toolbarBtnDark:hover {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.1);
+}
+
+.toolbarBtnDarkActive {
+    background: linear-gradient(135deg, rgba(255, 153, 51, 0.25) 0%, rgba(255, 107, 53, 0.15) 100%);
+    border-color: #FF9933;
+    color: #FFD700;
+    box-shadow: 0 0 20px rgba(255, 153, 51, 0.2);
+}
+
+/* ----- Progress Bar ----- */
+.progressBar {
+    height: 3px;
+    width: 100%;
+    background: rgba(255, 153, 51, 0.1);
+}
+
+.progressBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, #FF9933, #FFD700, #FF6B35);
+    box-shadow: 0 0 12px rgba(255, 153, 51, 0.4);
+    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 0 2px 2px 0;
+}
+
+/* ----- TOC Sidebar ----- */
+.tocSidebar {
+    background: linear-gradient(180deg, #FFFCF7 0%, #FFF8F0 40%, #FFF3E6 100%);
+    border-right: 2px solid rgba(255, 153, 51, 0.18);
+    box-shadow: 4px 0 24px rgba(255, 153, 51, 0.06);
+}
+
+.tocSidebarDark {
+    background: linear-gradient(180deg, #0A0F1E 0%, #0B1233 40%, #0D1B6E 100%);
+    border-right: 1px solid rgba(255, 215, 0, 0.12);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+.tocItem {
+    padding: 0.625rem 0.75rem;
+    border-radius: 10px;
+    border-left: 3px solid transparent;
+    color: #5A4E3C;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.tocItem:hover {
+    background: rgba(255, 153, 51, 0.08);
+    border-left-color: rgba(255, 153, 51, 0.4);
+    color: #B45309;
+    box-shadow: 0 1px 8px rgba(255, 153, 51, 0.08);
+    transform: translateX(2px);
+}
+
+.tocItemActive {
+    background: linear-gradient(90deg, rgba(255, 153, 51, 0.14) 0%, rgba(255, 107, 53, 0.08) 100%);
+    border-left-color: #FF9933;
+    color: #92400E;
+    box-shadow: 0 2px 12px rgba(255, 153, 51, 0.1);
+    font-weight: 600;
+}
+
+.tocItemDark {
+    color: rgba(255, 248, 240, 0.65);
+}
+
+.tocItemDark:hover {
+    background: rgba(255, 153, 51, 0.1);
+    color: #FFD700;
+}
+
+.tocItemDarkActive {
+    background: linear-gradient(90deg, rgba(255, 153, 51, 0.2) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border-left-color: #FF9933;
+    color: #FFD700;
+}
+
+/* ----- Settings Sidebar ----- */
+.settingsSidebar {
+    background: linear-gradient(180deg, #FFFCF7 0%, #FFF8F0 40%, #FFF3E6 100%);
+    border-left: 2px solid rgba(255, 153, 51, 0.18);
+    box-shadow: -4px 0 24px rgba(255, 153, 51, 0.06);
+}
+
+.settingsSidebarDark {
+    background: linear-gradient(180deg, #0A0F1E 0%, #0B1233 40%, #0D1B6E 100%);
+    border-left: 1px solid rgba(255, 215, 0, 0.12);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+.settingsLabel {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #92400E;
+    letter-spacing: 0.02em;
+}
+
+.settingsLabelDark {
+    color: #FFD700;
+}
+
+/* ----- Search Overlay ----- */
+.searchCard {
+    background: rgba(255, 248, 240, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 20px;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.12),
+        0 0 60px rgba(255, 153, 51, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.searchCardDark {
+    background: rgba(10, 15, 30, 0.95);
+    border-color: rgba(255, 215, 0, 0.15);
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(255, 153, 51, 0.05),
+        inset 0 1px 0 rgba(255, 215, 0, 0.05);
+}
+
+.searchInput {
+    background: rgba(255, 153, 51, 0.06);
+    border: 1.5px solid rgba(255, 153, 51, 0.2);
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    color: #1A1A2E;
+    font-size: 0.9375rem;
+    transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: #FF9933;
+    box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.15);
+    background: rgba(255, 153, 51, 0.04);
+}
+
+.searchInputDark {
+    background: rgba(255, 248, 240, 0.05);
+    border-color: rgba(255, 215, 0, 0.2);
+    color: #FFF8F0;
+}
+
+.searchInputDark:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.searchResult {
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 153, 51, 0.12);
+    background: rgba(255, 248, 240, 0.5);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.searchResult:hover {
+    background: rgba(255, 153, 51, 0.08);
+    border-color: rgba(255, 153, 51, 0.3);
+    transform: translateX(2px);
+}
+
+.searchResultActive {
+    background: linear-gradient(135deg, rgba(255, 153, 51, 0.15) 0%, rgba(255, 107, 53, 0.1) 100%);
+    border-color: #FF9933;
+    box-shadow: 0 2px 12px rgba(255, 153, 51, 0.12);
+}
+
+.searchResultDark {
+    background: rgba(255, 248, 240, 0.04);
+    border-color: rgba(255, 215, 0, 0.1);
+}
+
+.searchResultDark:hover {
+    background: rgba(255, 215, 0, 0.06);
+    border-color: rgba(255, 215, 0, 0.25);
+}
+
+.searchResultDarkActive {
+    background: linear-gradient(135deg, rgba(255, 153, 51, 0.2) 0%, rgba(255, 107, 53, 0.12) 100%);
+    border-color: #FFD700;
+}
+
+/* ----- Reading Container Parchment ----- */
+.parchmentPage {
+    background: linear-gradient(145deg, #FFFAF0 0%, #FFF8F0 50%, #FFFDE7 100%);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px;
+    box-shadow:
+        0 8px 40px rgba(217, 119, 6, 0.06),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 0 60px rgba(255, 255, 255, 0.4);
+    position: relative;
+}
+
+/* Subtle mandala watermark on reading page */
+.parchmentPage::after {
+    content: '';
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    width: 120px;
+    height: 120px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23FF9933' stroke-width='0.5' opacity='0.15'/%3E%3Ccircle cx='100' cy='100' r='70' fill='none' stroke='%23FF9933' stroke-width='0.5' opacity='0.1'/%3E%3Ccircle cx='100' cy='100' r='50' fill='none' stroke='%23FF9933' stroke-width='0.5' opacity='0.08'/%3E%3Cpath d='M100 20 Q120 50 100 80 Q80 50 100 20' fill='%23FF9933' opacity='0.04'/%3E%3Cpath d='M100 120 Q120 150 100 180 Q80 150 100 120' fill='%23FF9933' opacity='0.04'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.nightInkPage {
+    background: #0A0F1E;
+    border: 1px solid rgba(255, 215, 0, 0.08);
+    border-radius: 16px;
+    box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 215, 0, 0.03);
+}
+
+/* ----- Footer ----- */
+.readerFooter {
+    background: linear-gradient(180deg, #FFF3E6 0%, #FFF8F0 60%, #FFFCF7 100%);
+    border-top: 2px solid rgba(255, 153, 51, 0.18);
+    box-shadow: 0 -4px 24px rgba(255, 153, 51, 0.06);
+}
+
+.readerFooterDark {
+    background: linear-gradient(180deg, #0D1B6E 0%, #0B1233 60%, #0A0F1E 100%);
+    border-top: 1px solid rgba(255, 215, 0, 0.12);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ----- Loading Spinner ----- */
+.mandalaSpinner {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 153, 51, 0.15);
+    border-top-color: #FF9933;
+    border-right-color: #FFD700;
+    animation: mandalaSpinAnim 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes mandalaSpinAnim {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ----- Mobile Responsive ----- */
+@media (max-width: 767px) {
+
+    .readerHeader,
+    .readerHeaderDark {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .tocSidebar,
+    .tocSidebarDark {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        z-index: 50;
+        border-right: none;
+        border-radius: 0;
+    }
+
+    .settingsSidebar,
+    .settingsSidebarDark {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        max-height: 70vh;
+        border-radius: 20px 20px 0 0;
+        border-left: none;
+        border-top: 2px solid rgba(255, 153, 51, 0.18);
+        z-index: 50;
+        overflow-y: auto;
+    }
+}
+
+/* ----- Indic Tabs ----- */
+.indicTabList {
+    background: rgba(255, 153, 51, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.indicTab {
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #92400E;
+    transition: all 0.25s ease;
+}
+
+.indicTabActive {
+    background: linear-gradient(135deg, #FF9933 0%, #FFB347 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 153, 51, 0.3);
+}
+
+.indicTabDark {
+    color: rgba(255, 248, 240, 0.6);
+}
+
+.indicTabDarkActive {
+    background: linear-gradient(135deg, #FF9933 0%, #FFB347 100%);
+    color: white;
+}
+
+/* ----- Indic Select / Dropdown ----- */
+.indicSelect {
+    background: rgba(255, 153, 51, 0.06);
+    border: 1.5px solid rgba(255, 153, 51, 0.2);
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    color: #5A4E3C;
+    transition: all 0.25s ease;
+}
+
+.indicSelect:focus {
+    outline: none;
+    border-color: #FF9933;
+    box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.12);
+}
+
+.indicSelectDark {
+    background: rgba(255, 248, 240, 0.05);
+    border-color: rgba(255, 215, 0, 0.15);
+    color: #FFF8F0;
+}
+
+/* ----- Range Slider Indic ----- */
+.indicRange {
+    accent-color: #FF9933;
+}
+
+/* ----- Sync Status Badge ----- */
+.syncBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(255, 153, 51, 0.08);
+    border: 1px solid rgba(255, 153, 51, 0.2);
+    color: #B45309;
+}
+
+.syncBadgeDark {
+    background: rgba(255, 215, 0, 0.08);
+    border-color: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+}
+
+.syncDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22C55E;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+/* ----- Reading Stats ----- */
+.statText {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #B45309;
+}
+
+.statTextDark {
+    color: #FFD700;
+}
+
+.statTextMuted {
+    color: #92400E;
+    font-weight: 400;
+}
+
+.statTextMutedDark {
+    color: rgba(255, 248, 240, 0.5);
+}
+
+/* ============================================================
+   ADVANCED ENHANCEMENTS
+   ============================================================ */
+
+/* ----- 1. Floating Reading Stats Panel ----- */
+.floatingStats {
+    position: fixed;
+    bottom: 5.5rem;
+    left: 1.5rem;
+    z-index: 45;
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+    background: rgba(255, 248, 240, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    box-shadow:
+        0 12px 40px rgba(217, 119, 6, 0.1),
+        0 0 60px rgba(255, 153, 51, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.floatingStats:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 20px 60px rgba(217, 119, 6, 0.15),
+        0 0 80px rgba(255, 153, 51, 0.06);
+}
+
+.floatingStatsDark {
+    background: rgba(10, 15, 30, 0.85);
+    border-color: rgba(255, 215, 0, 0.15);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.3),
+        0 0 60px rgba(255, 153, 51, 0.03),
+        inset 0 1px 0 rgba(255, 215, 0, 0.05);
+}
+
+.floatingStatItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 3rem;
+}
+
+.floatingStatValue {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #B45309;
+    line-height: 1;
+}
+
+.floatingStatValueDark {
+    color: #FFD700;
+}
+
+.floatingStatLabel {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #92400E;
+    opacity: 0.7;
+}
+
+.floatingStatLabelDark {
+    color: rgba(255, 248, 240, 0.4);
+}
+
+.floatingStatDivider {
+    width: 1px;
+    height: 2rem;
+    background: linear-gradient(180deg, transparent, rgba(255, 153, 51, 0.3), transparent);
+}
+
+.floatingStatDividerDark {
+    background: linear-gradient(180deg, transparent, rgba(255, 215, 0, 0.15), transparent);
+}
+
+/* ----- 2. Brass Icon Halo -----
+   Audit fix 6: this used to spin forever (brassShimmerSpin 4s linear
+   infinite) on every toolbar icon, behind the words being read. The
+   halo still marks the active tool — that is its job — but it is now
+   a still gradient. A ring does not need to rotate to mean "active". */
+.brassHalo {
+    position: relative;
+}
+
+.brassHalo::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: conic-gradient(from 210deg, #FFD700 0%, #FFF8DC 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+    opacity: 0;
+    z-index: -1;
+    filter: blur(2px);
+    transition: opacity 0.4s ease;
+}
+
+.brassHaloActive::before {
+    opacity: 0.7;
+}
+
+/* ----- 3. Quick Action Radial Menu (FAB) ----- */
+.fabContainer {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 48;
+}
+
+.fabButton {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #FF9933 0%, #FFB347 50%, #FFD700 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow:
+        0 8px 30px rgba(255, 153, 51, 0.3),
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    z-index: 2;
+}
+
+.fabButton:hover {
+    transform: scale(1.08);
+    box-shadow:
+        0 12px 40px rgba(255, 153, 51, 0.4),
+        0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.fabButton:active {
+    transform: scale(0.95);
+}
+
+.fabButtonOpen {
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+    transform: rotate(45deg);
+}
+
+.fabMenuItem {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    background: rgba(255, 248, 240, 0.9);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #92400E;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.fabMenuItem:hover {
+    background: rgba(255, 153, 51, 0.15);
+    border-color: #FF9933;
+    transform: scale(1.1);
+    color: #D97706;
+}
+
+.fabMenuItemDark {
+    background: rgba(10, 15, 30, 0.9);
+    border-color: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+}
+
+.fabMenuItemDark:hover {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: #FFD700;
+}
+
+/* ----- 4. Reading Progress Ring ----- */
+.progressRing {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progressRingCircleBg {
+    fill: none;
+    stroke: rgba(255, 153, 51, 0.12);
+    stroke-width: 3;
+}
+
+.progressRingCircleFill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: drop-shadow(0 0 6px rgba(255, 153, 51, 0.4));
+}
+
+.progressRingText {
+    position: absolute;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #B45309;
+}
+
+.progressRingTextDark {
+    color: #FFD700;
+}
+
+/* ----- 5. Golden Page Shimmer ----- */
+.pageShimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 215, 0, 0.06) 30%,
+            rgba(255, 153, 51, 0.12) 50%,
+            rgba(255, 215, 0, 0.06) 70%,
+            transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+    animation: goldenSweep 0.8s ease-out forwards;
+}
+
+@keyframes goldenSweep {
+    from {
+        left: -50%;
+    }
+
+    to {
+        left: 120%;
+    }
+}
+
+/* ----- 6. Mandala Watermark -----
+   Audit fix 6: was mandalaBreathAnim 5s infinite alternate — a mark
+   scaling and fading under body text for the whole session. Kept as
+   the static watermark the audit asked for; the ornament survives,
+   the movement does not. */
+.mandalaBreath {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 80px;
+    height: 80px;
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ----- 7. Gateway Arch Divider ----- */
+.gatewayArch {
+    position: relative;
+    height: 4px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 153, 51, 0.08) 10%,
+            rgba(255, 153, 51, 0.3) 50%,
+            rgba(255, 153, 51, 0.08) 90%,
+            transparent 100%);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8'%3E%3Cpath d='M0 8 Q100 0 200 8' fill='white'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8'%3E%3Cpath d='M0 8 Q100 0 200 8' fill='white'/%3E%3C/svg%3E");
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+}
+
+.gatewayArchDark {
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 215, 0, 0.05) 10%,
+            rgba(255, 215, 0, 0.2) 50%,
+            rgba(255, 215, 0, 0.05) 90%,
+            transparent 100%);
+}
+
+/* ----- Rangoli Dots on Sidebars ----- */
+.rangoliOverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.06;
+    background-image:
+        radial-gradient(circle, rgba(255, 215, 0, 0.5) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 107, 53, 0.3) 0.8px, transparent 0.8px);
+    background-size: 30px 30px, 15px 15px;
+    background-position: 0 0, 7.5px 7.5px;
+}
+
+/* ----- Hide floating stats on mobile ----- */
+@media (max-width: 767px) {
+    .floatingStats {
+        bottom: 5rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 16px;
+        gap: 0.75rem;
+    }
+
+    .fabContainer {
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    .mandalaBreath {
+        width: 50px;
+        height: 50px;
+        bottom: 1rem;
+        right: 1rem;
+    }
+}

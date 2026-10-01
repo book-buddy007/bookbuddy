@@ -1,0 +1,545 @@
+/* ========================================
+   LANDING PAGE DESIGN SYSTEM
+   Based on DigiClassroom Landing Page Specifications
+   ======================================== */
+
+:root {
+  /* ===== PRIMARY BRAND COLORS ===== */
+  --landing-orange-50: #fff7ed;
+  --landing-orange-100: #ffedd5;
+  --landing-orange-200: #fed7aa;
+  --landing-orange-300: #fdba74;
+  --landing-orange-400: #fb923c;
+  --landing-orange-500: #f97316;
+  --landing-orange-600: #ea580c;
+  --landing-orange-700: #c2410c;
+  --landing-orange-800: #9a3412;
+  --landing-orange-900: #7c2d12;
+
+  --landing-blue-50: #eff6ff;
+  --landing-blue-100: #dbeafe;
+  --landing-blue-200: #bfdbfe;
+  --landing-blue-300: #93c5fd;
+  --landing-blue-400: #60a5fa;
+  --landing-blue-500: #3b82f6;
+  --landing-blue-600: #2563eb;
+  --landing-blue-700: #1d4ed8;
+  --landing-blue-800: #1e40af;
+  --landing-blue-900: #1e3a8a;
+
+  --landing-purple-50: #faf5ff;
+  --landing-purple-100: #f3e8ff;
+  --landing-purple-200: #e9d5ff;
+  --landing-purple-300: #d8b4fe;
+  --landing-purple-400: #c084fc;
+  --landing-purple-500: #a855f7;
+  --landing-purple-600: #9333ea;
+  --landing-purple-700: #7c3aed;
+  --landing-purple-800: #6b21a8;
+  --landing-purple-900: #581c87;
+
+  --landing-green-50: #f0fdf4;
+  --landing-green-100: #dcfce7;
+  --landing-green-500: #22c55e;
+  --landing-green-600: #16a34a;
+
+  /* ===== GRADIENTS - PROFESSIONAL NAVY & TEAL ===== */
+  --landing-gradient-primary: linear-gradient(135deg, #1e40af 0%, #0f766e 100%);
+  --landing-gradient-primary-hover: linear-gradient(135deg, #1d4ed8 0%, #0d9488 100%);
+  --landing-gradient-hero-light: linear-gradient(to bottom right, #f9fafb, #e5e7eb, #f3f4f6);
+  --landing-gradient-hero-dark: linear-gradient(to bottom right, #0f172a, #1e293b, #334155);
+  --landing-gradient-about: linear-gradient(135deg, #1e40af 0%, #0f766e 100%);
+  --landing-gradient-newsletter: linear-gradient(135deg, #0f172a 0%, #1e40af 50%, #0f766e 100%);
+
+  /* ===== TYPOGRAPHY ===== */
+  --landing-font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --landing-font-mono: 'Courier New', monospace;
+
+  /* Font Sizes */
+  --landing-text-xs: 0.75rem;      /* 12px */
+  --landing-text-sm: 0.875rem;     /* 14px */
+  --landing-text-base: 1rem;       /* 16px */
+  --landing-text-lg: 1.125rem;     /* 18px */
+  --landing-text-xl: 1.25rem;      /* 20px */
+  --landing-text-2xl: 1.5rem;      /* 24px */
+  --landing-text-3xl: 1.875rem;    /* 30px */
+  --landing-text-4xl: 2.25rem;     /* 36px */
+  --landing-text-5xl: 3rem;        /* 48px */
+  --landing-text-6xl: 3.75rem;     /* 60px */
+  --landing-text-7xl: 4.5rem;      /* 72px */
+
+  /* Font Weights */
+  --landing-font-light: 300;
+  --landing-font-regular: 400;
+  --landing-font-medium: 500;
+  --landing-font-semibold: 600;
+  --landing-font-bold: 700;
+  --landing-font-extrabold: 800;
+  --landing-font-black: 900;
+
+  /* Line Heights */
+  --landing-leading-tight: 1.2;
+  --landing-leading-normal: 1.5;
+  --landing-leading-relaxed: 1.625;
+
+  /* ===== SPACING ===== */
+  --landing-space-1: 0.25rem;   /* 4px */
+  --landing-space-2: 0.5rem;    /* 8px */
+  --landing-space-3: 0.75rem;   /* 12px */
+  --landing-space-4: 1rem;      /* 16px */
+  --landing-space-5: 1.25rem;   /* 20px */
+  --landing-space-6: 1.5rem;    /* 24px */
+  --landing-space-8: 2rem;      /* 32px */
+  --landing-space-10: 2.5rem;   /* 40px */
+  --landing-space-12: 3rem;     /* 48px */
+  --landing-space-16: 4rem;     /* 64px */
+  --landing-space-20: 5rem;     /* 80px */
+
+  /* ===== SHADOWS ===== */
+  --landing-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --landing-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --landing-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --landing-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --landing-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --landing-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --landing-shadow-button: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --landing-shadow-button-hover: 0 10px 25px rgba(249, 115, 22, 0.3);
+
+  /* Glow Shadows */
+  --landing-shadow-orange-glow: 0 0 20px rgba(249, 115, 22, 0.25);
+  --landing-shadow-blue-glow: 0 0 20px rgba(37, 99, 235, 0.25);
+  --landing-shadow-purple-glow: 0 0 20px rgba(124, 58, 237, 0.25);
+  --landing-shadow-green-glow: 0 0 20px rgba(34, 197, 94, 0.25);
+
+  /* ===== BORDER RADIUS ===== */
+  --landing-radius-sm: 0.125rem;   /* 2px */
+  --landing-radius-md: 0.375rem;   /* 6px */
+  --landing-radius-lg: 0.5rem;     /* 8px */
+  --landing-radius-xl: 0.75rem;    /* 12px */
+  --landing-radius-2xl: 1rem;      /* 16px */
+  --landing-radius-3xl: 1.5rem;    /* 24px */
+  --landing-radius-full: 9999px;
+
+  /* ===== TRANSITIONS ===== */
+  --landing-transition-fast: 150ms;
+  --landing-transition-normal: 300ms;
+  --landing-transition-slow: 500ms;
+  --landing-transition-slower: 800ms;
+
+  /* ===== BACKDROP BLUR ===== */
+  --landing-blur-sm: 4px;
+  --landing-blur-md: 8px;
+  --landing-blur-lg: 12px;
+  --landing-blur-xl: 16px;
+  --landing-blur-2xl: 24px;
+  --landing-blur-3xl: 32px;
+
+  /* ===== GLASSMORPHISM ===== */
+  --landing-glass-bg-light: rgba(255, 255, 255, 0.7);
+  --landing-glass-bg-dark: rgba(17, 24, 39, 0.7);
+  --landing-glass-border-light: rgba(229, 231, 235, 1);
+  --landing-glass-border-dark: rgba(55, 65, 81, 1);
+  --landing-glass-overlay-light: rgba(255, 255, 255, 0.3);
+  --landing-glass-overlay-dark: rgba(0, 0, 0, 0.2);
+
+  /* Premium Glass Effects */
+  --landing-glass-premium-light: rgba(255, 255, 255, 0.65);
+  --landing-glass-premium-dark: rgba(17, 24, 39, 0.65);
+  --landing-glass-card-light: rgba(255, 255, 255, 0.5);
+  --landing-glass-card-dark: rgba(17, 24, 39, 0.5);
+
+  /* Glass Tints (Blue-Cyan Professional Palette) */
+  --landing-glass-tint-blue-light: rgba(29, 78, 216, 0.08);
+  --landing-glass-tint-blue-dark: rgba(96, 165, 250, 0.08);
+  --landing-glass-tint-cyan-light: rgba(6, 182, 212, 0.08);
+  --landing-glass-tint-cyan-dark: rgba(34, 211, 238, 0.08);
+
+  /* Multi-layer Shadows for Depth */
+  --landing-shadow-glass-light:
+    0 8px 32px rgba(31, 38, 135, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  --landing-shadow-glass-dark:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+
+  /* Glass Card Shadows with Blue Tint */
+  --landing-shadow-glass-card-light:
+    0 8px 32px rgba(29, 78, 216, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  --landing-shadow-glass-card-dark:
+    0 8px 32px rgba(6, 182, 212, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.15);
+
+  /* Glass Card Hover Shadows */
+  --landing-shadow-glass-hover-light:
+    0 16px 48px rgba(29, 78, 216, 0.18),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    inset 0 2px 4px rgba(255, 255, 255, 0.7);
+  --landing-shadow-glass-hover-dark:
+    0 16px 48px rgba(6, 182, 212, 0.25),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+/* ===== DARK MODE OVERRIDES ===== */
+.dark {
+  --landing-orange-500: #fb923c;
+  --landing-blue-600: #60a5fa;
+  --landing-purple-700: #a855f7;
+  --landing-green-500: #34d399;
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Gradient Text */
+.landing-gradient-text {
+  background: var(--landing-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient Backgrounds */
+.landing-gradient-bg-primary {
+  background: var(--landing-gradient-primary);
+}
+
+.landing-gradient-bg-hero-light {
+  background: var(--landing-gradient-hero-light);
+}
+
+.landing-gradient-bg-hero-dark {
+  background: var(--landing-gradient-hero-dark);
+}
+
+/* Glassmorphism */
+.landing-glass-navbar {
+  background: var(--landing-glass-premium-light);
+  backdrop-filter: blur(var(--landing-blur-xl)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--landing-blur-xl)) saturate(180%);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.3);
+  box-shadow:
+    0 4px 24px rgba(29, 78, 216, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  position: relative;
+}
+
+.landing-glass-navbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.dark .landing-glass-navbar {
+  background: var(--landing-glass-premium-dark);
+  border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+  box-shadow:
+    0 4px 24px rgba(6, 182, 212, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark .landing-glass-navbar::before {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
+}
+
+.landing-glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  backdrop-filter: blur(var(--landing-blur-xl)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--landing-blur-xl)) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: var(--landing-shadow-glass-card-light);
+  border-radius: var(--landing-radius-xl);
+  position: relative;
+  overflow: hidden;
+  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 50%,
+    rgba(6, 182, 212, 0.1) 100%
+  );
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 500ms ease;
+}
+
+.landing-glass-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    135deg,
+    rgba(29, 78, 216, 0.3),
+    rgba(6, 182, 212, 0.3)
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 500ms ease;
+  z-index: -1;
+}
+
+.landing-glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--landing-shadow-glass-hover-light);
+  border-color: rgba(29, 78, 216, 0.4);
+}
+
+.landing-glass-card:hover::before {
+  opacity: 1;
+}
+
+.landing-glass-card:hover::after {
+  opacity: 1;
+}
+
+.dark .landing-glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.6) 0%,
+    rgba(17, 24, 39, 0.4) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: var(--landing-shadow-glass-card-dark);
+}
+
+.dark .landing-glass-card::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 50%,
+    rgba(6, 182, 212, 0.15) 100%
+  );
+}
+
+.dark .landing-glass-card::after {
+  background: linear-gradient(
+    135deg,
+    rgba(96, 165, 250, 0.2),
+    rgba(34, 211, 238, 0.2)
+  );
+}
+
+.dark .landing-glass-card:hover {
+  box-shadow: var(--landing-shadow-glass-hover-dark);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.landing-glass-overlay {
+  background: var(--landing-glass-overlay-light);
+  backdrop-filter: blur(var(--landing-blur-md)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--landing-blur-md)) saturate(150%);
+}
+
+.dark .landing-glass-overlay {
+  background: var(--landing-glass-overlay-dark);
+}
+
+/* Button Styles */
+.landing-btn-primary {
+  background: var(--landing-gradient-primary);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: var(--landing-radius-lg);
+  font-weight: var(--landing-font-semibold);
+  box-shadow: var(--landing-shadow-button);
+  transition: all var(--landing-transition-normal) ease;
+}
+
+.landing-btn-primary:hover {
+  background: var(--landing-gradient-primary-hover);
+  box-shadow: var(--landing-shadow-button-hover);
+  transform: scale(1.05);
+}
+
+/* Card Hover Effects */
+.landing-card-hover {
+  transition: all var(--landing-transition-normal) ease;
+}
+
+.landing-card-hover:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: var(--landing-shadow-2xl);
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Premium Glass Card Variants */
+.landing-glass-card-premium {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(var(--landing-blur-2xl)) saturate(200%);
+  -webkit-backdrop-filter: blur(var(--landing-blur-2xl)) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 12px 40px rgba(29, 78, 216, 0.15),
+    0 6px 20px rgba(0, 0, 0, 0.1),
+    0 3px 10px rgba(0, 0, 0, 0.05),
+    inset 0 2px 4px rgba(255, 255, 255, 0.7),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: var(--landing-radius-2xl);
+  position: relative;
+  overflow: hidden;
+  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-glass-card-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 40%,
+    rgba(6, 182, 212, 0.15) 100%
+  );
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.landing-glass-card-premium:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow:
+    0 20px 60px rgba(29, 78, 216, 0.25),
+    0 10px 30px rgba(0, 0, 0, 0.15),
+    0 5px 15px rgba(0, 0, 0, 0.08),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+  border-color: rgba(29, 78, 216, 0.5);
+}
+
+.dark .landing-glass-card-premium {
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.7) 0%,
+    rgba(17, 24, 39, 0.5) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 12px 40px rgba(6, 182, 212, 0.2),
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dark .landing-glass-card-premium::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 40%,
+    rgba(6, 182, 212, 0.2) 100%
+  );
+}
+
+.dark .landing-glass-card-premium:hover {
+  box-shadow:
+    0 20px 60px rgba(6, 182, 212, 0.35),
+    0 10px 30px rgba(0, 0, 0, 0.5),
+    0 5px 15px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+/* Glass Badge */
+.landing-glass-badge {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  backdrop-filter: blur(var(--landing-blur-lg)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--landing-blur-lg)) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 4px 16px rgba(29, 78, 216, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-glass-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.dark .landing-glass-badge {
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.8) 0%,
+    rgba(17, 24, 39, 0.6) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 4px 16px rgba(6, 182, 212, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+.dark .landing-glass-badge::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #1d4ed8, #0891b2);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #1e40af, #06b6d4);
+}
+

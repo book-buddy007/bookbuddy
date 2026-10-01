@@ -1,0 +1,54 @@
+/* User table layout adjustments */
+.user-table .table {
+  grid-template-columns:
+    minmax(150px, 1fr) minmax(200px, 1.5fr) minmax(120px, 1fr) minmax(150px, 1fr) minmax(100px, 0.8fr) minmax(150px, 1fr);
+}
+
+/* Make sure checkboxes don't take up too much space */
+.user-table th:first-child,
+.user-table td:first-child {
+  width: 40px;
+}
+
+/* Indic-themed table styling */
+.user-table table {
+  background: rgba(255, 248, 240, 0.5);
+}
+
+.user-table thead tr {
+  background: linear-gradient(90deg, #FFF8E1 0%, #FFF3E0 50%, #FFF8E1 100%) !important;
+  border-bottom: 2px solid rgba(255, 153, 51, 0.15) !important;
+}
+
+.user-table thead th {
+  color: #1A237E !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.user-table tbody tr {
+  border-bottom: 1px solid rgba(255, 193, 7, 0.1) !important;
+  transition: background-color 0.2s ease;
+}
+
+.user-table tbody tr:hover {
+  background-color: rgba(255, 243, 224, 0.5) !important;
+}
+
+.user-table tbody tr:nth-child(even) {
+  background-color: rgba(255, 248, 225, 0.25);
+}
+
+.user-table tbody td {
+  color: #3E2723;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-table .mobile-card {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

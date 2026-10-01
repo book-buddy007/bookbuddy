@@ -1,0 +1,202 @@
+.homepageWrapper {
+  /* Primary background overrrides to create a light theme */
+  --night-ink: #f8fafc;
+  /* Slate 50 - Very light background replacing dark blue */
+  --indigo-deep: #f1f5f9;
+  /* Slate 100 - Secondary light background */
+  --peacock-teal: #e2e8f0;
+  /* Slate 200 - Accent light background */
+
+  /* Text color overrides for the light backgrounds */
+  --ivory-cream: #0f172a;
+  /* Slate 900 - Ensures WCAG 2.1 AA/AAA high contrast (almost black) */
+  --saffron: #d97706;
+  /* Darker amber to ensure contrast on light backgrounds */
+  --deep-saffron: #b45309;
+  /* Even darker amber for better contrast */
+  --gold: #b45309;
+  /* Adjusted gold to be darker for readability */
+  --turmeric: #92400e;
+
+  /* Update gradient classes for the light theme */
+  background-color: var(--night-ink);
+  color: var(--ivory-cream);
+}
+
+/* Redefine hero gradient: pastel tints that shift visibly through Indic tones.
+   The base .hero-indic already sets background-size:400% 400% and animation:indicShift — we just override the image. */
+.homepageWrapper :global(.hero-indic) {
+  background-image: linear-gradient(135deg,
+      #EEF2FF 0%,             /* Indigo 50 — cool blue tint */
+      #E0F7FA 25%,            /* Cyan 50  — peacock teal echo */
+      #FFF8E1 50%,            /* Amber 50 — saffron glow */
+      #FCE4EC 75%,            /* Pink 50  — lotus blush */
+      #EEF2FF 100%);          /* loop back to Indigo 50 */
+}
+
+.homepageWrapper :global(.mesh-bg-indic) {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(226, 232, 240, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(254, 243, 199, 0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 80%, rgba(241, 245, 249, 0.7) 0%, transparent 50%);
+  background-color: var(--night-ink);
+}
+
+.homepageWrapper :global(.bg-indic-cta) {
+  background-image: linear-gradient(135deg,
+      #EEF2FF 0%,
+      #E0F7FA 30%,
+      #FFF8E1 70%,
+      #FCE4EC 100%);
+}
+
+/* ------ Respect motion preferences ------ */
+@media (prefers-reduced-motion: reduce) {
+  .chakraArtwork,
+  .homepageWrapper :global(.hero-indic),
+  .homepageWrapper :global(.mesh-bg-indic),
+  .iconHalo::before {
+    animation: none !important;
+  }
+}
+
+.chakraArtwork {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  animation: spinHomepageChakra 20s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes spinHomepageChakra {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== NEW FEATURE CARDS INDIC STYLING ===== */
+
+.featuresGridBackground {
+  position: relative;
+  background-color: #FFFDE7;
+  /* Soft saffron-cream tone */
+  background-image: radial-gradient(circle at center, rgba(255, 153, 51, 0.05) 0%, rgba(255, 253, 231, 0) 70%);
+}
+
+/* Large Ashoka Chakra watermark for grid container */
+.featuresGridBackground::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 800px;
+  height: 800px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='none' stroke='%23FF9933' stroke-width='0.5' opacity='0.05'/%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23FF9933' stroke-width='0.2' opacity='0.05'/%3E%3Cg stroke='%23FF9933' stroke-width='0.3' opacity='0.05'%3E%3Cpath d='M50 50 L50 10'/%3E%3Cpath d='M50 50 L70 15'/%3E%3Cpath d='M50 50 L85 30'/%3E%3Cpath d='M50 50 L90 50'/%3E%3Cpath d='M50 50 L85 70'/%3E%3Cpath d='M50 50 L70 85'/%3E%3Cpath d='M50 50 L50 90'/%3E%3Cpath d='M50 50 L30 85'/%3E%3Cpath d='M50 50 L15 70'/%3E%3Cpath d='M50 50 L10 50'/%3E%3Cpath d='M50 50 L15 30'/%3E%3Cpath d='M50 50 L30 15'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Warm Parchment Gradient for Cards */
+.parchmentCard {
+  background: linear-gradient(145deg, #FFFAF0 0%, #FFFDE7 100%);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  /* Saffron border image for micro-motifs effect */
+  border-image: repeating-linear-gradient(45deg, rgba(230, 81, 0, 0.1), rgba(230, 81, 0, 0.1) 5px, rgba(255, 215, 0, 0.2) 5px, rgba(255, 215, 0, 0.2) 10px) 1;
+  box-shadow: 0 4px 20px rgba(217, 119, 6, 0.08), inset 0 0 40px rgba(255, 255, 255, 0.5);
+  /* Warm amber shadow & texture inset */
+  position: relative;
+  z-index: 1;
+  /* Above the grid watermark */
+}
+
+/* Icon golden shimmer halo imitating temple brass */
+.iconHalo {
+  position: relative;
+}
+
+.iconHalo::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, #FFD700 0%, #FFF8DC 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+  opacity: 0.8;
+  z-index: -1;
+  filter: blur(2px);
+  animation: brassShimmer 4s linear infinite;
+}
+
+@keyframes brassShimmer {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* SVG Mandala watermarks for individual cards.
+   These are MASKS, not background images. A `url("data:…")` background is
+   opaque to the cascade — no custom property can reach inside it — so the
+   motifs could never follow a per-app accent while they were background-image.
+   As a mask the shape comes from the data URI and the COLOUR comes from
+   background-color, which means the same six motifs tint themselves saffron in
+   Book Buddy, kumkum in Vidyaverse and turmeric in DCP with no per-app copies.
+   Trade-off: each motif collapses from multi-colour strokes to a single accent
+   tint — imperceptible at 12% opacity, and worth it for the theming. */
+.parchmentCard .mandala-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  /* Faint 8-12% opacity watermark */
+  background-color: var(--accent-primary);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center bottom -20px;
+  mask-position: center bottom -20px;
+  -webkit-mask-size: 150%;
+  mask-size: 150%;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: multiply;
+}
+
+/* Data URLs for the 6 specific mandalas */
+.mandala-lotus {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 90 Q20 50 50 10 Q80 50 50 90Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 80 Q30 50 50 20 Q70 50 50 80Z' fill='none' stroke='%23000' stroke-width='0.3'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23000' opacity='0.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 90 Q20 50 50 10 Q80 50 50 90Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 80 Q30 50 50 20 Q70 50 50 80Z' fill='none' stroke='%23000' stroke-width='0.3'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23000' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.mandala-sriyantra {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='10,90 90,90 50,10' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpolygon points='10,30 90,30 50,90' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpolygon points='25,75 75,75 50,25' fill='none' stroke='%23000' stroke-width='0.3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='10,90 90,90 50,10' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpolygon points='10,30 90,30 50,90' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpolygon points='25,75 75,75 50,25' fill='none' stroke='%23000' stroke-width='0.3'/%3E%3C/svg%3E");
+}
+
+.mandala-ashoka {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23000' stroke-width='1' stroke-dasharray='4,4'/%3E%3Ccircle cx='50' cy='50' r='10' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23000' stroke-width='1' stroke-dasharray='4,4'/%3E%3Ccircle cx='50' cy='50' r='10' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3C/svg%3E");
+}
+
+.mandala-peacock {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 C20 40 40 80 50 90 C60 80 80 40 50 10Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Ccircle cx='50' cy='30' r='8' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 10 Q30 30 50 50 Q70 30 50 10' fill='none' stroke='%23000' stroke-width='0.2'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 C20 40 40 80 50 90 C60 80 80 40 50 10Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Ccircle cx='50' cy='30' r='8' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 10 Q30 30 50 50 Q70 30 50 10' fill='none' stroke='%23000' stroke-width='0.2'/%3E%3C/svg%3E");
+}
+
+.mandala-kolam {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='20' width='60' height='60' fill='none' stroke='%23000' stroke-width='0.5' transform='rotate(45 50 50)'/%3E%3Crect x='30' y='30' width='40' height='40' fill='none' stroke='%23000' stroke-width='0.5' transform='rotate(45 50 50)'/%3E%3Ccircle cx='50' cy='15' r='3' fill='%23000'/%3E%3Ccircle cx='50' cy='85' r='3' fill='%23000'/%3E%3Ccircle cx='15' cy='50' r='3' fill='%23000'/%3E%3Ccircle cx='85' cy='50' r='3' fill='%23000'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='20' y='20' width='60' height='60' fill='none' stroke='%23000' stroke-width='0.5' transform='rotate(45 50 50)'/%3E%3Crect x='30' y='30' width='40' height='40' fill='none' stroke='%23000' stroke-width='0.5' transform='rotate(45 50 50)'/%3E%3Ccircle cx='50' cy='15' r='3' fill='%23000'/%3E%3Ccircle cx='50' cy='85' r='3' fill='%23000'/%3E%3Ccircle cx='15' cy='50' r='3' fill='%23000'/%3E%3Ccircle cx='85' cy='50' r='3' fill='%23000'/%3E%3C/svg%3E");
+}
+
+.mandala-meenakari {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='35' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 15 A35 35 0 0 1 85 50 A35 35 0 0 0 50 15Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 85 A35 35 0 0 1 15 50 A35 35 0 0 0 50 85Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='35' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 15 A35 35 0 0 1 85 50 A35 35 0 0 0 50 15Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3Cpath d='M50 85 A35 35 0 0 1 15 50 A35 35 0 0 0 50 85Z' fill='none' stroke='%23000' stroke-width='0.5'/%3E%3C/svg%3E");
+}

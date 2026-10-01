@@ -1,0 +1,50 @@
+# Build context for the root (Next.js frontend) image.
+# Keep it lean and NEVER ship host-compiled artifacts or secrets into the image.
+
+# Dependencies & build output (regenerated inside the image)
+node_modules
+.next
+out
+build
+dist
+
+# Other workspaces not needed by the frontend build
+backend
+mobile
+mobile ui
+frontend
+
+# Secrets / local env (Coolify injects env at runtime)
+.env
+.env.*
+!.env.example
+
+# VCS & tooling
+.git
+.gitignore
+*.log
+*.tsbuildinfo
+.eslintcache
+
+# Tests / editor / OS cruft
+cypress/videos
+cypress/screenshots
+.expo
+.DS_Store
+Thumbs.db
+
+# Docs & scratch (not needed at build time)
+*.md
+docker-compose.yml
+docker-setup.ps1
+Start-Services.ps1
+start_services.bat
+Dockerfile.dev
+
+# Agent tooling and docs — never part of a build.
+# .claude/worktrees/ especially: a full second checkout of this app, which was
+# being sent to the daemon as build context.
+.claude
+docs
+*.md
+!README.md

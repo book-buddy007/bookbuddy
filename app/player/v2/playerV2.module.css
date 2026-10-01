@@ -1,0 +1,1027 @@
+/* ═══════════════════════════════════════════════════════════
+   AUDIOBOOK PLAYER V2 — Gold-Standard Module CSS
+   Chapter→Section hierarchy, Narrator chip, Transcript panel
+   ═══════════════════════════════════════════════════════════ */
+
+/* Audit fix 8: this file used to open with
+   `@import url('…fonts.googleapis.com…Inter…')`. A CSS `@import` of a
+   remote stylesheet is discovered only after this stylesheet parses,
+   so it was a serial render-blocking round-trip — for a font the app
+   does not use. The body face is Plus Jakarta Sans, loaded once by
+   next/font in app/layout.tsx with no network request at runtime, and
+   that is what the player inherits now. */
+
+/* ── CSS Custom Properties ─────────────────────────────────── */
+.playerRoot {
+  --ap-bg: var(--night-ink, #0A0F1E);
+  --ap-bg-card: rgba(255, 255, 255, 0.04);
+  --ap-bg-glass: rgba(255, 255, 255, 0.06);
+  --ap-bg-elevated: rgba(255, 255, 255, 0.08);
+  --ap-border: rgba(var(--gold-rgb, 255 215 0) / 0.12);
+  --ap-text: var(--ivory-cream, #FFF8F0);
+  --ap-text-secondary: #C9BFB2;
+  --ap-text-muted: #96897A;
+
+  /* Audit fix 8/16: was a private amber (#f59e0b / #d97706) that
+     existed nowhere else in the trio, so the player looked like a
+     different product from the reader it plays alongside. Both now
+     read the shared Indic accent — one token change recolours the
+     player, the reader and the landing page together. */
+  --ap-accent: var(--accent-primary-dark, #FF8A5B);
+  --ap-accent-glow: rgba(var(--deep-saffron-rgb, 255 153 51) / 0.25);
+
+  --ap-danger: var(--kumkum, #C0392B);
+  --ap-success: #1E8E5A;
+  --ap-radius: 14px;
+  --ap-sidebar-w: 360px;
+
+  /* Audit fix 11: --ap-gender-male / --ap-gender-female (blue/pink)
+     are gone. The control is a narrator choice, not a fact about the
+     student, so it gets one neutral chip and voice names. */
+  --ap-narrator-chip: rgba(var(--deep-saffron-rgb, 255 153 51) / 0.14);
+
+  --ap-transcript-bg: rgba(var(--deep-saffron-rgb, 255 153 51) / 0.06);
+
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--ap-bg);
+  color: var(--ap-text);
+  /* inherits Plus Jakarta Sans from <body> — see the note above */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.playerRoot[data-theme="light"] {
+  --ap-bg: var(--parchment, #FFFCF7);
+  --ap-bg-card: rgba(0, 0, 0, 0.03);
+  --ap-bg-glass: rgba(255, 255, 255, 0.85);
+  --ap-bg-elevated: rgba(0, 0, 0, 0.04);
+  --ap-border: rgba(var(--deep-saffron-rgb, 255 153 51) / 0.2);
+  --ap-text: #1F2933;
+  --ap-text-secondary: #4A4A5A;
+  --ap-text-muted: #6B6B7B;
+  --ap-accent: var(--accent-strong, #B45309);
+  --ap-accent-glow: rgba(var(--deep-saffron-rgb, 255 153 51) / 0.2);
+  --ap-transcript-bg: rgba(var(--deep-saffron-rgb, 255 153 51) / 0.06);
+}
+
+/* ── Background Ambience ──────────────────────────────────── */
+.bgAmbience {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bgAmbience::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ap-accent-glow) 0%, transparent 70%);
+  opacity: 0.4;
+}
+.bgAmbience::after {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  bottom: -150px;
+  left: -100px;
+  border-radius: 50%;
+  /* was a stray blue (rgba(59,130,246)) left over from the amber
+     palette — the only blue on a saffron surface. Now the teal that
+     sits opposite saffron in the Indic set. */
+  background: radial-gradient(circle, rgba(var(--peacock-teal-rgb, 0 106 110) / 0.12) 0%, transparent 70%);
+  opacity: 0.3;
+}
+
+/* Audit fix 6: both blobs used to drift on `ambientFloat … infinite
+   alternate` for the length of a listening session. Two 600px and
+   500px translating radial gradients are also the most expensive
+   thing on the page to composite. They are now still — the depth
+   they were there for comes from the gradient, not the movement. */
+
+/* ── Header ───────────────────────────────────────────────── */
+.headerBar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  gap: 12px;
+  border-bottom: 1px solid var(--ap-border);
+  backdrop-filter: blur(20px);
+  background: var(--ap-bg-glass);
+  flex-shrink: 0;
+}
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.headerBookInfo {
+  min-width: 0;
+}
+.headerTitle {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.headerAuthor {
+  font-size: 12px;
+  color: var(--ap-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Icon Buttons ─────────────────────────────────────────── */
+/* Audit fix 3: was a flat 38px everywhere, below the 44px minimum on
+   the surface that is almost entirely touch. --hit-min is 40px for a
+   pointer and 44px for a coarse one (styles/ux-foundation.css); the
+   glyph inside keeps its size either way. */
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hit-min, 40px);
+  height: var(--hit-min, 40px);
+  border-radius: 10px;
+  border: none;
+  background: var(--ap-bg-elevated);
+  color: var(--ap-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--ap-text);
+  transform: scale(1.05);
+}
+.playerRoot[data-theme="light"] .iconBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+.iconBtn:active {
+  transform: scale(0.95);
+}
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.iconBtnActive {
+  composes: iconBtn;
+  background: var(--ap-accent-glow);
+  color: var(--ap-accent);
+}
+
+/* ── Main Layout ──────────────────────────────────────────── */
+.mainLayout {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar (Chapter Drawer) ─────────────────────────────── */
+.sidebarDrawer {
+  width: var(--ap-sidebar-w);
+  max-width: 85vw;
+  background: var(--ap-bg-glass);
+  backdrop-filter: blur(24px);
+  border-right: 1px solid var(--ap-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+.sidebarDrawerHidden {
+  margin-left: calc(var(--ap-sidebar-w) * -1);
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebarHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ap-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.sidebarTitle {
+  font-size: 16px;
+  font-weight: 700;
+}
+.sidebarScroller {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+.sidebarScroller::-webkit-scrollbar { width: 4px; }
+.sidebarScroller::-webkit-scrollbar-thumb {
+  background: var(--ap-border);
+  border-radius: 2px;
+}
+
+/* ── Chapter Item in Sidebar ──────────────────────────────── */
+.chapterGroup {
+  margin-bottom: 6px;
+}
+.chapterHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ap-text-secondary);
+  transition: background 0.15s;
+  user-select: none;
+}
+.chapterHeader:hover {
+  background: var(--ap-bg-elevated);
+}
+.chapterHeaderActive {
+  composes: chapterHeader;
+  color: var(--ap-accent);
+  background: var(--ap-accent-glow);
+}
+.chapterArrow {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.chapterArrowOpen {
+  transform: rotate(90deg);
+}
+.sectionList {
+  padding-left: 20px;
+  overflow: hidden;
+}
+.sectionItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--ap-text-secondary);
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.sectionItem:hover {
+  background: var(--ap-bg-elevated);
+  color: var(--ap-text);
+}
+.sectionItemActive {
+  composes: sectionItem;
+  background: var(--ap-accent-glow);
+  color: var(--ap-accent);
+  border-left-color: var(--ap-accent);
+  font-weight: 600;
+}
+.sectionDuration {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ap-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.sectionTypeTag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--ap-accent);
+}
+
+/* ── Center Content ───────────────────────────────────────── */
+.centerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  overflow-y: auto;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* ── Cover Art ────────────────────────────────────────────── */
+.coverWrapper {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+}
+.coverGlow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ap-accent-glow) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+/* Audit fix 6: was `coverPulse 3s infinite` — the cover breathing for
+   the whole session. The glow already says "playing" by being on at
+   all; the pulse only added motion in the corner of the eye. */
+.coverGlowActive {
+  opacity: 0.6;
+}
+.coverImage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.coverImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.playingIndicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+}
+.playingBar {
+  width: 3px;
+  background: var(--ap-accent);
+  border-radius: 2px;
+  animation: barDance 0.8s ease-in-out infinite alternate;
+}
+.playingBar:nth-child(1) { animation-delay: 0s; height: 8px; }
+.playingBar:nth-child(2) { animation-delay: 0.15s; height: 16px; }
+.playingBar:nth-child(3) { animation-delay: 0.3s; height: 12px; }
+.playingBar:nth-child(4) { animation-delay: 0.45s; height: 20px; }
+@keyframes barDance {
+  from { height: 4px; }
+  to { height: 20px; }
+}
+
+/* ── Now Playing Info ─────────────────────────────────────── */
+.nowPlayingInfo {
+  text-align: center;
+  max-width: 400px;
+}
+.nowPlayingSection {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+/* Audit fix 12. Was .nowPlayingChapter, which printed the chapter title
+   and nothing else while three separate bars competed to express
+   position. This carries the whole sentence, so it is sized to be read
+   rather than glanced past, and floored at 13px at full colour rather
+   than dimmed with opacity. */
+.progressLine {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ap-text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Narrator chip (fix 11) ───────────────────────────────────
+   Replaces the two-button blue/pink Male|Female toggle. One chip,
+   one neutral accent, voice names instead of a gender — and roughly
+   a third of the width, which is what gives the book title back its
+   room on a phone. */
+.narratorWrap {
+  position: relative;
+}
+.narratorChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hit-min, 40px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-narrator-chip);
+  color: var(--ap-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.narratorChip:hover {
+  border-color: var(--ap-accent);
+}
+.narratorLabel {
+  color: var(--ap-text-secondary);
+  font-weight: 500;
+}
+/* The label is the first thing to go when the header is tight — the
+   name alone still reads as a narrator once the chip has an icon. */
+@media (max-width: 480px) {
+  .narratorLabel { display: none; }
+}
+.narratorName {
+  color: var(--ap-accent);
+}
+.narratorMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 160px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+.narratorOption {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--hit-min, 40px);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ap-text);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.narratorOption:hover {
+  background: var(--ap-bg-elevated);
+}
+.narratorOptionActive {
+  composes: narratorOption;
+  background: var(--ap-narrator-chip);
+  color: var(--ap-accent);
+  font-weight: 700;
+}
+
+/* ── Waveform Seek Bar ────────────────────────────────────── */
+.waveformArea {
+  width: 100%;
+  max-width: 500px;
+}
+.timeRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ap-text-muted);
+  margin-top: 6px;
+}
+
+/* ── Playback Controls ────────────────────────────────────── */
+.controlsRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* Audit fix 10. Was .skipBtn, used by four of the five transport
+   controls: two Rewind glyphs and two FastForward glyphs, told apart
+   only by a 9px label at 0.7 opacity. Two of those four are gone (the
+   section jumps moved to their own named row), and the two that remain
+   draw the seek amount *inside* the arc at a readable size, so the
+   number is the icon rather than a caption under it. */
+.seekBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ap-bg-elevated);
+  color: var(--ap-text);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  position: relative;
+}
+.seekBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.playerRoot[data-theme="light"] .seekBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.seekBtn:active { transform: scale(0.94); }
+.seekAmount {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Named section jumps, on their own line below the transport. */
+.sectionJumpRow {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 500px;
+  margin-top: 4px;
+}
+.sectionJumpBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--hit-min, 40px);
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--ap-border);
+  background: transparent;
+  color: var(--ap-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.sectionJumpBtn:last-child { justify-content: flex-end; text-align: right; }
+.sectionJumpBtn:hover:not(:disabled) {
+  background: var(--ap-bg-elevated);
+  color: var(--ap-text);
+}
+.sectionJumpBtn:disabled { opacity: 0.4; cursor: default; }
+.sectionJumpLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.playPauseBtn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--ap-accent), #fbbf24);
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 24px var(--ap-accent-glow);
+  transition: all 0.25s;
+}
+.playPauseBtn:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 6px 32px var(--ap-accent-glow);
+}
+.playPauseBtn:active:not(:disabled) { transform: scale(0.95); }
+.playPauseBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Speed Pills ──────────────────────────────────────────── */
+.speedRow {
+  display: flex;
+  gap: 6px;
+}
+/* Audit fix 3: `padding: 5px 12px` on a 12px label made these ~28px
+   tall — the smallest targets in the app, in a row, on a phone. The
+   pill keeps its shape; min-height gives it a real hit area. */
+.speedPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hit-min, 40px);
+  min-width: var(--hit-min, 40px);
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ap-border);
+  background: transparent;
+  color: var(--ap-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.speedPill:hover {
+  background: var(--ap-bg-elevated);
+  color: var(--ap-text);
+}
+.speedPillActive {
+  composes: speedPill;
+  background: var(--ap-accent-glow);
+  color: var(--ap-accent);
+  border-color: var(--ap-accent);
+}
+
+/* ── Secondary Controls ───────────────────────────────────── */
+.secondaryRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--ap-border);
+  margin: 0 4px;
+}
+
+/* ── Sleep Badge ──────────────────────────────────────────── */
+/* was indigo (#818cf8 on rgba(99,102,241,…)) — a third palette in a
+   player that already had amber and blue. Now the shared teal. */
+.sleepBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--hit-min, 40px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(var(--teal-light-rgb, 0 137 123) / 0.15);
+  color: var(--teal-light, #00897B);
+  font-size: 12px;
+  font-weight: 600;
+}
+.playerRoot[data-theme="dark"] .sleepBadge {
+  /* --teal-light is tuned for parchment; on night-ink it goes muddy. */
+  color: #4FD1C5;
+}
+
+/* ── Transcript Panel ─────────────────────────────────────── */
+.transcriptPanel {
+  width: var(--ap-sidebar-w);
+  max-width: 85vw;
+  background: var(--ap-bg-glass);
+  backdrop-filter: blur(24px);
+  border-left: 1px solid var(--ap-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: margin-right 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+.transcriptPanelHidden {
+  margin-right: calc(var(--ap-sidebar-w) * -1);
+  opacity: 0;
+  pointer-events: none;
+}
+.transcriptScroller {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+.transcriptScroller::-webkit-scrollbar { width: 4px; }
+.transcriptScroller::-webkit-scrollbar-thumb {
+  background: var(--ap-border);
+  border-radius: 2px;
+}
+.transcriptParagraph {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ap-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.transcriptParagraph:hover {
+  background: var(--ap-bg-elevated);
+}
+.transcriptParagraphActive {
+  composes: transcriptParagraph;
+  background: var(--ap-transcript-bg);
+  color: var(--ap-text);
+  border-left-color: var(--ap-accent);
+  font-weight: 500;
+}
+
+/* ── Loading / Error States ───────────────────────────────── */
+.loadingSkeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 20px;
+}
+.skeletonPulse {
+  border-radius: 12px;
+  background: var(--ap-bg-elevated);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.errorCard {
+  text-align: center;
+  padding: 48px 24px;
+  max-width: 400px;
+  margin: auto;
+}
+.errorIcon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ap-danger);
+}
+.errorTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.errorMessage {
+  font-size: 14px;
+  color: var(--ap-text-muted);
+  margin-bottom: 20px;
+}
+.errorActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* ── Progress Bar (overall) ───────────────────────────────── */
+/* .progressBarOuter / .progressBarFill lived here — the "overall"
+   progress bar that audit fix 12 removed. It was scoped to the current
+   section like the waveform and the time row beside it, so all three
+   said the same thing and none of them answered where the listener was
+   in the chapter or the book. The one-sentence .progressLine replaced
+   all three. */
+
+/* ── Overlay for sidebar on mobile ────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* ── Mobile Responsive ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebarDrawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    width: 85vw;
+    box-shadow: 8px 0 32px rgba(0,0,0,0.4);
+  }
+  .sidebarDrawerHidden {
+    transform: translateX(-100%);
+    margin-left: 0;
+  }
+  .transcriptPanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    width: 85vw;
+    box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+  }
+  .transcriptPanelHidden {
+    transform: translateX(100%);
+    margin-right: 0;
+  }
+  .coverWrapper {
+    width: 160px;
+    height: 160px;
+  }
+  .centerContent {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+}
+
+
+/* ══ Audit fix 13 - volume ════════════════════════════════════════
+   The old control was a hand-rolled vertical track in a popup. It is a
+   horizontal Radix slider inline in the secondary row now, and it is
+   hidden entirely on coarse pointers, where it only ever duplicated the
+   hardware volume keys while eating thumb space. */
+.volumeControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.volumeSlider {
+  width: 96px;
+}
+@media (pointer: coarse) {
+  .volumeSlider { display: none; }
+}
+
+/* ══ Audit fix 14 - announcements and errors ══════════════════════ */
+
+/* Visually hidden, but not display:none - a display:none region is not
+   announced at all. This is the standard clip-rect pattern. */
+.liveRegion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nowStrip {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 76px;
+  z-index: 40;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--ap-text);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  /* One entrance, no loop - the strip removes itself after two
+     seconds, so it has no reason to keep moving. */
+  animation: nowStripIn 180ms ease-out;
+}
+@keyframes nowStripIn {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Sits above the transport rather than over it: an error must never
+   cover the controls you would use to recover from it. */
+.errorToast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(180px + env(safe-area-inset-bottom));
+  z-index: 60;
+  width: min(420px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--kumkum-rgb, 192 57 43) / 0.35);
+  background: var(--ap-bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+.errorToastText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ap-text);
+}
+.errorToastRetry {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: var(--hit-min, 40px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ap-accent);
+  background: transparent;
+  color: var(--ap-accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.errorToastClose {
+  display: grid;
+  place-items: center;
+  min-width: var(--hit-min, 40px);
+  min-height: var(--hit-min, 40px);
+  border: none;
+  background: none;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ══ Audit fix 9 - transcript peek bar ════════════════════════════
+   Replaces the 38px edge tab at top:50%, right:0. Sits above the bottom
+   edge, previews the line being spoken, and opens the full panel. */
+.transcriptPeek {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(560px, calc(100vw - 24px));
+  min-height: var(--hit-min-primary, 44px);
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ap-border);
+  background: var(--ap-transcript-bg), var(--ap-bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  text-align: left;
+}
+.transcriptPeekText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ap-text-secondary);
+}
+.transcriptPeekTag {
+  flex-shrink: 0;
+  /* 11px is below the 12px floor set for body text, but this is a
+     persistent affordance label rather than content, and it is backed
+     by the button's own aria-label. */
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ap-accent);
+}
+
+/* ══ Audit fix 15 - offline ═══════════════════════════════════════ */
+.downloadBtn {
+  display: grid;
+  place-items: center;
+  min-width: var(--hit-min, 40px);
+  min-height: var(--hit-min, 40px);
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ap-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.downloadBtn:hover:not(:disabled) {
+  background: var(--ap-bg-elevated);
+  color: var(--ap-accent);
+}
+.downloadBtn:disabled { cursor: default; color: var(--ap-success); }
+.downloadSpin { animation: downloadPulse 1.2s ease-in-out infinite; }
+@keyframes downloadPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.offlineBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(var(--kumkum-rgb, 192 57 43) / 0.12);
+  color: var(--ap-text);
+  font-size: 12px;
+  font-weight: 600;
+}

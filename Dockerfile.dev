@@ -1,0 +1,15 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+
+EXPOSE 3001
+
+# WATCHPACK_POLLING and CHOKIDAR_USEPOLLING enable file watching from Windows
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
+ENV CHOKIDAR_INTERVAL=1000
+
+CMD ["npm", "run", "dev:frontend-only"]

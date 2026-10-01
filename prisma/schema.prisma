@@ -1,0 +1,1860 @@
+// ============================================================================
+// Book Buddy by VPD - Multi-Tenant B2B2C Digital Library
+// Prisma Schema - Phase 1: Database Schema Overhaul
+// ============================================================================
+//
+// This schema supports:
+// - Multi-tenant architecture with tenant isolation
+// - B2B institutional licensing (schools, colleges, universities)
+// - B2C independent student subscriptions
+// - Hybrid model: students can be independent AND join institutions
+// - Role-based access control (super-admin, admin, librarian, teacher, student)
+// - Invitation-only signup for institutional roles
+// - Student onboarding with trial/paid plans
+// - Institutional join request workflow with librarian approval
+//
+// BREAKING CHANGES FROM PREVIOUS SCHEMA:
+// - Institution model replaced with Tenant model
+// - User.institutionId removed (replaced with UserTenantMembership junction table)
+// - User.refreshToken removed (moved to separate RefreshToken model for security)
+// - Subscription model replaced with TenantSubscription (B2B) + user-level subscription fields (B2C)
+// - All tenant-scoped models now include tenantId for data isolation
+//
+// SECURITY NOTES:
+// - Passwords must be hashed with bcrypt using 12+ salt rounds (enforced in application layer)
+// - Refresh tokens stored separately with rotation support
+// - All sensitive operations logged in AuditLog with tenant context
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  // Output to the standard location for better compatibility
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  // citext restores the case-insensitive equality MySQL gave us for free via
+  // utf8mb4_unicode_ci. It is the PRIMARY defence for identity columns, not
+  // application-level lowercasing: better-auth issues its own lookups that app code
+  // cannot intercept, so the guarantee has to live in the database. Declaring it here
+  // (with the postgresqlExtensions preview feature) makes Prisma create the extension
+  // itself, so there is no manual pre-step on a fresh database.
+  extensions = [citext]
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  SUPER_ADMIN @map("super-admin")
+  ADMIN       @map("admin")
+  LIBRARIAN   @map("librarian")
+  TEACHER     @map("teacher")
+  STUDENT     @map("student")
+}
+
+enum AccountType {
+  INDEPENDENT   @map("independent")
+  INSTITUTIONAL @map("institutional")
+}
+
+enum SubscriptionStatus {
+  ACTIVE    @map("active")
+  EXPIRED   @map("expired")
+  CANCELLED @map("cancelled")
+  TRIAL     @map("trial")
+  SUSPENDED @map("suspended")
+}
+
+enum TenantRole {
+  ADMIN     @map("admin")
+  LIBRARIAN @map("librarian")
+  TEACHER   @map("teacher")
+  STUDENT   @map("student")
+}
+
+enum MembershipStatus {
+  ACTIVE    @map("active")
+  SUSPENDED @map("suspended")
+  PENDING   @map("pending")
+}
+
+enum TenantType {
+  SCHOOL     @map("school")
+  COLLEGE    @map("college")
+  UNIVERSITY @map("university")
+  CORPORATE  @map("corporate")
+}
+
+enum JoinRequestStatus {
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
+enum InvitationStatus {
+  PENDING  @map("pending")
+  ACCEPTED @map("accepted")
+  EXPIRED  @map("expired")
+}
+
+enum StudentAssignmentStatus {
+  PENDING   @map("pending")
+  COMPLETED @map("completed")
+}
+
+enum AccessTier {
+  FREE    @map("free")
+  BRONZE  @map("bronze")
+  SILVER  @map("silver")
+  GOLD    @map("gold")
+  DIAMOND @map("diamond")
+}
+
+enum CatalogScope {
+  GLOBAL        @map("global")
+  INSTITUTIONAL @map("institutional")
+}
+
+enum GlobalPublishStatus {
+  NONE     @map("none")
+  PENDING  @map("pending")
+  APPROVED @map("approved")
+  REJECTED @map("rejected")
+}
+
+enum BookFormatType {
+  PDF       @map("pdf")
+  EPUB      @map("epub")
+  AUDIOBOOK @map("audiobook")
+  AI_EMBED  @map("ai_embed")
+}
+
+enum EmbeddingStatus {
+  NONE       @map("none")
+  PENDING    @map("pending")
+  PROCESSING @map("processing")
+  READY      @map("ready")
+  FAILED     @map("failed")
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+enum OtpType {
+  EMAIL @map("email")
+  PHONE @map("phone")
+}
+
+enum LicenseType {
+  UNKNOWN       @map("unknown")
+  AI_PERMITTED  @map("ai_permitted")
+  AI_RESTRICTED @map("ai_restricted")
+}
+
+// ============================================================================
+// CORE MODELS - Multi-Tenant Architecture
+// ============================================================================
+
+// Tenant Model - Replaces Institution for true multi-tenancy
+// Represents schools, colleges, universities, or corporate entities
+model Tenant {
+  id                String     @id @default(uuid())
+  name              String // Institution name
+  domain            String     @unique // Unique domain identifier (e.g., "stanford.edu")
+  type              TenantType @default(SCHOOL) // 'school', 'college', 'university', 'corporate'
+  description       String?    @db.Text // Institution description for browse page
+  location          String? // City, State or full address
+  logoUrl           String? // Institution logo URL
+  branding          Json? // Custom branding: logo, colors, theme
+  isActive          Boolean    @default(true)
+  allowJoinRequests Boolean    @default(true) // Allow students to request access
+  isGlobalPublisher Boolean    @default(false) // Can submit content to global catalog
+
+  // Better Auth Organization Plugin fields
+  slug     String? @unique
+  logo     String? @db.Text
+  metadata String? @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // null = active, set = soft-deleted
+
+  // Relations
+  memberships        UserTenantMembership[] // Users belonging to this tenant
+  books              Book[] // Tenant-specific book catalog
+  subscriptions      TenantSubscription[] // B2B subscription plans
+  settings           TenantSettings? // Tenant-specific settings
+  joinRequests       JoinRequest[] // Student join requests
+  mediaSettings      MediaSettings? // Media configuration
+  readingAssignments ReadingAssignment[]
+  auditLogs          AuditLog[]
+
+  @@index([domain])
+  @@index([isActive])
+  @@index([type])
+  @@index([deletedAt]) // filter active tenants cheaply
+}
+
+// User Model - Enhanced for Multi-Tenant B2B2C
+// Supports both independent users (B2C) and institutional users (B2B)
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique @db.Citext
+  name     String?
+  password String? // Hashed with bcrypt (12+ rounds) - NEVER store plaintext - Optional for OAuth users
+
+  // OAuth Fields
+  googleId       String? @unique // Google OAuth user ID
+  profilePicture String? // Profile picture URL (from Google or uploaded)
+  authProvider   String  @default("email") // 'email' or 'google'
+
+  // Role & Account Type
+  // Possible roles: 'super-admin', 'admin', 'librarian', 'teacher', 'student'
+  role        UserRole    @default(STUDENT)
+  // Account types: 'independent' (B2C student) or 'institutional' (B2B user)
+  accountType AccountType @default(INDEPENDENT)
+
+  // B2C Subscription Fields (for independent students)
+  // Subscription tiers: 'trial', 'basic', 'premium', null (for institutional users)
+  subscriptionTier   String?
+  // Subscription status: 'active', 'expired', 'cancelled', 'trial', null
+  subscriptionStatus SubscriptionStatus?
+  trialEndsAt        DateTime? // When trial period ends
+  subscriptionEndsAt DateTime? // When paid subscription ends
+
+  // Academic level (1-12), Indian school-grade convention shared with Vidyaverse/DCP.
+  // For institutional students this is a cache of what Vidyaverse's Class/Section
+  // resolves to (see lib/academic/client.ts) — refreshed via the hub, not edited here
+  // directly. For independent students there is no hub record, so this is the only
+  // copy and is self-reported once during onboarding.
+  gradeLevel Int?
+
+  // Account Status
+  isActive            Boolean   @default(true)
+  emailVerified       Boolean   @default(false)
+  image               String?   @db.Text // Better Auth image 
+  lastLoginAt         DateTime?
+  onboardingCompleted Boolean   @default(false) // Track if user completed onboarding wizard
+  onboardingStep      Int       @default(1) // 1=verify contact, 2=choose path, 3=complete
+
+  // Phone & Verification Fields
+  phone         String? // Verified phone number
+  phoneVerified Boolean @default(false)
+  pendingPhone  String? // New phone awaiting OTP confirmation
+  pendingEmail  String? @db.Citext // New email awaiting OTP confirmation
+
+  // Account Lockout (Security)
+  failedLoginAttempts Int       @default(0) // Failed login attempt counter
+  lockedUntil         DateTime? // Account locked until this time
+  lockReason          String? // Reason for account lock
+
+  // Flexible Profile Metadata (For Onboarding & Custom Fields)
+  metadata Json? // Stores dynamic data like Blood Group, Aadhar, Family Info, etc.
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // null = active, set = soft-deleted
+
+  // Relations
+  tenantMemberships       UserTenantMembership[] // Multi-tenant memberships (can belong to multiple tenants)
+  sessions                Session[] // Better Auth sessions
+  accounts                Account[] // Better Auth OAuth accounts
+  invitationsSent         Invitation[]             @relation("InvitationsSent") // Better Auth invitations
+  refreshTokens           RefreshToken[] // Separate table for security
+  passwordResetTokens     PasswordResetToken[] // Password reset tokens
+  emailVerificationTokens EmailVerificationToken[] // Email verification tokens
+  loginAttempts           LoginAttempt[] // Failed login attempt tracking
+  auditLogs               AuditLog[]
+  borrowedBooks           BorrowedBook[]
+  annotations             Annotation[]
+  readingProgress         ReadingProgress[]
+  audioProgresses         AudioProgress[]
+  audioBookmarks          AudioBookmark[]
+  mediaUploads            MediaUpload[]
+  mediaAccess             MediaAccess[]
+  joinRequests            JoinRequest[] // Requests to join institutions
+  notifications           Notification[]
+  vocabularyItems         VocabularyItem[]
+  flashcardDecks          FlashcardDeck[]
+  flashcardReviews        FlashcardReview[]
+  teacherAssignments      ReadingAssignment[]      @relation("TeacherAssignments")
+  studentAssignments      StudentAssignment[]      @relation("StudentAssignments")
+  userStreak              UserStreak?
+  chatMessages            BookChatMessage[]
+  otpVerifications        OtpVerification[]
+  personalFiles           PersonalFile[]
+  personalFolders         PersonalFolder[]
+  deviceTokens            DeviceToken[]
+  quizAttempts            QuizAttempt[]
+  conceptMasteries        ConceptMastery[]
+  resurfacingEvents       ResurfacingEvent[]
+  aiFeatureUsage          AiFeatureUsage[]
+
+  @@index([email])
+  @@index([role])
+  @@index([accountType])
+  @@index([subscriptionStatus])
+  @@index([isActive])
+  @@index([googleId])
+}
+
+// OTP Verification Model - Dedicated table for OTP storage
+// Uses @@unique([userId, type]) so only ONE active OTP per user per type
+// Upsert pattern automatically invalidates previous OTP
+model OtpVerification {
+  id          String   @id @default(uuid())
+  userId      String
+  type        OtpType
+  destination String   @db.Citext // The exact email/phone the OTP was sent to — citext because
+  // this holds an email address most of the time and is matched by equality on verify.
+  // Harmless for phone numbers, which have no case.
+  hashedOtp   String
+  attempts    Int      @default(0)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type]) // One active OTP per user per type
+  @@index([expiresAt]) // For cleanup queries
+}
+
+// UserTenantMembership - Junction Table for Multi-Tenant Support
+// Allows users to belong to multiple tenants with different roles in each
+// CRITICAL for tenant isolation and B2B2C hybrid model
+model UserTenantMembership {
+  id       String @id @default(uuid())
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String
+
+  // Better Auth Member Mapping 
+  organizationId String? // Alias mapped to organization mapping
+
+  // Role within this specific tenant: 'admin', 'librarian', 'teacher', 'student'
+  // Note: 'super-admin' is platform-level only, not tenant-specific
+  role   TenantRole
+  // Status: 'active', 'suspended', 'pending'
+  status MembershipStatus @default(ACTIVE)
+
+  // Granular RBAC: Array of specific collection IDs this user manages or has access to
+  assignedCollections Json? // Optional array of strings e.g., ["coll_123", "dept_456"]
+
+  // Flexible Institution-Scoped Metadata (For Onboarding & Custom Fields)
+  metadata Json? // Stores dynamic tenant-specific data like Roll No, Admission Number, Section, Transport
+
+  // Approval tracking
+  joinedAt   DateTime  @default(now())
+  approvedBy String? // User ID of the admin/librarian who approved
+  approvedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tenantId]) // A user can only have one membership per tenant
+  @@index([userId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([role])
+}
+
+// RefreshToken Model - Separate from User for Security
+// Supports token rotation and revocation
+// SECURITY: Tokens should be hashed before storage
+model RefreshToken {
+  id         String    @id @default(uuid())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  token      String    @unique // Hashed refresh token
+  expiresAt  DateTime // Token expiration (typically 7 days)
+  isRevoked  Boolean   @default(false)
+  revokedAt  DateTime?
+  replacedBy String? // Token ID that replaced this one (for rotation)
+  createdAt  DateTime  @default(now())
+  ipAddress  String? // IP address where token was issued
+  userAgent  String? // User agent for security tracking
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isRevoked])
+}
+
+// PasswordResetToken Model - For Password Reset Flow
+// Stores one-time use tokens for password reset requests
+// SECURITY: Tokens should be hashed before storage and expire after 1 hour
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  token     String    @unique // Hashed reset token
+  expiresAt DateTime // Token expiration (typically 1 hour)
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  ipAddress String? // IP address where token was requested
+  userAgent String? // User agent for security tracking
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isUsed])
+}
+
+// EmailVerificationToken Model - For Email Verification Flow
+// Stores one-time use tokens for email verification
+// SECURITY: Tokens should be hashed before storage and expire after 24 hours
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  token     String    @unique // Hashed verification token
+  expiresAt DateTime // Token expiration (typically 24 hours)
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  ipAddress String? // IP address where token was requested
+  userAgent String? // User agent for security tracking
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isUsed])
+}
+
+// LoginAttempt Model - Track Failed Login Attempts for Security
+// Used for account lockout mechanism and security monitoring
+// SECURITY: Helps prevent brute-force attacks by tracking failed attempts
+model LoginAttempt {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  email         String   @db.Citext // Email used in login attempt — citext so the lockout
+  // counter cannot be bypassed by varying capitalisation between attempts.
+  ipAddress     String? // IP address of the attempt
+  userAgent     String? // Browser/client user agent
+  success       Boolean  @default(false) // Whether login was successful
+  failureReason String? // Reason for failure (e.g., "invalid_password", "account_locked")
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([email])
+  @@index([ipAddress])
+  @@index([createdAt])
+  @@index([success])
+}
+
+// NOTE: an earlier, smaller `AuditLog` model was declared here. It was a
+// duplicate of the enhanced definition further down (search "Enhanced for
+// Security & Compliance") and made the schema invalid — `prisma validate`,
+// `db push` and `migrate` all refused to run, which is why the generated client
+// in node_modules predates it. The enhanced model is the real one: it carries
+// the `tenant` back-relation that `Tenant.auditLogs` requires, plus the
+// `status` and `durationMs` fields the audit writes in auth.service.ts use.
+
+// JoinRequest Model - Student Institutional Access Workflow
+// Allows independent students to request access to institutional libraries
+model JoinRequest {
+  id       String @id @default(uuid())
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String
+
+  // Request details
+  requestedRole TenantRole @default(STUDENT) // Usually 'student'
+  message       String?    @db.Text // Optional message from student
+  proofDocument String? // URL to uploaded proof (student ID, enrollment letter, etc.)
+
+  // Status: 'pending', 'approved', 'rejected'
+  status JoinRequestStatus @default(PENDING)
+
+  // Approval tracking
+  reviewedBy      String? // User ID of librarian/admin who reviewed
+  reviewedAt      DateTime?
+  rejectionReason String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// TenantInvitation Model - For Secure B2B Onboarding
+// Sent by Super Admins to prospective Tenant Admins to create a new Tenant
+model TenantInvitation {
+  id         String     @id @default(uuid())
+  email      String     @unique @db.Citext // Email of the prospective admin
+  token      String     @unique // Secure, randomly generated token
+  tenantName String // Pre-filled name of the institution
+  tenantType TenantType @default(SCHOOL) // Pre-filled type
+
+  status    InvitationStatus @default(PENDING)
+  invitedBy String // User ID of the super-admin who sent the invite
+
+  expiresAt DateTime // Token expiration (e.g., 24-48 hours)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([token])
+  @@index([status])
+}
+
+// Notification Model - System Notifications
+// For join request approvals, subscription updates, etc.
+model Notification {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Notification details
+  type      String // 'join_approved', 'join_rejected', 'subscription_expiring', 'book_due', etc.
+  title     String
+  message   String  @db.Text
+  actionUrl String? // Optional URL for action button
+
+  // Status
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+}
+
+// TenantSubscription Model - B2B Institutional Licensing
+// Replaces old Subscription model with tenant-specific focus
+model TenantSubscription {
+  id       String @id @default(uuid())
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String
+
+  // Subscription details
+  tier         String // 'basic', 'standard', 'premium', 'enterprise'
+  price        Float? // Monthly/annual price
+  billingCycle String @default("annual") // 'monthly', 'annual'
+
+  // Limits
+  maxUsers   Int? // Maximum users allowed
+  maxBooks   Int? // Maximum books in catalog
+  maxStorage Int? // Storage limit in GB
+  features   Json? // Feature flags: { audiobooks: true, analytics: true, etc. }
+
+  // Status
+  status    SubscriptionStatus @default(ACTIVE) // 'active', 'expired', 'cancelled', 'suspended'
+  startDate DateTime
+  endDate   DateTime
+  autoRenew Boolean            @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([endDate])
+}
+
+// TenantSettings Model - Tenant-Specific Configuration
+model TenantSettings {
+  id       String @id @default(uuid())
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String @unique
+
+  // Feature toggles
+  allowStudentSignup Boolean @default(false) // Allow students to request access
+  requireApproval    Boolean @default(true) // Require librarian approval for join requests
+  allowAnnotations   Boolean @default(true)
+  allowSharing       Boolean @default(true)
+
+  // Borrowing rules
+  maxBorrowDays   Int     @default(14)
+  maxBooksPerUser Int     @default(5)
+  allowRenewals   Boolean @default(true)
+  maxRenewals     Int     @default(2)
+
+  // Customization
+  customDomain String?
+  logoUrl      String?
+  primaryColor String?
+
+  // Personal Library Quotas (tenant-configurable)
+  // Defaults: { maxStorageBytes: 1073741824, maxFileCount: 30, maxSingleFileBytes: 104857600 }
+  personalLibraryQuota Json? // JSON object with quota settings
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// CONTENT MODELS - Tenant-Scoped Resources
+// ============================================================================
+
+// Book Model - Enhanced with Tenant Isolation
+model Book {
+  id String @id @default(uuid())
+
+  // CRITICAL: Tenant isolation - all queries MUST filter by tenantId
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId String
+
+  // Book metadata
+  title         String
+  author        String
+  isbn          String?
+  coverUrl      String?
+  coverKey      String? // S3 key for front cover ÔÇö required for cleanup on replace
+  backCoverUrl  String? // Back cover CDN URL
+  backCoverKey  String? // S3 key for back cover
+  sampleFileUrl String? // Free preview PDF CDN URL (Amazon "Look Inside")
+  sampleFileKey String? // S3 key for sample ÔÇö for cleanup and presign
+  format        String // 'pdf', 'epub', 'audiobook', 'video'
+  genre         String // Legacy ÔÇö use categories relation for new entries
+  publisher     String?
+  publishYear   Int?
+  pages         Int?
+  language      String? // e.g. "English", "Hindi", "Marathi"
+  gradeLevel    Int? // 1-12, same convention as User.gradeLevel — content targeting for §4/§10
+  description   String? @db.Text
+
+  // Availability
+  available       Boolean @default(true)
+  totalCopies     Int     @default(1)
+  availableCopies Int     @default(1)
+
+  // Media-related fields
+  mediaFile    MediaFile? @relation(fields: [mediaFileId], references: [id])
+  mediaFileId  String?    @unique
+  drmProtected Boolean    @default(false)
+  streamable   Boolean    @default(false)
+
+  // Global Catalog ÔÇö Dual-Axis Content Model
+  accessTier          AccessTier          @default(FREE)
+  catalogScope        CatalogScope        @default(INSTITUTIONAL)
+  globalPublishStatus GlobalPublishStatus @default(NONE)
+
+  // AI Licensing & Embedding
+  licenseType        LicenseType     @default(UNKNOWN)
+  aiEmbedEnabled     Boolean         @default(false)
+  embeddingStatus    EmbeddingStatus @default(NONE)
+  vectorCollectionId String? // Qdrant collection reference (shared collection, used for payload filtering)
+
+  // Shared cross-repo curriculum taxonomy (Vidyaverse-hosted Taxonomy Service).
+  // Denormalized local read cache: the taxonomy service's BookTaxonomyLink table is
+  // the source of truth, these are a write-through mirror so ingestion/retrieval
+  // never need a live HTTP call on their hot path. Distinct from `categories`
+  // (BookCategory, below) which is general reading-genre classification, not
+  // curriculum board/class/subject scoping — the two are orthogonal, not
+  // duplicates, so this does not replace `categories`.
+  taxonomyNodeIds        String[] @default([]) // every tagged node id (primary + cross-listed)
+  taxonomyPrimaryNodeId  String? // the primary shelf-path leaf node, for browsing
+
+  // Approval tracking for global publish workflow
+  globalPublishRequestedAt   DateTime?
+  globalPublishRequestedBy   String? // userId of requester
+  globalPublishReviewedAt    DateTime?
+  globalPublishReviewedBy    String? // userId of super-admin reviewer
+  globalPublishRejectionNote String?   @db.Text
+
+  // AI Embedding Lifecycle & Audit
+  embeddingStartedAt DateTime?
+  licenseVerifiedBy  String?
+  licenseVerifiedAt  DateTime?
+  licenseDocumentUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Recycle bin. A super-admin "delete" SOFT-deletes (moves the book to the Bin);
+  // a second, explicit purge hard-deletes it and flushes files/embeddings/graph.
+  // Null ⇒ live and visible; non-null ⇒ binned and hidden from every catalogue.
+  deletedAt DateTime?
+  deletedBy String? // userId who moved it to the Bin
+
+  // Relations
+  borrowedBooks         BorrowedBook[]
+  annotations           Annotation[]
+  bookPages             BookPage[]
+  bookFormats           BookFormat[]
+  bookChunkMappings     BookChunkMapping[]
+  audioChapters         AudioChapter[]
+  vocabularyItems       VocabularyItem[]
+  flashcardDecks        FlashcardDeck[]
+  readingAssignments    ReadingAssignment[]
+  chatMessages          BookChatMessage[]
+  categories            BookCategoryOnBook[]
+  embeddingStatusRecord BookEmbeddingStatus?
+  graphNodes            GraphNode[]
+  graphEdges            GraphEdge[]
+  graphCommunities      GraphCommunity[]
+  quizItems             QuizItem[]
+  conceptMasteries      ConceptMastery[]
+  resurfacingEvents     ResurfacingEvent[]
+  chapterDigests        ChapterDigest[]
+
+  @@index([tenantId])
+  @@index([isbn])
+  @@index([format])
+  @@index([genre])
+  @@index([available])
+  @@index([accessTier])
+  @@index([catalogScope])
+  @@index([globalPublishStatus])
+  @@index([deletedAt])
+}
+
+// BookPage Model - For Server-Side Full-Text Search
+model BookPage {
+  id            String             @id @default(uuid())
+  bookId        String
+  tenantId      String?
+  pageIndex     Int
+  // Was @db.LongText on MySQL. Postgres `text` is unbounded, so this is a strict
+  // improvement over LongText's 4 GB ceiling rather than a compromise.
+  content       String             @db.Text
+  book          Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chunkMappings BookChunkMapping[]
+
+  @@unique([bookId, pageIndex])
+  @@index([bookId])
+  @@index([tenantId])
+}
+
+// BookFormat Model - Multi-Format File Storage (PDF, EPUB, Audiobook, AI-Embed)
+model BookFormat {
+  id     String @id @default(uuid())
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  type     BookFormatType // 'pdf', 'epub', 'audiobook', 'ai_embed'
+  fileUrl  String? // S3/storage URL for the file
+  fileSize Int? // File size in bytes
+  mimeType String? // e.g. 'application/pdf', 'application/epub+zip', 'audio/mpeg'
+  metadata Json? // Format-specific metadata (duration for audio, page count for PDF, etc.)
+
+  /// Which PART of the work this file is — a chapter number for enriched
+  /// markdown, 0 for whole-book renditions (PDF, EPUB, audiobook).
+  ///
+  /// A book is many chapter files. The shared spine has always modelled that —
+  /// chunks are keyed (content_asset_id, chunk_index) and book order is
+  /// (part_index, chunk_index) — but BookFormat allowed exactly one row per
+  /// (bookId, type), so uploading chapter 9 REPLACED chapter 8 and the bridge
+  /// could only ever hand over the most recently uploaded file. Nothing errored;
+  /// the book simply had one chapter indexed and no sign that the rest were gone.
+  ///
+  /// Defaulted to 0 rather than nullable on purpose: Postgres treats NULLs as
+  /// distinct in a unique index, so a nullable column would silently re-allow
+  /// several PDFs per book — losing the very invariant this constraint exists
+  /// to hold.
+  partIndex Int @default(0)
+
+  totalDurationSeconds Float? // Sum of all section durations, for display
+  totalSections        Int? // For progress percentage calculation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One file per format PER PART: one PDF (part 0) and many markdown chapters.
+  @@unique([bookId, type, partIndex])
+  @@index([bookId])
+  @@index([type])
+}
+
+// BookCategory Model - Hierarchical Taxonomy (Genres, Subjects, Tags)
+model BookCategory {
+  id        String               @id @default(uuid())
+  name      String               @unique
+  type      String               @default("GENRE") // "GENRE", "SUBJECT", "TAG"
+  parentId  String?
+  parent    BookCategory?        @relation("CategoryTree", fields: [parentId], references: [id])
+  children  BookCategory[]       @relation("CategoryTree")
+  books     BookCategoryOnBook[]
+  createdAt DateTime             @default(now())
+
+  @@index([type])
+  @@index([parentId])
+}
+
+// BookCategoryOnBook ÔÇö Junction Table for Many-to-Many
+model BookCategoryOnBook {
+  book       Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId     String
+  category   BookCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+
+  @@id([bookId, categoryId])
+  @@index([bookId])
+  @@index([categoryId])
+}
+
+// BookChunkMapping Model - RAG Citation Cross-Referencing
+// Maps Qdrant vector point IDs to book pages for citation rendering
+model BookChunkMapping {
+  id         String    @id @default(uuid())
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId     String
+  bookPage   BookPage? @relation(fields: [bookPageId], references: [id], onDelete: SetNull)
+  bookPageId String?
+
+  chunkIndex    Int // Sequential chunk number within the book
+  qdrantPointId String  @unique // Qdrant vector point ID for lookup
+  pageNumber    Int? // Human-readable page number
+  chapterTitle  String? // Chapter name for UI display
+  textPreview   String  @db.Text // First ~200 chars for UI preview in citations
+  runId         String? // Embedding run identifier for atomic re-embedding (rag_hardening_v2)
+
+  createdAt DateTime @default(now())
+
+  @@index([bookId])
+  @@index([qdrantPointId])
+  @@index([bookPageId])
+  @@index([runId])
+}
+
+// ============================================================================
+// ENTITY-GRAPH BOOK INDEX (Reading Intelligence Layer §3)
+// Adjacency stored in Postgres rather than a dedicated graph DB — consistent
+// with the one-Postgres-cluster posture, and a single book's graph runs to
+// hundreds not millions of nodes, well within recursive-CTE territory.
+// ============================================================================
+
+// A person / place / term / event / concept extracted from the book text.
+model GraphNode {
+  id     String @id @default(uuid())
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  type         String // person | place | term | event | concept
+  label        String
+  description  String  @db.Text
+  firstPage    Int?
+  firstChapter String? // chapter title of the earliest passage this entity was found in — powers chapter-level community grouping without a second clustering pass
+
+  outgoingEdges GraphEdge[]            @relation("EdgeSource")
+  incomingEdges GraphEdge[]            @relation("EdgeTarget")
+  memberships   GraphCommunityMember[]
+  quizItems     QuizItem[]
+  masteries     ConceptMastery[]
+  resurfacingEvents ResurfacingEvent[]
+  embedding     GraphNodeEmbedding?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bookId, type])
+  @@index([bookId, label])
+}
+
+// Semantic-search vector for a graph node — its "label (type): description"
+// embedded once with the same provider that embeds book chunks. A sidecar
+// table, not a column on GraphNode, so the hot list/detail/network queries
+// never drag a 768-float array around, and "is this node embedded yet" is a
+// simple row-presence check that drives the lazy backfill for books extracted
+// before this existed. Brute-force cosine over a book's few-hundred vectors is
+// done in the service (graph.service.ts) — small enough that pgvector / a
+// dedicated Qdrant collection would be operational weight without a payoff.
+model GraphNodeEmbedding {
+  node   GraphNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  nodeId String    @id
+
+  // Denormalised from the node so the whole ranking set loads in one query,
+  // without joining back to GraphNode just to render a hit.
+  bookId String
+
+  vector Float[] // length == dims; the embedding provider's output
+  model  String // provider modelId that produced it — a model change invalidates the row
+  dims   Int
+
+  createdAt DateTime @default(now())
+
+  @@index([bookId])
+}
+
+// A relation between two nodes, grounded to the passage it was derived from.
+model GraphEdge {
+  id     String @id @default(uuid())
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  source   GraphNode @relation("EdgeSource", fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceId String
+  target   GraphNode @relation("EdgeTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  targetId String
+
+  relation String @db.Text
+
+  // Provenance. citedPage is the coarse fallback; spanStart/End (character
+  // offsets within the source chunk) are the §3.4 upgrade — clicking a
+  // summary sentence highlights the exact passage, not just the page top.
+  citedPage     Int?
+  chapterTitle  String?
+  spanStart     Int?
+  spanEnd       Int?
+  qdrantPointId String? // which ingested chunk this edge's evidence came from
+
+  createdAt DateTime @default(now())
+
+  @@index([bookId])
+  @@index([sourceId])
+  @@index([targetId])
+}
+
+// A Leiden/Louvain community-detection cluster at chapter or book level —
+// powers "what are the throughlines of this book" style global questions
+// that flat vector retrieval handles poorly.
+model GraphCommunity {
+  id     String @id @default(uuid())
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  level     String // chapter | book
+  summary   String @db.Text
+  algorithm String @default("louvain") // see graph/community-detection.service.ts
+
+  members GraphCommunityMember[]
+
+  createdAt DateTime @default(now())
+
+  @@index([bookId, level])
+}
+
+// Join table (not a Json array of ids) so membership is indexable and
+// cascades cleanly when a node or community is deleted.
+model GraphCommunityMember {
+  id          String         @id @default(uuid())
+  community   GraphCommunity @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  communityId String
+  node        GraphNode      @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  nodeId      String
+
+  @@unique([communityId, nodeId])
+  @@index([nodeId])
+}
+
+// ============================================================================
+// COMPREHENSION ASSESSMENT + KNOWLEDGE TRACING (Reading Intelligence Layer §4)
+// ============================================================================
+
+// An auto-generated comprehension item, tagged to the §3 concept it assesses
+// where extraction found one. Generated lazily on first request per chapter,
+// cached after — see quiz/quiz.controller.ts.
+model QuizItem {
+  id           String     @id @default(uuid())
+  book         Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId       String
+  chapterTitle String // matches GraphNode.firstChapter's grouping key, not a FK — a book's
+  // chapters aren't a modeled entity, just a metadata string shared across chunks/nodes.
+  concept      GraphNode? @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+  conceptId    String?
+
+  type    String // mcq | short_answer
+  prompt  String @db.Text
+  choices Json? // string[] for mcq; null for short_answer
+  answer  String @db.Text
+
+  // Provenance, same shape as GraphEdge — where in the source text this item's
+  // answer is grounded, so a student can jump back and check.
+  citedPage     Int?
+  spanStart     Int?
+  spanEnd       Int?
+  qdrantPointId String?
+
+  // Second-pass LLM answerability check (0..1) — items that fail the quality
+  // gate are never persisted, so every row here already cleared it. Kept for
+  // observability, not re-filtered at read time.
+  qualityScore Float
+
+  createdAt DateTime @default(now())
+
+  attempts QuizAttempt[]
+
+  @@index([bookId, chapterTitle])
+  @@index([conceptId])
+}
+
+// One student's answer to one item.
+model QuizAttempt {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  item       QuizItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId     String
+  answer     String   @db.Text
+  correct    Boolean
+  answeredAt DateTime @default(now())
+
+  @@index([userId, itemId])
+  @@index([itemId])
+}
+
+// Per-student, per-concept mastery estimate — Bayesian Knowledge Tracing, not
+// a raw percent-correct average. Distinguishes "wrong by a careless slip"
+// from "hasn't learned this yet," which a rolling average cannot.
+model ConceptMastery {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId    String
+  concept   GraphNode @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  conceptId String
+
+  mastery     Float    @default(0.3) // P(L) — BKT literature default prior, not a guess
+  attempts    Int      @default(0)
+  lastUpdated DateTime @updatedAt
+
+  @@unique([userId, bookId, conceptId])
+  @@index([userId, bookId])
+}
+
+// ============================================================================
+// FORGETTING-AWARE PASSAGE RESURFACING (Reading Intelligence Layer §7)
+// Extends the SM-2 flashcard spaced-repetition system above (FlashcardReview)
+// to the auto-extracted concept graph: instead of a manually-created
+// flashcard, this resurfaces the *original in-book passage* — via
+// GraphNode.firstPage/firstChapter — right as estimated recall drops past a
+// threshold. Estimated recall is derived nightly from the §4 BKT mastery
+// value decayed by time-since-last-update; it is deliberately not its own
+// persisted field, since it's only meaningful at the moment it's computed.
+// ============================================================================
+model ResurfacingEvent {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+  concept   GraphNode @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  conceptId String
+
+  scheduledAt DateTime  @default(now())
+  sentAt      DateTime?
+  actioned    Boolean   @default(false)
+
+  @@index([userId, sentAt])
+  @@index([conceptId])
+  @@index([bookId])
+}
+
+// ============================================================================
+// CONCEPT-AWARE ADAPTIVE TEXT REWRITING (Reading Intelligence Layer §10)
+// Targeted simplification of only the paragraphs whose concepts a specific
+// reader hasn't mastered yet (via §2/§4's ConceptMastery), rather than a
+// blanket reading-level toggle that flattens the whole book. "Paragraph" here
+// is this codebase's existing unit of text — a single ingested chunk,
+// identified by its qdrantPointId (same identifier BookChunkMapping and
+// GraphEdge.qdrantPointId already use) — there is no separate Paragraph
+// model. Cached per (paragraph, target level): the rewrite is
+// deterministic-enough to reuse across every student rewriting the same
+// paragraph to the same level, not just the one who triggered it.
+// ============================================================================
+model SimplifiedParagraph {
+  id          String   @id @default(cuid())
+  paragraphId String // qdrantPointId of the source chunk
+  targetLevel String // e.g. "grade_6" — free-text bucket key, not a FK
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+
+  @@unique([paragraphId, targetLevel])
+  @@index([paragraphId])
+}
+
+// ============================================================================
+// AUTO-GENERATED MULTI-VOICE CHAPTER DIGEST (Reading Intelligence Layer §8)
+// A short two-persona dialogue script recapping a chapter, grounded in the
+// §3 chapter-level community summary where one exists. audioUri/status are
+// separate from scriptJson deliberately: no TTS provider is wired in this
+// codebase today (digest.service.ts's ITtsProvider binding is an explicit,
+// documented no-op until a real one is configured) — the script itself is
+// still useful review content on its own, so it isn't gated on that.
+// ============================================================================
+model ChapterDigest {
+  id           String   @id @default(cuid())
+  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId       String
+  chapterTitle String // matches GraphNode.firstChapter / QuizItem.chapterTitle's grouping key, not a FK
+  voicePair    String   @default("default") // which two-voice preset this was (to be) rendered with
+
+  scriptJson Json // [{ speaker: "A"|"B", line: string, citedPage?: number }]
+  audioUri   String? // R2 object key once (if) TTS renders it — null means script-only
+  status     String   @default("SCRIPT_READY") // SCRIPT_READY | AUDIO_READY | AUDIO_FAILED
+
+  generatedAt DateTime @default(now())
+
+  @@unique([bookId, chapterTitle, voicePair])
+  @@index([bookId, chapterTitle])
+}
+
+// BookChatMessage Model - AI Chat History & GDPR Compliance
+model BookChatMessage {
+  id            String   @id @default(cuid())
+  userId        String
+  bookId        String
+  tenantId      String
+  role          ChatRole
+  content       String   @db.Text
+  citedChunkIds Json? // string[] of qdrantPointIds used in this response
+  mode          String   @default("explain") // explain | quiz_me | socratic — §6 dialogue policy, logged for analytics
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId, bookId])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([userId]) // For GDPR bulk delete
+}
+
+// ReadingProgress Model - For Progress Analytics and Cross-Device Sync
+model ReadingProgress {
+  id               String    @id @default(uuid())
+  userId           String
+  tenantId         String?
+  bookId           String
+  currentPage      Int       @default(0)
+  totalPagesRead   Int       @default(0)
+  timeSpentSeconds Int       @default(0)
+  wordsRead        Int       @default(0)
+  percentComplete  Float     @default(0)
+  lastReadAt       DateTime  @default(now())
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  dailyProgress    Json      @default("{}") // { "2026-02-22": { pages:3, seconds:600 } }
+  bookmarks        Json      @default("[]") // For syncing
+  readerSettings   Json      @default("{}") // For syncing individual preferences
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+// UserStreak Model - For Gamification and Reading Habits
+model UserStreak {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  tenantId         String? // Optional, if streaks are tied to an institution
+  currentStreak    Int       @default(0)
+  longestStreak    Int       @default(0)
+  lastReadDate     DateTime? // Store just the date part ideally
+  dailyGoalMinutes Int       @default(20)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// BorrowedBook Model - Enhanced with Tenant Context
+model BorrowedBook {
+  id String @id @default(uuid())
+
+  // Tenant context (denormalized for query performance)
+  tenantId String // Tenant where this borrowing occurred
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  // Borrowing details
+  borrowedAt DateTime  @default(now())
+  dueDate    DateTime
+  returnedAt DateTime?
+  expiresAt  DateTime? // For digital content with time-limited access
+
+  // Renewal tracking
+  renewalCount  Int       @default(0)
+  lastRenewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, bookId, returnedAt]) // Allow re-borrowing after return
+  @@index([userId])
+  @@index([bookId])
+  @@index([tenantId])
+  @@index([dueDate])
+  @@index([returnedAt])
+}
+
+// Annotation Model - Enhanced with Tenant Context
+model Annotation {
+  id String @id @default(uuid())
+
+  // Tenant context (denormalized for query performance).
+  // Nullable: an independent reader belongs to no institution, and their
+  // annotations are scoped by userId alone. Previously NOT NULL, which forced
+  // the controllers to write the literal string 'test-tenant'.
+  tenantId String?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+
+  // Annotation details
+  content  String  @db.Text
+  type     String // 'highlight', 'note', 'bookmark', 'ink'
+  color    String? // Highlight color
+  position Json // Position data: { page, x, y, width, height } or { timestamp } for audio
+
+  // Arbitrary per-type payload the generic `position` shape doesn't fit —
+  // currently just ink strokes ({ strokes: Stroke[] }, see InkOverlay.tsx).
+  // Previously the frontend sent this as `data` but the service never read
+  // or persisted it, so every freehand drawing silently vanished on reload
+  // (syncAnnotationsWithBackend's server-fetched copy always overwrote the
+  // local one with nothing here). Nullable — every other annotation type
+  // has no use for it.
+  data Json?
+
+  // Sharing
+  shared     Boolean @default(false)
+  sharedWith Json? // Array of user IDs or 'public'
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([tenantId])
+  @@index([type])
+  @@index([shared])
+}
+
+// AuditLog Model - Enhanced for Security & Compliance
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String?
+  entityId   String?
+  userId     String?
+  tenantId   String?
+  status     String   @default("SUCCESS")
+  ipAddress  String?
+  userAgent  String?
+  durationMs Int?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)]) // for global timeline view
+}
+
+// ============================================================================
+// LEARNING TOOLS MODELS (P1 Modules)
+// ============================================================================
+
+// VocabularyItem Model - Stores words users look up in the Dictionary
+model VocabularyItem {
+  id       String  @id @default(uuid())
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  tenantId String?
+
+  word       String
+  definition String? @db.Text
+  context    String? @db.Text // The sentence where they found it
+  bookId     String?
+  sourceBook Book?   @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  masteryLevel Int       @default(0) // 0-5 scale
+  lastReviewed DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, word])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+// FlashcardDeck Model - Grouping for Flashcards
+model FlashcardDeck {
+  id          String  @id @default(uuid())
+  title       String
+  description String? @db.Text
+  color       String?
+
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  tenantId String?
+
+  bookId     String?
+  sourceBook Book?   @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  cards Flashcard[]
+
+  isShared Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([bookId])
+}
+
+// Flashcard Model - Individual cards
+model Flashcard {
+  id     String        @id @default(uuid())
+  deck   FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deckId String
+
+  frontContent String @db.Text
+  backContent  String @db.Text
+  type         String @default("basic") // 'basic', 'cloze'
+  tags         Json?
+
+  reviews FlashcardReview[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([deckId])
+}
+
+// FlashcardReview Model - SuperMemo-2 Spaced Repetition tracking per card per user
+// Useful if decks are shared, each user has their own stats
+model FlashcardReview {
+  id     String    @id @default(uuid())
+  card   Flashcard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Spaced Repetition (SM-2) Algorithm fields
+  interval       Int   @default(0) // Current interval in days
+  repetition     Int   @default(0) // Number of consecutive correct answers
+  easinessFactor Float @default(2.5) // SM-2 EF
+
+  nextReviewDate DateTime @default(now())
+
+  // History tracking
+  totalReviews  Int @default(0)
+  failedReviews Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, cardId])
+  @@index([userId])
+  @@index([cardId])
+  @@index([nextReviewDate])
+}
+
+// ============================================================================
+// MEDIA MANAGEMENT MODELS - Unchanged (No Tenant Isolation Required)
+// These models are platform-level resources shared across tenants
+// ============================================================================
+
+model MediaFile {
+  id            String         @id @default(uuid())
+  filename      String
+  originalName  String
+  mimeType      String
+  size          Int // File size in bytes
+  s3Key         String // AWS S3 object key
+  s3Bucket      String // AWS S3 bucket name
+  cdnUrl        String? // CDN URL if available
+  encryptionKey String? // Encryption key (stored securely)
+  status        String         @default("processing") // 'processing', 'ready', 'error'
+  book          Book?
+  mediaVariants MediaVariant[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([status])
+  @@index([s3Key])
+}
+
+// ============================================================================
+// AUDIOBOOK V2 MODELS
+// ============================================================================
+
+enum AudioSectionType {
+  INTRO
+  SECTION
+}
+
+enum AudioGender {
+  MALE
+  FEMALE
+}
+
+model AudioChapter {
+  id        String         @id @default(uuid())
+  bookId    String
+  title     String
+  sortOrder Int // Explicit ordering, not insertion order
+  sections  AudioSection[]
+  book      Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+}
+
+model AudioSection {
+  id              String           @id @default(uuid())
+  chapterId       String
+  title           String
+  sortOrder       Int
+  sectionType     AudioSectionType @default(SECTION)
+  transcriptUrl   String? // .txt file URL on R2
+  transcriptCues  Json? // Array of {paragraphIndex, startSeconds} for auto-scroll
+  durationSeconds Float?
+  fileSizeBytes   BigInt? // For Android download size estimation
+  tracks          AudioTrack[]
+  bookmarks       AudioBookmark[]
+  chapter         AudioChapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([chapterId])
+}
+
+model AudioTrack {
+  id              String       @id @default(uuid())
+  sectionId       String
+  gender          AudioGender
+  fileUrl         String       @db.Text
+  durationSeconds Float
+  fileSizeBytes   BigInt?
+  section         AudioSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  // Reading Intelligence Layer §5 — word-level timestamps for this specific
+  // track's audio. Lives on AudioTrack, not AudioSection: male/female
+  // narrations of the same text have different pacing, so each track's
+  // audio needs its own alignment, generated from its own file.
+  wordAlignment   Json? // [{ word, startMs, endMs, textOffset }] — see alignment.service.ts
+  alignmentStatus String  @default("none") // none | pending | ready | failed
+  alignmentError  String? @db.Text
+
+  @@index([sectionId])
+}
+
+model AudioProgress {
+  id              String      @id @default(uuid())
+  userId          String
+  bookId          String
+  sectionId       String
+  positionSeconds Float       @default(0)
+  activeGender    AudioGender @default(MALE)
+  showTranscript  Boolean     @default(false)
+  playbackRate    Float       @default(1.0)
+  updatedAt       DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId]) // One progress row per user per book
+  @@index([userId])
+  @@index([bookId])
+}
+
+model AudioBookmark {
+  id              String   @id @default(uuid())
+  userId          String
+  sectionId       String
+  positionSeconds Float
+  note            String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section AudioSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sectionId])
+}
+
+model MediaVariant {
+  id          String    @id @default(uuid())
+  mediaFile   MediaFile @relation(fields: [mediaFileId], references: [id], onDelete: Cascade)
+  mediaFileId String
+  quality     String // 'high', 'medium', 'low'
+  bitrate     Int? // Bitrate in kbps for audio
+  format      String // 'HLS', 'DASH', 'MP3', 'AAC', 'MP4'
+  s3Key       String // AWS S3 object key
+  cdnUrl      String? // CDN URL if available
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([mediaFileId])
+  @@index([quality])
+}
+
+model MediaUpload {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  presignedUrl String // S3 presigned URL for upload
+  fileType     String // 'ebook', 'audiobook', 'video'
+  filename     String?
+  expiresAt    DateTime // When the presigned URL expires
+  status       String   @default("pending") // 'pending', 'completed', 'error'
+  errorMessage String?
+  mediaFileId  String? // Populated after successful upload
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model MediaAccess {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  resourceType String // 'book', 'chapter'
+  resourceId   String
+  createdAt    DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([resourceType, resourceId])
+}
+
+model MediaSettings {
+  id                String   @id @default(uuid())
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId          String   @unique
+  s3Bucket          String // Default S3 bucket
+  cdnDomain         String? // CloudFront or other CDN domain
+  defaultEncryption Boolean  @default(true)
+  allowedFormats    Json // Array of allowed formats
+  maxFileSize       Int // Max file size in MB
+  adaptiveBitrate   Boolean  @default(true)
+  bitrateSettings   Json? // Settings for adaptive bitrate
+  storageLifecycle  Json? // S3 lifecycle policy settings
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ============================================================================
+// ASSIGNMENT MODELS
+// ============================================================================
+
+model ReadingAssignment {
+  id          String   @id @default(uuid())
+  tenantId    String
+  bookId      String
+  title       String
+  description String?  @db.Text
+  dueDate     DateTime
+  teacherId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  book     Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  teacher  User                @relation("TeacherAssignments", fields: [teacherId], references: [id], onDelete: Cascade)
+  students StudentAssignment[]
+
+  @@index([tenantId])
+  @@index([bookId])
+  @@index([teacherId])
+  @@index([dueDate])
+}
+
+model StudentAssignment {
+  id           String                  @id @default(uuid())
+  userId       String
+  assignmentId String
+  status       StudentAssignmentStatus @default(PENDING) // "pending", "completed"
+  completedAt  DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  user       User              @relation("StudentAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  assignment ReadingAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, assignmentId])
+  @@index([userId])
+  @@index([assignmentId])
+  @@index([status])
+}
+
+// ============================================================================
+// BETTER AUTH CORE MODELS
+// ============================================================================
+
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String
+  providerId            String
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+  idToken               String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String   @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Invitation {
+  id             String   @id
+  organizationId String
+  // citext: better-auth looks invitations up by email itself, so the case-insensitive
+  // match has to be a property of the column rather than of our call sites.
+  email          String   @db.Citext
+  role           String?
+  status         String
+  expiresAt      DateTime
+  inviterId      String
+  user           User     @relation("InvitationsSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+// ============================================================================
+// DICTIONARY / VOCABULARY MODELS
+// ============================================================================
+
+// WordCache Model - Global dictionary lookup cache to avoid rate limits
+model WordCache {
+  id               String  @id @default(uuid())
+  word             String  @unique
+  definition       String? @db.Text
+  hindiTranslation String? @db.Text
+  pronunciation    String?
+  partOfSpeech     String?
+  example          String? @db.Text
+  wikiExtract      String? @db.Text
+  wikiUrl          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([word])
+}
+
+// ============================================================================
+// PERSONAL LIBRARY MODELS ÔÇö Student-Owned File Uploads
+// ============================================================================
+
+// PersonalFolder ÔÇö Directory structure for Personal Files
+model PersonalFolder {
+  id        String    @id @default(uuid())
+  userId    String
+  parentId  String? // null = root-level folder
+  name      String
+  color     String? // hex color for folder icon, e.g. "#F5A623"
+  isStarred Boolean   @default(false)
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // null = active, set = soft-deleted
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   PersonalFolder?  @relation("FolderChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children PersonalFolder[] @relation("FolderChildren")
+  files    PersonalFile[]
+
+  @@index([userId, parentId, deletedAt])
+  @@index([userId, isStarred])
+}
+
+// PersonalFile ÔÇö Student-uploaded PDFs and EPUBs stored in R2
+// Completely separate from the Book model to avoid ID collisions
+model PersonalFile {
+  id     String @id @default(uuid())
+  userId String
+
+  // Folder & Metadata Additions
+  folderId  String? // null = root-level
+  isStarred Boolean @default(false)
+  tags      Json    @default("[]") // For MySQL compatibility, store tags as JSON array
+  sortOrder Int     @default(0)
+  color     String? // optional per-file color label
+
+  title      String
+  author     String?
+  format     String // 'pdf' | 'epub'
+  mimeType   String
+  fileSize   Int // bytes
+  storageKey String // R2 object key (e.g. personal/{userId}/{uuid}.pdf)
+  coverUrl   String? // optional cover image URL (V2)
+
+  // Reading state (denormalized for fast list queries)
+  lastReadAt DateTime?
+  progress   Float     @default(0) // 0.0 ÔÇô 1.0
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // null = active, set = soft-deleted
+
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder          PersonalFolder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  readingProgress PersonalReadingProgress?
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, folderId, deletedAt])
+  @@index([userId, isStarred])
+}
+
+// PersonalReadingProgress ÔÇö Detailed reading state for personal uploads
+// Mirrors ReadingProgress structure but with personalFileId FK instead of bookId
+model PersonalReadingProgress {
+  id               String   @id @default(uuid())
+  personalFileId   String   @unique
+  userId           String
+  currentPage      Int      @default(0)
+  totalPagesRead   Int      @default(0)
+  timeSpentSeconds Int      @default(0)
+  percentComplete  Float    @default(0)
+  lastReadAt       DateTime @default(now())
+  startedAt        DateTime @default(now())
+  bookmarks        Json     @default("[]")
+  readerSettings   Json     @default("{}")
+
+  personalFile PersonalFile @relation(fields: [personalFileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// RAG HARDENING & EMBEDDING STATUS (post-recovery additions)
+// Matches migrations: manual_rag_hardening_v2, 20260422223106_add_book_embedding_status
+// ============================================================================
+
+model BookEmbeddingStatus {
+  id             String          @id @default(uuid())
+  bookId         String          @unique
+  status         EmbeddingStatus @default(PENDING)
+  totalChunks    Int             @default(0)
+  embeddedChunks Int             @default(0)
+  errorMessage   String?         @db.Text
+  embeddingModel String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model VartaUsageLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  date       DateTime @db.Date
+  tokensUsed Int      @default(0)
+  queryCount Int      @default(0)
+
+  @@unique([tenantId, date])
+  @@index([tenantId, date])
+}
+
+// ============================================================================
+// PER-USER, PER-FEATURE DAILY AI QUOTA (free-trial rate limiting)
+// ============================================================================
+//
+// One row per (user, feature, day). Trial users get a fixed per-feature daily
+// allowance across the RAG surfaces that call a paid API (Varta chat, Simplify,
+// Recap, Quiz, Visual Grounding); the AiFeatureGuard increments the matching row
+// on every call and refuses once the day's allowance is spent. Paid/entitled
+// users bypass the trial cap entirely, so no row is written for them.
+//
+// Deliberately separate from VartaUsageLog: that is a per-TENANT token budget for
+// institutions, this is a per-USER request count for individual B2C trials. They
+// answer different questions ("has this institution burned its token budget?" vs
+// "has this trial student used their 30 quiz generations today?") and collapsing
+// them would make neither legible.
+model AiFeatureUsage {
+  id      String   @id @default(uuid())
+  userId  String
+  // 'varta' | 'simplify' | 'recap' | 'quiz' | 'visual_grounding' — the AiFeature
+  // slug the guard was decorated with. A string, not an enum, so adding a new
+  // gated surface is a one-line decorator change and needs no migration.
+  feature String
+  date    DateTime @db.Date
+  count   Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The upsert target: the guard atomically bumps count for exactly this row.
+  @@unique([userId, feature, date])
+  @@index([userId, date])
+}
+
+// ============================================================================
+// PUSH NOTIFICATIONS DEVICE TOKENS (FCM / APNs via Expo)
+// ============================================================================
+
+model DeviceToken {
+  id          String   @id @default(uuid())
+  userId      String
+  deviceToken String   @unique
+  platform    String // 'ios' | 'android' | 'web'
+  deviceName  String?
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceToken])
+  @@index([platform])
+}

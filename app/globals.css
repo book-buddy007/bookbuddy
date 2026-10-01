@@ -1,0 +1,468 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Design Systems */
+@import '../styles/vg-design-system.css';
+@import '../styles/vg-animations.css';
+@import '../styles/landing-design-system.css';
+@import '../styles/landing-animations.css';
+@import '../styles/professional-design-system.css';
+
+/* ----- Indic design system (canonical, shared with Vidyaverse & DCP) -----
+   Order matters: tokens define the pigments, the app layer picks this app's
+   accent from them, and the design system consumes both. See
+   shared/design/indic/indic.tokens.mjs for the source of truth. */
+@import '../shared/design/indic/indic-tokens.css';
+@import '../shared/design/indic/indic-app.bookbuddy.css';
+@import '../shared/design/indic/indic-design-system.css';
+
+/* Cross-cutting UX rules from the Reader & Player audit — touch
+   targets, focus-visible parity, highlight palette, motion policy.
+   Imported last so it wins over the four older design systems above
+   without needing !important on every rule. */
+@import '../styles/ux-foundation.css';
+
+@layer base {
+  :root {
+    /* VG Educational Background Colors */
+    --background-start-rgb: 227 242 253;
+    /* VG Primary 50 */
+    --background-end-rgb: 243 244 246;
+    /* Light gray */
+    --foreground-rgb: 33 33 33;
+    /* VG Gray 900 */
+    --card-rgb: 255 255 255;
+    /* White */
+    --primary-rgb: 0 113 227;
+    /* VG Primary 500 */
+    --secondary-start-rgb: 139 92 246;
+    /* VG Sanskrit 500 */
+    --secondary-end-rgb: 245 158 11;
+    /* VG Cultural 500 */
+
+    /* Shadcn/UI HSL values - Enhanced with VG colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+    --primary: 207 100% 45%;
+    /* VG Primary Blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 0 0% 46%;
+    --accent: 207 90% 54%;
+    /* Lighter VG Blue */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    /* VG Error */
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 207 100% 45%;
+    --radius: 0.5rem;
+    --chart-1: 207 100% 45%;
+    /* VG Primary */
+    --chart-2: 271 76% 53%;
+    /* VG Sanskrit */
+    --chart-3: 38 92% 50%;
+    /* VG Cultural */
+    --chart-4: 142 71% 45%;
+    /* VG Success */
+    --chart-5: 0 84% 60%;
+    /* VG Error */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 26%;
+    --sidebar-primary: 207 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 207 90% 96%;
+    --sidebar-accent-foreground: 207 100% 45%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 207 100% 45%;
+  }
+
+  /* Custom Audiobook Player Animations */
+  @keyframes grid-move {
+    0% {
+      transform: translateY(0);
+    }
+
+    100% {
+      transform: translateY(50px);
+    }
+  }
+
+  .dark {
+    /* VG Educational Dark Mode Colors */
+    --background-start-rgb: 10 10 20;
+    --background-end-rgb: 20 20 35;
+    --foreground-rgb: 238 238 238;
+    /* Light Gray */
+    --card-rgb: 30 30 42;
+    --primary-rgb: 66 165 245;
+    /* Lighter VG Blue */
+    --secondary-start-rgb: 171 71 188;
+    /* Lighter VG Sanskrit */
+    --secondary-end-rgb: 255 179 0;
+    /* Lighter VG Cultural */
+
+    --background: 240 10% 4%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 8%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 207 90% 61%;
+    /* Lighter VG Primary */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 207 90% 61%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 207 90% 61%;
+    --chart-1: 207 90% 61%;
+    /* VG Primary Light */
+    --chart-2: 271 51% 60%;
+    /* VG Sanskrit Light */
+    --chart-3: 38 100% 50%;
+    /* VG Cultural Light */
+    --chart-4: 142 71% 45%;
+    /* VG Success */
+    --chart-5: 0 84% 60%;
+    /* VG Error */
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 207 90% 61%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 207 90% 61%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    max-width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent font size inflation on iOS */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Images never overflow */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  body {
+    /* Apply VG Educational gradient background */
+    @apply bg-gradient-to-br from-[rgb(var(--background-start-rgb))] to-[rgb(var(--background-end-rgb))] text-[rgb(var(--foreground-rgb))];
+    font-family: var(--font-vg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    /* VG Dark mode gradient background */
+    @apply bg-gradient-to-br from-[rgb(var(--background-start-rgb))] to-[rgb(var(--background-end-rgb))] text-[rgb(var(--foreground-rgb))];
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+
+  /* VG Educational Card Styles */
+  .card {
+    @apply bg-[rgb(var(--card-rgb))] text-[rgb(var(--card-foreground))] rounded-xl shadow-md;
+    transition: all var(--vg-duration-normal) ease;
+  }
+
+  .card:hover {
+    @apply shadow-lg;
+    transform: translateY(-2px);
+  }
+
+  .dark .card {
+    @apply bg-[rgb(var(--card-rgb))] text-[rgb(var(--card-foreground))] shadow-lg;
+    backdrop-filter: blur(8px);
+  }
+
+  /* VG Gradient Buttons */
+  .btn-primary-gradient {
+    @apply bg-gradient-to-r from-[rgb(var(--primary-rgb))] to-blue-600 text-white;
+    box-shadow: var(--vg-shadow-md);
+    transition: all var(--vg-duration-normal) ease;
+  }
+
+  .btn-primary-gradient:hover {
+    box-shadow: var(--vg-shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary-gradient {
+    @apply bg-gradient-to-r from-[rgb(var(--secondary-start-rgb))] to-[rgb(var(--secondary-end-rgb))] text-white;
+    box-shadow: var(--vg-shadow-md);
+    transition: all var(--vg-duration-normal) ease;
+  }
+
+  .btn-secondary-gradient:hover {
+    box-shadow: var(--vg-shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  /* VG Cultural Card */
+  .card-cultural {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    box-shadow: var(--vg-shadow-cultural);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Safe area for iPhone notch/home bar */
+  .bottom-safe-area {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+
+  /* Hide scrollbar for tab bars and horizontal scroll containers */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Touch-safe hover lift ── */
+  /* Only applies on devices with a precise pointer (mouse/trackpad) */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift {
+      transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    }
+  }
+
+  /* ── Cross-browser hidden-scrollbar horizontal scroll ── */
+  .scroll-x-hidden {
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scroll-x-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Touch overlay visibility toggles ──
+     OR-condition: catches pure touch, stylus-only (Surface pen), and hybrid */
+  .hidden-on-touch  { display: flex; }
+  .visible-on-touch { display: none; }
+
+  @media (hover: none), (pointer: coarse) {
+    .hidden-on-touch  { display: none !important; }
+    .visible-on-touch { display: flex !important; }
+  }
+
+  /* ── Safe area bottom (iOS home indicator) ── */
+  .safe-area-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+}
+
+
+/* Branch grid and map container styles */
+.branch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.map-container {
+  height: 400px;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+}
+
+.youtube-audio-container {
+  position: absolute;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Custom global scrollbar (thin, elegant) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.4);
+}
+
+/* Smooth scrolling behavior */
+.sidebar-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Reader scroll view styles */
+.scroll-page {
+  scroll-margin-top: 2rem;
+}
+
+/* Smooth scroll behavior for reader */
+main.flex-1.overflow-auto {
+  scroll-behavior: smooth;
+}
+
+/* Page flip animation perspective container */
+@media (min-width: 768px) {
+  .page-flip-container {
+    perspective: 2000px;
+    transform-style: preserve-3d;
+  }
+}
+
+/* Cursor transitions for page navigation zones */
+.cursor-w-resize {
+  cursor: w-resize !important;
+}
+
+.cursor-e-resize {
+  cursor: e-resize !important;
+}
+
+.cursor-text {
+  cursor: text !important;
+}
+
+/* Ensure child elements don't override cursor in navigation zones */
+.cursor-w-resize *,
+.cursor-e-resize * {
+  cursor: inherit !important;
+}
+
+/* ── PDF Sidebar Thumbnails ── */
+.pdf-thumbnails-sidebar {
+  width: 100%;
+}
+
+.pdf-thumbnails-sidebar .rpv-thumbnail__list {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 4px 0 !important;
+}
+
+.pdf-thumbnails-sidebar .rpv-thumbnail__container {
+  width: 100% !important;
+  max-width: 220px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  border: 2px solid transparent !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+
+.pdf-thumbnails-sidebar .rpv-thumbnail__container:hover {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+.pdf-thumbnails-sidebar .rpv-thumbnail__container--selected {
+  border-color: #6366f1 !important;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.2) !important;
+}
+
+.pdf-thumbnails-sidebar .rpv-thumbnail__label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  padding: 4px 0 2px !important;
+  text-align: center !important;
+}
+
+/* ── PDF Bookmarks (TOC) in sidebar ── */
+.pdf-bookmarks-container .rpv-bookmark__list {
+  padding: 0 !important;
+}
+
+.pdf-bookmarks-container .rpv-bookmark__title {
+  font-size: 13px !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  color: inherit !important;
+}
+
+.pdf-bookmarks-container .rpv-bookmark__title:hover {
+  background: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* Dashboard "recently added" marquee — a seamless auto-scroll carousel for the
+   Continue-learning empty state. The track holds two copies of the list and
+   slides exactly -50%, so the second copy lands where the first began = no seam.
+   Paused on hover (see the component's group-hover) and for reduced-motion. */
+@keyframes dashboard-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-dashboard-marquee {
+  animation: dashboard-marquee 40s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-dashboard-marquee { animation: none !important; }
+}

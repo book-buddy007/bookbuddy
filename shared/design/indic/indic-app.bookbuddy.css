@@ -1,0 +1,31 @@
+/* ============================================================
+   GENERATED FILE — DO NOT EDIT.
+   Source:     shared/design/indic/indic.tokens.mjs
+   Regenerate: node shared/design/indic/build-indic-css.mjs
+   ============================================================ */
+
+/* Accent layer for Book Buddy by VPD — the only file that differs per app.
+   --accent-strong is the ONLY token permitted under white text. */
+
+:root {
+  --accent-primary: var(--saffron);
+  --accent-primary-rgb: var(--saffron-rgb);
+  --accent-primary-hsl: var(--saffron-hsl);
+
+  --accent-strong: #B45309;
+  --accent-strong-rgb: 180 83 9;
+  --accent-strong-hsl: 26 90.5% 37.1%;
+
+  --accent-soft: #FFF1E8;
+  --accent-soft-rgb: 255 241 232;
+  --accent-soft-hsl: 23.5 100% 95.5%;
+
+  --accent-contrast: #7C2D12;
+  --accent-contrast-rgb: 124 45 18;
+  --accent-contrast-hsl: 15.3 74.6% 27.8%;
+
+  /* used only inside .dark — the base accent goes muddy on night-ink */
+  --accent-primary-dark: #FF8A5B;
+  --accent-primary-dark-rgb: 255 138 91;
+  --accent-primary-dark-hsl: 17.2 100% 67.8%;
+}

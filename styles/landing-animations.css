@@ -1,0 +1,464 @@
+/* ========================================
+   LANDING PAGE ANIMATIONS
+   Based on DigiClassroom Landing Page Specifications
+   ======================================== */
+
+/* ===== KEYFRAME ANIMATIONS ===== */
+
+/* Bounce Animation */
+@keyframes landing-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Pulse Animation */
+@keyframes landing-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Fade In */
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Up */
+@keyframes landing-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Down */
+@keyframes landing-fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale In */
+@keyframes landing-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide In Right */
+@keyframes landing-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide In Left */
+@keyframes landing-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Spin */
+@keyframes landing-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Float */
+@keyframes landing-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Glow Pulse */
+@keyframes landing-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(249, 115, 22, 0.6);
+  }
+}
+
+/* Shimmer */
+@keyframes landing-shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Glass Shine Effect */
+@keyframes landing-glass-shine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+/* Glass Border Glow */
+@keyframes landing-glass-border-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(29, 78, 216, 0.3),
+      inset 0 0 20px rgba(29, 78, 216, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(6, 182, 212, 0.5),
+      inset 0 0 30px rgba(6, 182, 212, 0.2);
+  }
+}
+
+/* Glass Levitate */
+@keyframes landing-glass-levitate {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow:
+      0 8px 32px rgba(29, 78, 216, 0.12),
+      0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow:
+      0 16px 48px rgba(29, 78, 216, 0.18),
+      0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* Glass Tint Shift */
+@keyframes landing-glass-tint-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Gradient Shift - For animated background gradients */
+@keyframes landing-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Grid Move - For animated grid patterns */
+@keyframes landing-grid-move {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+/* Slide Down - For header/navbar entrance */
+@keyframes landing-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide Right - For left sidebar entrance */
+@keyframes landing-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide Left - For right sidebar entrance */
+@keyframes landing-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== ANIMATION UTILITY CLASSES ===== */
+
+.animate-landing-bounce {
+  animation: landing-bounce 2s ease-in-out infinite;
+}
+
+.animate-landing-pulse {
+  animation: landing-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-landing-fade-in {
+  animation: landing-fade-in 0.8s ease-out;
+}
+
+.animate-landing-fade-in-up {
+  animation: landing-fade-in-up 0.8s ease-out;
+}
+
+.animate-landing-fade-in-down {
+  animation: landing-fade-in-down 0.8s ease-out;
+}
+
+.animate-landing-scale-in {
+  animation: landing-scale-in 0.5s ease-out;
+}
+
+.animate-landing-slide-in-right {
+  animation: landing-slide-in-right 0.8s ease-out;
+}
+
+.animate-landing-slide-in-left {
+  animation: landing-slide-in-left 0.8s ease-out;
+}
+
+.animate-landing-spin {
+  animation: landing-spin 1s linear infinite;
+}
+
+.animate-landing-float {
+  animation: landing-float 3s ease-in-out infinite;
+}
+
+.animate-landing-glow-pulse {
+  animation: landing-glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-landing-shimmer {
+  animation: landing-shimmer 2s linear infinite;
+}
+
+.animate-landing-glass-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-landing-glass-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  animation: landing-glass-shine 3s ease-in-out infinite;
+}
+
+.animate-landing-glass-border-glow {
+  animation: landing-glass-border-glow 3s ease-in-out infinite;
+}
+
+.animate-landing-glass-levitate {
+  animation: landing-glass-levitate 4s ease-in-out infinite;
+}
+
+.animate-landing-glass-tint-shift {
+  background-size: 200% 200%;
+  animation: landing-glass-tint-shift 5s ease infinite;
+}
+
+.animate-landing-gradient-shift {
+  background-size: 200% 200%;
+  animation: landing-gradient-shift 8s ease infinite;
+}
+
+.animate-landing-grid-move {
+  animation: landing-grid-move 20s linear infinite;
+}
+
+.animate-landing-slide-down {
+  animation: landing-slide-down 0.8s ease-out;
+}
+
+.animate-landing-slide-right {
+  animation: landing-slide-right 0.8s ease-out;
+}
+
+.animate-landing-slide-left {
+  animation: landing-slide-left 0.8s ease-out;
+}
+
+/* ===== STAGGER ANIMATIONS ===== */
+
+.landing-stagger-children > * {
+  animation: landing-fade-in-up 0.8s ease-out;
+}
+
+.landing-stagger-children > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.landing-stagger-children > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.landing-stagger-children > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.landing-stagger-children > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.landing-stagger-children > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.landing-stagger-children > *:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+/* ===== TRANSITION UTILITIES ===== */
+
+.landing-transition-fast {
+  transition: all 150ms ease;
+}
+
+.landing-transition-normal {
+  transition: all 300ms ease;
+}
+
+.landing-transition-slow {
+  transition: all 500ms ease;
+}
+
+.landing-transition-slower {
+  transition: all 800ms ease;
+}
+
+/* ===== HOVER EFFECTS ===== */
+
+.landing-hover-lift {
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+.landing-hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.landing-hover-scale {
+  transition: transform 300ms ease;
+}
+
+.landing-hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.landing-hover-glow {
+  transition: box-shadow 300ms ease;
+}
+
+.landing-hover-glow:hover {
+  box-shadow: 0 0 30px rgba(249, 115, 22, 0.5);
+}
+
+/* ===== LOADING STATES ===== */
+
+.landing-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(229, 231, 235, 0.2) 0%,
+    rgba(229, 231, 235, 0.4) 50%,
+    rgba(229, 231, 235, 0.2) 100%
+  );
+  background-size: 200% 100%;
+  animation: landing-shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .landing-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(55, 65, 81, 0.2) 0%,
+    rgba(55, 65, 81, 0.4) 50%,
+    rgba(55, 65, 81, 0.2) 100%
+  );
+}
+
+/* ===== REDUCED MOTION ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

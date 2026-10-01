@@ -1,0 +1,12 @@
+diff --git a/node_modules/@react-pdf-viewer/highlight/lib/cjs/highlight.js b/node_modules/@react-pdf-viewer/highlight/lib/cjs/highlight.js
+index 772288f..5d162e6 100644
+--- a/node_modules/@react-pdf-viewer/highlight/lib/cjs/highlight.js
++++ b/node_modules/@react-pdf-viewer/highlight/lib/cjs/highlight.js
+@@ -500,6 +500,7 @@ var Tracker = function (_a) {
+                 break;
+         }
+         var getRectBetween = function (min, max, eleArray) {
++            if (min > max || min < 0) return [];
+             return Array(max - min + 1)
+                 .fill(0)
+                 .map(function (_, i) { return eleArray[min + i].getBoundingClientRect(); });
