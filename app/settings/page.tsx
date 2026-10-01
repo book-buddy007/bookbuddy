@@ -1,697 +1,371 @@
 "use client"
 
-import { useEffect } from 'react'
-import { Badge } from "@/components/ui/badge"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card"
-import { StatCard } from "@/components/ui/stat-card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Globe, Mail, Eye, Bookmark, Sun, Moon, BookOpen, Settings, User, Bell, Shield, Palette } from "@/components/ui/icons"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Slider } from "@/components/ui/slider"
+import * as React from "react"
+import Link from "next/link"
 import { useTheme } from "next-themes"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useReaderStore } from '@/store/useReaderStore'
-import { useAppStore } from '@/store/useAppStore'
+import { authClient, useSession } from "@/lib/auth-client"
+import { useAuthStore } from "@/store/useAuthStore"
+import { useReaderStore } from "@/store/useReaderStore"
+import { useAppStore } from "@/store/useAppStore"
+import { toReaderKey } from "@/lib/reader-themes"
+import { cn } from "@/lib/utils"
+import { PageHeader } from "@/components/ui/page-header"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import { Icon, type BBIconName } from "@/components/ui/icon"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ReaderDisplayContent } from "@/components/reader/ReaderDisplayContent"
+import { toast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
-export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
-  
-  // Use our reader store instead of local state
-  const {
-    fontSize,
-    lineHeight,
-    fontFamily,
-    theme: readerTheme,
-    colorTemperature,
-    contrast,
-    autoTheme,
-    setFontSize,
-    setLineHeight,
-    setFontFamily,
-    setTheme: setReaderTheme,
-    setColorTemperature,
-    setContrast,
-    toggleAutoTheme,
-    resetSettings
-  } = useReaderStore();
-  
-  // Use our app store for global preferences
-  const {
-    reduceMotion,
-    highContrast,
-    setReduceMotion,
-    setHighContrast,
-    setTheme: setAppTheme,
-    resetAppSettings
-  } = useAppStore();
-  
-  // Sync next-themes and app theme when theme changes
-  useEffect(() => {
-    if (theme) {
-      setAppTheme(theme as any);
-    }
-  }, [theme, setAppTheme]);
-  
+/* Settings used to be a mock-up: "John Doe" account details, an invented Google
+   connection, iPhone and Firefox sessions, an API key, and Save buttons and switches
+   that saved nothing. Everything here is now either real or labelled "Not available yet". */
+
+function Section({ title, description, icon, children, className }: {
+  title: string
+  description?: React.ReactNode
+  icon: BBIconName
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in-0 duration-bb-ui">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <Settings className="h-10 w-10 text-vg-primary-600" />
-            Settings
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Manage your account settings and preferences
-          </p>
+    <section className={cn("rounded-bb-lg bg-bb-surface p-5 shadow-e1 sm:p-7", className)}>
+      <div className="mb-5 flex items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-bb-md bg-bb-accent-soft text-bb-accent-ink">
+          <Icon name={icon} size={20} />
+        </span>
+        <div>
+          <h2 className="font-display text-lg font-bold text-bb-text">{title}</h2>
+          {description && <p className="mt-0.5 text-sm text-bb-muted">{description}</p>}
         </div>
       </div>
+      {children}
+    </section>
+  )
+}
+
+function Row({ label, hint, children }: { label: React.ReactNode; hint?: React.ReactNode; children?: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3 border-t border-bb-border py-4 first:border-t-0 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <p className="font-semibold text-bb-text">{label}</p>
+        {hint && <p className="mt-0.5 text-sm text-bb-muted">{hint}</p>}
+      </div>
+      {children && <div className="shrink-0">{children}</div>}
+    </div>
+  )
+}
+
+const NotYet = () => (
+  <span className="inline-flex h-7 items-center rounded-lg bg-bb-surface-2 px-2.5 text-xs font-semibold text-bb-muted">Not available yet</span>
+)
+
+const titleCase = (s?: string | null) =>
+  (s ?? "").toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+
+function describeAgent(ua?: string | null): string {
+  if (!ua) return "Unknown device"
+  const browser = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome\//.test(ua) ? "Chrome"
+    : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : /okhttp|Expo|ReactNative|Dart/i.test(ua) ? "Book Buddy app" : "Browser"
+  const os = /Windows/.test(ua) ? "Windows" : /Android/.test(ua) ? "Android" : /iPhone|iPad|iOS/.test(ua) ? "iOS"
+    : /Mac OS X|Macintosh/.test(ua) ? "macOS" : /CrOS/.test(ua) ? "ChromeOS" : /Linux/.test(ua) ? "Linux" : ""
+  return os ? `${browser} on ${os}` : browser
+}
+
+const formatWhen = (d: string | Date) =>
+  new Date(d).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })
+
+type SessionRow = { id: string; token: string; userAgent?: string | null; ipAddress?: string | null; updatedAt: string | Date; createdAt: string | Date }
+
+/** Real sessions from better-auth: list, sign out one, sign out all others. */
+function SessionsSection() {
+  const { data: current } = useSession()
+  const currentToken = current?.session?.token
+  const [sessions, setSessions] = React.useState<SessionRow[] | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const [busy, setBusy] = React.useState<string | null>(null)
+  const [confirmAll, setConfirmAll] = React.useState(false)
+
+  const load = React.useCallback(async () => {
+    setError(null)
+    const res = await authClient.listSessions()
+    if (res.error) {
+      setError(res.error.message || "Couldn't load your sessions.")
+      setSessions([])
+      return
+    }
+    const rows = ((res.data ?? []) as unknown as SessionRow[]).slice()
+    rows.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    setSessions(rows)
+  }, [])
+
+  React.useEffect(() => { load() }, [load])
+
+  const revoke = async (token: string) => {
+    setBusy(token)
+    const res = await authClient.revokeSession({ token })
+    setBusy(null)
+    if (res.error) toast({ title: "Couldn't sign that device out", description: res.error.message, variant: "destructive" })
+    else { toast({ title: "Signed out", description: "That device will need to sign in again." }); load() }
+  }
+
+  const revokeOthers = async () => {
+    setBusy("others")
+    const res = await authClient.revokeOtherSessions()
+    setBusy(null)
+    setConfirmAll(false)
+    if (res.error) toast({ title: "Couldn't sign out other devices", description: res.error.message, variant: "destructive" })
+    else { toast({ title: "Other devices signed out" }); load() }
+  }
+
+  const others = (sessions ?? []).filter((s) => s.token !== currentToken)
+
+  return (
+    <Section icon="shield-check" title="Where you're signed in" description="Devices with an active session on your account.">
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <Icon name="alert-circle" fillLayer={false} />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {sessions === null ? (
+        <div className="space-y-3" aria-busy="true">
+          {[0, 1].map((i) => <div key={i} className="h-14 animate-pulse rounded-bb-md bg-bb-surface-2" />)}
+        </div>
+      ) : (
+        <ul>
+          {sessions.map((s) => {
+            const isCurrent = s.token === currentToken
+            return (
+              <li key={s.id} className="flex items-center gap-3 border-t border-bb-border py-3.5 first:border-t-0 first:pt-0">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-bb-surface-2 text-bb-muted">
+                  <Icon name={/Android|iPhone|iPad|iOS|Book Buddy app/.test(describeAgent(s.userAgent)) ? "phone" : "globe"} size={18} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-bb-text">
+                    {describeAgent(s.userAgent)}
+                    {isCurrent && <span className="ml-2 rounded-md bg-bb-success-soft px-1.5 py-0.5 text-[11px] font-bold text-bb-success-ink">This device</span>}
+                  </p>
+                  <p className="truncate text-sm text-bb-muted">
+                    Last active {formatWhen(s.updatedAt)}{s.ipAddress ? ` · ${s.ipAddress}` : ""}
+                  </p>
+                </div>
+                {!isCurrent && (
+                  <Button variant="outline" size="sm" onClick={() => revoke(s.token)} disabled={busy === s.token}>
+                    {busy === s.token && <Icon name="loader" fillLayer={false} className="animate-spin" />}
+                    Sign out
+                  </Button>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {others.length > 0 && (
+        <div className="mt-5 flex justify-end">
+          <Button variant="outline" onClick={() => setConfirmAll(true)} disabled={busy === "others"}>
+            Sign out all other devices
+          </Button>
+        </div>
+      )}
+
+      <AlertDialog open={confirmAll} onOpenChange={setConfirmAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out {others.length} other device{others.length === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>They will need to sign in again. This device stays signed in.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={revokeOthers}>Sign them out</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Section>
+  )
+}
+
+const APP_THEMES: { value: "light" | "dark" | "system"; label: string; swatch: string }[] = [
+  { value: "light", label: "Light", swatch: "bg-[#F2F4F8]" },
+  { value: "dark", label: "Dark", swatch: "bg-[#0A0F24]" },
+  { value: "system", label: "System", swatch: "bg-[linear-gradient(135deg,#F2F4F8_50%,#0A0F24_50%)]" },
+]
+
+export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
+  const { user } = useAuthStore()
+  const readerTheme = useReaderStore((s) => s.theme)
+  const resetReaderSettings = useReaderStore((s) => s.resetSettings)
+  const { reduceMotion, highContrast, setReduceMotion, setHighContrast, setTheme: setAppTheme } = useAppStore()
+
+  // Keep the app store's copy of the theme in step with next-themes.
+  React.useEffect(() => {
+    if (theme) setAppTheme(theme as any)
+  }, [theme, setAppTheme])
+
+  const role = (user?.role ?? "").toLowerCase()
+  const initials = (user?.name || user?.email || "?").split(/[\s@]+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("")
+
+  return (
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      <PageHeader eyebrow="Account" title="Settings" description="Your account, sign-ins and how Book Buddy looks." />
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full">
-          <TabsTrigger value="account" className="data-[state=active]:text-white">Account</TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:text-white">Security</TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:text-white">Notifications</TabsTrigger>
-          <TabsTrigger value="appearance" className="data-[state=active]:text-white">Appearance</TabsTrigger>
-          <TabsTrigger value="advanced" className="data-[state=active]:text-white">Advanced</TabsTrigger>
-        </TabsList>
+        <div className="-mx-1 overflow-x-auto px-1 scrollbar-hide">
+          <TabsList className="w-max">
+            <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="privacy">Data &amp; privacy</TabsTrigger>
+          </TabsList>
+        </div>
 
+        {/* ── Account ── */}
         <TabsContent value="account" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
-                <User className="h-5 w-5 text-vg-primary-600" />
-                Account Information
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Update your account details and personal information</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" defaultValue="John Doe" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" defaultValue="john.doe@example.com" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Input id="role" defaultValue="Administrator" readOnly className="bg-muted" />
-                </div>
+          <Section icon="profile" title="Your account" description="The details Book Buddy has for you.">
+            <div className="mb-5 flex items-center gap-4">
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-bb-navy font-display text-xl font-extrabold text-white">{initials}</span>
+              <div className="min-w-0">
+                <p className="truncate font-display text-xl font-bold text-bb-text">{user?.name || "No name set"}</p>
+                <p className="truncate text-sm text-bb-muted">{user?.email}</p>
               </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Contact Information</h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input id="address" defaultValue="123 Library Lane, Bookville, BK 12345" />
-                  </div>
-                </div>
+            </div>
+            <dl className="grid gap-4 rounded-bb-md bg-bb-surface-2 p-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-bb-faint">Role</dt>
+                <dd className="mt-1 font-semibold text-bb-text">{titleCase(user?.role) || "—"}</dd>
               </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Connected Accounts</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Google</p>
-                        <p className="text-sm text-muted-foreground">Connected to john.doe@gmail.com</p>
-                      </div>
-                    </div>
-                    <EnhancedButton variant="outline" size="sm">
-                      Disconnect
-                    </EnhancedButton>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Microsoft</p>
-                        <p className="text-sm text-muted-foreground">Not connected</p>
-                      </div>
-                    </div>
-                    <EnhancedButton variant="vg-primary" size="sm">Connect</EnhancedButton>
-                  </div>
-                </div>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-bb-faint">Account type</dt>
+                <dd className="mt-1 font-semibold text-bb-text">{user?.accountType === "INDEPENDENT" ? "Independent learner" : "Institution member"}</dd>
               </div>
-
-              <div className="flex justify-end gap-2">
-                <EnhancedButton variant="outline">Cancel</EnhancedButton>
-                <EnhancedButton variant="vg-success">Save Changes</EnhancedButton>
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
+            </dl>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              {role === "student" ? (
+                <Button asChild>
+                  <Link href="/dashboard/student/profile">
+                    Edit profile
+                    <Icon name="arrow-right" fillLayer={false} />
+                  </Link>
+                </Button>
+              ) : (
+                <p className="text-sm text-bb-muted">To change your name or email, ask your institution&apos;s administrator.</p>
+              )}
+            </div>
+          </Section>
         </TabsContent>
 
+        {/* ── Security ── */}
         <TabsContent value="security" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
-                <Shield className="h-5 w-5 text-vg-primary-600" />
-                Security Settings
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Manage your password and security preferences</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Change Password</h3>
-                <div className="space-y-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="current-password">Current Password</Label>
-                    <div className="relative">
-                      <Input id="current-password" type="password" />
-                      <EnhancedButton variant="ghost" size="icon" className="absolute right-0 top-0 h-full">
-                        <Eye className="h-4 w-4" />
-                      </EnhancedButton>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <div className="relative">
-                      <Input id="new-password" type="password" />
-                      <EnhancedButton variant="ghost" size="icon" className="absolute right-0 top-0 h-full">
-                        <Eye className="h-4 w-4" />
-                      </EnhancedButton>
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <div className="relative">
-                      <Input id="confirm-password" type="password" />
-                      <EnhancedButton variant="ghost" size="icon" className="absolute right-0 top-0 h-full">
-                        <Eye className="h-4 w-4" />
-                      </EnhancedButton>
-                    </div>
-                  </div>
-                  <EnhancedButton variant="vg-success">Update Password</EnhancedButton>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Two-Factor Authentication</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Two-Factor Authentication</p>
-                    <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                  </div>
-                  <Switch id="two-factor" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Authenticator App</p>
-                    <p className="text-sm text-muted-foreground">
-                      Use an authenticator app to generate verification codes
-                    </p>
-                  </div>
-                  <EnhancedButton variant="outline" size="sm">
-                    Setup
-                  </EnhancedButton>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">SMS Authentication</p>
-                    <p className="text-sm text-muted-foreground">Receive verification codes via SMS</p>
-                  </div>
-                  <EnhancedButton variant="outline" size="sm">
-                    Setup
-                  </EnhancedButton>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Session Management</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Current Session</p>
-                      <p className="text-sm text-muted-foreground">Chrome on Windows • Last active: Just now</p>
-                    </div>
-                    <Badge variant="outline">Current</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Mobile App</p>
-                      <p className="text-sm text-muted-foreground">iPhone 13 • Last active: 2 hours ago</p>
-                    </div>
-                    <EnhancedButton variant="outline" size="sm">
-                      Revoke
-                    </EnhancedButton>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Firefox</p>
-                      <p className="text-sm text-muted-foreground">Firefox on MacOS • Last active: Yesterday</p>
-                    </div>
-                    <EnhancedButton variant="outline" size="sm">
-                      Revoke
-                    </EnhancedButton>
-                  </div>
-                  <EnhancedButton variant="vg-error">Revoke All Other Sessions</EnhancedButton>
-                </div>
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
+          <Section icon="lock" title="Password and sign-in">
+            <Row label="Password" hint="We'll email you a link to set a new password.">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/forgot-password">Reset password</Link>
+              </Button>
+            </Row>
+            <Row label="Two-factor authentication" hint="An extra code when you sign in.">
+              <NotYet />
+            </Row>
+          </Section>
+          <SessionsSection />
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
-                <Bell className="h-5 w-5 text-vg-primary-600" />
-                Notification Settings
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Manage how and when you receive notifications</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Email Notifications</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Due Date Reminders</p>
-                      <p className="text-sm text-muted-foreground">Receive reminders before books are due</p>
-                    </div>
-                    <Switch id="due-date-email" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">New Book Availability</p>
-                      <p className="text-sm text-muted-foreground">
-                        Get notified when books on your wishlist become available
-                      </p>
-                    </div>
-                    <Switch id="book-availability-email" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">System Announcements</p>
-                      <p className="text-sm text-muted-foreground">Important updates about the library system</p>
-                    </div>
-                    <Switch id="system-announcements-email" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Marketing & Promotions</p>
-                      <p className="text-sm text-muted-foreground">Newsletters and promotional content</p>
-                    </div>
-                    <Switch id="marketing-email" />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">In-App Notifications</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Due Date Reminders</p>
-                      <p className="text-sm text-muted-foreground">Receive in-app reminders before books are due</p>
-                    </div>
-                    <Switch id="due-date-app" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Request Status Updates</p>
-                      <p className="text-sm text-muted-foreground">
-                        Get notified when your borrow requests change status
-                      </p>
-                    </div>
-                    <Switch id="request-status-app" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Messages</p>
-                      <p className="text-sm text-muted-foreground">
-                        Notifications for new messages from librarians or teachers
-                      </p>
-                    </div>
-                    <Switch id="messages-app" defaultChecked />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Push Notifications</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Enable Push Notifications</p>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications even when you're not using the app
-                      </p>
-                    </div>
-                    <Switch id="push-notifications" defaultChecked />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="notification-time">Quiet Hours</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="start-time" className="text-sm text-muted-foreground">
-                          Start
-                        </Label>
-                        <Input id="start-time" type="time" defaultValue="22:00" />
-                      </div>
-                      <div>
-                        <Label htmlFor="end-time" className="text-sm text-muted-foreground">
-                          End
-                        </Label>
-                        <Input id="end-time" type="time" defaultValue="08:00" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <EnhancedButton variant="outline">Reset to Defaults</EnhancedButton>
-                <EnhancedButton variant="vg-success">Save Changes</EnhancedButton>
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
-        </TabsContent>
-
+        {/* ── Appearance ── */}
         <TabsContent value="appearance" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
-                <Palette className="h-5 w-5 text-vg-primary-600" />
-                Appearance Settings
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Customize how the application looks and feels</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Theme</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div 
-                    className={`border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-primary ${theme === 'light' ? 'border-primary' : ''}`}
-                    onClick={() => setTheme('light')}
+          <Section icon="theme" title="App theme" description="Saved on this device as you choose.">
+            <div role="radiogroup" aria-label="App theme" className="grid grid-cols-3 gap-3">
+              {APP_THEMES.map((t) => {
+                const on = theme === t.value
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => setTheme(t.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 rounded-bb-md border-2 p-3 transition-colors duration-bb-micro focus-visible:outline-none focus-visible:shadow-focus",
+                      on ? "border-bb-accent" : "border-bb-border hover:border-bb-accent/40",
+                    )}
                   >
-                    <div className="w-full h-20 bg-white rounded-md border"></div>
-                    <p className="font-medium">Light</p>
-                  </div>
-                  <div 
-                    className={`border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-primary ${theme === 'dark' ? 'border-primary' : ''}`}
-                    onClick={() => setTheme('dark')}
-                  >
-                    <div className="w-full h-20 bg-gray-900 rounded-md border"></div>
-                    <p className="font-medium">Dark</p>
-                  </div>
-                  <div 
-                    className={`border rounded-md p-4 flex flex-col items-center gap-2 cursor-pointer hover:border-primary ${theme === 'system' ? 'border-primary' : ''}`}
-                    onClick={() => setTheme('system')}
-                  >
-                    <div className="w-full h-20 bg-gradient-to-b from-white to-gray-900 rounded-md border"></div>
-                    <p className="font-medium">System</p>
-                  </div>
-                </div>
-              </div>
+                    <span className={cn("h-16 w-full rounded-lg border border-bb-border", t.swatch)} />
+                    <span className="text-sm font-semibold text-bb-text">{t.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </Section>
 
-              <Separator />
+          <Section
+            icon="read"
+            title="Reader defaults"
+            description="The same controls as the reader's Display panel. The preview follows your choice."
+          >
+            <div data-reader={toReaderKey(readerTheme)} className="rounded-bb-md border border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] p-5 transition-colors duration-300">
+              <ReaderDisplayContent />
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button variant="ghost" size="sm" onClick={resetReaderSettings}>
+                <Icon name="rotate-ccw" fillLayer={false} />
+                Reset reader settings
+              </Button>
+            </div>
+          </Section>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Reader Preferences</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reader-theme">Default Reader Theme</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div 
-                        className={`border rounded-md p-3 flex items-center justify-center gap-2 cursor-pointer hover:border-primary ${readerTheme === 'light' ? 'border-primary' : ''}`}
-                        onClick={() => setReaderTheme('light')}
-                      >
-                        <Sun className="h-4 w-4" />
-                        <span className="text-sm">Light</span>
-                      </div>
-                      <div 
-                        className={`border rounded-md p-3 flex items-center justify-center gap-2 cursor-pointer hover:border-primary ${readerTheme === 'dark' ? 'border-primary' : ''}`}
-                        onClick={() => setReaderTheme('dark')}
-                      >
-                        <Moon className="h-4 w-4" />
-                        <span className="text-sm">Dark</span>
-                      </div>
-                      <div 
-                        className={`border rounded-md p-3 flex items-center justify-center gap-2 cursor-pointer hover:border-primary ${readerTheme === 'eye-comfort' ? 'border-primary' : ''}`}
-                        onClick={() => setReaderTheme('eye-comfort')}
-                      >
-                        <BookOpen className="h-4 w-4" />
-                        <span className="text-sm">Eye Comfort</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="color-temperature">Color Temperature</Label>
-                      <span className="text-sm">{colorTemperature}%</span>
-                    </div>
-                    <Slider 
-                      id="color-temperature"
-                      min={0} 
-                      max={100} 
-                      step={5}
-                      value={[colorTemperature]}
-                      onValueChange={(value) => setColorTemperature(value[0])}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">Adjust the warmth of the screen to reduce eye strain</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="contrast">Contrast</Label>
-                      <span className="text-sm">{contrast.toFixed(1)}</span>
-                    </div>
-                    <Slider 
-                      id="contrast"
-                      min={0.5} 
-                      max={1.5} 
-                      step={0.1}
-                      value={[contrast]}
-                      onValueChange={(value) => setContrast(value[0])}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">Adjust the contrast between text and background</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="font-family">Default Font</Label>
-                    <Select 
-                      value={fontFamily}
-                      onValueChange={(value) => setFontFamily(value)}
-                    >
-                      <SelectTrigger id="font-family">
-                        <SelectValue placeholder="Select font" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Newsreader">Newsreader</SelectItem>
-                        <SelectItem value="Familjen Grotesk">Familjen Grotesk</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="font-size">Font Size</Label>
-                      <span className="text-sm">{fontSize}px</span>
-                    </div>
-                    <Slider 
-                      id="font-size"
-                      min={12} 
-                      max={24} 
-                      step={1}
-                      value={[fontSize]}
-                      onValueChange={(value) => setFontSize(value[0])}
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="line-height">Line Height</Label>
-                      <span className="text-sm">{lineHeight.toFixed(1)}</span>
-                    </div>
-                    <Slider 
-                      id="line-height"
-                      min={1} 
-                      max={2} 
-                      step={0.1}
-                      value={[lineHeight]}
-                      onValueChange={(value) => setLineHeight(value[0])}
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="auto-theme"
-                      checked={autoTheme}
-                      onCheckedChange={toggleAutoTheme}
-                    />
-                    <Label htmlFor="auto-theme">Auto Theme (Based on Time)</Label>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Automatically switch to dark theme at night and light theme during day</p>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Accessibility</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Reduce Motion</p>
-                      <p className="text-sm text-muted-foreground">Minimize animations throughout the interface</p>
-                    </div>
-                    <Switch 
-                      id="reduce-motion" 
-                      checked={reduceMotion}
-                      onCheckedChange={setReduceMotion}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">High Contrast</p>
-                      <p className="text-sm text-muted-foreground">Increase contrast for better readability</p>
-                    </div>
-                    <Switch 
-                      id="high-contrast" 
-                      checked={highContrast}
-                      onCheckedChange={setHighContrast}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <EnhancedButton
-                  variant="outline"
-                  onClick={resetSettings}
-                >
-                  Reset to Defaults
-                </EnhancedButton>
-                <EnhancedButton variant="vg-success">Save Changes</EnhancedButton>
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
+          <Section icon="eye" title="Accessibility" description="Applies across the whole app on this device.">
+            <Row label="Reduce motion" hint="Turn off animations and transitions.">
+              <Switch checked={reduceMotion} onCheckedChange={setReduceMotion} aria-label="Reduce motion" />
+            </Row>
+            <Row label="High contrast" hint="Darker secondary text and stronger borders.">
+              <Switch checked={highContrast} onCheckedChange={setHighContrast} aria-label="High contrast" />
+            </Row>
+          </Section>
         </TabsContent>
 
-        <TabsContent value="advanced" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="flex items-center gap-2 text-bb-accent">
-                <Settings className="h-5 w-5 text-vg-primary-600" />
-                Advanced Settings
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Configure advanced system settings and integrations</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Data Management</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Save Reading History</p>
-                      <p className="text-sm text-muted-foreground">Keep a record of books you've borrowed</p>
-                    </div>
-                    <Switch id="reading-history" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Sync Across Devices</p>
-                      <p className="text-sm text-muted-foreground">Synchronize your data across all your devices</p>
-                    </div>
-                    <Switch id="sync-devices" defaultChecked />
-                  </div>
-                  <EnhancedButton variant="outline">Export My Data</EnhancedButton>
-                </div>
+        {/* ── Notifications ── */}
+        <TabsContent value="notifications" className="space-y-6">
+          <Section icon="bell" title="Notifications" description="Due-date reminders, request updates and messages.">
+            <div className="flex items-start gap-3 rounded-bb-md bg-bb-surface-2 p-4">
+              <Icon name="info" size={18} fillLayer={false} className="mt-0.5 shrink-0 text-bb-muted" />
+              <p className="text-sm text-bb-muted">
+                Choosing which notifications you get isn&apos;t available yet. The bell in the top bar shows what has been sent to you.
+              </p>
+            </div>
+          </Section>
+        </TabsContent>
+
+        {/* ── Data & privacy ── */}
+        <TabsContent value="privacy" className="space-y-6">
+          <Section icon="shield-check" title="Your data">
+            <Row label="Download a copy of your data" hint="Reading history, notes and highlights.">
+              <NotYet />
+            </Row>
+            <Row label="How we use your data" hint="What we collect and why.">
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="ghost" size="sm"><Link href="/privacy">Privacy</Link></Button>
+                <Button asChild variant="ghost" size="sm"><Link href="/terms">Terms</Link></Button>
+                <Button asChild variant="ghost" size="sm"><Link href="/cookies">Cookies</Link></Button>
               </div>
+            </Row>
+          </Section>
 
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">API Access</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Enable API Access</p>
-                      <p className="text-sm text-muted-foreground">
-                        Allow third-party applications to access your data
-                      </p>
-                    </div>
-                    <Switch id="api-access" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="api-key">API Key</Label>
-                    <div className="flex gap-2">
-                      <Input id="api-key" value="••••••••••••••••••••••••" readOnly className="bg-muted" />
-                      <EnhancedButton variant="outline">Generate New Key</EnhancedButton>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Last generated: Never</p>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-bb-accent">Danger Zone</h3>
-                <div className="space-y-4 border border-destructive/20 rounded-md p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Delete Reading History</p>
-                      <p className="text-sm text-muted-foreground">Permanently delete your reading history</p>
-                    </div>
-                    <EnhancedButton variant="vg-error" size="sm">
-                      Delete
-                    </EnhancedButton>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Deactivate Account</p>
-                      <p className="text-sm text-muted-foreground">Temporarily disable your account</p>
-                    </div>
-                    <EnhancedButton variant="vg-error" size="sm">
-                      Deactivate
-                    </EnhancedButton>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Delete Account</p>
-                      <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
-                    </div>
-                    <EnhancedButton variant="vg-error" size="sm">
-                      Delete
-                    </EnhancedButton>
-                  </div>
-                </div>
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
+          <Section icon="trash" title="Delete your account" description="Permanently remove your account, reading history, notes and uploads." className="ring-1 ring-bb-danger/30">
+            <Button asChild variant="destructive">
+              <Link href="/delete-account">Request account deletion</Link>
+            </Button>
+          </Section>
         </TabsContent>
       </Tabs>
     </div>

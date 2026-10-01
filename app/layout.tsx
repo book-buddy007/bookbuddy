@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { PwaRegister } from "@/components/pwa/pwa-register"
 import { Splash } from "@/components/pwa/splash"
 import { AudioSessionBridge } from "@/components/player/audio-session-bridge"
+import { A11yPreferences } from "@/components/a11y-preferences"
 import "@/app/globals.css"
 // Must stay after globals.css: it re-points the shadcn variables, body and heading
 // rules at the design-system tokens (see the note in globals.css).
@@ -101,6 +102,7 @@ export default function RootLayout({
               <Splash />
               <PwaRegister />
               <AudioSessionBridge />
+              <A11yPreferences />
             </ThemeProvider>
           </QueryProvider>
         </AuthProvider>

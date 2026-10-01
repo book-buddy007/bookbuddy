@@ -215,6 +215,20 @@ a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
   .bb-lift:hover { transform: translateY(-10px) rotateX(6deg); box-shadow: var(--bb-shadow-e2); }
 }
 
+/* ---- Accessibility preferences (Settings → Accessibility, applied by A11yPreferences) ----
+   "Reduce motion" mirrors the prefers-reduced-motion rules below for people who want it in
+   the app without changing their OS. "High contrast" pulls muted/faint text and borders
+   towards full ink in both themes. */
+[data-reduce-motion] *, [data-reduce-motion] *::before, [data-reduce-motion] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+[data-reduce-motion] .bb-lift:hover { transform: none; }
+[data-contrast="high"] { --bb-text-muted: #1E2742; --bb-text-faint: #3A4668; --bb-border: #8E9AB8; }
+[data-contrast="high"][data-theme="dark"], [data-contrast="high"].dark { --bb-text-muted: #E6EAF1; --bb-text-faint: #C5CCDA; --bb-border: #5F6B8C; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
