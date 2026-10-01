@@ -1,20 +1,21 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useUserProfile } from "@/lib/hooks/useUserProfile"
 import apiClient from "@/lib/apiClient"
 import Link from "next/link"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { PageHeader } from "@/components/ui/page-header"
+import { StatCard } from "@/components/ui/stat-card"
+import { Icon } from "@/components/ui/icon"
 import { TrialExpirationBanner } from "@/components/TrialExpirationBanner"
 import { StartTrialButton, useCanStartTrial } from "@/components/subscription/StartTrialButton"
-import { StudentGreeting } from "@/components/dashboard/student/student-greeting"
 import { ContinueLearningRow, type ContinueBook } from "@/components/dashboard/student/continue-learning-row"
 import { StudyStreamsGrid, type StudyStreamsData } from "@/components/dashboard/student/study-streams-grid"
 import { UpcomingPanel, type UpcomingItem } from "@/components/dashboard/student/upcoming-and-activity"
 import { ActivityFeed, type ActivityItem } from "@/components/dashboard/student/upcoming-and-activity"
-import { BookOpen, Clock, TrendingUp, Rocket, Library, ArrowRight } from "@/components/ui/icons"
 
 export default function StudentDashboard() {
   const { userProfile, loading: profileLoading, error: profileError } = useUserProfile()
@@ -99,59 +100,47 @@ export default function StudentDashboard() {
 
   if (isInstitutional && !hasActiveMembership) {
     return (
-      <div className="space-y-8 animate-vg-fade-in relative z-10 flex min-h-[70vh] flex-col items-center justify-center p-4">
-        <EnhancedCard variant="glass" className="max-w-xl w-full text-center py-12">
+      <div className="flex min-h-[70vh] items-center justify-center p-4">
+        <Card className="w-full max-w-xl rounded-[22px] p-8 text-center sm:p-12">
+          <span
+            className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full ${
+              isRejected ? "bg-bb-danger-soft" : "bg-bb-warning-soft"
+            }`}
+          >
+            <Icon name={isRejected ? "x-circle" : "calendar"} size={32} />
+          </span>
           {isRejected ? (
             <>
-              <EnhancedCardHeader>
-                <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mb-6">
-                  <span className="text-3xl">✖</span>
-                </div>
-                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
-                  Request Declined
-                </EnhancedCardTitle>
-              </EnhancedCardHeader>
-              <EnhancedCardContent className="space-y-6">
-                <p className="text-lg text-slate-600 dark:text-slate-400">
-                  Your request to join <strong>{latestJoinRequest?.tenant?.name}</strong> was declined.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
-                  <EnhancedButton variant="outline" onClick={() => window.location.href = '/onboarding'}>
-                    Re-apply
-                  </EnhancedButton>
-                  <EnhancedButton variant="vg-primary" onClick={handleSwitchToIndependent}>
-                    Switch to Independent
-                  </EnhancedButton>
-                </div>
-              </EnhancedCardContent>
+              <h1 className="font-display text-3xl font-extrabold tracking-[-0.03em]">Request declined</h1>
+              <p className="mt-3 text-bb-muted">
+                Your request to join <strong className="text-bb-text">{latestJoinRequest?.tenant?.name}</strong> was declined.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <Button variant="outline" onClick={() => (window.location.href = "/onboarding")}>
+                  Re-apply
+                </Button>
+                <Button onClick={handleSwitchToIndependent}>Switch to independent</Button>
+              </div>
             </>
           ) : (
             <>
-              <EnhancedCardHeader>
-                <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full flex items-center justify-center mb-6">
-                  <Clock className="w-8 h-8" />
-                </div>
-                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
-                  Waiting for Approval
-                </EnhancedCardTitle>
-              </EnhancedCardHeader>
-              <EnhancedCardContent className="space-y-6">
-                <p className="text-lg text-slate-600 dark:text-slate-400">
-                  Your account has been created, but you must wait for your institution&apos;s administrator to approve your join request before you can access the library.
-                </p>
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-300 text-sm">
-                  You will receive an email once your account is ready.
-                </div>
-                <EnhancedButton variant="outline" onClick={() => window.location.reload()}>
-                  Refresh Status
-                </EnhancedButton>
-              </EnhancedCardContent>
+              <h1 className="font-display text-3xl font-extrabold tracking-[-0.03em]">Waiting for approval</h1>
+              <p className="mt-3 text-bb-muted">
+                Your account has been created, but your institution&apos;s administrator must approve your join request before you can access the library.
+              </p>
+              <p className="mt-5 rounded-xl bg-bb-warning-soft px-4 py-3 text-sm text-bb-warning-ink">
+                You will receive an email once your account is ready.
+              </p>
+              <Button variant="outline" className="mt-8" onClick={() => window.location.reload()}>
+                Refresh status
+              </Button>
             </>
           )}
-        </EnhancedCard>
+        </Card>
       </div>
     );
   }
+
 
   // ──────── Map API data → component props ────────
 
@@ -220,6 +209,7 @@ export default function StudentDashboard() {
       const daysLeft = Math.ceil((new Date(b.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       return {
         id: b.id,
+        overdue: daysLeft <= 0,
         title: `Return: ${b.book?.title || 'Book'}`,
         subtitle: daysLeft <= 0 ? 'Overdue!' : daysLeft <= 3 ? `Due in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : `Due ${new Date(b.dueDate).toLocaleDateString()}`,
         priority: (daysLeft <= 3 ? 'high' : 'normal') as 'high' | 'normal',
@@ -238,197 +228,83 @@ export default function StudentDashboard() {
   const activeMembership = userProfile?.memberships?.find((m: any) => m.status === 'ACTIVE');
   const institutionName = activeMembership?.tenantName;
 
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = user?.name?.split(' ')[0] || 'Student';
+  const streak = overviewStats?.streak ?? 0;
+
   return (
-    <div className="space-y-6 pb-4 relative z-10">
-      {/* Trial banner */}
+    <div className="space-y-8 pb-4">
       <TrialExpirationBanner />
 
-      {/* Self-serve AI free-trial CTA — only for B2C students without an active
+      {/* Self-serve AI free-trial CTA: only for B2C students without an active
           trial/paid plan (hook returns false otherwise, so this hides itself). */}
       {canStartTrial && <StartTrialButton variant="card" />}
 
-      {/* ① Hero Greeting — Phase 1: Premium glassmorphic banner with stagger delay 0ms */}
-      <StudentGreeting
-        userName={user?.name ?? null}
-        institutionName={institutionName}
-        streakDays={overviewStats?.streak ?? 0}
-        activeBooksCount={borrowedBooks.length}
+      <PageHeader
+        className="mb-0"
+        eyebrow={institutionName ?? "Today's learning"}
+        title={`${greeting}, ${firstName}.`}
+        description="Pick up where you left off, listen while you commute, or ask Varta to clear your doubts."
+        actions={
+          <>
+            <Button asChild variant="outline">
+              <Link href="/varta">
+                <Icon name="varta" size={18} /> Ask Varta
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/catalog">
+                Browse library <Icon name="arrow-right" size={18} />
+              </Link>
+            </Button>
+          </>
+        }
       />
 
-      {/* ② Stats strip — Phase 3: Stagger delay 100ms */}
-      <StaggerWrapper delay={100}>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-          <StatPill
-            label="Books Borrowed"
-            value={overviewStats?.totalBooks ?? borrowedBooks.length}
-            icon={<BookOpen className="h-5 w-5" />}
-            accent="saffron"
-            isLoading={isDataLoading}
-          />
-          <StatPill
-            label="Pages Read"
-            value={overviewStats?.totalPages ?? 0}
-            icon={<Library className="h-5 w-5" />}
-            accent="teal"
-            isLoading={isDataLoading}
-          />
-          <StatPill
-            label="Reading Streak"
-            value={`${overviewStats?.streak ?? 0}d`}
-            icon={<TrendingUp className="h-5 w-5" />}
-            accent="gold"
-            isLoading={isDataLoading}
-          />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard
+          title="Books borrowed"
+          value={overviewStats?.totalBooks ?? borrowedBooks.length}
+          icon="library"
+          loading={isDataLoading}
+        />
+        <StatCard
+          title="Pages read"
+          value={overviewStats?.totalPages ?? 0}
+          icon="read"
+          loading={isDataLoading}
+        />
+        <StatCard
+          variant="featured"
+          title="Reading streak"
+          value={`${streak}d`}
+          icon="streak"
+          loading={isDataLoading}
+        />
+      </div>
+
+      <Card className="rounded-[22px] p-5 sm:p-6">
+        <ContinueLearningRow
+          books={continueBooks}
+          isLoading={isDataLoading}
+          recentBooks={recentBooks.slice(0, 10).map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            author: b.author,
+            coverUrl: b.coverUrl,
+          }))}
+        />
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px]">
+        <StudyStreamsGrid data={streamsData} isLoading={isDataLoading} />
+        <div className="space-y-6">
+          <UpcomingPanel items={upcomingItems} isLoading={isDataLoading} />
+          <ActivityFeed items={activityItems} isLoading={isDataLoading} />
         </div>
-      </StaggerWrapper>
-
-      {/* ③ Continue learning — Phase 2: EnhancedCard wrapper + stagger 200ms */}
-      <StaggerWrapper delay={200}>
-        <EnhancedCard className="border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md shadow-sm hover-vg-lift-safe">
-          <EnhancedCardContent className="pt-6 pb-4 px-4 sm:px-6">
-            <ContinueLearningRow
-              books={continueBooks}
-              isLoading={isDataLoading}
-              recentBooks={recentBooks.slice(0, 10).map((b: any) => ({
-                id: b.id,
-                title: b.title,
-                author: b.author,
-                coverUrl: b.coverUrl,
-              }))}
-            />
-          </EnhancedCardContent>
-        </EnhancedCard>
-      </StaggerWrapper>
-
-      {/* ④ Study streams + sidebar — Phase 2: EnhancedCard wrapper + stagger 300ms */}
-      <StaggerWrapper delay={300}>
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px]">
-          <EnhancedCard className="border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md shadow-sm hover-vg-lift-safe">
-            <EnhancedCardContent className="pt-6 pb-4 px-4 sm:px-6">
-              <StudyStreamsGrid data={streamsData} isLoading={isDataLoading} />
-            </EnhancedCardContent>
-          </EnhancedCard>
-
-          <div className="space-y-6">
-            <UpcomingPanel items={upcomingItems} isLoading={isDataLoading} />
-            <ActivityFeed items={activityItems} isLoading={isDataLoading} />
-          </div>
-        </div>
-      </StaggerWrapper>
-
-      {/* ⑤ Library CTA — Phase 6: content-visibility: auto for LCP savings */}
-      <StaggerWrapper delay={400}>
-        <section
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--night-ink)] via-[var(--indigo-deep)] to-[var(--peacock-teal)] p-8 sm:p-10 shadow-lg mt-4"
-          style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 180px' } as React.CSSProperties}
-        >
-          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-gradient-to-br from-[var(--deep-saffron)]/20 to-[var(--gold)]/10 blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <h2
-                className="text-xl sm:text-2xl font-semibold text-white mb-2"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Discover more in the library
-              </h2>
-              <p className="text-base text-white/70 max-w-md">
-                Browse textbooks, reference material, and audiobooks curated for your curriculum.
-              </p>
-            </div>
-            <Link
-              href="/catalog"
-              className="inline-flex h-12 items-center gap-2 rounded-full bg-[var(--deep-saffron)] px-8 text-base font-semibold text-white shadow-md hover:bg-[var(--saffron)] hover:shadow-lg transition-all whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[var(--deep-saffron)]/50 focus:ring-offset-2 focus:ring-offset-[var(--night-ink)] shrink-0"
-            >
-              <Rocket className="h-5 w-5" />
-              Browse Library
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </section>
-      </StaggerWrapper>
+      </div>
     </div>
   )
-}
-
-/* ───── Stagger Wrapper — Phase 3 ─────
-   Applies with --anim-delay custom property.
-   Cleans up will-change on animation end to free GPU memory.
-*/
-function StaggerWrapper({ delay, children }: { delay: number; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const handleAnimEnd = useCallback(() => {
-    ref.current?.classList.add('vg-anim-done');
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className=""
-      style={{ '--anim-delay': `${delay}ms` } as React.CSSProperties}
-      onAnimationEnd={handleAnimEnd}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* ───── Vibrant stat card — Phase 2+5: hover-vg-lift-safe gated lift ───── */
-function StatPill({
-  label,
-  value,
-  icon,
-  accent,
-  isLoading,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  accent: 'saffron' | 'teal' | 'gold';
-  isLoading?: boolean;
-}) {
-  const themes = {
-    saffron: {
-      card: 'bg-gradient-to-br from-bb-accent-soft via-bb-accent-soft to-bb-accent-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-accent/30',
-      iconBg: 'bg-gradient-to-br from-bb-accent to-bb-accent text-white shadow-lg shadow-bb-accent/30',
-      valueColor: 'text-bb-accent dark:text-bb-accent',
-    },
-    teal: {
-      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-cobalt/30',
-      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
-      valueColor: 'text-bb-text dark:text-bb-text',
-    },
-    gold: {
-      card: 'bg-gradient-to-br from-bb-info-soft via-bb-info-soft to-bb-info-soft dark:from-bb-surface dark:via-bb-surface dark:to-bb-surface border-bb-cobalt/30',
-      iconBg: 'bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30',
-      valueColor: 'text-bb-text dark:text-bb-text',
-    },
-  };
-  const theme = themes[accent];
-
-  return (
-    <div
-      className={`
-        group flex items-center gap-5 rounded-2xl border
-        ${theme.card}
-        px-6 py-5 shadow-md backdrop-blur-md transition-all duration-300
-        hover-vg-lift-safe cursor-default
-      `}
-    >
-      <div className={`shrink-0 flex items-center justify-center w-12 h-12 rounded-2xl ${theme.iconBg} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-        {icon}
-      </div>
-      <div className="min-w-0">
-        {isLoading ? (
-          <div className="h-7 w-14 rounded bg-slate-200 dark:bg-slate-700 animate-pulse" />
-        ) : (
-          <p className={`text-2xl sm:text-3xl font-extrabold leading-none tabular-nums ${theme.valueColor}`}>
-            {value}
-          </p>
-        )}
-        <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
-          {label}
-        </p>
-      </div>
-    </div>
-  );
 }

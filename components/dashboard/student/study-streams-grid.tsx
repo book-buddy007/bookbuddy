@@ -1,185 +1,157 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, Sparkles, Highlighter, Headphones, Play, ArrowRight } from '@/components/ui/icons';
 import type { ReactNode } from 'react';
+import { Icon, type BBIconName } from '@/components/ui/icon';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 
-/* ───── Shared Card Shell ───── */
+/* ───── Shared card shell ───── */
 function StreamCard({
   eyebrow,
   title,
-  accent = 'saffron',
   icon,
   children,
 }: {
   eyebrow: string;
   title: string;
-  accent?: 'saffron' | 'teal' | 'gold' | 'indigo';
-  icon: ReactNode;
+  icon: BBIconName;
   children: ReactNode;
 }) {
-  const accentMap = {
-    saffron: 'from-[var(--deep-saffron)]/8 border-[var(--deep-saffron)]/15 dark:border-[var(--deep-saffron)]/20',
-    teal: 'from-[var(--peacock-teal)]/8 border-[var(--peacock-teal)]/15 dark:border-[var(--peacock-teal)]/20',
-    gold: 'from-[var(--gold)]/8 border-[var(--gold)]/15 dark:border-[var(--gold)]/20',
-    indigo: 'from-[var(--indigo-deep)]/8 border-[var(--indigo-deep)]/15 dark:border-[var(--indigo-deep)]/20',
-  };
-
   return (
-    <article
-      className={`
-        group relative flex flex-col rounded-2xl border
-        bg-gradient-to-br ${accentMap[accent]} to-white/80 dark:to-slate-800/80
-        p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1
-        backdrop-blur-md overflow-hidden relative
-      `}
-    >
-      {/* Subtle watermark icon */}
-      <div className="absolute -bottom-4 -right-4 opacity-[0.04] dark:opacity-[0.06] pointer-events-none">
-        <div className="w-24 h-24">{icon}</div>
-      </div>
-
-      <div className="relative z-10 flex flex-col flex-1">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">
-          {eyebrow}
-        </p>
-        <h3
-          className="text-base font-semibold text-slate-900 dark:text-white mb-3"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          {title}
-        </h3>
-        <div className="flex-1 space-y-3 text-sm text-slate-600 dark:text-slate-400">
-          {children}
+    <article className="flex flex-col rounded-[18px] bg-bb-surface p-5 shadow-e1">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.1em] text-bb-accent-ink">{eyebrow}</p>
+          <h3 className="mt-1 font-display text-lg font-extrabold tracking-[-0.02em]">{title}</h3>
         </div>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-bb-accent-soft">
+          <Icon name={icon} size={22} />
+        </span>
       </div>
+      <div className="flex flex-1 flex-col gap-3 text-sm text-bb-muted">{children}</div>
     </article>
   );
 }
 
-/* ───── Reading Stream ───── */
+function StreamLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="mt-auto inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-bb-accent-ink hover:underline"
+    >
+      {children} <Icon name="arrow-right" size={16} />
+    </Link>
+  );
+}
+
+/* ───── Reading ───── */
 function ReadingStreamCard({ minutesReadToday, booksOpened }: {
   minutesReadToday?: number;
   booksOpened?: { title: string; chapter: string; percent: number }[];
 }) {
   const books = booksOpened || [];
   return (
-    <StreamCard eyebrow="Reading" title="Today's progress" accent="saffron" icon={<BookOpen className="w-full h-full" />}>
-      <p className="font-medium text-slate-700 dark:text-slate-300">
-        You read <span className="text-[var(--deep-saffron)] font-bold">{minutesReadToday ?? 0} min</span> across {books.length} book{books.length !== 1 ? 's' : ''}.
+    <StreamCard eyebrow="Reading" title="Today's progress" icon="read">
+      <p className="text-bb-text">
+        You read <span className="font-bold">{minutesReadToday ?? 0} min</span> across {books.length} book
+        {books.length !== 1 ? 's' : ''}.
       </p>
       {books.length > 0 && (
-        <ul className="space-y-1.5">
+        <ul className="space-y-2.5">
           {books.slice(0, 3).map((b, i) => (
-            <li key={i} className="flex items-center justify-between gap-2">
-              <span className="truncate">{b.title}</span>
-              <span className="shrink-0 text-[10px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
-                {b.chapter} · {b.percent}%
-              </span>
+            <li key={i}>
+              <div className="flex items-center justify-between gap-2 text-bb-text">
+                <span className="truncate font-medium">{b.title}</span>
+                <span className="shrink-0 text-xs font-semibold tabular-nums text-bb-muted">
+                  {b.chapter} · {b.percent}%
+                </span>
+              </div>
+              <Progress value={b.percent} className="mt-1.5 h-1.5" />
             </li>
           ))}
         </ul>
       )}
-      <Link
-        href="/reader"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--deep-saffron)] hover:text-[var(--saffron)] transition-colors mt-2"
-      >
-        Open reader <ArrowRight className="h-3 w-3" />
-      </Link>
+      <StreamLink href="/reader">Open reader</StreamLink>
     </StreamCard>
   );
 }
 
-/* ───── Varta Stream ───── */
+/* ───── Varta ───── */
 function VartaAIStreamCard({ recentQuestions }: {
   recentQuestions?: { question: string; source: string }[];
 }) {
   const questions = recentQuestions || [];
   return (
-    <StreamCard eyebrow="Varta" title="Recent questions" accent="teal" icon={<Sparkles className="w-full h-full" />}>
+    <StreamCard eyebrow="Varta" title="Recent questions" icon="varta">
       {questions.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {questions.slice(0, 2).map((q, i) => (
             <div key={i}>
-              <p className="font-medium text-slate-800 dark:text-slate-200 line-clamp-1">
-                &ldquo;{q.question}&rdquo;
-              </p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                Answered · {q.source}
-              </p>
+              <p className="line-clamp-1 font-medium text-bb-text">&ldquo;{q.question}&rdquo;</p>
+              <p className="text-xs">Answered · {q.source}</p>
             </div>
           ))}
         </div>
       ) : (
-        <p>Ask your textbook anything — Varta answers with page-accurate citations.</p>
+        <p>Ask your textbook anything. Varta answers with page-accurate citations.</p>
       )}
-      <Link
-        href="/reader?tab=varta"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--peacock-teal)] hover:text-teal-600 dark:hover:text-teal-400 transition-colors mt-2"
-      >
-        Ask a new question <ArrowRight className="h-3 w-3" />
-      </Link>
+      <StreamLink href="/varta">Ask a new question</StreamLink>
     </StreamCard>
   );
 }
 
-/* ───── Sanchika Stream ───── */
+/* ───── Sanchika ───── */
 function SanchikaStreamCard({ highlights, flashcards, explanations }: {
   highlights?: number;
   flashcards?: number;
   explanations?: number;
 }) {
   return (
-    <StreamCard eyebrow="Sanchika" title="Your smart notebook" accent="gold" icon={<Highlighter className="w-full h-full" />}>
+    <StreamCard eyebrow="Sanchika" title="Your smart notebook" icon="sanchika">
       <p>All your highlights, flashcards, and saved explanations in one place.</p>
-      <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
+      <p className="text-xs font-semibold tabular-nums">
         {highlights ?? 0} highlights · {flashcards ?? 0} flashcard sets · {explanations ?? 0} saved explanations
       </p>
-      <Link
-        href="/reader?tab=sanchika"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--deep-saffron)] hover:text-[var(--saffron)] transition-colors mt-2"
-      >
-        Open Sanchika <ArrowRight className="h-3 w-3" />
-      </Link>
+      <StreamLink href="/reader?tab=sanchika">Open Sanchika</StreamLink>
     </StreamCard>
   );
 }
 
-/* ───── Audio / TTS Stream ───── */
+/* ───── Audio / TTS ───── */
 function AudioStreamCard({ currentBook, timestamp, speed }: {
   currentBook?: string;
   timestamp?: string;
   speed?: string;
 }) {
   return (
-    <StreamCard eyebrow="Audio & TTS" title="Listen on the go" accent="indigo" icon={<Headphones className="w-full h-full" />}>
-      <p>Continue your audiobook or text‑to‑speech session.</p>
+    <StreamCard eyebrow="Audio & TTS" title="Listen on the go" icon="audiobook">
+      <p>Continue your audiobook or text-to-speech session.</p>
       {currentBook && (
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/60 dark:border-slate-600/50 p-3">
-          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate">
-            {currentBook}
-          </p>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 tabular-nums">
+        <div className="rounded-xl bg-bb-surface-2 p-3">
+          <p className="truncate text-[13px] font-semibold text-bb-text">{currentBook}</p>
+          <p className="text-xs tabular-nums">
             {timestamp ?? '00:00:00'} · {speed ?? '1.0x'} speed
           </p>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-600">
-            <div className="h-full w-[45%] rounded-full bg-gradient-to-r from-[var(--peacock-teal)] to-teal-500 transition-all duration-500" />
-          </div>
+          <Progress value={45} className="mt-2 h-1.5" />
         </div>
       )}
-      <div className="flex gap-2 mt-1">
-        <button className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[var(--peacock-teal)] text-sm font-semibold text-white hover:bg-teal-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--peacock-teal)]/50 focus:ring-offset-2">
-          <Play className="h-3.5 w-3.5" /> Resume
-        </button>
-        <button className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-          Switch to reading
-        </button>
+      <div className="mt-auto flex gap-2 pt-1">
+        <Button asChild size="sm" className="flex-1">
+          <Link href="/player/v2">
+            <Icon name="play" size={16} /> Resume
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="outline" className="flex-1">
+          <Link href="/reader">Switch to reading</Link>
+        </Button>
       </div>
     </StreamCard>
   );
 }
 
-/* ───── Grid Wrapper ───── */
+/* ───── Grid wrapper ───── */
 export interface StudyStreamsData {
   reading?: {
     minutesReadToday: number;
@@ -201,51 +173,34 @@ export interface StudyStreamsData {
 }
 
 export function StudyStreamsGrid({ data, isLoading }: { data?: StudyStreamsData; isLoading?: boolean }) {
-  if (isLoading) {
-    return (
-      <section className="space-y-3">
-        <h2
-          className="text-xl font-semibold text-slate-900 dark:text-slate-100"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Your study streams
-        </h2>
+  return (
+    <section className="space-y-4">
+      <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Your study streams</h2>
+      {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-2xl bg-white/60 dark:bg-slate-800/40 p-5 shadow-sm ring-1 ring-slate-100 dark:ring-slate-700 animate-pulse h-48" />
+            <Skeleton key={i} className="h-44 rounded-[18px]" />
           ))}
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="space-y-3">
-      <h2
-        className="text-lg font-semibold text-slate-900 dark:text-slate-100"
-        style={{ fontFamily: 'var(--font-display)' }}
-      >
-        Your study streams
-      </h2>
-      <div className="grid gap-4 md:grid-cols-2">
-        <ReadingStreamCard
-          minutesReadToday={data?.reading?.minutesReadToday}
-          booksOpened={data?.reading?.booksOpened}
-        />
-        <VartaAIStreamCard
-          recentQuestions={data?.vartaAI?.recentQuestions}
-        />
-        <SanchikaStreamCard
-          highlights={data?.sanchika?.highlights}
-          flashcards={data?.sanchika?.flashcards}
-          explanations={data?.sanchika?.explanations}
-        />
-        <AudioStreamCard
-          currentBook={data?.audio?.currentBook}
-          timestamp={data?.audio?.timestamp}
-          speed={data?.audio?.speed}
-        />
-      </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          <ReadingStreamCard
+            minutesReadToday={data?.reading?.minutesReadToday}
+            booksOpened={data?.reading?.booksOpened}
+          />
+          <VartaAIStreamCard recentQuestions={data?.vartaAI?.recentQuestions} />
+          <SanchikaStreamCard
+            highlights={data?.sanchika?.highlights}
+            flashcards={data?.sanchika?.flashcards}
+            explanations={data?.sanchika?.explanations}
+          />
+          <AudioStreamCard
+            currentBook={data?.audio?.currentBook}
+            timestamp={data?.audio?.timestamp}
+            speed={data?.audio?.speed}
+          />
+        </div>
+      )}
     </section>
   );
 }
