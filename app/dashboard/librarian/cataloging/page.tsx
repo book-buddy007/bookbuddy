@@ -1,188 +1,123 @@
 'use client';
 
 import React, { useState } from "react";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import {
-  EnhancedCard,
-  EnhancedCardContent,
-  EnhancedCardDescription,
-  EnhancedCardHeader,
-  EnhancedCardTitle,
-} from "@/components/ui/enhanced-card";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { PlusCircle, FileEdit, FileText, BookPlus, Upload } from "@/components/ui/icons";
 import { BookFormModal } from "@/components/catalog/BookFormModal";
 
 const CatalogingPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (data: any) => {
+    try {
+      const { submitToGlobal, ...bookData } = data;
+      // Map frontend form data to the backend CreateBookDto structure
+      const payload = {
+        ...bookData,
+        formats: [
+          { format: bookData.format }
+        ]
+      };
+
+      const response = await fetch('/api/v1/books', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create book entry');
+      }
+
+      const createdBook = await response.json();
+
+      // If user requested global catalog inclusion
+      if (submitToGlobal && createdBook?.id) {
+        const globalRes = await fetch(`/api/v1/books/${createdBook.id}/submit-global`, {
+          method: 'POST',
+        });
+        if (!globalRes.ok) {
+          console.warn("Failed to submit to global library, but book was created.");
+          toast({
+            title: "Book entry created",
+            description: "It couldn't be submitted to the Global Library. You might not have Publisher permissions.",
+            variant: "destructive",
+          });
+          setIsModalOpen(false);
+          return;
+        }
+      }
+
+      toast({
+        title: submitToGlobal ? "Submitted for global approval" : "Book entry created",
+        description: submitToGlobal ? "The book entry was created and sent for Global Approval." : "The book entry was created successfully.",
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error creating book:', error);
+      toast({ title: "Couldn't create the book entry", description: "An error occurred. Please try again.", variant: "destructive" });
+    }
+  };
 
   return (
-    <div className="p-6 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <BookPlus className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-            Book Entry
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Add and manage the resources in your library
-          </p>
-        </div>
-        <EnhancedButton variant="outline" icon={<Upload className="h-4 w-4" />}>
-          Import Library Data
-        </EnhancedButton>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Librarian"
+        title="Book entry"
+        description="Add and manage the resources in your library."
+        actions={<Chip icon="info">Import not available yet</Chip>}
+      />
 
       <Tabs defaultValue="add-item" className="w-full space-y-6">
-        <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-          <TabsTrigger
-            value="add-item"
-            className="data-[state=active]:text-white"
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add New Item
-          </TabsTrigger>
-          <TabsTrigger
-            value="batch-edit"
-            className="data-[state=active]:text-white"
-          >
-            <FileEdit className="h-4 w-4 mr-2" />
-            Batch Edit
-          </TabsTrigger>
-          <TabsTrigger
-            value="templates"
-            className="data-[state=active]:text-white"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Templates
-          </TabsTrigger>
+        <TabsList>
+          <TabsTrigger value="add-item">Add new item</TabsTrigger>
+          <TabsTrigger value="batch-edit">Batch edit</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="add-item" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="text-bb-accent">
-                Add New Book Entry
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>
-                Enter the details for the new resource
-              </EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent>
-              <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
-                <BookPlus className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
-                <h3 className="text-2xl font-medium mb-2">Create a New Book Entry</h3>
-                <p className="text-muted-foreground mb-8 max-w-md">
-                  Use our advanced schema-compliant book entry wizard to easily add books, e-books, and audiobooks to the library system.
-                </p>
-                <EnhancedButton variant="vg-primary" onClick={() => setIsModalOpen(true)}>
-                  Open Book Entry Wizard
-                </EnhancedButton>
-                <BookFormModal 
-                  open={isModalOpen}
-                  onOpenChange={setIsModalOpen}
-                  title="Create Book Entry"
-                  onSubmit={async (data) => {
-                    try {
-                      const { submitToGlobal, ...bookData } = data as any;
-                      // Map frontend form data to the backend CreateBookDto structure
-                      const payload = {
-                        ...bookData,
-                        formats: [
-                          { format: bookData.format }
-                        ]
-                      };
-
-                      const response = await fetch('/api/v1/books', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload),
-                      });
-
-                      if (!response.ok) {
-                        throw new Error('Failed to create book entry');
-                      }
-
-                      const createdBook = await response.json();
-
-                      // If user requested global catalog inclusion
-                      if (submitToGlobal && createdBook?.id) {
-                        const globalRes = await fetch(`/api/v1/books/${createdBook.id}/submit-global`, {
-                          method: 'POST',
-                        });
-                        if (!globalRes.ok) {
-                           console.warn("Failed to submit to global library, but book was created.");
-                           alert("Book entry created, but failed to submit to Global Library. You might not have Publisher permissions.");
-                           setIsModalOpen(false);
-                           return;
-                        }
-                      }
-
-                      alert(submitToGlobal ? "Book entry created and submitted for Global Approval!" : "Book entry created successfully!");
-                      setIsModalOpen(false);
-                    } catch (error) {
-                      console.error('Error creating book:', error);
-                      alert("An error occurred while creating the book entry.");
-                    }
-                  }}
-                />
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
+        <TabsContent value="add-item">
+          <EmptyState
+            icon="plus"
+            title="Create a new book entry"
+            description="Use the schema-compliant book entry wizard to add books, e-books, and audiobooks to the library system."
+            action={
+              <Button onClick={() => setIsModalOpen(true)}>
+                <Icon name="plus" size={18} /> Open book entry wizard
+              </Button>
+            }
+          />
+          <BookFormModal
+            open={isModalOpen}
+            onOpenChange={setIsModalOpen}
+            title="Create Book Entry"
+            onSubmit={handleSubmit}
+          />
         </TabsContent>
 
-        <TabsContent value="batch-edit" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Batch Edit Book Entries</CardTitle>
-              <CardDescription>
-                Edit multiple book entries at once
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Batch editing functionality coming soon...
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="batch-edit">
+          <EmptyState icon="edit" title="Batch editing is coming soon" description="You'll be able to edit multiple book entries at once." />
         </TabsContent>
 
-        <TabsContent value="templates" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Book Templates</CardTitle>
-              <CardDescription>
-                Create and manage book entry templates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border border-dashed flex flex-col items-center justify-center p-6 h-40 hover:border-primary/50 cursor-pointer">
-                  <PlusCircle className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="font-medium">Create New Template</p>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="templates">
+          <EmptyState icon="copy" title="Templates are coming soon" description="Create and manage reusable book entry templates." />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-export default CatalogingPage; 
+export default CatalogingPage;

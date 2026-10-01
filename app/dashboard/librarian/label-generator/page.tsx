@@ -1,23 +1,15 @@
 'use client';
 
 import React, { useState } from "react";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import {
-  EnhancedCard,
-  EnhancedCardContent,
-  EnhancedCardDescription,
-  EnhancedCardHeader,
-  EnhancedCardTitle,
-  EnhancedCardFooter,
-} from "@/components/ui/enhanced-card";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Chip } from "@/components/ui/chip";
+import { FormField } from "@/components/ui/form-field";
+import { Icon, type BBIconName } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/ui/page-header";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Tabs,
   TabsContent,
@@ -31,552 +23,298 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Download, Printer, QrCode, Barcode, PlusCircle, Tag, FileText } from "@/components/ui/icons";
+
+const DEFAULT_SINGLE = {
+  labelType: "spine",
+  labelSize: "standard",
+  labelContent: "",
+  includeBarcode: true,
+  includeQrCode: false,
+  showTitle: true,
+  showAuthor: true,
+  showCallNumber: true,
+  startingPosition: "1",
+  numberOfCopies: "1",
+};
+
+const DEFAULT_BATCH = {
+  dataSource: "catalog",
+  fileUpload: "",
+  labelType: "spine",
+  labelSize: "standard",
+  includeBarcode: true,
+  includeQrCode: false,
+};
+
+const LABEL_TYPES = [
+  { value: "spine", label: "Spine label" },
+  { value: "pocket", label: "Pocket label" },
+  { value: "card", label: "Card label" },
+  { value: "barcode", label: "Barcode label" },
+];
+
+const LABEL_SIZES = [
+  { value: "standard", label: 'Standard (1" x 1.5")', ratio: "2 / 3" },
+  { value: "small", label: 'Small (0.5" x 1")', ratio: "1 / 2" },
+  { value: "large", label: 'Large (2" x 3")', ratio: "2 / 3" },
+  { value: "custom", label: "Custom size", ratio: "2 / 3" },
+];
+
+const templates: { name: string; used: string; icon: BBIconName; note: string }[] = [
+  { name: "Standard spine label", used: "Last used 2 days ago", icon: "tag", note: "With barcode" },
+  { name: "QR resource label", used: "Last used 1 week ago", icon: "scan", note: "With QR code" },
+];
+
+const SelectField = ({ id, label, value, onChange, options }: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) => (
+  <FormField label={label} htmlFor={id}>
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger id={id}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </FormField>
+);
+
+const CheckField = ({ id, label, checked, onChange }: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) => (
+  <div className="flex items-center gap-2">
+    <Checkbox id={id} checked={checked} onCheckedChange={(c) => onChange(c === true)} />
+    <Label htmlFor={id} className="font-normal">{label}</Label>
+  </div>
+);
+
+// Decorative barcode: bars are CSS, not a scannable code.
+const BarcodeStrip = () => (
+  <div
+    aria-hidden
+    className="h-10 w-full max-w-[9rem] rounded-sm"
+    style={{
+      backgroundImage:
+        "repeating-linear-gradient(90deg, #0A0F24 0 2px, transparent 2px 4px, #0A0F24 4px 5px, transparent 5px 8px, #0A0F24 8px 11px, transparent 11px 13px)",
+    }}
+  />
+);
+
+const sectionCard = "rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6";
 
 const LabelGeneratorPage = () => {
-  // Single label form state
-  const [singleFormData, setSingleFormData] = useState({
-    labelType: "spine",
-    labelSize: "standard",
-    labelContent: "",
-    includeBarcode: true,
-    includeQrCode: false,
-    showTitle: true,
-    showAuthor: true,
-    showCallNumber: true,
-    startingPosition: "1",
-    numberOfCopies: "1",
-  });
+  const { toast } = useToast();
+  const [single, setSingle] = useState({ ...DEFAULT_SINGLE });
+  const [batch, setBatch] = useState({ ...DEFAULT_BATCH });
 
-  // Batch label form state
-  const [batchFormData, setBatchFormData] = useState({
-    dataSource: "catalog",
-    fileUpload: "",
-    labelType: "spine",
-    labelSize: "standard",
-    includeBarcode: true,
-    includeQrCode: false,
-  });
+  const setS = <K extends keyof typeof DEFAULT_SINGLE>(k: K, v: (typeof DEFAULT_SINGLE)[K]) =>
+    setSingle((p) => ({ ...p, [k]: v }));
+  const setB = <K extends keyof typeof DEFAULT_BATCH>(k: K, v: (typeof DEFAULT_BATCH)[K]) =>
+    setBatch((p) => ({ ...p, [k]: v }));
 
-  // Single form handlers
-  const handleSingleFormChange = (field: string, value: any) => {
-    setSingleFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSingleFormReset = () => {
-    setSingleFormData({
-      labelType: "spine",
-      labelSize: "standard",
-      labelContent: "",
-      includeBarcode: true,
-      includeQrCode: false,
-      showTitle: true,
-      showAuthor: true,
-      showCallNumber: true,
-      startingPosition: "1",
-      numberOfCopies: "1",
+  const notAvailable = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    toast({
+      title: "Printing isn't available yet",
+      description: "The preview shows the layout. Label printing and saving will arrive in a later update.",
     });
   };
 
-  const handleSingleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(singleFormData);
-    alert("Labels prepared for printing!");
-  };
-
-  // Batch form handlers
-  const handleBatchFormChange = (field: string, value: any) => {
-    setBatchFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleBatchFormReset = () => {
-    setBatchFormData({
-      dataSource: "catalog",
-      fileUpload: "",
-      labelType: "spine",
-      labelSize: "standard",
-      includeBarcode: true,
-      includeQrCode: false,
-    });
-  };
-
-  const handleBatchFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(batchFormData);
-    alert("Batch labels prepared for printing!");
-  };
-
-  // Sample label preview JSX - would be dynamically generated based on form values
-  const LabelPreview = () => (
-    <div className="border rounded-md p-4 w-full h-64 bg-white">
-      <div className="flex flex-col h-full justify-between">
-        <div>
-          <p className="text-xs text-center font-bold">SAMPLE LIBRARY</p>
-          <p className="text-sm text-center mt-2 font-medium">FICTION</p>
-        </div>
-        <div className="text-center">
-          <p className="text-lg font-bold">ROW</p>
-          <p className="text-sm">J.K. Rowling</p>
-          <div className="mt-2 flex justify-center">
-            <Barcode className="h-12 w-36" />
-          </div>
-          <p className="text-xs mt-1">123456789</p>
-        </div>
-        <div className="text-center text-xs">
-          <p>Example Library</p>
-        </div>
-      </div>
-    </div>
-  );
+  const ratio = LABEL_SIZES.find((s) => s.value === single.labelSize)?.ratio ?? "2 / 3";
+  const callNumber = single.labelContent.trim() || "FIC ROW";
 
   return (
-    <div className="p-6 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-          <Tag className="h-10 w-10 text-vg-primary-600" />
-          Label Generator
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Create and print labels for your library resources
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Librarian"
+        title="Label generator"
+        description="Create and print labels for your library resources."
+        actions={<Chip icon="info">Printing not available yet</Chip>}
+      />
 
       <Tabs defaultValue="single" className="w-full space-y-6">
-        <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-          <TabsTrigger
-            value="single"
-            className="data-[state=active]:text-white"
-          >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Single Label
-          </TabsTrigger>
-          <TabsTrigger
-            value="batch"
-            className="data-[state=active]:text-white"
-          >
-            <Barcode className="h-4 w-4 mr-2" />
-            Batch Labels
-          </TabsTrigger>
-          <TabsTrigger
-            value="templates"
-            className="data-[state=active]:text-white"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Templates
-          </TabsTrigger>
+        <TabsList>
+          <TabsTrigger value="single">Single label</TabsTrigger>
+          <TabsTrigger value="batch">Batch labels</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="single" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <EnhancedCard variant="elevated">
-                <EnhancedCardHeader>
-                  <EnhancedCardTitle className="text-bb-accent">
-                    Generate Single Label
-                  </EnhancedCardTitle>
-                  <EnhancedCardDescription>
-                    Create a label for individual items
-                  </EnhancedCardDescription>
-                </EnhancedCardHeader>
-                <EnhancedCardContent>
-                  <form
-                    onSubmit={handleSingleFormSubmit}
-                    className="space-y-4"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="labelType">Label Type</Label>
-                        <Select
-                          value={singleFormData.labelType}
-                          onValueChange={(value) => handleSingleFormChange('labelType', value)}
-                        >
-                          <SelectTrigger id="labelType">
-                            <SelectValue placeholder="Select label type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="spine">Spine Label</SelectItem>
-                            <SelectItem value="pocket">
-                              Pocket Label
-                            </SelectItem>
-                            <SelectItem value="card">Card Label</SelectItem>
-                            <SelectItem value="barcode">
-                              Barcode Label
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+        <TabsContent value="single" className="mt-0">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <form onSubmit={notAvailable} className={`${sectionCard} space-y-5 lg:col-span-2`}>
+              <div>
+                <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">Generate single label</h2>
+                <p className="text-[13px] text-bb-muted">Create a label for individual items</p>
+              </div>
 
-                      <div>
-                        <Label htmlFor="labelSize">Label Size</Label>
-                        <Select
-                          value={singleFormData.labelSize}
-                          onValueChange={(value) => handleSingleFormChange('labelSize', value)}
-                        >
-                          <SelectTrigger id="labelSize">
-                            <SelectValue placeholder="Select size" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="standard">
-                              Standard (1" x 1.5")
-                            </SelectItem>
-                            <SelectItem value="small">
-                              Small (0.5" x 1")
-                            </SelectItem>
-                            <SelectItem value="large">
-                              Large (2" x 3")
-                            </SelectItem>
-                            <SelectItem value="custom">
-                              Custom Size
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <SelectField id="labelType" label="Label type" value={single.labelType} onChange={(v) => setS("labelType", v)} options={LABEL_TYPES} />
+                <SelectField id="labelSize" label="Label size" value={single.labelSize} onChange={(v) => setS("labelSize", v)} options={LABEL_SIZES} />
+              </div>
 
-                    <div>
-                      <Label htmlFor="labelContent">Label Content (Call Number, etc.)</Label>
-                      <Input
-                        id="labelContent"
-                        placeholder="Enter call number or scan barcode"
-                        value={singleFormData.labelContent}
-                        onChange={(e) => handleSingleFormChange('labelContent', e.target.value)}
-                      />
-                    </div>
+              <FormField label="Label content (call number, etc.)" htmlFor="labelContent">
+                <Input
+                  id="labelContent"
+                  placeholder="Enter call number or scan barcode"
+                  value={single.labelContent}
+                  onChange={(e) => setS("labelContent", e.target.value)}
+                />
+              </FormField>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="startingPosition">Starting Position</Label>
-                        <Select
-                          value={singleFormData.startingPosition}
-                          onValueChange={(value) => handleSingleFormChange('startingPosition', value)}
-                        >
-                          <SelectTrigger id="startingPosition">
-                            <SelectValue placeholder="Select position" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">Position 1</SelectItem>
-                            <SelectItem value="2">Position 2</SelectItem>
-                            <SelectItem value="3">Position 3</SelectItem>
-                            <SelectItem value="4">Position 4</SelectItem>
-                            <SelectItem value="5">Position 5</SelectItem>
-                            <SelectItem value="6">Position 6</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <SelectField
+                  id="startingPosition"
+                  label="Starting position"
+                  value={single.startingPosition}
+                  onChange={(v) => setS("startingPosition", v)}
+                  options={[1, 2, 3, 4, 5, 6].map((n) => ({ value: String(n), label: `Position ${n}` }))}
+                />
+                <FormField label="Number of copies" htmlFor="numberOfCopies">
+                  <Input
+                    id="numberOfCopies"
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    value={single.numberOfCopies}
+                    onChange={(e) => setS("numberOfCopies", e.target.value)}
+                  />
+                </FormField>
+              </div>
 
-                      <div>
-                        <Label htmlFor="numberOfCopies">Number of Copies</Label>
-                        <Input
-                          id="numberOfCopies"
-                          type="number"
-                          min="1"
-                          placeholder="1"
-                          value={singleFormData.numberOfCopies}
-                          onChange={(e) => handleSingleFormChange('numberOfCopies', e.target.value)}
-                        />
-                      </div>
-                    </div>
+              <fieldset className="space-y-3">
+                <legend className="text-[13px] font-semibold">Include elements</legend>
+                <div className="grid grid-cols-2 gap-3">
+                  <CheckField id="showTitle" label="Show title" checked={single.showTitle} onChange={(v) => setS("showTitle", v)} />
+                  <CheckField id="showAuthor" label="Show author" checked={single.showAuthor} onChange={(v) => setS("showAuthor", v)} />
+                  <CheckField id="showCallNumber" label="Show call number" checked={single.showCallNumber} onChange={(v) => setS("showCallNumber", v)} />
+                  <CheckField id="includeBarcode" label="Include barcode" checked={single.includeBarcode} onChange={(v) => setS("includeBarcode", v)} />
+                  <CheckField id="includeQrCode" label="Include QR code" checked={single.includeQrCode} onChange={(v) => setS("includeQrCode", v)} />
+                </div>
+              </fieldset>
 
-                    <div className="space-y-2">
-                      <Label>Include Elements</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="showTitle"
-                            checked={singleFormData.showTitle}
-                            onCheckedChange={(checked) => handleSingleFormChange('showTitle', checked)}
-                          />
-                          <Label htmlFor="showTitle" className="font-normal">
-                            Show Title
-                          </Label>
-                        </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setSingle({ ...DEFAULT_SINGLE })}>
+                  Reset
+                </Button>
+                <Button type="submit">Generate label</Button>
+              </div>
+            </form>
 
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="showAuthor"
-                            checked={singleFormData.showAuthor}
-                            onCheckedChange={(checked) => handleSingleFormChange('showAuthor', checked)}
-                          />
-                          <Label htmlFor="showAuthor" className="font-normal">
-                            Show Author
-                          </Label>
-                        </div>
+            <section className={sectionCard}>
+              <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">Label preview</h2>
+              <p className="mb-4 text-[13px] text-bb-muted">Sample content, live layout</p>
 
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="showCallNumber"
-                            checked={singleFormData.showCallNumber}
-                            onCheckedChange={(checked) => handleSingleFormChange('showCallNumber', checked)}
-                          />
-                          <Label htmlFor="showCallNumber" className="font-normal">
-                            Show Call Number
-                          </Label>
-                        </div>
+              <div className="flex justify-center rounded-2xl bg-bb-surface-2 p-4">
+                <div
+                  className="flex w-40 flex-col items-center justify-between rounded-md bg-white p-3 text-center text-bb-ink shadow-e1"
+                  style={{ aspectRatio: ratio }}
+                >
+                  <p className="text-[10px] font-bold uppercase tracking-wide">Sample library</p>
+                  <div className="space-y-1">
+                    {single.showCallNumber && <p className="text-lg font-extrabold leading-none">{callNumber}</p>}
+                    {single.showTitle && <p className="text-[11px] font-semibold">Harry Potter</p>}
+                    {single.showAuthor && <p className="text-[10px]">J.K. Rowling</p>}
+                  </div>
+                  <div className="flex w-full flex-col items-center gap-1">
+                    {single.includeBarcode && <BarcodeStrip />}
+                    {single.includeQrCode && <Icon name="scan" size={28} />}
+                    {(single.includeBarcode || single.includeQrCode) && <p className="font-mono text-[9px]">123456789</p>}
+                  </div>
+                </div>
+              </div>
 
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="includeBarcode"
-                            checked={singleFormData.includeBarcode}
-                            onCheckedChange={(checked) => handleSingleFormChange('includeBarcode', checked)}
-                          />
-                          <Label htmlFor="includeBarcode" className="font-normal">
-                            Include Barcode
-                          </Label>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="includeQrCode"
-                            checked={singleFormData.includeQrCode}
-                            onCheckedChange={(checked) => handleSingleFormChange('includeQrCode', checked)}
-                          />
-                          <Label htmlFor="includeQrCode" className="font-normal">
-                            Include QR Code
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end space-x-2 pt-4">
-                      <EnhancedButton
-                        type="button"
-                        variant="outline"
-                        onClick={handleSingleFormReset}
-                      >
-                        Reset
-                      </EnhancedButton>
-                      <EnhancedButton type="submit">Generate Label</EnhancedButton>
-                    </div>
-                  </form>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </div>
-
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Label Preview</CardTitle>
-                  <CardDescription>
-                    Preview of your generated label
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <LabelPreview />
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <EnhancedButton variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Save
-                  </EnhancedButton>
-                  <EnhancedButton size="sm">
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print
-                  </EnhancedButton>
-                </CardFooter>
-              </Card>
-            </div>
+              <div className="mt-4 flex justify-between gap-2">
+                <Button variant="outline" size="sm" onClick={() => notAvailable()}>
+                  <Icon name="download" size={16} /> Save
+                </Button>
+                <Button size="sm" onClick={() => notAvailable()}>
+                  <Icon name="printer" size={16} /> Print
+                </Button>
+              </div>
+            </section>
           </div>
         </TabsContent>
 
-        <TabsContent value="batch" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Batch Label Generation</CardTitle>
-              <CardDescription>
-                Generate multiple labels at once from your library or a file
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={handleBatchFormSubmit}
-                className="space-y-4"
-              >
-                <div>
-                  <Label htmlFor="dataSource">Data Source</Label>
-                  <Select
-                    value={batchFormData.dataSource}
-                    onValueChange={(value) => handleBatchFormChange('dataSource', value)}
-                  >
-                    <SelectTrigger id="dataSource">
-                      <SelectValue placeholder="Select data source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="catalog">
-                        Current Library
-                      </SelectItem>
-                      <SelectItem value="new-additions">
-                        New Additions
-                      </SelectItem>
-                      <SelectItem value="custom-selection">
-                        Custom Selection
-                      </SelectItem>
-                      <SelectItem value="file-upload">
-                        File Upload
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+        <TabsContent value="batch" className="mt-0">
+          <form onSubmit={notAvailable} className={`${sectionCard} max-w-3xl space-y-5`}>
+            <div>
+              <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">Batch label generation</h2>
+              <p className="text-[13px] text-bb-muted">Generate multiple labels at once from your library or a file</p>
+            </div>
 
-                {batchFormData.dataSource === "file-upload" && (
-                  <div>
-                    <Label htmlFor="fileUpload">Upload File</Label>
-                    <Input
-                      id="fileUpload"
-                      type="file"
-                      placeholder="Upload CSV or Excel file"
-                    />
-                  </div>
-                )}
+            <SelectField
+              id="dataSource"
+              label="Data source"
+              value={batch.dataSource}
+              onChange={(v) => setB("dataSource", v)}
+              options={[
+                { value: "catalog", label: "Current library" },
+                { value: "new-additions", label: "New additions" },
+                { value: "custom-selection", label: "Custom selection" },
+                { value: "file-upload", label: "File upload" },
+              ]}
+            />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="batchLabelType">Label Type</Label>
-                    <Select
-                      value={batchFormData.labelType}
-                      onValueChange={(value) => handleBatchFormChange('labelType', value)}
-                    >
-                      <SelectTrigger id="batchLabelType">
-                        <SelectValue placeholder="Select label type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="spine">Spine Label</SelectItem>
-                        <SelectItem value="pocket">Pocket Label</SelectItem>
-                        <SelectItem value="card">Card Label</SelectItem>
-                        <SelectItem value="barcode">
-                          Barcode Label
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            {batch.dataSource === "file-upload" && (
+              <FormField label="Upload file" htmlFor="fileUpload" hint="CSV or Excel">
+                <Input id="fileUpload" type="file" accept=".csv,.xlsx,.xls" />
+              </FormField>
+            )}
 
-                  <div>
-                    <Label htmlFor="batchLabelSize">Label Size</Label>
-                    <Select
-                      value={batchFormData.labelSize}
-                      onValueChange={(value) => handleBatchFormChange('labelSize', value)}
-                    >
-                      <SelectTrigger id="batchLabelSize">
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard">
-                          Standard (1" x 1.5")
-                        </SelectItem>
-                        <SelectItem value="small">
-                          Small (0.5" x 1")
-                        </SelectItem>
-                        <SelectItem value="large">
-                          Large (2" x 3")
-                        </SelectItem>
-                        <SelectItem value="custom">Custom Size</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+            <div className="grid gap-5 md:grid-cols-2">
+              <SelectField id="batchLabelType" label="Label type" value={batch.labelType} onChange={(v) => setB("labelType", v)} options={LABEL_TYPES} />
+              <SelectField id="batchLabelSize" label="Label size" value={batch.labelSize} onChange={(v) => setB("labelSize", v)} options={LABEL_SIZES} />
+            </div>
 
-                <div className="space-y-2">
-                  <Label>Include Elements</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="batchIncludeBarcode"
-                        checked={batchFormData.includeBarcode}
-                        onCheckedChange={(checked) => handleBatchFormChange('includeBarcode', checked)}
-                      />
-                      <Label htmlFor="batchIncludeBarcode" className="font-normal">
-                        Include Barcode
-                      </Label>
-                    </div>
+            <fieldset className="space-y-3">
+              <legend className="text-[13px] font-semibold">Include elements</legend>
+              <div className="grid grid-cols-2 gap-3">
+                <CheckField id="batchIncludeBarcode" label="Include barcode" checked={batch.includeBarcode} onChange={(v) => setB("includeBarcode", v)} />
+                <CheckField id="batchIncludeQrCode" label="Include QR code" checked={batch.includeQrCode} onChange={(v) => setB("includeQrCode", v)} />
+              </div>
+            </fieldset>
 
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="batchIncludeQrCode"
-                        checked={batchFormData.includeQrCode}
-                        onCheckedChange={(checked) => handleBatchFormChange('includeQrCode', checked)}
-                      />
-                      <Label htmlFor="batchIncludeQrCode" className="font-normal">
-                        Include QR Code
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <EnhancedButton
-                    type="button"
-                    variant="outline"
-                    onClick={handleBatchFormReset}
-                  >
-                    Reset
-                  </EnhancedButton>
-                  <EnhancedButton type="submit">Generate Batch Labels</EnhancedButton>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setBatch({ ...DEFAULT_BATCH })}>
+                Reset
+              </Button>
+              <Button type="submit">Generate batch labels</Button>
+            </div>
+          </form>
         </TabsContent>
 
-        <TabsContent value="templates" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Label Templates</CardTitle>
-              <CardDescription>
-                Manage your saved label templates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border hover:border-primary cursor-pointer">
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-base">Standard Spine Label</CardTitle>
-                    <CardDescription>Last used 2 days ago</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="flex items-center justify-center space-x-2">
-                      <Barcode className="h-4 w-4" />
-                      <span className="text-xs">With barcode</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border hover:border-primary cursor-pointer">
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-base">QR Resource Label</CardTitle>
-                    <CardDescription>Last used 1 week ago</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="flex items-center justify-center space-x-2">
-                      <QrCode className="h-4 w-4" />
-                      <span className="text-xs">With QR code</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border border-dashed hover:border-primary cursor-pointer flex flex-col items-center justify-center p-6">
-                  <CardContent className="flex flex-col items-center justify-center p-0">
-                    <EnhancedButton variant="ghost" className="h-auto p-0">
-                      <PlusCircle className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span>Create New Template</span>
-                    </EnhancedButton>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="templates" className="mt-0">
+          <div className="grid gap-4 md:grid-cols-3">
+            {templates.map((t) => (
+              <article key={t.name} className="rounded-[18px] bg-bb-surface p-5 shadow-e1">
+                <h3 className="font-semibold">{t.name}</h3>
+                <p className="text-[13px] text-bb-muted">{t.used}</p>
+                <div className="mt-4">
+                  <Chip icon={t.icon}>{t.note}</Chip>
+                </div>
+              </article>
+            ))}
+            <button
+              type="button"
+              onClick={() => toast({ title: "Coming soon", description: "Saving label templates isn't available yet." })}
+              className="flex min-h-[7rem] flex-col items-center justify-center gap-2 rounded-[18px] border-[1.5px] border-dashed border-bb-border p-5 text-sm font-semibold text-bb-muted hover:text-bb-text focus-visible:outline-none focus-visible:shadow-focus"
+            >
+              <Icon name="plus" size={28} /> Create new template
+            </button>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-export default LabelGeneratorPage; 
+export default LabelGeneratorPage;

@@ -1,37 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card"
-import { StatCard } from "@/components/ui/stat-card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import {
-  Bell,
-  BookOpen,
-  BookPlus,
-  CheckCircle,
-  Clock,
-  FileText,
-  Plus,
-  Printer,
-  Search,
-  Tag,
-  XCircle,
-  AlertTriangle,
-  ArrowUpRight,
-  Users,
-  Boxes,
-  Library,
-  TrendingUp,
-} from "@/components/ui/icons"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"
+import { Chip } from "@/components/ui/chip"
+import { Icon, type BBIconName } from "@/components/ui/icon"
+import { PageHeader } from "@/components/ui/page-header"
+import { StatCard } from "@/components/ui/stat-card"
+import { StatusBadge } from "@/components/ui/status-badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-// Mock data
+// Sample data. There is no librarian overview endpoint behind this page yet.
 const recentActivities = [
   { type: 'Book Return', user: 'Emma Wilson', item: 'The Great Gatsby', time: '10 minutes ago' },
   { type: 'Book Checkout', user: 'Michael Brown', item: 'To Kill a Mockingbird', time: '30 minutes ago' },
@@ -58,265 +36,148 @@ const inventoryAlerts = [
   { book: '1984', issue: 'Water Damage', priority: 'High' },
 ]
 
+const quickActions: { label: string; href: string; icon: BBIconName }[] = [
+  { label: "Add new book", href: "/dashboard/librarian/cataloging", icon: "plus" },
+  { label: "Process request", href: "/dashboard/librarian/circulation", icon: "scan" },
+  { label: "Bulk upload books", href: "/dashboard/librarian/bulk-upload", icon: "upload" },
+  { label: "Generate labels", href: "/dashboard/librarian/label-generator", icon: "tag" },
+  { label: "View reports", href: "/dashboard/librarian/analytics", icon: "analytics" },
+]
+
+const activityIcon = (type: string): BBIconName =>
+  type.includes('Return') ? 'arrow-left' : type.includes('Checkout') ? 'arrow-right' : type.includes('Fine') ? 'subscription' : 'rotate-cw'
+
+const ActivityList = ({ items }: { items: typeof recentActivities }) => (
+  <ul className="space-y-4">
+    {items.map((activity, i) => (
+      <li key={i} className="flex items-start gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-bb-surface-2">
+          <Icon name={activityIcon(activity.type)} size={16} />
+        </span>
+        <div className="min-w-0 text-sm">
+          <p className="font-semibold">{activity.type}</p>
+          <p className="text-bb-muted">{activity.user} · {activity.item}</p>
+          <p className="text-xs text-bb-muted">{activity.time}</p>
+        </div>
+      </li>
+    ))}
+  </ul>
+)
+
+const panel = "rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6"
+const panelTitle = "mb-4 font-display text-lg font-extrabold tracking-[-0.02em]"
+const moreLink = "mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-bb-accent-ink hover:underline"
+
 export default function LibrarianDashboard() {
-  const [searchQuery, setSearchQuery] = useState("");
-
   return (
-    <div className="p-3 md:p-6 space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-          <Library className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-          Librarian Dashboard
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Manage circulation, book entry, and library operations efficiently.
-        </p>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Librarian"
+        title="Dashboard"
+        description="Manage circulation, book entry, and library operations efficiently."
+        actions={<Chip icon="info">Sample data</Chip>}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard variant="featured" title="Pending requests" value="24" description="12 borrow, 8 return, 4 renewal" icon="calendar" />
+        <StatCard title="Books checked out" value="156" description="+12 from yesterday" icon="read" trend="up" trendValue="+12" />
+        <StatCard title="Overdue items" value="18" description="Total fines: $45.50" icon="overdue" trend="down" trendValue="-3" />
+        <StatCard title="Total collection" value="2,543" description="+45 new this month" icon="library" trend="up" trendValue="+45" />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-4">
-        <StatCard
-          title="Pending Requests"
-          value="24"
-          description="12 borrow, 8 return, 4 renewal"
-          icon={Clock}
-          iconColor="text-vg-warning-600"
-          iconBgColor="bg-vg-warning-50 dark:bg-vg-warning-900/20"
-          variant="warning"
-          trend="neutral"
-        />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className={panel}>
+          <h2 className={panelTitle}>Quick actions</h2>
+          <div className="space-y-2.5">
+            {quickActions.map((a) => (
+              <Button key={a.href} asChild variant="outline" className="w-full justify-start">
+                <Link href={a.href}>
+                  <Icon name={a.icon} size={18} /> {a.label}
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </section>
 
-        <StatCard
-          title="Books Checked Out"
-          value="156"
-          description="+12 from yesterday"
-          icon={BookOpen}
-          iconColor="text-vg-primary-600"
-          iconBgColor="bg-vg-primary-50 dark:bg-vg-primary-900/20"
-          variant="primary"
-          trend="up"
-          trendValue="+12"
-        />
+        <section className={panel}>
+          <h2 className={panelTitle}>Recent activity</h2>
+          <ActivityList items={recentActivities.slice(0, 3)} />
+          <Link href="/dashboard/librarian/circulation" className={moreLink}>
+            View all activity <Icon name="arrow-up-right" size={14} />
+          </Link>
+        </section>
 
-        <StatCard
-          title="Overdue Items"
-          value="18"
-          description="Total fines: $45.50"
-          icon={AlertTriangle}
-          iconColor="text-vg-error-600"
-          iconBgColor="bg-vg-error-50 dark:bg-vg-error-900/20"
-          variant="error"
-          trend="down"
-          trendValue="-3"
-        />
-
-        <StatCard
-          title="Total Collection"
-          value="2,543"
-          description="+45 new this month"
-          icon={Boxes}
-          iconColor="text-vg-success-600"
-          iconBgColor="bg-vg-success-50 dark:bg-vg-success-900/20"
-          variant="success"
-          trend="up"
-          trendValue="+45"
-        />
-      </div>
-
-      {/* Quick Actions - keeping the existing Card structure below */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <EnhancedCard variant="elevated" interactive={true}>
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-base font-medium">Quick Actions</EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            {/* This will be replaced with proper quick action cards */}
-          </EnhancedCardContent>
-        </EnhancedCard>
-      </div>
-
-      {/* Quick Actions & Activity Section */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <EnhancedCard variant="elevated" className="md:col-span-2 lg:col-span-1">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-bb-accent">
-              Quick Actions
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent className="space-y-3">
-            <Link href="/dashboard/librarian/cataloging">
-              <EnhancedButton className="w-full justify-start" variant="outline" icon={<BookPlus className="h-4 w-4" />}>
-                Add New Book
-              </EnhancedButton>
-            </Link>
-            <Link href="/dashboard/librarian/circulation">
-              <EnhancedButton className="w-full justify-start" variant="outline" icon={<Clock className="h-4 w-4" />}>
-                Process Request
-              </EnhancedButton>
-            </Link>
-            <Link href="/dashboard/librarian/bulk-upload">
-              <EnhancedButton className="w-full justify-start" variant="outline" icon={<FileText className="h-4 w-4" />}>
-                Bulk Upload Books
-              </EnhancedButton>
-            </Link>
-            <Link href="/dashboard/librarian/label-generator">
-              <EnhancedButton className="w-full justify-start" variant="outline" icon={<Tag className="h-4 w-4" />}>
-                Generate Labels
-              </EnhancedButton>
-            </Link>
-            <Link href="/dashboard/librarian/analytics">
-              <EnhancedButton className="w-full justify-start" variant="outline" icon={<TrendingUp className="h-4 w-4" />}>
-                View Reports
-              </EnhancedButton>
-            </Link>
-          </EnhancedCardContent>
-        </EnhancedCard>
-
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-bb-accent">
-              Recent Activity
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <div className="space-y-4">
-              {recentActivities.slice(0, 3).map((activity, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <div className="min-w-5 mt-0.5">
-                    <div className="h-2 w-2 rounded-full bg-primary"></div>
-                  </div>
-                  <div>
-                    <p className="font-medium">{activity.type}</p>
-                    <p className="text-muted-foreground">
-                      {activity.user} - {activity.item}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
-                  </div>
+        <section className={panel}>
+          <h2 className={panelTitle}>Inventory alerts</h2>
+          <ul className="space-y-4">
+            {inventoryAlerts.map((alert, i) => (
+              <li key={i} className="flex items-start justify-between gap-3 text-sm">
+                <div className="min-w-0">
+                  <p className="font-semibold">{alert.book}</p>
+                  <p className="text-bb-muted">{alert.issue}</p>
                 </div>
-              ))}
-              <Link
-                href="/dashboard/librarian/circulation"
-                className="text-xs text-primary flex items-center mt-4 hover:underline"
-              >
-                View all activity <ArrowUpRight className="h-3 w-3 ml-1" />
-              </Link>
-            </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
-
-        <EnhancedCard variant="elevated">
-          <EnhancedCardHeader>
-            <EnhancedCardTitle className="text-bb-accent">
-              Inventory Alerts
-            </EnhancedCardTitle>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <div className="space-y-4">
-              {inventoryAlerts.map((alert, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <div className="min-w-5 mt-0.5">
-                    <div className={`h-2 w-2 rounded-full ${
-                      alert.priority === 'High' ? 'bg-destructive' : 'bg-amber-500'
-                    }`}></div>
-                  </div>
-                  <div>
-                    <p className="font-medium">{alert.book}</p>
-                    <p className="text-muted-foreground">{alert.issue}</p>
-                    <p className="text-xs text-muted-foreground">Priority: {alert.priority}</p>
-                  </div>
-                </div>
-              ))}
-              <Link
-                href="/dashboard/librarian/inventory"
-                className="text-xs text-primary flex items-center mt-4 hover:underline"
-              >
-                View all alerts <ArrowUpRight className="h-3 w-3 ml-1" />
-              </Link>
-            </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
+                <StatusBadge status={alert.priority === 'High' ? 'overdue' : 'due-soon'} label={alert.priority} className="shrink-0" />
+              </li>
+            ))}
+          </ul>
+          <Link href="/dashboard/librarian/inventory" className={moreLink}>
+            View all alerts <Icon name="arrow-up-right" size={14} />
+          </Link>
+        </section>
       </div>
-      
+
       <Tabs defaultValue="upcoming">
-        <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="upcoming">Upcoming Returns</TabsTrigger>
-          <TabsTrigger value= "PENDING">Pending Requests</TabsTrigger>
-          <TabsTrigger value="activity">Latest Activity</TabsTrigger>
+        <TabsList>
+          <TabsTrigger value="upcoming">Upcoming returns</TabsTrigger>
+          <TabsTrigger value="PENDING">Pending requests</TabsTrigger>
+          <TabsTrigger value="activity">Latest activity</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="upcoming" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {upcomingReturns.map((item, i) => (
-                  <div key={i} className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{item.book}</p>
-                      <p className="text-sm text-muted-foreground">{item.user}</p>
-                    </div>
-                    <div className="text-sm font-medium">Due: {item.dueDate}</div>
+          <div className={panel}>
+            <ul className="divide-y divide-bb-border">
+              {upcomingReturns.map((item, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <div className="min-w-0">
+                    <p className="font-semibold">{item.book}</p>
+                    <p className="text-sm text-bb-muted">{item.user}</p>
                   </div>
-                ))}
-                <Link 
-                  href="/dashboard/librarian/circulation" 
-                  className="text-xs text-primary flex items-center mt-4 hover:underline"
-                >
-                  View all upcoming returns <ArrowUpRight className="h-3 w-3 ml-1" />
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+                  <StatusBadge status="due-soon" label={`Due ${item.dueDate.toLowerCase()}`} className="shrink-0" />
+                </li>
+              ))}
+            </ul>
+            <Link href="/dashboard/librarian/circulation" className={moreLink}>
+              View all upcoming returns <Icon name="arrow-up-right" size={14} />
+            </Link>
+          </div>
         </TabsContent>
-        
-        <TabsContent value= "PENDING" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {pendingRequests.map((request, i) => (
-                  <div key={i} className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{request.type}: {request.book}</p>
-                      <p className="text-sm text-muted-foreground">{request.user}</p>
-                      <p className="text-xs text-muted-foreground">{request.date}</p>
-                    </div>
-                    <div>
-                      <Button size="sm" variant="outline">Process</Button>
-                    </div>
+
+        <TabsContent value="PENDING" className="mt-4">
+          <div className={panel}>
+            <ul className="divide-y divide-bb-border">
+              {pendingRequests.map((request, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <div className="min-w-0">
+                    <p className="font-semibold">{request.type}: {request.book}</p>
+                    <p className="text-sm text-bb-muted">{request.user} · {request.date}</p>
                   </div>
-                ))}
-                <Link 
-                  href="/dashboard/librarian/circulation" 
-                  className="text-xs text-primary flex items-center mt-4 hover:underline"
-                >
-                  View all pending requests <ArrowUpRight className="h-3 w-3 ml-1" />
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+                  <Button asChild size="sm" variant="outline" className="shrink-0">
+                    <Link href="/dashboard/librarian/circulation">Process</Link>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <Link href="/dashboard/librarian/circulation" className={moreLink}>
+              View all pending requests <Icon name="arrow-up-right" size={14} />
+            </Link>
+          </div>
         </TabsContent>
-        
+
         <TabsContent value="activity" className="mt-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                {recentActivities.map((activity, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <div className="min-w-5 mt-0.5">
-                      <div className="h-2 w-2 rounded-full bg-primary"></div>
-                    </div>
-                    <div>
-                      <p className="font-medium">{activity.type}</p>
-                      <p className="text-muted-foreground">
-                        {activity.user} - {activity.item}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className={panel}>
+            <ActivityList items={recentActivities} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
