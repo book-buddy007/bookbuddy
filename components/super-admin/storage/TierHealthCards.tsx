@@ -1,16 +1,16 @@
 "use client";
 import { useState } from "react";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardDescription } from "@/components/ui/enhanced-card";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { StorageBar } from "@/components/super-admin/storage/StorageBar";
 import { formatBytes } from "@/utils/storage.utils";
 import { notifyInstitution } from "@/lib/api/adminApi";
-import { Bell, Loader2, AlertTriangle, ShieldAlert, Users } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const cardClass = "border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md relative overflow-hidden shadow-sm";
-const headerClass = "relative z-10 border-b border-slate-100 dark:border-slate-700/40";
+const panel = "rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6";
+const title = "font-display text-lg font-extrabold tracking-[-0.02em]";
 
 // ---------------------------------------------------------------------------
 // TierStorageBars
@@ -29,46 +29,34 @@ interface TierStorageBarsProps {
 
 export function TierStorageBars({ data, className }: TierStorageBarsProps) {
   return (
-    <EnhancedCard className={cn(cardClass, className)}>
-      <EnhancedCardHeader className={headerClass}>
-        <EnhancedCardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-          <div className="h-2 w-2 rounded-full bg-[var(--peacock-teal)] animate-pulse" />
-          Storage by Tier
-        </EnhancedCardTitle>
-        <EnhancedCardDescription className="text-slate-500 dark:text-white/50">
-          Aggregate usage per subscription tier
-        </EnhancedCardDescription>
-      </EnhancedCardHeader>
-      <EnhancedCardContent className="relative z-10 pt-4">
-        {data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-bb-cobalt to-bb-cobalt text-white shadow-lg shadow-bb-cobalt/30">
-              <Users className="h-6 w-6" />
-            </div>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Tier data not yet available
-            </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 max-w-xs">
-              Tier-level breakdown will appear once quota tracking is enabled
-              per subscription plan.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {data.map((t) => (
-              <StorageBar
-                key={t.tier}
-                label={`${t.tier} (${t.userCount} users)`}
-                used={t.usedBytes}
-                total={t.quotaBytes}
-                showLabels
-                size="lg"
-              />
-            ))}
-          </div>
-        )}
-      </EnhancedCardContent>
-    </EnhancedCard>
+    <section className={cn(panel, className)}>
+      <h3 className={title}>Storage by tier</h3>
+      <p className="mb-5 text-[13px] text-bb-muted">Aggregate usage per subscription tier</p>
+      {data.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-bb-surface-2">
+            <Icon name="class" size={24} />
+          </span>
+          <p className="text-sm font-semibold">Tier data not yet available</p>
+          <p className="max-w-xs text-xs text-bb-muted">
+            Tier-level breakdown will appear once quota tracking is enabled per subscription plan.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {data.map((t) => (
+            <StorageBar
+              key={t.tier}
+              label={`${t.tier} (${t.userCount} users)`}
+              used={t.usedBytes}
+              total={t.quotaBytes}
+              showLabels
+              size="lg"
+            />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -118,132 +106,71 @@ export function UsersAtRiskTable({
     }
   };
 
-  const badgeFor = (level: string) =>
-    level === "critical"
-      ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500";
-
-  const iconFor = (level: string) =>
-    level === "critical" ? (
-      <ShieldAlert className="h-3.5 w-3.5" />
-    ) : (
-      <AlertTriangle className="h-3.5 w-3.5" />
-    );
-
   return (
-    <EnhancedCard className={cn(cardClass, className)}>
-      <EnhancedCardHeader className={headerClass}>
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <EnhancedCardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-              <div className="h-2 w-2 rounded-full bg-[var(--deep-saffron)] animate-pulse" />
-              Users At Risk
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-slate-500 dark:text-white/50">
-              Personal library usage exceeding 100 MB
-            </EnhancedCardDescription>
-          </div>
-          {/* Alert summary pills */}
-          <div className="flex gap-2 flex-wrap">
-            {alertSummary.atWarning > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                <AlertTriangle className="h-3 w-3" />
-                {alertSummary.atWarning} warning
-              </span>
-            )}
-            {alertSummary.atCritical > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                <ShieldAlert className="h-3 w-3" />
-                {alertSummary.atCritical} critical
-              </span>
-            )}
-            {alertSummary.atFull > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                <ShieldAlert className="h-3 w-3" />
-                {alertSummary.atFull} full
-              </span>
-            )}
-          </div>
+    <section className={cn(panel, className)}>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h3 className={title}>Users at risk</h3>
+          <p className="text-[13px] text-bb-muted">Personal library usage exceeding 100 MB</p>
         </div>
-      </EnhancedCardHeader>
-      <EnhancedCardContent className="relative z-10 pt-4">
-        {users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/30">
-              <Users className="h-6 w-6" />
-            </div>
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              All users within safe limits
-            </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              No user is currently exceeding 100 MB of personal storage.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800">
-                  <th className="text-left py-2.5 px-2 font-semibold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                    User ID
-                  </th>
-                  <th className="text-left py-2.5 px-2 font-semibold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                    Used
-                  </th>
-                  <th className="text-left py-2.5 px-2 font-semibold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                    Risk
-                  </th>
-                  <th className="text-right py-2.5 px-2 font-semibold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                    Action
-                  </th>
+        <div className="flex flex-wrap gap-2">
+          {alertSummary.atWarning > 0 && <StatusBadge status="due-soon" label={`${alertSummary.atWarning} warning`} />}
+          {alertSummary.atCritical > 0 && <StatusBadge status="reserved" label={`${alertSummary.atCritical} critical`} />}
+          {alertSummary.atFull > 0 && <StatusBadge status="overdue" label={`${alertSummary.atFull} full`} />}
+        </div>
+      </div>
+
+      {users.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-bb-success-soft">
+            <Icon name="check-circle" size={24} />
+          </span>
+          <p className="text-sm font-semibold">All users within safe limits</p>
+          <p className="text-xs text-bb-muted">No user is currently exceeding 100 MB of personal storage.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-bb-border text-left text-xs font-bold uppercase tracking-[0.08em] text-bb-muted">
+                <th className="px-2 py-2.5">User ID</th>
+                <th className="px-2 py-2.5">Used</th>
+                <th className="px-2 py-2.5">Risk</th>
+                <th className="px-2 py-2.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-bb-border">
+              {users.map((u) => (
+                <tr key={u.userId}>
+                  <td className="max-w-[180px] truncate px-2 py-2.5 font-mono text-xs text-bb-muted">{u.userId}</td>
+                  <td className="px-2 py-2.5 font-semibold tabular-nums">{formatBytes(u.usedBytes)}</td>
+                  <td className="px-2 py-2.5">
+                    <StatusBadge
+                      status={u.riskLevel === "critical" ? "reserved" : "due-soon"}
+                      label={u.riskLevel.charAt(0).toUpperCase() + u.riskLevel.slice(1)}
+                    />
+                  </td>
+                  <td className="px-2 py-2.5 text-right">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={notifying === u.userId}
+                      onClick={() => handleNotify(u.userId, u.riskLevel)}
+                    >
+                      {notifying === u.userId ? (
+                        <Icon name="loader" size={14} className="animate-spin" />
+                      ) : (
+                        <Icon name="bell" size={14} />
+                      )}
+                      Notify
+                    </Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/60">
-                {users.map((u) => (
-                  <tr
-                    key={u.userId}
-                    className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
-                  >
-                    <td className="py-2.5 px-2 font-mono text-xs text-slate-600 dark:text-slate-400 truncate max-w-[180px]">
-                      {u.userId}
-                    </td>
-                    <td className="py-2.5 px-2 tabular-nums font-medium text-slate-800 dark:text-slate-200">
-                      {formatBytes(u.usedBytes)}
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold capitalize",
-                          badgeFor(u.riskLevel)
-                        )}
-                      >
-                        {iconFor(u.riskLevel)}
-                        {u.riskLevel}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-2 text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 gap-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-[var(--deep-saffron)]"
-                        disabled={notifying === u.userId}
-                        onClick={() => handleNotify(u.userId, u.riskLevel)}
-                      >
-                        {notifying === u.userId ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Bell className="h-3 w-3" />
-                        )}
-                        Notify
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </EnhancedCardContent>
-    </EnhancedCard>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

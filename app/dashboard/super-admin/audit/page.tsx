@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
-import { StatCard } from '@/components/ui/stat-card';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
+import { DataTable, type DataColumn } from '@/components/ui/data-table';
+import { FormField } from '@/components/ui/form-field';
+import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/ui/page-header';
+import { SearchInput } from '@/components/ui/search-input';
+import { StatCard } from '@/components/ui/stat-card';
+import { StatusBadge, toBBStatus } from '@/components/ui/status-badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Download, Search, Filter, RefreshCw, Shield, Activity, AlertTriangle, CheckCircle2 } from '@/components/ui/icons';
-import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -18,473 +20,303 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination';
+import { useToast } from '@/components/ui/use-toast';
+import { getAuditLogs } from '@/lib/api/adminApi';
+import type { AuditLog } from '@/types/admin';
 
-// Mock data for audit logs
-const mockAuditLogs = [
-  {
-    id: 'log-1',
-    action: 'user.login',
-    user: 'admin@example.com',
-    userType: 'admin',
-    entity: 'User',
-    entityId: 'user-123',
-    details: 'Admin logged in successfully',
-    timestamp: '2023-06-15T09:24:15Z',
-    ipAddress: '192.168.1.1',
-    status: 'success',
-  },
-  {
-    id: 'log-2',
-    action: 'institution.create',
-    user: 'admin@example.com',
-    userType: 'super-admin',
-    entity: 'Institution',
-    entityId: 'inst-456',
-    details: 'Created new institution: Springfield High School',
-    timestamp: '2023-06-14T15:30:22Z',
-    ipAddress: '192.168.1.1',
-    status: 'success',
-  },
-  {
-    id: 'log-3',
-    action: 'user.create',
-    user: 'librarian@springfield.edu',
-    userType: 'librarian',
-    entity: 'User',
-    entityId: 'user-789',
-    details: 'Created new student account',
-    timestamp: '2023-06-14T10:15:30Z',
-    ipAddress: '192.168.1.100',
-    status: 'success',
-  },
-  {
-    id: 'log-4',
-    action: 'book.add',
-    user: 'librarian@springfield.edu',
-    userType: 'librarian',
-    entity: 'Book',
-    entityId: 'book-101',
-    details: 'Added new book: The Great Gatsby',
-    timestamp: '2023-06-13T16:42:10Z',
-    ipAddress: '192.168.1.100',
-    status: 'success',
-  },
-  {
-    id: 'log-5',
-    action: 'user.password_reset',
-    user: 'student@springfield.edu',
-    userType: 'student',
-    entity: 'User',
-    entityId: 'user-456',
-    details: 'Password reset requested',
-    timestamp: '2023-06-12T09:18:45Z',
-    ipAddress: '192.168.1.150',
-    status: 'success',
-  },
-  {
-    id: 'log-6',
-    action: 'login.failed',
-    user: 'unknown',
-    userType: 'anonymous',
-    entity: 'User',
-    entityId: 'unknown',
-    details: 'Failed login attempt for admin@example.com',
-    timestamp: '2023-06-11T22:05:12Z',
-    ipAddress: '192.168.10.45',
-    status: 'failed',
-  },
-  {
-    id: 'log-7',
-    action: 'settings.update',
-    user: 'admin@example.com',
-    userType: 'super-admin',
-    entity: 'Settings',
-    entityId: 'global',
-    details: 'Updated system notification settings',
-    timestamp: '2023-06-10T11:30:00Z',
-    ipAddress: '192.168.1.1',
-    status: 'success',
-  },
-];
+const ITEMS_PER_PAGE = 10;
 
-// Function to simulate exporting data
-const exportAuditLogs = (format: 'CSV' | 'JSON') => {
-  console.log(`Exporting audit logs as ${format}`);
-  alert(`${format} export would happen here in a real implementation`);
+const ACTIONS = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'];
+
+const actorOf = (log: AuditLog) => log.user?.email || log.user?.name || log.userId || 'System';
+
+const detailsOf = (log: AuditLog): string => {
+  const m = log.metadata;
+  if (!m) return '';
+  if (typeof m === 'string') return m;
+  if (typeof m === 'object') return m.details || m.message || m.description || '';
+  return '';
 };
 
+const download = (filename: string, mime: string, body: string) => {
+  const url = URL.createObjectURL(new Blob([body], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const csvCell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
 export default function AuditLogPage() {
+  const { toast } = useToast();
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
-  const [userTypeFilter, setUserTypeFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Number of logs per page
 
-  // Filter logs based on current filters
-  const filteredLogs = mockAuditLogs.filter(log => {
-    // Search term filter
-    const searchLower = searchTerm.toLowerCase();
-    if (searchTerm && !Object.values(log).some(value => 
-      String(value).toLowerCase().includes(searchLower)
-    )) {
-      return false;
+  const loadLogs = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    const res = await getAuditLogs({
+      startDate: dateRange.start || undefined,
+      endDate: dateRange.end || undefined,
+    });
+    if (res.success && res.data) {
+      setLogs(res.data);
+    } else {
+      setError(res.error || 'Failed to fetch audit logs');
     }
-    
-    // Action filter
-    if (actionFilter !== 'all' && !log.action.startsWith(actionFilter)) {
-      return false;
-    }
-    
-    // User type filter
-    if (userTypeFilter !== 'all' && log.userType !== userTypeFilter) {
-      return false;
-    }
-    
-    // Status filter
-    if (statusFilter !== 'all' && log.status !== statusFilter) {
-      return false;
-    }
-    
-    // Date range filter
-    if (dateRange.start && new Date(log.timestamp) < new Date(dateRange.start)) {
-      return false;
-    }
-    if (dateRange.end && new Date(log.timestamp) > new Date(dateRange.end)) {
-      return false;
-    }
-    
-    return true;
-  });
+    setIsLoading(false);
+  }, [dateRange.start, dateRange.end]);
 
-  // Paginate the filtered logs
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
+
+  const statuses = useMemo(
+    () => Array.from(new Set(logs.map((l) => l.status).filter(Boolean))) as string[],
+    [logs]
   );
 
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const filteredLogs = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return logs.filter((log) => {
+      if (q) {
+        const hay = [log.action, actorOf(log), log.entityType, log.entityId, log.ipAddress, detailsOf(log)]
+          .join(' ')
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (actionFilter !== 'all' && log.action !== actionFilter) return false;
+      if (roleFilter !== 'all' && log.user?.role !== roleFilter) return false;
+      if (statusFilter !== 'all' && log.status !== statusFilter) return false;
+      return true;
+    });
+  }, [logs, searchTerm, actionFilter, roleFilter, statusFilter]);
 
-  // Refresh logs (would fetch fresh data from the server in a real implementation)
-  const refreshLogs = () => {
-    console.log('Refreshing logs...');
-    // This would trigger an API call to fetch updated logs
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ITEMS_PER_PAGE));
+  const page = Math.min(currentPage, totalPages);
+  const paginatedLogs = filteredLogs.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  // Reset all filters
   const resetFilters = () => {
     setSearchTerm('');
     setActionFilter('all');
-    setUserTypeFilter('all');
+    setRoleFilter('all');
     setStatusFilter('all');
     setDateRange({ start: '', end: '' });
     setCurrentPage(1);
   };
 
-  // Format timestamp for display
-  const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString();
+  const exportLogs = (format: 'CSV' | 'JSON') => {
+    if (filteredLogs.length === 0) {
+      toast({ title: 'Nothing to export', description: 'No audit logs match the current filters.' });
+      return;
+    }
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (format === 'JSON') {
+      download(`audit-logs-${stamp}.json`, 'application/json', JSON.stringify(filteredLogs, null, 2));
+    } else {
+      const header = ['Timestamp', 'Action', 'User', 'Role', 'Entity', 'Entity ID', 'Status', 'IP address', 'Details'];
+      const rows = filteredLogs.map((l) => [
+        l.createdAt, l.action, actorOf(l), l.user?.role ?? '', l.entityType ?? '', l.entityId ?? '', l.status ?? '', l.ipAddress ?? '', detailsOf(l),
+      ]);
+      download(`audit-logs-${stamp}.csv`, 'text/csv', [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n'));
+    }
   };
 
+  const columns: DataColumn<AuditLog>[] = [
+    { key: 'time', header: 'Timestamp', cell: (l) => new Date(l.createdAt).toLocaleString(), className: 'whitespace-nowrap text-bb-muted' },
+    { key: 'action', header: 'Action', cell: (l) => <Chip>{l.action}</Chip> },
+    {
+      key: 'user',
+      header: 'User',
+      cell: (l) => (
+        <>
+          <div>{actorOf(l)}</div>
+          {l.user?.role && <div className="hidden text-xs capitalize text-bb-muted md:block">{l.user.role}</div>}
+        </>
+      ),
+    },
+    {
+      key: 'entity',
+      header: 'Entity',
+      className: 'hidden md:table-cell',
+      cell: (l) => (l.entityType ? `${l.entityType}${l.entityId ? ` (${l.entityId})` : ''}` : '—'),
+    },
+    { key: 'details', header: 'Details', cell: (l) => detailsOf(l) || <span className="text-bb-muted">—</span> },
+    {
+      key: 'status',
+      header: 'Status',
+      className: 'hidden md:table-cell',
+      cell: (l) =>
+        l.status ? <StatusBadge status={toBBStatus(l.status)} label={l.status.charAt(0).toUpperCase() + l.status.slice(1).toLowerCase()} /> : <span className="text-bb-muted">—</span>,
+    },
+  ];
+
+  const success = logs.filter((l) => toBBStatus(l.status) === 'returned' && l.status).length;
+  const failed = logs.filter((l) => toBBStatus(l.status) === 'overdue').length;
+
   return (
-    <div className="space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <Shield className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-            Audit Logs
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Track system activities, user actions, and security events
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Super admin"
+        title="Audit logs"
+        description="Track system activities, user actions, and security events."
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => exportLogs('CSV')}>
+              <Icon name="download" size={16} /> Export CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportLogs('JSON')}>
+              <Icon name="download" size={16} /> Export JSON
+            </Button>
+            <Button size="sm" onClick={loadLogs} disabled={isLoading}>
+              <Icon name="rotate-cw" size={16} className={isLoading ? 'animate-spin' : ''} /> Refresh
+            </Button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard variant="featured" title="Total events" value={logs.length} description="Loaded for this range" icon="analytics" loading={isLoading} />
+        <StatCard title="Successful actions" value={success} description="Completed successfully" icon="check-circle" loading={isLoading} />
+        <StatCard title="Failed actions" value={failed} description="Require attention" icon="alert" loading={isLoading} />
+        <StatCard title="Unique users" value={new Set(logs.map(actorOf)).size} description="Active users" icon="class" loading={isLoading} />
+      </div>
+
+      <section className="space-y-4 rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6">
+        <div>
+          <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">Filters</h2>
+          <p className="text-[13px] text-bb-muted">Narrow down audit logs with specific criteria</p>
+        </div>
+
+        <div className="flex flex-col gap-3 md:flex-row">
+          <SearchInput
+            wrapperClassName="flex-1"
+            placeholder="Search logs"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          />
+          <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="md:w-44" aria-label="Action"><SelectValue placeholder="Action" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All actions</SelectItem>
+              {ACTIONS.map((a) => (
+                <SelectItem key={a} value={a}>{a.charAt(0) + a.slice(1).toLowerCase()}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="md:w-44" aria-label="User role"><SelectValue placeholder="User role" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All users</SelectItem>
+              <SelectItem value="super-admin">Super admin</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="librarian">Librarian</SelectItem>
+              <SelectItem value="user">User</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="md:w-44" aria-label="Status"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {statuses.map((s) => (
+                <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <FormField label="Start date" htmlFor="audit-start" className="flex-1">
+            <Input id="audit-start" type="date" value={dateRange.start} onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })} />
+          </FormField>
+          <FormField label="End date" htmlFor="audit-end" className="flex-1">
+            <Input id="audit-end" type="date" value={dateRange.end} onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })} />
+          </FormField>
+          <Button variant="outline" onClick={resetFilters}>
+            <Icon name="rotate-ccw" size={16} /> Reset filters
+          </Button>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Audit log records</h2>
+          <p className="text-[13px] text-bb-muted">
+            Showing {paginatedLogs.length} of {filteredLogs.length} records
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <EnhancedButton variant="outline" size="sm" onClick={() => exportAuditLogs('CSV')} icon={<Download className="h-4 w-4" />}>
-            Export CSV
-          </EnhancedButton>
-          <EnhancedButton variant="outline" size="sm" onClick={() => exportAuditLogs('JSON')} icon={<Download className="h-4 w-4" />}>
-            Export JSON
-          </EnhancedButton>
-          <EnhancedButton variant="vg-primary" size="sm" onClick={refreshLogs} icon={<RefreshCw className="h-4 w-4" />}>
-            Refresh
-          </EnhancedButton>
-        </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Events"
-          value={mockAuditLogs.length.toString()}
-          description="All time"
-          icon={Activity}
-          iconColor="text-blue-700 dark:text-blue-500"
-          iconBgColor="bg-blue-50 dark:bg-blue-900/20"
-          variant="primary"
-        />
-        <StatCard
-          title="Successful Actions"
-          value={mockAuditLogs.filter(l => l.status === 'success').length.toString()}
-          description="Completed successfully"
-          icon={CheckCircle2}
-          iconColor="text-vg-success-600"
-          iconBgColor="bg-vg-success-50 dark:bg-vg-success-900/20"
-          variant="success"
-        />
-        <StatCard
-          title="Failed Actions"
-          value={mockAuditLogs.filter(l => l.status === 'failed').length.toString()}
-          description="Require attention"
-          icon={AlertTriangle}
-          iconColor="text-vg-error-600"
-          iconBgColor="bg-vg-error-50 dark:bg-vg-error-900/20"
-          variant="error"
-        />
-        <StatCard
-          title="Unique Users"
-          value={new Set(mockAuditLogs.map(l => l.user)).size.toString()}
-          description="Active users"
-          icon={Shield}
-          iconColor="text-teal-600 dark:text-teal-500"
-          iconBgColor="bg-teal-50 dark:bg-teal-900/20"
-          variant="cultural"
-        />
-      </div>
+        {error ? (
+          <div role="alert" className="flex items-center gap-3 rounded-[18px] bg-bb-danger-soft px-5 py-4 text-sm font-semibold text-bb-danger-ink">
+            <Icon name="alert-circle" size={20} />
+            <span className="flex-1">{error}</span>
+            <button onClick={loadLogs} className="underline">Retry</button>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={paginatedLogs}
+            rowKey={(l) => l.id}
+            loading={isLoading}
+            emptyIcon="search"
+            emptyTitle="No audit logs found"
+            emptyDescription="No logs match the current filters."
+          />
+        )}
 
-      {/* Filters Card */}
-      <EnhancedCard variant="elevated">
-        <EnhancedCardHeader className="pb-3">
-          <EnhancedCardTitle className="text-lg text-bb-accent">
-            Filters
-          </EnhancedCardTitle>
-          <EnhancedCardDescription>Narrow down audit logs with specific criteria</EnhancedCardDescription>
-        </EnhancedCardHeader>
-        <EnhancedCardContent>
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search logs..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+        {totalPages > 1 && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); if (page > 1) setCurrentPage(page - 1); }}
+                  aria-disabled={page === 1}
+                  className={page === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
-              </div>
-              
-              {/* Action Filter */}
-              <div className="md:w-48">
-                <Select value={actionFilter} onValueChange={setActionFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Action" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Actions</SelectItem>
-                    <SelectItem value="user">User Actions</SelectItem>
-                    <SelectItem value="institution">Institution Actions</SelectItem>
-                    <SelectItem value="book">Book Actions</SelectItem>
-                    <SelectItem value="login">Login Actions</SelectItem>
-                    <SelectItem value="settings">Settings Actions</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* User Type Filter */}
-              <div className="md:w-48">
-                <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="User Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    <SelectItem value= "SUPER_ADMIN">Super Admin</SelectItem>
-                    <SelectItem value= "ADMIN">Admin</SelectItem>
-                    <SelectItem value= "LIBRARIAN">Librarian</SelectItem>
-                    <SelectItem value= "TEACHER">Teacher</SelectItem>
-                    <SelectItem value= "STUDENT">Student</SelectItem>
-                    <SelectItem value="anonymous">Anonymous</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Status Filter */}
-              <div className="md:w-48">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                    <SelectItem value= "PENDING">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="flex-1 grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Start Date</label>
-                  <Input
-                    type="date"
-                    value={dateRange.start}
-                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">End Date</label>
-                  <Input
-                    type="date"
-                    value={dateRange.end}
-                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  />
-                </div>
-              </div>
-              <Button variant="outline" onClick={resetFilters}>
-                <Filter className="mr-2 h-4 w-4" />
-                Reset Filters
-              </Button>
-            </div>
-          </div>
-        </EnhancedCardContent>
-      </EnhancedCard>
-
-      {/* Logs Table */}
-      <EnhancedCard variant="elevated">
-        <EnhancedCardHeader>
-          <EnhancedCardTitle className="text-bb-accent">
-            Audit Log Records
-          </EnhancedCardTitle>
-          <EnhancedCardDescription>
-            Showing {paginatedLogs.length} of {filteredLogs.length} records
-          </EnhancedCardDescription>
-        </EnhancedCardHeader>
-        <EnhancedCardContent>
-          <div className="overflow-x-auto">
-          <Table className="min-w-[640px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead className="hidden md:table-cell">Entity</TableHead>
-                <TableHead>Details</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedLogs.length > 0 ? (
-                paginatedLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {formatTimestamp(log.timestamp)}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {log.action}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span>{log.user}</span>
-                        <span className="text-xs text-muted-foreground hidden md:inline">
-                          {log.userType}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {log.entity} ({log.entityId})
-                    </TableCell>
-                    <TableCell>
-                      {log.details}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge 
-                        variant={log.status === 'success' ? 'default' : 
-                                log.status === 'failed' ? 'destructive' : 'outline'}
-                      >
-                        {log.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
-                    No audit logs found matching the current filters.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          </div>
-
-          {totalPages > 1 && (
-            <div className="mt-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage > 1) setCurrentPage(currentPage - 1);
-                      }}
-                      aria-disabled={currentPage === 1}
-                      className={currentPage === 1 ? "opacity-50 pointer-events-none" : ""}
-                    />
+              </PaginationItem>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // Window of up to 5 pages around the current page
+                let pageNum = i + 1;
+                if (totalPages > 5) {
+                  if (page > 3) pageNum = i + page - 2;
+                  if (page > totalPages - 2) pageNum = totalPages - 4 + i;
+                }
+                return pageNum <= totalPages ? (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); setCurrentPage(pageNum); }}
+                      isActive={page === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
                   </PaginationItem>
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    // Show a window of 5 pages around the current page
-                    let pageNum = i + 1;
-                    if (totalPages > 5) {
-                      if (currentPage > 3) {
-                        pageNum = i + currentPage - 2;
-                      }
-                      if (currentPage > totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      }
-                    }
-                    
-                    if (pageNum <= totalPages) {
-                      return (
-                        <PaginationItem key={pageNum}>
-                          <PaginationLink 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setCurrentPage(pageNum);
-                            }}
-                            isActive={currentPage === pageNum}
-                          >
-                            {pageNum}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    }
-                    return null;
-                  })}
-                  <PaginationItem>
-                    <PaginationNext 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                      }}
-                      aria-disabled={currentPage === totalPages}
-                      className={currentPage === totalPages ? "opacity-50 pointer-events-none" : ""}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
-        </EnhancedCardContent>
-      </EnhancedCard>
+                ) : null;
+              })}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); if (page < totalPages) setCurrentPage(page + 1); }}
+                  aria-disabled={page === totalPages}
+                  className={page === totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </section>
     </div>
   );
 }

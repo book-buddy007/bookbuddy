@@ -28,41 +28,22 @@ export function usagePct(used: number, quota: number): number {
   return Math.min(100, Math.round((used / quota) * 100));
 }
 
-/** Map a usage percentage to a Tailwind / CSS colour token */
+/** Map a usage percentage to the design-system semantic tokens */
 export function riskColor(pct: number): {
   bar: string;
   text: string;
   badge: string;
 } {
   if (pct >= STORAGE_THRESHOLDS.FULL_PCT) {
-    return {
-      bar: 'bg-red-500',
-      text: 'text-red-600 dark:text-red-400',
-      badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    };
+    return { bar: 'bg-bb-danger', text: 'text-bb-danger-ink', badge: 'bg-bb-danger-soft text-bb-danger-ink' };
   }
   if (pct >= STORAGE_THRESHOLDS.CRITICAL_PCT) {
-    return {
-      bar: 'bg-orange-500',
-      text: 'text-orange-600 dark:text-orange-400',
-      badge:
-        'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    };
+    return { bar: 'bg-bb-accent', text: 'text-bb-accent-ink', badge: 'bg-bb-accent-soft text-bb-accent-ink' };
   }
   if (pct >= STORAGE_THRESHOLDS.WARNING_PCT) {
-    return {
-      bar: 'bg-yellow-500',
-      text: 'text-yellow-600 dark:text-yellow-500',
-      badge:
-        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    };
+    return { bar: 'bg-bb-warning', text: 'text-bb-warning-ink', badge: 'bg-bb-warning-soft text-bb-warning-ink' };
   }
-  return {
-    bar: 'bg-emerald-500',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    badge:
-      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  };
+  return { bar: 'bg-bb-success', text: 'text-bb-success-ink', badge: 'bg-bb-success-soft text-bb-success-ink' };
 }
 
 /** Map a file format string to a display label */
@@ -82,19 +63,19 @@ export function formatLabel(format: string): string {
   return map[format.toLowerCase()] ?? format.toUpperCase();
 }
 
-/** Colour palette for format breakdown chart slices */
+/** Colour ramp for format breakdown bars: navy/cobalt series, orange as the highlight (no rainbow). */
 export const FORMAT_PALETTE: Record<string, string> = {
-  pdf: '#E8682A',    // saffron-ish
-  epub: '#2563EB',
-  mp3: '#7C3AED',
-  mp4: '#0891B2',
-  mobi: '#D97706',
-  azw3: '#059669',
-  djvu: '#DB2777',
-  cbz: '#65A30D',
-  txt: '#6B7280',
-  docx: '#9333EA',
-  default: '#94A3B8',
+  pdf: '#FF4D00',
+  epub: '#1E3A8A',
+  mp3: '#3B5BDB',
+  mp4: '#5B7CFF',
+  mobi: '#FF9A55',
+  azw3: '#0F1F5C',
+  djvu: '#C23400',
+  cbz: '#7A8BB8',
+  txt: '#A7B0C8',
+  docx: '#2B4FD0',
+  default: '#C5CCDD',
 };
 
 export function formatColor(format: string): string {

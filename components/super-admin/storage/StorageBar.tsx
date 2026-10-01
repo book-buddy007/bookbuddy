@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { riskColor } from "@/utils/storage.utils";
 
 interface StorageBarProps {
   used: number;        // bytes used
@@ -9,13 +10,6 @@ interface StorageBarProps {
   showLabels?: boolean;
   size?: "sm" | "md" | "lg";
   className?: string;
-}
-
-function colorFromPct(pct: number) {
-  if (pct >= 95) return "bg-red-500";
-  if (pct >= 85) return "bg-orange-500";
-  if (pct >= 70) return "bg-yellow-500";
-  return "bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--peacock-teal)]";
 }
 
 function formatBytes(bytes: number): string {
@@ -38,56 +32,31 @@ export function StorageBar({
   className,
 }: StorageBarProps) {
   const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
-  const barColor = colorFromPct(pct);
+  const risk = riskColor(pct);
 
   return (
     <div className={cn("w-full space-y-1.5", className)}>
       {(label || showPercent) && (
         <div className="flex items-center justify-between text-xs">
-          {label && (
-            <span className="font-medium text-slate-700 dark:text-slate-300">
-              {label}
-            </span>
-          )}
-          {showPercent && (
-            <span
-              className={cn(
-                "font-semibold tabular-nums",
-                pct >= 95
-                  ? "text-red-600 dark:text-red-400"
-                  : pct >= 85
-                  ? "text-orange-600 dark:text-orange-400"
-                  : pct >= 70
-                  ? "text-yellow-600 dark:text-yellow-500"
-                  : "text-[var(--deep-saffron)]"
-              )}
-            >
-              {pct}%
-            </span>
-          )}
+          {label && <span className="font-semibold">{label}</span>}
+          {showPercent && <span className={cn("font-bold tabular-nums", risk.text)}>{pct}%</span>}
         </div>
       )}
-      {/* Track */}
       <div
-        className={cn(
-          "w-full rounded-full bg-slate-200 dark:bg-slate-700/60 overflow-hidden",
-          heightMap[size]
-        )}
+        className={cn("w-full overflow-hidden rounded-full bg-bb-surface-2", heightMap[size])}
         role="progressbar"
+        aria-label={label}
         aria-valuenow={pct}
         aria-valuemin={0}
         aria-valuemax={100}
       >
         <div
-          className={cn(
-            "h-full rounded-full transition-all duration-700 ease-out",
-            barColor
-          )}
+          className={cn("h-full rounded-full transition-[width] duration-bb-ui ease-bb", risk.bar)}
           style={{ width: `${pct}%` }}
         />
       </div>
       {showLabels && (
-        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+        <div className="flex items-center justify-between text-[11px] tabular-nums text-bb-muted">
           <span>{formatBytes(used)} used</span>
           <span>{formatBytes(total)} total</span>
         </div>
