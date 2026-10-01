@@ -1,34 +1,25 @@
 "use client"
 
 import React from 'react'
-import { useState } from "react"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card"
-import { StatCard } from "@/components/ui/stat-card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Bell, BookOpen, GraduationCap, Plus, Search, Users, BookMarked, BookCheck, Clock, CalendarDays, FileText, ChevronRight, Headphones, TrendingUp } from "@/components/ui/icons"
+import Link from "next/link"
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis, YAxis } from 'recharts'
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip"
+import { Icon, type BBIconName } from "@/components/ui/icon"
+import { PageHeader } from "@/components/ui/page-header"
+import { StatCard } from "@/components/ui/stat-card"
+import { StatusBadge, type BBStatus } from "@/components/ui/status-badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts'
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 
-// Mock data for statistics and charts
+// Sample data for statistics and charts. There is no teacher analytics endpoint yet.
 const readingActivityData = [
   { month: 'Jan', books: 15 },
   { month: 'Feb', books: 18 },
@@ -42,10 +33,10 @@ const readingActivityData = [
 ]
 
 const resourcesUsageData = [
-  { name: 'Physical Books', value: 45, color: '#0ea5e9' },
-  { name: 'E-Books', value: 25, color: '#8b5cf6' },
-  { name: 'Articles', value: 15, color: '#f97316' },
-  { name: 'Other Resources', value: 15, color: '#10b981' },
+  { name: 'Physical books', value: 45 },
+  { name: 'E-books', value: 25 },
+  { name: 'Articles', value: 15 },
+  { name: 'Other resources', value: 15 },
 ]
 
 const studentEngagementData = [
@@ -57,476 +48,264 @@ const studentEngagementData = [
   { month: 'Sep', assignments: 88, readings: 80 },
 ]
 
-// Mock recent activities
-const recentActivities = [
-  {
-    id: 1,
-    type: 'bookReservation',
-    title: 'Reserved 30 copies of "To Kill a Mockingbird"',
-    time: '2 hours ago',
-    class: 'English Literature',
-    status: 'APPROVED',
-  },
-  {
-    id: 2,
-    type: 'assignmentCreated',
-    title: 'Created "Cold War Research Paper" assignment',
-    time: '1 day ago',
-    class: 'World History',
-    status: 'published',
-  },
-  {
-    id: 3,
-    type: 'readingList',
-    title: 'Updated reading list for "Science" class',
-    time: '3 days ago',
-    class: 'Science',
-    status: 'COMPLETED',
-  },
-  {
-    id: 4, 
-    type: 'studentRequest',
-    title: 'Emma Watson requested access to "Calculus Advanced Topics"',
-    time: '5 days ago',
-    class: 'Mathematics',
-    status: 'PENDING',
-  },
-  {
-    id: 5,
-    type: 'bookReservation',
-    title: 'Reserved 25 copies of "Great Expectations"',
-    time: '1 week ago',
-    class: 'English Literature',
-    status: 'APPROVED',
-  },
+const topStudents = [
+  { name: 'Emma Watson', class: 'Science', score: 94 },
+  { name: 'Thomas Anderson', class: 'Mathematics', score: 92 },
+  { name: 'Olivia Martinez', class: 'English Literature', score: 90 },
+  { name: 'James Wilson', class: 'World History', score: 88 },
 ]
 
-// Mock upcoming events
+const popularResources = [
+  { title: 'To Kill a Mockingbird', author: 'Harper Lee', views: 128 },
+  { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', views: 114 },
+  { title: '1984', author: 'George Orwell', views: 96 },
+  { title: 'The Catcher in the Rye', author: 'J.D. Salinger', views: 82 },
+]
+
+const recentActivities: { id: number; type: string; title: string; time: string; class: string; status: string }[] = [
+  { id: 1, type: 'bookReservation', title: 'Reserved 30 copies of "To Kill a Mockingbird"', time: '2 hours ago', class: 'English Literature', status: 'APPROVED' },
+  { id: 2, type: 'assignmentCreated', title: 'Created "Cold War Research Paper" assignment', time: '1 day ago', class: 'World History', status: 'published' },
+  { id: 3, type: 'readingList', title: 'Updated reading list for "Science" class', time: '3 days ago', class: 'Science', status: 'COMPLETED' },
+  { id: 4, type: 'studentRequest', title: 'Emma Watson requested access to "Calculus Advanced Topics"', time: '5 days ago', class: 'Mathematics', status: 'PENDING' },
+  { id: 5, type: 'bookReservation', title: 'Reserved 25 copies of "Great Expectations"', time: '1 week ago', class: 'English Literature', status: 'APPROVED' },
+]
+
 const upcomingEvents = [
-  {
-    id: 1,
-    title: 'Book collection: "To Kill a Mockingbird"',
-    date: new Date(2023, 8, 20),
-    class: 'English Literature',
-  },
-  {
-    id: 2,
-    title: 'Assignment due: "Cold War Research Paper"',
-    date: new Date(2023, 8, 15),
-    class: 'World History',
-  },
-  {
-    id: 3,
-    title: 'Assignment due: "Ecosystem Study Report"',
-    date: new Date(2023, 8, 25),
-    class: 'Science',
-  },
-  {
-    id: 4,
-    title: 'Book reservation expiry: "Great Expectations"',
-    date: new Date(2023, 8, 30),
-    class: 'English Literature',
-  },
+  { id: 1, title: 'Book collection: "To Kill a Mockingbird"', date: new Date(2023, 8, 20), class: 'English Literature' },
+  { id: 2, title: 'Assignment due: "Cold War Research Paper"', date: new Date(2023, 8, 15), class: 'World History' },
+  { id: 3, title: 'Assignment due: "Ecosystem Study Report"', date: new Date(2023, 8, 25), class: 'Science' },
+  { id: 4, title: 'Book reservation expiry: "Great Expectations"', date: new Date(2023, 8, 30), class: 'English Literature' },
 ]
 
-// Format date consistently
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric'
-  }).format(date);
-};
+const quickLinks: { title: string; body: string; cta: string; href: string; icon: BBIconName }[] = [
+  { title: 'Browse library', body: 'Explore the complete digital library', cta: 'View library', href: '/catalog', icon: 'library' },
+  { title: 'Teaching resources', body: 'Access and manage educational materials', cta: 'View resources', href: '/dashboard/teacher/resources', icon: 'folder' },
+  { title: 'Audiobook player', body: 'Listen to audiobooks with our modern player', cta: 'Open player', href: '/player/v2', icon: 'audiobook' },
+]
+
+const readingConfig = {
+  books: { label: 'Books', color: 'hsl(var(--chart-1))' },
+} satisfies ChartConfig
+
+const engagementConfig = {
+  assignments: { label: 'Assignment completion', color: 'hsl(var(--chart-1))' },
+  readings: { label: 'Reading progress', color: 'hsl(var(--chart-3))' },
+} satisfies ChartConfig
+
+const usageColors = ['hsl(var(--chart-1))', 'hsl(var(--chart-3))', 'hsl(var(--chart-2))', 'hsl(var(--chart-5))']
+
+const activityIcon = (type: string): BBIconName =>
+  type === 'bookReservation' ? 'bookmark' : type === 'assignmentCreated' ? 'assignment' : type === 'readingList' ? 'read' : 'class'
+
+const activityStatus = (status: string): { status: BBStatus; label: string } => {
+  switch (status) {
+    case 'APPROVED': return { status: 'returned', label: 'Approved' }
+    case 'COMPLETED': return { status: 'returned', label: 'Completed' }
+    case 'PENDING': return { status: 'pending', label: 'Pending' }
+    default: return { status: 'reserved', label: 'Published' }
+  }
+}
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date)
+
+const panel = "rounded-[22px] bg-bb-surface p-5 shadow-e1 sm:p-6"
+const panelTitle = "font-display text-lg font-extrabold tracking-[-0.02em]"
 
 export default function TeacherDashboard() {
-  const [searchQuery, setSearchQuery] = useState("")
-
   return (
-    <div className="space-y-8 animate-vg-fade-in">
-      {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-          <GraduationCap className="h-10 w-10 text-blue-700 dark:text-blue-500" />
-          Teacher Dashboard
-        </h1>
-        <p className="text-muted-foreground text-lg">
-          Welcome back! Manage your classes, track student progress, and assign resources.
-        </p>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Teacher"
+        title="Dashboard"
+        description="Welcome back! Manage your classes, track student progress, and assign resources."
+        actions={<Chip icon="info">Sample data</Chip>}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard variant="featured" title="Total reservations" value="24" description="+12% from last month" icon="bookmark" trend="up" trendValue="+12%" />
+        <StatCard title="Books assigned" value="145" description="+5% from last month" icon="read" trend="up" trendValue="+5%" />
+        <StatCard title="Active students" value="128" description="+2% from last semester" icon="class" trend="up" trendValue="+2%" />
+        <StatCard title="Reading completion" value="78%" description="+8% from last month" icon="trending-up" trend="up" trendValue="+8%" />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Reservations"
-          value="24"
-          description="+12% from last month"
-          icon={BookMarked}
-          iconColor="text-vg-primary-600"
-          iconBgColor="bg-vg-primary-50 dark:bg-vg-primary-900/20"
-          variant="primary"
-          trend="up"
-          trendValue="+12%"
-        />
-        <StatCard
-          title="Books Assigned"
-          value="145"
-          description="+5% from last month"
-          icon={BookOpen}
-          iconColor="text-vg-sanskrit-600"
-          iconBgColor="bg-vg-sanskrit-50 dark:bg-vg-sanskrit-900/20"
-          variant="cultural"
-          trend="up"
-          trendValue="+5%"
-        />
-        <StatCard
-          title="Active Students"
-          value="128"
-          description="+2% from last semester"
-          icon={Users}
-          iconColor="text-vg-success-600"
-          iconBgColor="bg-vg-success-50 dark:bg-vg-success-900/20"
-          variant="success"
-          trend="up"
-          trendValue="+2%"
-        />
-        <StatCard
-          title="Reading Completion"
-          value="78%"
-          description="+8% from last month"
-          icon={TrendingUp}
-          iconColor="text-vg-cultural-600"
-          iconBgColor="bg-vg-cultural-50 dark:bg-vg-cultural-900/20"
-          variant="default"
-          trend="up"
-          trendValue="+8%"
-        />
+      <div className="grid gap-4 md:grid-cols-3">
+        {quickLinks.map((q) => (
+          <Link
+            key={q.href}
+            href={q.href}
+            className="bb-lift group flex items-start gap-4 rounded-[18px] bg-bb-surface p-5 shadow-e1 focus-visible:outline-none focus-visible:shadow-focus"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-bb-accent-soft">
+              <Icon name={q.icon} size={22} />
+            </span>
+            <div className="min-w-0">
+              <h3 className="font-semibold">{q.title}</h3>
+              <p className="text-[13px] text-bb-muted">{q.body}</p>
+              <p className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-bb-accent-ink">
+                {q.cta} <Icon name="arrow-right" size={14} />
+              </p>
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <EnhancedCard
-          variant="elevated"
-          interactive={true}
-          className="cursor-pointer"
-          onClick={() => window.location.href = "/catalog"}
-        >
-          <EnhancedCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <EnhancedCardTitle className="text-base font-medium">Browse Library</EnhancedCardTitle>
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <BookOpen className="h-5 w-5 text-blue-700 dark:text-blue-500" />
-            </div>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <p className="text-sm text-muted-foreground">Explore the complete digital library</p>
-            <EnhancedButton variant="ghost" size="sm" className="mt-2 px-0">
-              View Library <ChevronRight className="ml-1 h-4 w-4" />
-            </EnhancedButton>
-          </EnhancedCardContent>
-        </EnhancedCard>
-
-        <EnhancedCard
-          variant="elevated"
-          interactive={true}
-          className="cursor-pointer"
-          onClick={() => window.location.href = "/dashboard/teacher/resources"}
-        >
-          <EnhancedCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <EnhancedCardTitle className="text-base font-medium">Teaching Resources</EnhancedCardTitle>
-            <div className="p-2 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-              <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-            </div>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <p className="text-sm text-muted-foreground">Access and manage educational materials</p>
-            <EnhancedButton variant="ghost" size="sm" className="mt-2 px-0">
-              View Resources <ChevronRight className="ml-1 h-4 w-4" />
-            </EnhancedButton>
-          </EnhancedCardContent>
-        </EnhancedCard>
-
-        <EnhancedCard
-          variant="elevated"
-          interactive={true}
-          className="cursor-pointer"
-          onClick={() => window.location.href = "/player/v2"}
-        >
-          <EnhancedCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <EnhancedCardTitle className="text-base font-medium">Audiobook Player</EnhancedCardTitle>
-            <div className="p-2 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
-              <Headphones className="h-5 w-5 text-teal-600 dark:text-teal-500" />
-            </div>
-          </EnhancedCardHeader>
-          <EnhancedCardContent>
-            <p className="text-sm text-muted-foreground">Listen to audiobooks with our modern player</p>
-            <EnhancedButton variant="ghost" size="sm" className="mt-2 px-0">
-              Open Player <ChevronRight className="ml-1 h-4 w-4" />
-            </EnhancedButton>
-          </EnhancedCardContent>
-        </EnhancedCard>
-      </div>
-
-      {/* Tabs Section */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md shadow-vg-md border border-gray-200/50 dark:border-gray-700/50">
-          <TabsTrigger value="overview" className="data-[state=active]:text-white">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="data-[state=active]:text-white">
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="activities" className="data-[state=active]:text-white">
-            Recent Activities
-          </TabsTrigger>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="activities">Recent activities</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <EnhancedCard variant="elevated" className="col-span-1">
-              <EnhancedCardHeader>
-                <EnhancedCardTitle className="text-bb-accent">
-                  Reading Activity
-                </EnhancedCardTitle>
-                <EnhancedCardDescription>Monthly book and resource usage</EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent className="pl-2">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={readingActivityData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                    <XAxis dataKey="month" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Bar dataKey="books" fill="url(#colorGradient)" radius={[8, 8, 0, 0]} />
-                    <defs>
-                      <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2563eb" stopOpacity={0.8} />
-                        <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.8} />
-                      </linearGradient>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              </EnhancedCardContent>
-            </EnhancedCard>
+        <TabsContent value="overview" className="mt-0 space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <section className={panel}>
+              <h3 className={panelTitle}>Reading activity</h3>
+              <p className="mb-4 text-[13px] text-bb-muted">Monthly book and resource usage</p>
+              <ChartContainer config={readingConfig} className="h-[280px] w-full">
+                <BarChart data={readingActivityData} accessibilityLayer>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                  <YAxis tickLine={false} axisLine={false} width={32} />
+                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <Bar dataKey="books" fill="var(--color-books)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            </section>
 
-            <EnhancedCard variant="elevated" className="col-span-1">
-              <EnhancedCardHeader>
-                <EnhancedCardTitle className="text-bb-accent">
-                  Resource Usage
-                </EnhancedCardTitle>
-                <EnhancedCardDescription>Distribution by resource type</EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={resourcesUsageData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {resourcesUsageData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+            <section className={panel}>
+              <h3 className={panelTitle}>Resource usage</h3>
+              <p className="mb-4 text-[13px] text-bb-muted">Distribution by resource type</p>
+              <div className="flex flex-col items-center gap-4">
+                <ChartContainer config={{}} className="h-[200px] w-[200px]">
+                  <PieChart accessibilityLayer>
+                    <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="name" />} />
+                    <Pie data={resourcesUsageData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={3} strokeWidth={0}>
+                      {resourcesUsageData.map((_, i) => (
+                        <Cell key={i} fill={usageColors[i]} />
                       ))}
                     </Pie>
-                    <Tooltip />
                   </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-wrap justify-center gap-4 text-sm mt-4">
-                  {resourcesUsageData.map((item) => (
-                    <div key={item.name} className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ background: item.color }} />
-                      <span className="text-muted-foreground">{item.name}</span>
-                    </div>
+                </ChartContainer>
+                <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
+                  {resourcesUsageData.map((item, i) => (
+                    <li key={item.name} className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full" style={{ background: usageColors[i] }} />
+                      <span className="text-bb-muted">{item.name}</span>
+                      <span className="font-semibold tabular-nums">{item.value}%</span>
+                    </li>
                   ))}
-                </div>
-              </EnhancedCardContent>
-            </EnhancedCard>
+                </ul>
+              </div>
+            </section>
           </div>
 
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="text-bb-accent">
-                Upcoming Events
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Books and assignments due dates</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent>
-              <div className="space-y-4">
-                {upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-vg-primary-100 to-vg-sanskrit-100 dark:from-vg-primary-900/30 dark:to-vg-sanskrit-900/30">
-                      <CalendarDays className="h-6 w-6 text-vg-primary-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold">{event.title}</p>
-                      <p className="text-sm text-muted-foreground">{event.class}</p>
-                    </div>
-                    <div className="text-sm font-medium text-vg-primary-600">
-                      {formatDate(event.date)}
-                    </div>
+          <section className={panel}>
+            <h3 className={panelTitle}>Upcoming events</h3>
+            <p className="mb-4 text-[13px] text-bb-muted">Books and assignments due dates</p>
+            <ul className="divide-y divide-bb-border">
+              {upcomingEvents.map((event) => (
+                <li key={event.id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-bb-accent-soft">
+                    <Icon name="calendar" size={22} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold">{event.title}</p>
+                    <p className="text-sm text-bb-muted">{event.class}</p>
                   </div>
+                  <span className="shrink-0 text-sm font-bold text-bb-accent-ink">{formatDate(event.date)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-0 space-y-6">
+          <section className={panel}>
+            <h3 className={panelTitle}>Student engagement</h3>
+            <p className="mb-4 text-[13px] text-bb-muted">Assignment completion vs. reading progress</p>
+            <ChartContainer config={engagementConfig} className="h-[320px] w-full">
+              <LineChart data={studentEngagementData} accessibilityLayer>
+                <CartesianGrid vertical={false} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} />
+                <YAxis tickLine={false} axisLine={false} width={32} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Line dataKey="assignments" type="monotone" stroke="var(--color-assignments)" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line dataKey="readings" type="monotone" stroke="var(--color-readings)" strokeWidth={2.5} dot={{ r: 3 }} />
+              </LineChart>
+            </ChartContainer>
+          </section>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <section className={panel}>
+              <h3 className={panelTitle}>Top performing students</h3>
+              <p className="mb-4 text-[13px] text-bb-muted">Based on activity and completion rates</p>
+              <ul className="space-y-4">
+                {topStudents.map((student) => (
+                  <li key={student.name} className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarFallback className="bg-bb-navy text-xs font-bold text-white">
+                        {student.name.split(' ').map((n) => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">{student.name}</p>
+                      <p className="text-sm text-bb-muted">{student.class}</p>
+                    </div>
+                    <span className="font-bold tabular-nums">{student.score}%</span>
+                  </li>
                 ))}
-              </div>
-            </EnhancedCardContent>
-          </EnhancedCard>
-        </TabsContent>
+              </ul>
+            </section>
 
-        <TabsContent value="analytics" className="space-y-6">
-          <EnhancedCard variant="elevated">
-            <EnhancedCardHeader>
-              <EnhancedCardTitle className="text-bb-accent">
-                Student Engagement
-              </EnhancedCardTitle>
-              <EnhancedCardDescription>Assignment completion vs. reading progress</EnhancedCardDescription>
-            </EnhancedCardHeader>
-            <EnhancedCardContent className="pl-2">
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={studentEngagementData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="assignments"
-                    stroke="#0ea5e9"
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }}
-                    name="Assignment Completion"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="readings"
-                    stroke="#8b5cf6"
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }}
-                    name="Reading Progress"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </EnhancedCardContent>
-          </EnhancedCard>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <EnhancedCard variant="elevated">
-              <EnhancedCardHeader>
-                <EnhancedCardTitle className="text-bb-accent">
-                  Top Performing Students
-                </EnhancedCardTitle>
-                <EnhancedCardDescription>Based on activity and completion rates</EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent>
-                <div className="space-y-4">
-                  {[
-                    { name: 'Emma Watson', class: 'Science', score: 94 },
-                    { name: 'Thomas Anderson', class: 'Mathematics', score: 92 },
-                    { name: 'Olivia Martinez', class: 'English Literature', score: 90 },
-                    { name: 'James Wilson', class: 'World History', score: 88 },
-                  ].map((student, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarFallback>{student.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">{student.class}</p>
-                      </div>
-                      <div className="font-semibold">{student.score}%</div>
+            <section className={panel}>
+              <h3 className={panelTitle}>Most popular resources</h3>
+              <p className="mb-4 text-[13px] text-bb-muted">Based on usage analytics</p>
+              <ul className="space-y-4">
+                {popularResources.map((book) => (
+                  <li key={book.title} className="flex items-center gap-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-bb-accent-soft">
+                      <Icon name="read" size={20} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">{book.title}</p>
+                      <p className="text-sm text-bb-muted">{book.author}</p>
                     </div>
-                  ))}
-                </div>
-              </EnhancedCardContent>
-            </EnhancedCard>
-
-            <EnhancedCard variant="elevated">
-              <EnhancedCardHeader>
-                <EnhancedCardTitle className="text-bb-accent">
-                  Most Popular Resources
-                </EnhancedCardTitle>
-                <EnhancedCardDescription>Based on usage analytics</EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent>
-                <div className="space-y-4">
-                  {[
-                    { title: 'To Kill a Mockingbird', author: 'Harper Lee', views: 128 },
-                    { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', views: 114 },
-                    { title: '1984', author: 'George Orwell', views: 96 },
-                    { title: 'The Catcher in the Rye', author: 'J.D. Salinger', views: 82 },
-                  ].map((book, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{book.title}</p>
-                        <p className="text-sm text-muted-foreground">{book.author}</p>
-                      </div>
-                      <div className="font-medium text-sm">
-                        {book.views} views
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </EnhancedCardContent>
-            </EnhancedCard>
+                    <span className="text-sm font-semibold tabular-nums">{book.views} views</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
         </TabsContent>
 
-        <TabsContent value="activities" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activities</CardTitle>
-              <CardDescription>Your recent library management activities</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-4">
-                    <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      {activity.type === 'bookReservation' ? (
-                        <BookMarked className="h-4 w-4 text-primary" />
-                      ) : activity.type === 'assignmentCreated' ? (
-                        <FileText className="h-4 w-4 text-primary" />
-                      ) : activity.type === 'readingList' ? (
-                        <BookOpen className="h-4 w-4 text-primary" />
-                      ) : (
-                        <Users className="h-4 w-4 text-primary" />
-                      )}
-                        </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">{activity.title}</p>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {activity.time}
-                        </div>
+        <TabsContent value="activities" className="mt-0">
+          <section className={panel}>
+            <h3 className={panelTitle}>Recent activities</h3>
+            <p className="mb-4 text-[13px] text-bb-muted">Your recent library management activities</p>
+            <ul className="space-y-5">
+              {recentActivities.map((activity) => {
+                const s = activityStatus(activity.status)
+                return (
+                  <li key={activity.id} className="flex items-start gap-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-bb-surface-2">
+                      <Icon name={activityIcon(activity.type)} size={18} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                        <p className="font-semibold">{activity.title}</p>
+                        <span className="text-xs text-bb-muted">{activity.time}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">{activity.class}</p>
-                      <div className="mt-1">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            activity.status === 'APPROVED'
-                              ? 'bg-green-100 text-green-700'
-                              : activity.status === 'PENDING'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : activity.status === 'published'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {activity.status}
-                        </span>
-                      </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-              <div className="mt-6 text-center">
-                <Button variant="outline">View All Activities</Button>
-              </div>
-            </CardContent>
-          </Card>
+                      <p className="text-sm text-bb-muted">{activity.class}</p>
+                      <StatusBadge status={s.status} label={s.label} className="mt-2" />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
         </TabsContent>
       </Tabs>
     </div>
