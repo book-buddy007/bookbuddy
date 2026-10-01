@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GraduationCap, Mail, ArrowLeft, CheckCircle2 } from '@/components/ui/icons';
 import Link from 'next/link';
 import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
-import { MandalaMark } from '@/components/auth/mandala-mark';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 // Define the validation schema using Zod
 const forgotPasswordSchema = z.object({
@@ -75,11 +75,11 @@ export default function ForgotPasswordPage() {
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
-            <MandalaMark size={64} />
+            <BrandMark height={34} />
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
+            <EnhancedCardTitle className="font-display text-[32px] font-extrabold tracking-[-0.03em] text-bb-text">
               {success ? 'Check Your Email' : 'Forgot Password?'}
             </EnhancedCardTitle>
             <EnhancedCardDescription className="text-base text-bb-muted">
@@ -148,7 +148,7 @@ export default function ForgotPasswordPage() {
                     id="email"
                     type="email"
                     placeholder="Enter your email address"
-                    className="h-11 pl-10 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                    className="pl-10 placeholder:text-slate-400"
                     {...register("email")}
                     aria-invalid={errors.email ? "true" : "false"}
                   />

@@ -2,8 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import { Clock, GraduationCap, BookOpen, Flame } from '@/components/ui/icons';
-import { MandalaSVG } from '@/components/landing/mandala-svgs';
-import { MandalaMark } from '@/components/auth/mandala-mark';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 // MandalaMark's gradient reads var(--accent-primary)/var(--accent-strong) —
 // live in this app's design system, but scoped here too so the mark never
@@ -51,7 +50,7 @@ export function StudentGreeting({
     <section
       ref={heroRef}
       onAnimationEnd={handleAnimEnd}
-      className="vg-stagger-entry relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl border border-white/10"
+      className=" relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl border border-white/10"
       style={{
         '--anim-delay': '0ms',
         background:
@@ -73,19 +72,13 @@ export function StudentGreeting({
 
       {/* Rotating mandala watermark — same motif as /catalog and /reader,
           scaled down and dimmed to sit quietly behind the greeting content. */}
-      <div
-        className="mandala-wrapper hidden sm:block"
-        style={{ width: 460, height: 460, opacity: 0.12, right: '-8%', left: 'auto', top: '50%', transform: 'translateY(-50%)' }}
-      >
-        <MandalaSVG className="w-full h-full" />
-      </div>
-
+      
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         {/* Left — Greeting text */}
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-3">
             <div style={mandalaVars} className="hidden sm:block shrink-0 drop-shadow-[0_0_16px_rgba(255,153,51,0.35)] relative">
-              <MandalaMark size={40} />
+              <BrandMark height={22} />
               <BookOpen className="absolute -bottom-0.5 -right-0.5 h-4 w-4 text-white bg-[var(--peacock-teal)] rounded-full p-0.5 shadow-md" />
             </div>
             <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md shadow-sm">

@@ -10,8 +10,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { MandalaMark } from '@/components/auth/mandala-mark';
-import { MandalaSVG } from '@/components/landing/mandala-svgs';
+import { BrandMark } from '@/components/ui/brand-mark';
 import type { CatalogBook, BookFormatType } from '@/types/catalog';
 import AudiobookPlayerV2 from '@/app/player/v2/AudiobookPlayerV2';
 
@@ -435,11 +434,7 @@ function AudioPicker() {
     <div className="min-h-screen w-full bg-[var(--ivory-cream)]">
       {/* ─── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden mesh-bg-indic px-4 sm:px-6 pt-6 sm:pt-16 pb-16 sm:pb-20 text-center">
-        <div className="rangoli-texture" />
-        <div className="mandala-wrapper">
-          <MandalaSVG className="w-full h-full" />
-        </div>
-
+        
         <div className="relative z-10 flex justify-start mb-8 sm:mb-2 sm:absolute sm:top-6 sm:left-6">
           <Link
             href="/dashboard/student"
@@ -452,7 +447,7 @@ function AudioPicker() {
 
         <div className="animate-vg-fade-in-down relative z-10 flex justify-center mb-6">
           <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,153,51,0.35)] relative">
-            <MandalaMark size={64} />
+            <BrandMark height={35} />
             <Headphones className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
           </div>
         </div>
@@ -476,7 +471,7 @@ function AudioPicker() {
 
       {/* ─── Filters (selection IS the navigation — no separate grid) ── */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 -mt-8 relative z-20 mb-16">
-        <div className="animate-vg-fade-in-up indic-card-light p-4 sm:p-5 flex flex-col sm:flex-row gap-3" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+        <div className="animate-vg-fade-in-up rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
           <div className="flex-1">
             <label className="text-xs font-bold text-[var(--indigo-deep)] mb-1.5 block">Subject</label>
             <Select value={genreFilter} onValueChange={setGenreFilter}>

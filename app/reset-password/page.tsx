@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GraduationCap, Lock, CheckCircle2, ArrowRight, Eye, EyeOff } from '@/components/ui/icons';
 import Link from 'next/link';
 import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
-import { MandalaMark } from '@/components/auth/mandala-mark';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 // Define the validation schema using Zod
 const resetPasswordSchema = z.object({
@@ -110,11 +110,11 @@ function ResetPasswordForm() {
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
-            <MandalaMark size={64} />
+            <BrandMark height={34} />
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
+            <EnhancedCardTitle className="font-display text-[32px] font-extrabold tracking-[-0.03em] text-bb-text">
               {success ? 'Password Reset!' : 'Reset Password'}
             </EnhancedCardTitle>
             <EnhancedCardDescription className="text-base text-bb-muted">
@@ -172,7 +172,7 @@ function ResetPasswordForm() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter new password"
-                    className="h-11 pl-10 pr-10 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                    className="pl-10 pr-10 placeholder:text-slate-400"
                     {...register("password")}
                     aria-invalid={errors.password ? "true" : "false"}
                   />
@@ -204,7 +204,7 @@ function ResetPasswordForm() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm new password"
-                    className="h-11 pl-10 pr-10 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                    className="pl-10 pr-10 placeholder:text-slate-400"
                     {...register("confirmPassword")}
                     aria-invalid={errors.confirmPassword ? "true" : "false"}
                   />
@@ -243,7 +243,7 @@ function ResetPasswordForm() {
           <EnhancedCardFooter className="flex flex-col space-y-4 relative z-10">
             <div className="text-center text-sm text-bb-muted">
               Remember your password?{' '}
-              <Link href="/login" className="text-amber-600 hover:text-amber-800 hover:underline font-semibold">
+              <Link href="/login" className="text-bb-accent-ink hover:text-bb-accent hover:underline font-semibold">
                 Back to Login
               </Link>
             </div>
@@ -258,7 +258,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-bb-accent-soft">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bb-accent"></div>
       </div>
     }>
       <ResetPasswordForm />

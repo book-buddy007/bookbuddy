@@ -299,7 +299,7 @@ export default function OnboardingPage() {
           <Progress value={progress} className="h-2" />
         </div>
 
-        <EnhancedCard variant="glass" className="vg-glass-premium animate-vg-fade-in">
+        <EnhancedCard variant="glass" className=" animate-vg-fade-in">
           {/* STEP 1: VERIFICATION */}
           {currentStep === 1 && (
             <>

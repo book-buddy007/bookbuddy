@@ -351,7 +351,7 @@ export default function StudentDashboard() {
 }
 
 /* ───── Stagger Wrapper — Phase 3 ─────
-   Applies vg-stagger-entry with --anim-delay custom property.
+   Applies with --anim-delay custom property.
    Cleans up will-change on animation end to free GPU memory.
 */
 function StaggerWrapper({ delay, children }: { delay: number; children: React.ReactNode }) {
@@ -363,7 +363,7 @@ function StaggerWrapper({ delay, children }: { delay: number; children: React.Re
   return (
     <div
       ref={ref}
-      className="vg-stagger-entry"
+      className=""
       style={{ '--anim-delay': `${delay}ms` } as React.CSSProperties}
       onAnimationEnd={handleAnimEnd}
     >

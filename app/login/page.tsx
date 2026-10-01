@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, GraduationCap, LogIn, ArrowRight, Mail, CheckCircle2, Eye, EyeOff } from '@/components/ui/icons';
 import Link from 'next/link';
 import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
-import { MandalaMark } from '@/components/auth/mandala-mark';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 // Define the validation schema using Zod
 const loginSchema = z.object({
@@ -152,11 +152,11 @@ export default function LoginPage() {
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
-            <MandalaMark size={64} />
+            <BrandMark height={34} />
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
+            <EnhancedCardTitle className="font-display text-[32px] font-extrabold tracking-[-0.03em] text-bb-text">
               Welcome Back
             </EnhancedCardTitle>
             <EnhancedCardDescription className="text-base text-bb-muted">
@@ -180,9 +180,9 @@ export default function LoginPage() {
 
             {/* Resend Verification Email Section - Customized to aesthetic */}
             {showResendVerification && (
-              <div className="space-y-3 p-4 bg-amber-50/80 border border-amber-200 rounded-xl animate-vg-fade-in">
+              <div className="space-y-3 p-4 bg-bb-warning-soft rounded-2xl animate-vg-fade-in">
                 <div className="flex items-start gap-2">
-                  <Mail className="h-5 w-5 text-amber-600 mt-0.5" />
+                  <Mail className="h-5 w-5 text-bb-warning-ink mt-0.5" />
                   <div className="flex-1">
                     <h4 className="text-sm font-bold text-bb-text mb-1">
                       Email Not Verified
@@ -239,7 +239,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                className="h-11 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                className="placeholder:text-slate-400"
                 {...register("email")}
                 aria-invalid={errors.email ? "true" : "false"}
               />
@@ -257,7 +257,7 @@ export default function LoginPage() {
                 </Label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-amber-600 hover:text-amber-800 hover:underline transition-colors font-semibold"
+                  className="text-xs text-bb-accent-ink hover:text-bb-accent hover:underline transition-colors font-semibold"
                 >
                   Forgot password?
                 </Link>
@@ -267,7 +267,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="h-11 pr-10 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800"
+                  className="pr-10"
                   {...register("password")}
                   aria-invalid={errors.password ? "true" : "false"}
                 />
@@ -316,7 +316,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               size="lg"
-              className="w-full border-amber-200 bg-white/80 hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-900 transition-all duration-300 shadow-sm"
+              className="w-full"
               onClick={handleGoogleSignIn}
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -345,10 +345,10 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 size="lg"
-                className="w-full border-indigo-200 bg-white/80 hover:bg-indigo-50 hover:border-indigo-300 text-slate-700 hover:text-indigo-900 transition-all duration-300 shadow-sm"
+                className="w-full"
                 onClick={handleVidyaverseSignIn}
               >
-                <GraduationCap className="h-5 w-5 mr-2 text-indigo-600" />
+                <GraduationCap className="h-5 w-5 mr-2 text-bb-cobalt" />
                 Sign in with Institution SSO
               </EnhancedButton>
             )}
@@ -370,7 +370,7 @@ export default function LoginPage() {
           <EnhancedButton
             variant="outline"
             size="lg"
-            className="w-full border-amber-200 bg-white/80 hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-900 transition-all duration-300 shadow-sm"
+            className="w-full"
             asChild
           >
             <Link href="/register" className="flex items-center justify-center gap-2 font-semibold">

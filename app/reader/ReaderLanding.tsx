@@ -13,9 +13,7 @@ import {
 } from '@/components/ui/select';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { BookCard } from '@/components/BookCard';
-import { MandalaMark } from '@/components/auth/mandala-mark';
-import { MandalaSVG } from '@/components/landing/mandala-svgs';
-import { ChakraDivider } from '@/components/landing/chakra-divider';
+import { BrandMark } from '@/components/ui/brand-mark';
 import type { CatalogBook, BookFormatType } from '@/types/catalog';
 import { getReaderRoute, getPrimaryReadFormat } from '@/types/catalog';
 
@@ -503,11 +501,7 @@ export function ReaderLanding() {
     <div className="min-h-screen w-full bg-[var(--ivory-cream)]">
       {/* ─── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden mesh-bg-indic px-4 sm:px-6 pt-6 sm:pt-16 pb-16 sm:pb-20 text-center">
-        <div className="rangoli-texture" />
-        <div className="mandala-wrapper">
-          <MandalaSVG className="w-full h-full" />
-        </div>
-
+        
         <div className="relative z-10 flex justify-start mb-8 sm:mb-2 sm:absolute sm:top-6 sm:left-6">
           <Link
             href="/dashboard/student"
@@ -520,7 +514,7 @@ export function ReaderLanding() {
 
         <div className="animate-vg-fade-in-down relative z-10 flex justify-center mb-6">
           <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,153,51,0.35)] relative">
-            <MandalaMark size={64} />
+            <BrandMark height={35} />
             <BookOpen className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
           </div>
         </div>
@@ -545,7 +539,7 @@ export function ReaderLanding() {
       {/* ─── Filters ──────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 -mt-8 relative z-20 mb-4">
         <div
-          className="animate-vg-fade-in-up indic-card-light p-4 sm:p-5 flex flex-col sm:flex-row gap-3"
+          className="animate-vg-fade-in-up rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3"
           style={{ animationDelay: '300ms', animationFillMode: 'both' }}
         >
           <div className="flex-1">
@@ -638,8 +632,7 @@ export function ReaderLanding() {
         )}
       </div>
 
-      <ChakraDivider />
-
+      
       {/* ─── Live feature demo ────────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-6 py-14">
         <Reveal className="text-center mb-8">
@@ -655,8 +648,7 @@ export function ReaderLanding() {
         </Reveal>
       </div>
 
-      <ChakraDivider />
-
+      
       {/* ─── Benefits ─────────────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-6 py-16">
         <Reveal className="text-center mb-10">

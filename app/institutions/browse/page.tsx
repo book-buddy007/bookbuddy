@@ -329,7 +329,7 @@ export default function BrowseInstitutionsPage() {
   if (!isIndependentStudent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-6">
-        <div className="landing-glass-card-premium rounded-3xl p-12 max-w-2xl text-center overflow-hidden animate-landing-scale-in">
+        <div className="bg-bb-surface shadow-e1 rounded-3xl p-12 max-w-2xl text-center overflow-hidden">
           {/* Premium glass shine effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
 
@@ -337,7 +337,7 @@ export default function BrowseInstitutionsPage() {
             <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-600 p-6 mb-6 shadow-2xl">
               <Building2 className="h-12 w-12 text-white drop-shadow-lg" />
             </div>
-            <h2 className="text-4xl font-bold landing-gradient-text mb-4">Institution Browse</h2>
+            <h2 className="text-4xl font-bold text-bb-accent mb-4">Institution Browse</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg max-w-md mx-auto mb-8">
               This feature is only available for independent students. Institutional users are already part of an organization.
             </p>
@@ -356,7 +356,7 @@ export default function BrowseInstitutionsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="py-16 px-4 md:px-6 max-w-7xl mx-auto space-y-12 animate-landing-fade-in-up">
+      <div className="py-16 px-4 md:px-6 max-w-7xl mx-auto space-y-12">
         {/* Back to Dashboard Button */}
         <div className="flex justify-start">
           <LoadingButton
@@ -372,7 +372,7 @@ export default function BrowseInstitutionsPage() {
 
         {/* Header */}
         <div className="space-y-3 text-center md:text-left">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight landing-gradient-text">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-bb-accent">
             Browse Institutions
           </h1>
           <p className="text-gray-700 dark:text-gray-300 text-xl leading-relaxed">
@@ -397,7 +397,7 @@ export default function BrowseInstitutionsPage() {
           <TabsContent value="browse" className="space-y-8 mt-8">
 
         {/* Search and Filters */}
-        <div className="landing-glass-card-premium rounded-3xl p-8 overflow-hidden animate-landing-glass-shine">
+        <div className="bg-bb-surface shadow-e1 rounded-3xl p-8 overflow-hidden">
           {/* Premium glass shine effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
 
@@ -469,7 +469,7 @@ export default function BrowseInstitutionsPage() {
 
         {/* Empty State */}
         {!isLoading && filteredInstitutions.length === 0 && (
-          <div className="landing-glass-card-premium rounded-3xl p-16 text-center overflow-hidden">
+          <div className="bg-bb-surface shadow-e1 rounded-3xl p-16 text-center overflow-hidden">
             {/* Premium glass shine effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
 
@@ -489,14 +489,14 @@ export default function BrowseInstitutionsPage() {
 
         {/* Institution Cards Grid */}
         {!isLoading && filteredInstitutions.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 landing-stagger-children">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredInstitutions.map((institution) => {
               const Icon = getInstitutionIcon(institution.type);
 
               return (
                 <div
                   key={institution.id}
-                  className="landing-glass-card-premium rounded-3xl p-6 hover:scale-105 transition-all duration-500 cursor-pointer group overflow-hidden animate-landing-glass-shine"
+                  className="bg-bb-surface shadow-e1 rounded-3xl p-6 hover:scale-105 transition-all duration-500 cursor-pointer group overflow-hidden"
                   onClick={() => handleViewDetails(institution.id)}
                   style={{
                     boxShadow: `
@@ -620,13 +620,13 @@ export default function BrowseInstitutionsPage() {
 
             {/* Empty State */}
             {!requestsLoading && requests.length === 0 && (
-              <div className="landing-glass-card-premium rounded-3xl p-16 text-center overflow-hidden animate-landing-scale-in">
+              <div className="bg-bb-surface shadow-e1 rounded-3xl p-16 text-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
                 <div className="relative">
                   <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-600 p-6 mb-6 shadow-2xl">
                     <Send className="h-12 w-12 text-white drop-shadow-lg" />
                   </div>
-                  <h3 className="text-3xl font-bold landing-gradient-text mb-4">No Join Requests</h3>
+                  <h3 className="text-3xl font-bold text-bb-accent mb-4">No Join Requests</h3>
                   <p className="text-gray-600 dark:text-gray-400 text-lg max-w-md mx-auto mb-8">
                     You haven't submitted any join requests yet. Browse institutions and request access to get started.
                   </p>
@@ -659,7 +659,7 @@ export default function BrowseInstitutionsPage() {
                     return (
                       <div
                         key={request.id}
-                        className="landing-glass-card-premium rounded-3xl p-8 overflow-hidden hover:shadow-2xl transition-all duration-300 animate-landing-glass-shine"
+                        className="bg-bb-surface shadow-e1 rounded-3xl p-8 overflow-hidden hover:shadow-2xl transition-all duration-300"
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
 

@@ -256,3 +256,84 @@ a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
   --accent-soft: #3A1A0C;         --accent-soft-rgb: 58 26 12;
   --accent-contrast: #FF8A3D;     --accent-contrast-rgb: 255 138 61;
 }
+
+/* ---- VG utility aliases ----------------------------------------------------
+   tailwind.config.ts still exposes vg-* radius, shadow, spacing and colour utilities that
+   older pages use (rounded-vg-xl, shadow-vg-card, bg-vg-primary-500 …). They now resolve to the
+   design-system scales instead of the retired vg-design-system.css values. */
+:root {
+  --vg-radius-sm: 6px; --vg-radius-md: 10px; --vg-radius-lg: 14px; --vg-radius-xl: 22px; --vg-radius-2xl: 28px; --vg-radius-3xl: 28px;
+  --vg-shadow-xs: 0 1px 0 var(--bb-border); --vg-shadow-sm: var(--bb-shadow-e0); --vg-shadow-md: var(--bb-shadow-e1);
+  --vg-shadow-lg: var(--bb-shadow-e1); --vg-shadow-xl: var(--bb-shadow-e2); --vg-shadow-2xl: var(--bb-shadow-e2);
+  --vg-shadow-card: var(--bb-shadow-e1); --vg-shadow-card-hover: var(--bb-shadow-e2); --vg-shadow-cultural: var(--bb-shadow-e1);
+  --vg-blur-sm: 4px; --vg-blur-md: 8px; --vg-blur-lg: 14px; --vg-blur-xl: 20px;
+  --vg-duration-normal: 240ms; --vg-duration-fast: 120ms; --vg-duration-slow: 350ms;
+  --vg-space-0: 0; --vg-space-1: .25rem; --vg-space-2: .5rem; --vg-space-3: .75rem; --vg-space-4: 1rem; --vg-space-5: 1.25rem;
+  --vg-space-6: 1.5rem; --vg-space-8: 2rem; --vg-space-10: 2.5rem; --vg-space-12: 3rem; --vg-space-16: 4rem; --vg-space-20: 5rem;
+  --vg-text-xs: .75rem; --vg-text-sm: .875rem; --vg-text-base: 1rem; --vg-text-lg: 1.125rem; --vg-text-xl: 1.25rem;
+  --vg-text-2xl: 1.5rem; --vg-text-3xl: 1.875rem; --vg-text-4xl: 2.25rem; --vg-text-5xl: 3rem;
+  --vg-primary-50: #EEF3FF;
+  --vg-primary-100: #DCE8FF;
+  --vg-primary-200: #BFD2FF;
+  --vg-primary-300: #93AEFF;
+  --vg-primary-400: #7D97FF;
+  --vg-primary-500: #4C6FFF;
+  --vg-primary-600: #3B5BDB;
+  --vg-primary-700: #1E3A8A;
+  --vg-primary-800: #0F1F5C;
+  --vg-primary-900: #0B1640;
+  --vg-sanskrit-50: #EEF3FF;
+  --vg-sanskrit-100: #DCE8FF;
+  --vg-sanskrit-200: #BFD2FF;
+  --vg-sanskrit-300: #93AEFF;
+  --vg-sanskrit-400: #7D97FF;
+  --vg-sanskrit-500: #4C6FFF;
+  --vg-sanskrit-600: #3B5BDB;
+  --vg-sanskrit-700: #1E3A8A;
+  --vg-sanskrit-800: #0F1F5C;
+  --vg-sanskrit-900: #0B1640;
+  --vg-cultural-50: #FFF4EE;
+  --vg-cultural-100: #FFE7DC;
+  --vg-cultural-200: #FFD0B8;
+  --vg-cultural-300: #FFB37A;
+  --vg-cultural-400: #FF8A3D;
+  --vg-cultural-500: #FF4D00;
+  --vg-cultural-600: #D93A00;
+  --vg-cultural-700: #B83300;
+  --vg-cultural-800: #8F2800;
+  --vg-cultural-900: #6B1E00;
+  --vg-success-50: #EFFBF3; --vg-success-100: #DDF8E6; --vg-success-500: #12B85A; --vg-success-600: #0E9A4A; --vg-success-700: #0B7A3B;
+  --vg-warning-50: #FFFBE6; --vg-warning-100: #FFF4C2; --vg-warning-500: #F5B800; --vg-warning-600: #B88700; --vg-warning-700: #8A6600;
+  --vg-error-50: #FFF1F2; --vg-error-100: #FFE1E4; --vg-error-500: #E5283A; --vg-error-600: #C41E2E; --vg-error-700: #B0182A;
+  --landing-orange-50: #FFF4EE;
+  --landing-orange-100: #FFE7DC;
+  --landing-orange-200: #FFD0B8;
+  --landing-orange-300: #FFB37A;
+  --landing-orange-400: #FF8A3D;
+  --landing-orange-500: #FF4D00;
+  --landing-orange-600: #D93A00;
+  --landing-orange-700: #B83300;
+  --landing-orange-800: #8F2800;
+  --landing-orange-900: #6B1E00;
+  --landing-blue-50: #EEF3FF;
+  --landing-blue-100: #DCE8FF;
+  --landing-blue-200: #BFD2FF;
+  --landing-blue-300: #93AEFF;
+  --landing-blue-400: #7D97FF;
+  --landing-blue-500: #4C6FFF;
+  --landing-blue-600: #3B5BDB;
+  --landing-blue-700: #1E3A8A;
+  --landing-blue-800: #0F1F5C;
+  --landing-blue-900: #0B1640;
+  --landing-purple-50: #EEF3FF;
+  --landing-purple-100: #DCE8FF;
+  --landing-purple-200: #BFD2FF;
+  --landing-purple-300: #93AEFF;
+  --landing-purple-400: #7D97FF;
+  --landing-purple-500: #4C6FFF;
+  --landing-purple-600: #3B5BDB;
+  --landing-purple-700: #1E3A8A;
+  --landing-purple-800: #0F1F5C;
+  --landing-purple-900: #0B1640;
+  --landing-green-50: #EFFBF3; --landing-green-100: #DDF8E6; --landing-green-500: #12B85A; --landing-green-600: #0E9A4A;
+}

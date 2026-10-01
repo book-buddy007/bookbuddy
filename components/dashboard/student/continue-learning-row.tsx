@@ -62,7 +62,7 @@ export function ContinueLearningRow({ books, isLoading, recentBooks = [] }: Cont
 
       {/* Skeleton placeholders */}
       {isLoading && (
-        <div className="-mx-2 flex gap-4 overflow-x-auto px-2 pb-2 indic-scroll">
+        <div className="-mx-2 flex gap-4 overflow-x-auto px-2 pb-2 scrollbar-hide">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -127,7 +127,7 @@ export function ContinueLearningRow({ books, isLoading, recentBooks = [] }: Cont
 
       {/* Cards row */}
       {!isLoading && books.length > 0 && (
-        <div className="-mx-2 flex gap-4 overflow-x-auto px-2 pb-2 indic-scroll snap-x snap-mandatory">
+        <div className="-mx-2 flex gap-4 overflow-x-auto px-2 pb-2 scrollbar-hide snap-x snap-mandatory">
           {books.map((book, idx) => (
             <article
               key={book.id}

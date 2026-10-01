@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, GraduationCap, UserPlus, ArrowRight, CheckCircle2, Mail } from '@/components/ui/icons';
 import Link from 'next/link';
 import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
-import { MandalaMark } from '@/components/auth/mandala-mark';
+import { BrandMark } from '@/components/ui/brand-mark';
 
 // Define the validation schema using Zod
 const registerSchema = z.object({
@@ -93,11 +93,11 @@ export default function RegisterPage() {
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
-            <MandalaMark size={64} />
+            <BrandMark height={34} />
           </div>
 
           <div className="space-y-2">
-            <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
+            <EnhancedCardTitle className="font-display text-[32px] font-extrabold tracking-[-0.03em] text-bb-text">
               Join Book Buddy
             </EnhancedCardTitle>
             <EnhancedCardDescription className="text-base text-bb-muted">
@@ -155,7 +155,7 @@ export default function RegisterPage() {
                 id="name"
                 type="text"
                 placeholder="Enter your full name"
-                className="h-11 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                className="placeholder:text-slate-400"
                 {...register("name")}
                 aria-invalid={errors.name ? "true" : "false"}
                 disabled={registrationSuccess}
@@ -175,7 +175,7 @@ export default function RegisterPage() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                className="h-11 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                className="placeholder:text-slate-400"
                 {...register("email")}
                 aria-invalid={errors.email ? "true" : "false"}
                 disabled={registrationSuccess}
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 placeholder="Create a strong password (min. 8 characters)"
-                className="h-11 transition-all focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white/60 backdrop-blur-sm border-amber-200 text-slate-800 placeholder:text-slate-400"
+                className="placeholder:text-slate-400"
                 {...register("password")}
                 aria-invalid={errors.password ? "true" : "false"}
                 disabled={registrationSuccess}
