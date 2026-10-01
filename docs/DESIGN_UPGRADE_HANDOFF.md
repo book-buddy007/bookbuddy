@@ -128,3 +128,40 @@ A preview config `bookbuddy-web` (port 3010, frontend only) is in `H:\.claude\la
 4. Backend: a public account-deletion request endpoint; proof-document upload for join requests; real backends for the sample-data pages.
 5. Privacy policy says accounts can be deleted "from your profile"; there is no in-app delete UI (only `DELETE /user/account` in the backend). Either build the UI or fix the wording before publishing.
 6. Mobile app tokens, ESLint, tests, Lighthouse; dark mode and 1280/834/390 checks behind login.
+
+
+---
+
+# Session 4 addendum: reader gaps and the mini player
+
+`next build` exited 0 (96 pages). tsc errors are unchanged and all pre-existing (PdfShell, AnnotationCanvas, lib/auth, scripts/setup-r2-cors). If a build dies instantly with `uncaughtException TypeError ... 'length'` right after stopping `next dev`, just run it again (shutdown race on `.next`).
+
+## Commits
+| Commit | What |
+|--------|------|
+| 796bd2b | Reader gaps |
+| fc6a144 | Player minimise + mini player |
+
+## Reader (`app/reader/page.tsx` and components)
+- **Contents rail:** the TOC drawer is a permanent 260px rail from `xl` (between top and bottom bars, under both); still a drawer below `xl`. It stays ONE element because PdfShell portals the PDF outline/thumbnails into `#pdf-toc-container` / `#pdf-thumbnails-container`. EPUB chapters show orange number + dot for the current chapter, blue dot for earlier ones. Highlights summary card (counts from `useAnnotationStore`) at the bottom with "Open notes".
+- **Bottom bar (`ReaderBottomBar`)**, by breakpoint: phone = progress line + 5 labelled actions; tablet (md–xl) = floating pill (Contents, Display, Notes, Sanchika, Varta, Listen) above a scrubber strip; desktop = page x of y · scrubber · time left · Notes/Sanchika/Listen icons. Colours come from `--rd-*` so it follows Paper/Sepia/Night. Still publishes its measured height to the store.
+- **`?page=N`** (Varta "Open in reader") is applied once after `initFromServer` resolves, so the citation beats the saved position. PDF only; EPUBs paginate by location.
+- **EPUB pagination:** epub.js `locations.generate(1600)` after load; the bar shows "Location x of y" and the scrubber seeks via `cfiFromLocation`. Before that, EPUB total was 0 ("Page 3 of 0", infinite %).
+- **PDF themes:** `styles/bb-tokens.css` filters `.rpv-core__canvas-layer` (Sepia warms, Night inverts + hue-rotates) and sets the page background to `--rd-bg`. PdfShell's hard-coded cream toolbar/popup colours now use `--rd-*`.
+- Warmth/contrast filter moved from the reader root (it tinted the toolbars) to the reading area only.
+- Removed: the floating "Page View / Scroll View" switch (toggled `viewMode`, which nothing reads) and the words/min stat (it divided the absolute page number by session minutes). Focus-mode exit is now always visible (was hover-only, unreachable on touch).
+- ReaderProgressSheet, StudyDrawer, TTSControlBar re-tokenised. Preview: `/design-system/reader` now includes the bottom bar and a mock PDF page.
+
+## Player
+- **Bug found:** the only `<audio>` lived inside `AudiobookPlayerV2`, so leaving `/player` stopped playback while the mini player kept showing "playing" and its button only flipped a store flag.
+- `lib/audio-engine.ts`: one app-wide `HTMLAudioElement`; `dataset.sectionKey` marks the loaded `${sectionId}:${gender}` so a remounted player doesn't restart the track. The player also skips `loadBook` when that book is already loaded.
+- `components/player/audio-session-bridge.tsx` (mounted in `app/layout.tsx`): when not on `/player`, mirrors play/pause/position into the store, advances sections (prefetched URL or a fresh presign), honours sleep-at-section-end and the sleep timer, syncs progress every 30 s, and handles media keys.
+- Phone "Now playing": grabber + swipe down from the top half (follows the finger, dismisses past 140px or a flick) or the chevron → `router.back()` (dashboard if no history). Sliders/menus/`[data-no-swipe]` are excluded.
+- Mini player drives the shared element; it floats bottom-right from `md` up (`MiniPlayerDock skips`), since playback now continues on wide screens too. Preview: `/design-system/shell?role=student&audio=1`.
+- Not verified in a browser (needs a session + audio): the swipe gesture and real playback across navigation. Worth a manual test on a phone.
+
+## Still to do
+1. `AudioPlayerDashboard` / `ReaderLanding` demos and the settings page restyle; the player's own CSS module (`playerV2.module.css`) was not touched this session.
+2. Super-admin codemod-only dialogs/wizard/builder.
+3. Backend gaps from session 3 (deletion endpoint, proof upload, sample-data pages); privacy-policy wording about in-app deletion.
+4. Mobile app tokens, ESLint, tests, Lighthouse; logged-in checks of reader/player on phone, tablet and desktop.
