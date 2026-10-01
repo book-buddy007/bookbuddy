@@ -1,5 +1,26 @@
 import type { Config } from "tailwindcss";
 
+/* Book Buddy palette scales.
+ * Un-migrated pages still use Tailwind's default palettes (slate-*, indigo-*, amber-* …).
+ * Redefining those names here re-themes them to the design system in one place:
+ *   neutral → navy-tinted greys, indigo/violet/purple/blue/sky/cyan/teal → cobalt,
+ *   amber/orange → blaze, red/rose/pink → danger, green/emerald → success.
+ * New code uses the `bb-*` tokens instead; this block shrinks as pages are rebuilt. */
+const neutral = { 50: '#F2F4F8', 100: '#E6EAF1', 200: '#DCE1EA', 300: '#C5CCDA', 400: '#8E9AB8', 500: '#5F6B8C', 600: '#4A5470', 700: '#2A3556', 800: '#18213C', 900: '#0E1530', 950: '#0A0F24' }
+const cobalt = { 50: '#EEF3FF', 100: '#DCE8FF', 200: '#BFD2FF', 300: '#93AEFF', 400: '#7D97FF', 500: '#4C6FFF', 600: '#3B5BDB', 700: '#1E3A8A', 800: '#0F1F5C', 900: '#0B1640', 950: '#0A0F24' }
+const blaze = { 50: '#FFF4EE', 100: '#FFE7DC', 200: '#FFD0B8', 300: '#FFB37A', 400: '#FF8A3D', 500: '#FF4D00', 600: '#D93A00', 700: '#B83300', 800: '#8F2800', 900: '#6B1E00', 950: '#3A1000' }
+const amber = { 50: '#FFF8EB', 100: '#FFEFD1', 200: '#FFDDA0', 300: '#FFCB70', 400: '#FFB547', 500: '#F5A000', 600: '#D98300', 700: '#B36500', 800: '#8F4F00', 900: '#6B3B00', 950: '#3D2100' }
+const gold = { 50: '#FFFBE6', 100: '#FFF4C2', 200: '#FFE98A', 300: '#FFDB4D', 400: '#FFD23F', 500: '#F5B800', 600: '#B88700', 700: '#8A6600', 800: '#7A5A00', 900: '#5C4300', 950: '#3A2A00' }
+const danger = { 50: '#FFF1F2', 100: '#FFE1E4', 200: '#FFC2C9', 300: '#FF98A3', 400: '#FF5468', 500: '#E5283A', 600: '#C41E2E', 700: '#B0182A', 800: '#8A1222', 900: '#650D19', 950: '#3A060E' }
+const success = { 50: '#EFFBF3', 100: '#DDF8E6', 200: '#B8F0CC', 300: '#7FE3A5', 400: '#3DDC84', 500: '#12B85A', 600: '#0E9A4A', 700: '#0B7A3B', 800: '#095E2E', 900: '#074524', 950: '#03281A' }
+const BB_PALETTE = {
+	slate: neutral, gray: neutral, zinc: neutral, neutral, stone: neutral,
+	indigo: cobalt, violet: cobalt, purple: cobalt, blue: cobalt, sky: cobalt, cyan: cobalt, teal: cobalt, fuchsia: cobalt,
+	orange: blaze, amber, yellow: gold,
+	red: danger, rose: danger, pink: danger,
+	green: success, emerald: success, lime: success,
+}
+
 const config: Config = {
 	darkMode: ["class"],
 	// hover: variants only apply on devices that can hover, so touch screens never get stuck hover states.
@@ -13,6 +34,7 @@ const config: Config = {
 	theme: {
 		extend: {
 			colors: {
+				...BB_PALETTE,
 				bb: {
 				ink: '#0A0F24', cobalt: '#1E3A8A', 'cobalt-light': '#3B5BDB', periwinkle: '#5B7CFF',
 				blaze: '#FF4D00', 'blaze-light': '#FF8A3D', 'blaze-dark': '#D93A00', amber: '#FFB547', cream: '#FFE3A3', cloud: '#F2F4F8',
@@ -249,6 +271,7 @@ const config: Config = {
 				'bb-progress': 'var(--bb-grad-progress)', 'bb-orb': 'var(--bb-varta-orb)',
 			},
 			transitionTimingFunction: { bb: 'cubic-bezier(.2,.8,.2,1)' },
+			transitionDuration: { 'bb-micro': '120ms', 'bb-ui': '240ms' },
 			backdropBlur: {
 				'vg-sm': 'var(--vg-blur-sm)',
 				'vg-md': 'var(--vg-blur-md)',

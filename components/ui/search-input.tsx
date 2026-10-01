@@ -21,7 +21,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
         placeholder={placeholder}
         className={cn(
           "h-12 w-full rounded-full border-[1.5px] border-transparent bg-bb-bg pl-12 pr-4 text-[15px] text-bb-text",
-          "placeholder:text-bb-faint transition-[border-color,box-shadow,background-color] duration-[120ms]",
+          "placeholder:text-bb-faint transition-[border-color,box-shadow,background-color] duration-bb-micro",
           "focus-visible:border-bb-accent focus-visible:bg-bb-surface focus-visible:shadow-focus focus-visible:outline-none",
           "[&::-webkit-search-cancel-button]:appearance-none",
           className

@@ -219,3 +219,38 @@ a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
   body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   input, textarea, [contenteditable], article, .bb-selectable { -webkit-user-select: text; user-select: text; }
 }
+
+/* ---- Legacy palette shim ----------------------------------------------------
+   Pages that have not been migrated yet still reference the old Indic pigments
+   (var(--deep-saffron), var(--peacock-teal) …) and the VG scale. Re-pointing the
+   variables at the Book Buddy palette retires saffron / teal / indigo / gold across the
+   whole app at once; each page then drops them as it is rebuilt on the primitives. */
+:root {
+  --deep-saffron: #FF4D00;   --deep-saffron-rgb: 255 77 0;    --deep-saffron-hsl: 18 100% 50%;
+  --saffron: #FF8A3D;        --saffron-rgb: 255 138 61;       --saffron-hsl: 24 100% 62%;
+  --turmeric: #FFB547;       --turmeric-rgb: 255 181 71;
+  --gold: #FFB547;           --gold-rgb: 255 181 71;          --gold-hsl: 36 100% 64%;
+  --kumkum: #E5283A;         --ruby-red: #E5283A;
+  --temple-stone: #4A5470;   --temple-stone-rgb: 74 84 112;
+  --peacock-teal: #1E3A8A;   --peacock-teal-rgb: 30 58 138;   --peacock-teal-hsl: 224 64% 33%;
+  --teal-light: #3B5BDB;     --teal-light-rgb: 59 91 219;
+  --indigo-deep: #0F1F5C;    --indigo-deep-rgb: 15 31 92;
+  --indigo-ink: #1E3A8A;     --indigo-ink-rgb: 30 58 138;
+  --lotus-pink: #5B7CFF;     --lotus-pink-rgb: 91 124 255;
+  --lotus-deep: #1E3A8A;
+  --night-ink: #0A0F24;      --night-ink-rgb: 10 15 36;
+  --navy-deep: #0F1F5C;      --slate-night: #0A0F24;          --slate-blue: #121A33;       --ocean-deep: #1E3A8A;
+  --ivory-cream: #F2F4F8;    --ivory-cream-rgb: 242 244 248;
+  --parchment: #FFFFFF;      --sand-light: #FFE7DC;           --clay-soft: #FF8A3D;        --clay-mid: #D93A00;   --bark: #4A5470;
+  --accent-primary: #FF4D00;      --accent-primary-rgb: 255 77 0;      --accent-primary-hsl: 18 100% 50%;
+  --accent-primary-dark: #FF8A3D; --accent-primary-dark-rgb: 255 138 61;
+  --accent-strong: #D93A00;       --accent-strong-rgb: 217 58 0;
+  --accent-soft: #FFE7DC;         --accent-soft-rgb: 255 231 220;
+  --accent-contrast: #B83300;     --accent-contrast-rgb: 184 51 0;
+}
+[data-theme="dark"],
+.dark {
+  --accent-strong: #FF5A0F;       --accent-strong-rgb: 255 90 15;
+  --accent-soft: #3A1A0C;         --accent-soft-rgb: 58 26 12;
+  --accent-contrast: #FF8A3D;     --accent-contrast-rgb: 255 138 61;
+}

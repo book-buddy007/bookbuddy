@@ -37,7 +37,7 @@ export function Splash() {
   return (
     <div
       aria-hidden
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-bb-ink transition-opacity duration-[240ms] ease-bb"
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-6 bg-bb-ink transition-opacity duration-bb-ui ease-bb"
       style={{ opacity: phase === "out" ? 0 : 1 }}
     >
       <BrandMark height={80} />

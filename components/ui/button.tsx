@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold",
-    "transition-[transform,box-shadow,background-color,color,border-color] duration-[120ms] ease-out",
+    "transition-[transform,box-shadow,background-color,color,border-color] duration-bb-micro ease-out",
     "motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-px",
     "focus-visible:outline-none focus-visible:shadow-focus",
     "disabled:pointer-events-none disabled:translate-y-0 disabled:bg-none disabled:bg-bb-surface-2 disabled:text-bb-faint disabled:shadow-none disabled:border-transparent",

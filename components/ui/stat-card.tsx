@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
  * system has no coloured left-border cards.
  */
 const statCardVariants = cva(
-  "relative overflow-hidden rounded-[18px] p-[18px] transition-[transform,box-shadow] duration-[240ms] ease-bb",
+  "relative overflow-hidden rounded-[18px] p-[18px] transition-[transform,box-shadow] duration-bb-ui ease-bb",
   {
     variants: {
       variant: {

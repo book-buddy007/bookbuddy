@@ -95,7 +95,7 @@ export function SidebarNav({ items, onNavigate, heading, collapseBelowLg, classN
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-semibold",
-              "transition-[background-color,color] duration-[120ms] focus-visible:outline-none focus-visible:shadow-focus",
+              "transition-[background-color,color] duration-bb-micro focus-visible:outline-none focus-visible:shadow-focus",
               collapseBelowLg && "justify-center lg:justify-start",
               active ? "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]" : "text-bb-text hover:bg-bb-surface-2"
             )}

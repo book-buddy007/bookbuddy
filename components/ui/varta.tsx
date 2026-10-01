@@ -26,7 +26,7 @@ export function CitationChip({ label, active, className, type = "button", ...pro
       type={type}
       aria-pressed={!!active}
       className={cn(
-        "inline-flex h-7 items-center rounded-full px-3 text-[13px] font-semibold transition-colors duration-[120ms]",
+        "inline-flex h-7 items-center rounded-full px-3 text-[13px] font-semibold transition-colors duration-bb-micro",
         "focus-visible:outline-none focus-visible:shadow-focus [@media(pointer:coarse)]:min-h-9",
         active
           ? "bg-bb-accent-soft text-bb-accent-ink ring-[1.5px] ring-bb-accent"
