@@ -1,15 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  ArrowLeft, ChevronRight, Clock, FastForward, FileText,
-  List, Moon, Pause, Play, Rewind, RotateCcw, Sun,
-  Volume1, Volume2, VolumeX, X, AlertTriangle,
-  User, Download, CheckCircle2, WifiOff, Headphones,
-} from '@/components/ui/icons';
+import { Icon } from '@/components/ui/icon';
 import { useAudioPlayerStore, AudioGender, PlaybackSpeed, AudioSection } from '@/store/useAudioPlayerStore';
 import { AudioWaveform } from '@/components/player/AudioWaveform';
+import { useCoverColor } from '@/components/player/use-cover-color';
 import { Slider } from '@/components/ui/slider';
 import apiClient from '@/lib/apiClient';
 import styles from './playerV2.module.css';
@@ -628,46 +624,122 @@ export default function AudiobookPlayerV2() {
     );
   };
 
-  // ═══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════
+  // PANEL (read-along / chapters), SENTENCES, AMBIENT COLOUR
+  // ════════════════════════════════════════════════
+  const ambient = useCoverColor(coverUrl);
+
+  /* The right-hand panel is a glass column from 1280px up and a bottom sheet below that.
+     The transcript is fetched lazily while `showTranscript` is on (see the effect above),
+     so opening the Read-along tab — or being wide enough to show it permanently — turns it on. */
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelTab, setPanelTab] = useState<'read' | 'chapters'>('read');
+  const [isWide, setIsWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1280px)');
+    const update = () => setIsWide(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  useEffect(() => {
+    if (isWide && isInitialized && !showTranscript) store.toggleTranscript();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWide, isInitialized]);
+
+  const openPanel = (tab: 'read' | 'chapters') => {
+    setPanelTab(tab);
+    setPanelOpen(true);
+    if (tab === 'read' && !showTranscript) store.toggleTranscript();
+  };
+  const selectTab = (tab: 'read' | 'chapters') => {
+    setPanelTab(tab);
+    if (tab === 'read' && !showTranscript) store.toggleTranscript();
+  };
+
+  // Group the word alignment into sentences so the read-along can dim past text and
+  // brighten the sentence being spoken (a click seeks to the start of a sentence).
+  const sentences = useMemo(() => {
+    if (!alignedWords || alignedWords.length === 0) return [] as { start: number; end: number }[];
+    const out: { start: number; end: number }[] = [];
+    let start = 0;
+    alignedWords.forEach((w, i) => {
+      if (/[.!?।]["”')\]]*$/.test(w.word) || i === alignedWords.length - 1) {
+        out.push({ start, end: i });
+        start = i + 1;
+      }
+    });
+    return out;
+  }, [alignedWords]);
+  const activeSentence = sentences.findIndex(s => currentWordIndex >= s.start && currentWordIndex <= s.end);
+
+  useEffect(() => {
+    if (activeSentence < 0) return;
+    const el = transcriptScrollerRef.current?.querySelector(`[data-sent="${activeSentence}"]`);
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [activeSentence]);
+
+  // ════════════════════════════════════════════════
   // TRANSCRIPT PARAGRAPHS
-  // ═══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════
   const transcriptParagraphs = transcriptText ? transcriptText.split('\n').filter(p => p.trim()) : [];
 
-  // ═══════════════════════════════════════════════════════════
+  const sleepActive = !!(sleepAtSectionEnd || (sleepTimerRemaining && sleepTimerRemaining > 0));
+  const cycleSpeed = () => {
+    const i = PLAYBACK_SPEEDS.indexOf(playbackRate);
+    const next = PLAYBACK_SPEEDS[(i + 1) % PLAYBACK_SPEEDS.length];
+    store.setPlaybackRate(next);
+    if (audioRef.current) audioRef.current.playbackRate = next;
+  };
+
+  const sleepMenu = showSleepMenu && (
+    <div className={`${styles.menu} ${styles.menuUp}`} role="menu" aria-label="Sleep timer" style={{ left: '50%', right: 'auto', transform: 'translateX(-50%)' }}>
+      {sleepActive && (
+        <button className={`${styles.menuItem} ${styles.menuDanger}`} role="menuitem"
+          onClick={() => { store.setSleepTimer(null); store.setSleepAtSectionEnd(false); setShowSleepMenu(false); }}>Off</button>
+      )}
+      {/* Audit fix 15: first in the list because it is the option people actually want —
+          a fixed countdown cuts off mid-sentence; this stops at a boundary the book defines. */}
+      <button className={`${styles.menuItem} ${sleepAtSectionEnd ? styles.menuItemActive : ''}`} role="menuitemradio" aria-checked={sleepAtSectionEnd}
+        onClick={() => { store.setSleepAtSectionEnd(true); setShowSleepMenu(false); }}>End of section</button>
+      {SLEEP_PRESETS.map(min => (
+        <button key={min} className={styles.menuItem} role="menuitem"
+          onClick={() => { store.setSleepTimer(min); setShowSleepMenu(false); }}>{min} min</button>
+      ))}
+    </div>
+  );
+
+  // ════════════════════════════════════════════════
   // RENDER
-  // ═══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════
+  const ambientStyle = { background: ambient } as const;
 
   // Error-only state
   if (error && !isInitialized) {
     return (
-      <div className={styles.playerRoot} data-theme={theme}>
-        <div className={styles.bgAmbience} />
-        {/* Two different situations shared one "Audio Playback Error"
-            card: arriving with no book at all, and a book that failed to
-            load. Only the second is an error, and only the second can be
-            retried. */}
+      <div className={styles.root} data-theme={theme}>
+        <div className={`${styles.blob} ${styles.blobA}`} style={ambientStyle} />
+        <div className={`${styles.blob} ${styles.blobB}`} />
+        {/* Two different situations shared one "Audio Playback Error" card: arriving with no
+            book at all, and a book that failed to load. Only the second is an error, and only
+            the second can be retried. */}
         <div className={styles.errorCard}>
           <div className={styles.errorIcon}>
-            {bookId ? <AlertTriangle size={28} /> : <Headphones size={28} />}
+            <Icon name={bookId ? 'alert' : 'audiobook'} size={28} />
           </div>
-          <h2 className={styles.errorTitle}>
-            {bookId ? 'This audiobook would not load' : 'Nothing playing yet'}
-          </h2>
+          <h2 className={styles.errorTitle}>{bookId ? 'This audiobook would not load' : 'Nothing playing yet'}</h2>
           <p className={styles.errorMessage}>{error}</p>
           <div className={styles.errorActions}>
             {bookId && (
-              <button className={styles.iconBtn} style={{ padding: '10px 20px', width: 'auto', borderRadius: 8 }}
-                onClick={() => window.location.reload()}>
-                <RotateCcw size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Try again
+              <button className={`${styles.glassBtn} ${styles.pill}`} onClick={() => window.location.reload()}>
+                <Icon name="rotate-ccw" size={18} fillLayer={false} /> Try again
               </button>
             )}
-            <button className={styles.iconBtn} style={{ padding: '10px 20px', width: 'auto', borderRadius: 8 }}
-              onClick={() => router.push('/catalog')}>
-              <List size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Browse library
+            <button className={`${styles.glassBtn} ${styles.pill}`} onClick={() => router.push('/catalog')}>
+              <Icon name="library" size={18} /> Browse library
             </button>
-            <button className={styles.iconBtn} style={{ padding: '10px 20px', width: 'auto', borderRadius: 8 }}
-              onClick={() => router.back()}>
-              <ArrowLeft size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Go back
+            <button className={`${styles.glassBtn} ${styles.pill}`} onClick={() => router.back()}>
+              <Icon name="arrow-left" size={18} fillLayer={false} /> Go back
             </button>
           </div>
         </div>
@@ -675,30 +747,111 @@ export default function AudiobookPlayerV2() {
     );
   }
 
+  const chaptersList = (
+    <>
+      {!isOnline && (
+        <div className={styles.offline}>
+          <Icon name="wifi" size={16} fillLayer={false} />
+          Offline - downloaded chapters only
+        </div>
+      )}
+      {chapters.map(ch => {
+        const isOpen = openChapterIds.includes(ch.id);
+        const isActive = currentChapter?.id === ch.id;
+        return (
+          <div key={ch.id} className={styles.chapter}>
+            <div
+              className={`${styles.chapterHead} ${isActive ? styles.chapterHeadOn : ''}`}
+              role="button" tabIndex={0} aria-expanded={isOpen}
+              onClick={() => toggleChapterExpand(ch.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleChapterExpand(ch.id); } }}
+            >
+              <Icon name="chevron-right" size={16} fillLayer={false} className={`${styles.chev} ${isOpen ? styles.chevOpen : ''}`} />
+              <span className={styles.clip}>{ch.title}</span>
+              <span className={styles.count}>{ch.sections.length}</span>
+              {/* Audit fix 15 - nothing survived a bad connection: every section was a fresh
+                  presigned URL held only in memory. Chapters can now be taken offline. */}
+              <button
+                className={styles.iconTiny}
+                onClick={(e) => { e.stopPropagation(); handleDownloadChapter(ch.id); }}
+                disabled={downloadingChapter === ch.id || downloadedChapters.has(ch.id)}
+                aria-label={downloadedChapters.has(ch.id) ? `${ch.title} is available offline` : `Download ${ch.title} for offline listening`}
+              >
+                {downloadedChapters.has(ch.id)
+                  ? <Icon name="check-circle" size={18} />
+                  : <Icon name={downloadingChapter === ch.id ? 'loader' : 'download'} size={18} className={downloadingChapter === ch.id ? styles.spin : undefined} />}
+              </button>
+            </div>
+            {isOpen && (
+              <div className={styles.sections}>
+                {ch.sections.map(sec => (
+                  <button
+                    key={sec.id}
+                    className={`${styles.section} ${currentSectionId === sec.id ? styles.sectionOn : ''}`}
+                    aria-current={currentSectionId === sec.id ? 'true' : undefined}
+                    onClick={() => handleSectionClick(sec)}
+                  >
+                    {sec.sectionType === 'INTRO' && <span className={styles.sectionTag}>Intro</span>}
+                    <span className={styles.clip}>{sec.title}</span>
+                    {sec.durationSeconds ? <span className={styles.dur}>{fmt(sec.durationSeconds)}</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+
+  const readAlong = (
+    <div ref={transcriptScrollerRef}>
+      {alignedWords && alignedWords.length > 0 ? (
+        // §5 — word-level sync. The sentence being spoken is white, earlier text is dimmed,
+        // later text is faint; clicking a sentence seeks the audio to its first word.
+        <p className={styles.transcript}>
+          {sentences.map((s, si) => {
+            const state = si === activeSentence ? styles.sentNow : si < activeSentence ? styles.sentPast : '';
+            return (
+              <span
+                key={si}
+                data-sent={si}
+                className={`${styles.sent} ${state}`}
+                onClick={() => handleSeek(alignedWords[s.start].startMs / 1000)}
+              >
+                {alignedWords.slice(s.start, s.end + 1).map((w, k) => (
+                  <span key={k} className={s.start + k === currentWordIndex ? styles.wordNow : undefined}>{w.word}{' '}</span>
+                ))}
+              </span>
+            );
+          })}
+        </p>
+      ) : transcriptParagraphs.length > 0 ? (
+        transcriptParagraphs.map((para, idx) => (
+          <p key={idx} className={`${styles.transcript} ${styles.plain}`}>{para}</p>
+        ))
+      ) : (
+        <div className={styles.empty}>
+          <Icon name="pdf" size={32} />
+          <p>No transcript available for this section</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className={styles.playerRoot} data-theme={theme}>
-      <div className={styles.bgAmbience} />
+    <div className={styles.root} data-theme={theme}>
+      <div className={`${styles.blob} ${styles.blobA}`} style={ambientStyle} />
+      <div className={`${styles.blob} ${styles.blobB}`} />
 
       {/* ═══ HEADER ═══ */}
-      <header className={styles.headerBar}>
+      <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <button className={styles.iconBtn} onClick={() => router.back()} aria-label="Go back">
-            <ArrowLeft size={18} />
+          <button className={styles.glassBtn} onClick={() => router.back()} aria-label="Go back">
+            <Icon name="chevron-down" size={22} fillLayer={false} className="md:hidden" />
+            <Icon name="chevron-left" size={22} fillLayer={false} className="hidden md:block" />
           </button>
-          {/* Audit fix 9: the only way into the chapter list used to be a
-              38px tab pinned at top:50%, left:0 — vertically centred,
-              hugging the screen edge, overlapping the cover art on small
-              screens and easy to catch while scrolling. It is a normal
-              header button now, at --hit-min. */}
-          <button
-            className={isChapterDrawerOpen ? styles.iconBtnActive : styles.iconBtn}
-            onClick={() => store.toggleChapterDrawer()}
-            aria-label="Chapters and sections"
-            aria-expanded={isChapterDrawerOpen}
-          >
-            <List size={18} />
-          </button>
-          <div className={styles.headerBookInfo}>
+          <div className={styles.headerBook}>
             <div className={styles.headerTitle}>{bookTitle || 'Loading…'}</div>
             <div className={styles.headerAuthor}>{bookAuthor}</div>
           </div>
@@ -707,25 +860,24 @@ export default function AudiobookPlayerV2() {
           {/* Narrator chip — one neutral control, opens a menu (fix 11). */}
           <div className={styles.narratorWrap}>
             <button
-              className={styles.narratorChip}
+              className={`${styles.glassBtn} ${styles.pill}`}
               onClick={() => setShowNarratorMenu(v => !v)}
               aria-haspopup="menu"
               aria-expanded={showNarratorMenu}
               aria-label={`Narrator: ${NARRATORS[activeGender]}. Change narrator`}
             >
-              <User size={14} aria-hidden="true" />
+              <Icon name="profile" size={18} />
               <span className={styles.narratorLabel}>Narrator</span>
-              <span className={styles.narratorName}>{NARRATORS[activeGender]}</span>
+              <span>{NARRATORS[activeGender]}</span>
             </button>
-
             {showNarratorMenu && (
-              <div className={styles.narratorMenu} role="menu" aria-label="Choose a narrator">
+              <div className={styles.menu} role="menu" aria-label="Choose a narrator">
                 {(Object.keys(NARRATORS) as AudioGender[]).map((g) => (
                   <button
                     key={g}
                     role="menuitemradio"
                     aria-checked={activeGender === g}
-                    className={activeGender === g ? styles.narratorOptionActive : styles.narratorOption}
+                    className={`${styles.menuItem} ${activeGender === g ? styles.menuItemActive : ''}`}
                     onClick={() => {
                       if (activeGender !== g) store.toggleGender();
                       setShowNarratorMenu(false);
@@ -737,174 +889,64 @@ export default function AudiobookPlayerV2() {
               </div>
             )}
           </div>
-          <button className={styles.iconBtn} onClick={toggleTheme}
+          <button className={styles.glassBtn} onClick={toggleTheme}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            <Icon name={theme === 'dark' ? 'sun' : 'theme'} size={20} />
           </button>
         </div>
       </header>
 
-      {/* ═══ SIDEBAR OVERLAY (mobile) ═══ */}
-      {(isChapterDrawerOpen || showTranscript) && (
-        <div className={styles.overlay}
-          onClick={() => {
-            if (isChapterDrawerOpen) store.toggleChapterDrawer();
-            if (showTranscript) store.toggleTranscript();
-          }} />
-      )}
-
       {/* ═══ MAIN LAYOUT ═══ */}
-      <div className={styles.mainLayout}>
-
-        {/* ═══ LEFT SIDEBAR: Chapter → Section Tree ═══ */}
-        <aside className={`${styles.sidebarDrawer} ${!isChapterDrawerOpen ? styles.sidebarDrawerHidden : ''}`}>
-          <div className={styles.sidebarHeader}>
-            <span className={styles.sidebarTitle}>Chapters</span>
-            <button className={styles.iconBtn}
-              onClick={() => store.toggleChapterDrawer()}
-              aria-label="Close chapters">
-              <X size={16} />
-            </button>
-          </div>
-          {!isOnline && (
-            <div className={styles.offlineBadge}>
-              <WifiOff size={13} aria-hidden="true" />
-              Offline - downloaded chapters only
-            </div>
-          )}
-          <div className={styles.sidebarScroller}>
-            {chapters.map(ch => {
-              const isOpen = openChapterIds.includes(ch.id);
-              const isActive = currentChapter?.id === ch.id;
-              return (
-                <div key={ch.id} className={styles.chapterGroup}>
-                  <div
-                    className={isActive ? styles.chapterHeaderActive : styles.chapterHeader}
-                    onClick={() => toggleChapterExpand(ch.id)}
-                  >
-                    <ChevronRight size={14}
-                      className={`${styles.chapterArrow} ${isOpen ? styles.chapterArrowOpen : ''}`} />
-                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {ch.title}
-                    </span>
-                    <span style={{ fontSize: 11, opacity: 0.6 }}>{ch.sections.length}s</span>
-                    {/* Audit fix 15 - nothing survived a bad connection.
-                        Every section was a fresh presigned URL held only
-                        in memory, with no download, no queue-ahead and no
-                        offline state at all. */}
-                    <button
-                      className={styles.downloadBtn}
-                      onClick={(e) => { e.stopPropagation(); handleDownloadChapter(ch.id); }}
-                      disabled={downloadingChapter === ch.id || downloadedChapters.has(ch.id)}
-                      aria-label={
-                        downloadedChapters.has(ch.id)
-                          ? `${ch.title} is available offline`
-                          : `Download ${ch.title} for offline listening`
-                      }
-                    >
-                      {downloadedChapters.has(ch.id)
-                        ? <CheckCircle2 size={14} />
-                        : downloadingChapter === ch.id
-                          ? <Download size={14} className={styles.downloadSpin} />
-                          : <Download size={14} />}
-                    </button>
-                  </div>
-                  {isOpen && (
-                    <div className={styles.sectionList}>
-                      {ch.sections.map(sec => (
-                        <div
-                          key={sec.id}
-                          className={currentSectionId === sec.id ? styles.sectionItemActive : styles.sectionItem}
-                          onClick={() => handleSectionClick(sec)}
-                        >
-                          {sec.sectionType === 'INTRO' && (
-                            <span className={styles.sectionTypeTag}>Intro</span>
-                          )}
-                          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {sec.title}
-                          </span>
-                          {sec.durationSeconds && (
-                            <span className={styles.sectionDuration}>{fmt(sec.durationSeconds)}</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
-        {/* ═══ CENTER CONTENT ═══ */}
-        <main className={styles.centerContent}>
-          {/* Loading skeleton */}
+      <div className={styles.layout}>
+        <main className={styles.stage}>
           {isLoading && !isInitialized && (
-            <div className={styles.loadingSkeleton}>
-              <div className={styles.skeletonPulse} style={{ width: 200, height: 200, borderRadius: 16 }} />
-              <div className={styles.skeletonPulse} style={{ width: 240, height: 24 }} />
-              <div className={styles.skeletonPulse} style={{ width: 160, height: 16 }} />
-              <div className={styles.skeletonPulse} style={{ width: '80%', maxWidth: 400, height: 48 }} />
-              <p style={{ color: 'var(--ap-text-muted)', fontSize: 14 }}>Loading audiobook…</p>
+            <div className={styles.skeleton} role="status">
+              <div className={styles.skel} style={{ width: 214, height: 300 }} />
+              <div className={styles.skel} style={{ width: 240, height: 28 }} />
+              <div className={styles.skel} style={{ width: 160, height: 16 }} />
+              <div className={styles.skel} style={{ width: '80%', maxWidth: 400, height: 48 }} />
+              <p style={{ color: 'var(--ap-muted)', fontSize: 14 }}>Loading audiobook…</p>
             </div>
           )}
 
           {isInitialized && (
             <>
-              {/* The two edge tabs that used to live here at top:50% are
-                  gone (audit fix 9). Chapters moved into the header;
-                  the transcript is the peek bar above the bottom edge. */}
+              <div className={styles.stageTop}>
+                <div className={styles.coverWrap}>
+                  <div className={`${styles.coverGlow} ${isPlaying ? styles.coverGlowOn : ''}`} style={ambientStyle} />
+                  <div className={styles.cover}>
+                    {coverUrl && <img src={coverUrl} alt={`${bookTitle} cover`} />}
+                    <div className={styles.coverSheen} />
+                    <div className={styles.coverSpine} />
+                    {isPlaying && (
+                      <div className={styles.eq} aria-hidden="true">
+                        <div className={styles.eqBar} /><div className={styles.eqBar} /><div className={styles.eqBar} /><div className={styles.eqBar} />
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-              {/* Cover Art */}
-              <div className={styles.coverWrapper}>
-                <div className={`${styles.coverGlow} ${isPlaying ? styles.coverGlowActive : ''}`} />
-                <div className={styles.coverImage}>
-                  <img src={coverUrl} alt={`${bookTitle} cover`} />
-                  {isPlaying && (
-                    <div className={styles.playingIndicator}>
-                      <div className={styles.playingBar} />
-                      <div className={styles.playingBar} />
-                      <div className={styles.playingBar} />
-                      <div className={styles.playingBar} />
-                    </div>
-                  )}
+                <div className={styles.heading}>
+                  <p className={styles.eyebrow}>{currentChapter?.title || 'Now playing'}</p>
+                  <h1 className={styles.title}>{currentSection?.title || 'No section'}</h1>
+                  {/* Audit fix 12 - one honest progress line: which section, how far through the
+                      chapter, how long is left. The waveform stays as the scrubber. */}
+                  <p className={styles.subtitle}>
+                    {bookTitle}
+                    {sectionOrdinal > 0 && <> &middot; Section {sectionOrdinal} of {sectionsInChapter}</>}
+                    {chapterMinutesLeft !== null && <> &middot; {chapterMinutesLeft} min left in chapter</>}
+                  </p>
                 </div>
               </div>
 
-              {/* Now Playing Info */}
-              <div className={styles.nowPlayingInfo}>
-                <div className={styles.nowPlayingSection}>{currentSection?.title || 'No section'}</div>
-
-                {/* Audit fix 12 - one honest progress line.
-                    There used to be three progress indicators here: an
-                    overall bar, a waveform, and an elapsed/remaining time
-                    row - all three scoped to the *section*, so none of
-                    them could answer where you are in the chapter, let
-                    alone the book. Neither could they say which section
-                    this is. One sentence says all three things; the
-                    redundant overall bar is gone and the waveform stays
-                    as the scrubber, which is the one job it did. */}
-                <div className={styles.progressLine}>
-                  {currentChapter?.title}
-                  {sectionOrdinal > 0 && (
-                    <> &middot; Section {sectionOrdinal} of {sectionsInChapter}</>
-                  )}
-                  {chapterMinutesLeft !== null && (
-                    <> &middot; {chapterMinutesLeft} min left in chapter</>
-                  )}
-                </div>
-              </div>
-
-              {/* Waveform / Seek */}
-              <div className={styles.waveformArea}>
+              <div className={styles.waveformBlock}>
                 <AudioWaveform
+                  className={styles.waveform}
                   currentTime={positionSeconds}
                   duration={sectionDuration}
                   isPlaying={isPlaying}
                   onSeek={handleSeek}
-                  /* was a hardcoded amber #f59e0b / #d97706 - the palette
-                     the rest of the player has already left behind. */
-                  accentColor={theme === 'dark' ? '#FF8A5B' : '#B45309'}
+                  trackColor={theme === 'dark' ? 'rgba(255,255,255,0.18)' : 'rgba(10,15,36,0.14)'}
                 />
                 <div className={styles.timeRow}>
                   <span>{fmt(positionSeconds)}</span>
@@ -912,96 +954,86 @@ export default function AudiobookPlayerV2() {
                 </div>
               </div>
 
-              {/* Audit fix 10 - three controls, not five.
-                  Prev-section and back-15 both used a Rewind glyph;
-                  next-section and forward-15 both used FastForward. Four
-                  of the five buttons were two icons twice over, separated
-                  only by a 9px label, and five 52px circles at 16px gaps
-                  leave almost no margin at 360px.
-
-                  The primary row is now the three controls a listener
-                  reaches for constantly, with the seek amount drawn
-                  inside the arc so the number *is* the icon. Section
-                  jumps move to the line below, where they can name where
-                  they are going. */}
-              <div className={styles.controlsRow}>
-                <button className={styles.seekBtn} onClick={() => handleSkip(-15)} aria-label="Back 15 seconds">
-                  <Rewind size={18} aria-hidden="true" />
+              {/* Audit fix 10 - three controls, not five: back 15, play, forward 15, with the
+                  seek amount drawn inside the arc. Section jumps move to the line below. */}
+              <div className={styles.controls}>
+                <button className={`${styles.glassBtn} ${styles.seekBtn}`} onClick={() => handleSkip(-15)} aria-label="Back 15 seconds">
+                  <Icon name="rotate-ccw" size={26} fillLayer={false} />
                   <span className={styles.seekAmount}>15</span>
                 </button>
-                <button className={styles.playPauseBtn} onClick={handlePlayPause}
+                <button className={styles.play} onClick={handlePlayPause}
                   aria-label={isPlaying ? 'Pause' : 'Play'} disabled={isLoading || isFetchingUrl}>
-                  {isPlaying
-                    ? <Pause size={32} strokeWidth={2.5} />
-                    : <Play size={32} strokeWidth={2.5} style={{ marginLeft: 3 }} />}
+                  <Icon name={isPlaying ? 'pause' : 'play'} size={40} fillLayer={false} style={isPlaying ? undefined : { marginLeft: 4 }} />
                 </button>
-                <button className={styles.seekBtn} onClick={() => handleSkip(15)} aria-label="Forward 15 seconds">
-                  <FastForward size={18} aria-hidden="true" />
+                <button className={`${styles.glassBtn} ${styles.seekBtn}`} onClick={() => handleSkip(15)} aria-label="Forward 15 seconds">
+                  <Icon name="rotate-cw" size={26} fillLayer={false} />
                   <span className={styles.seekAmount}>15</span>
                 </button>
               </div>
 
-              {/* Named section jumps. "Next" told you nothing; the title
-                  of what is next tells you whether you want it. */}
-              <div className={styles.sectionJumpRow}>
+              {/* Named section jumps: the title of what is next tells you whether you want it. */}
+              <div className={styles.jumpRow}>
                 <button
-                  className={styles.sectionJumpBtn}
+                  className={styles.jump}
                   onClick={handlePrevSection}
                   disabled={!prevSection && positionSeconds <= 3}
                   aria-label={prevSection ? `Previous section: ${prevSection.title}` : 'Restart this section'}
                 >
-                  <ChevronRight size={14} style={{ transform: 'rotate(180deg)' }} aria-hidden="true" />
-                  <span className={styles.sectionJumpLabel}>
+                  <Icon name="chevron-left" size={16} fillLayer={false} />
+                  <span className={styles.jumpLabel}>
                     {positionSeconds > 3 ? 'Restart section' : prevSection ? prevSection.title : 'Start of book'}
                   </span>
                 </button>
                 <button
-                  className={styles.sectionJumpBtn}
+                  className={styles.jump}
                   onClick={handleNextSection}
                   disabled={!nextSection}
                   aria-label={nextSection ? `Next section: ${nextSection.title}` : 'This is the last section'}
                 >
-                  <span className={styles.sectionJumpLabel}>
-                    {nextSection ? `Next: ${nextSection.title}` : 'Last section'}
-                  </span>
-                  <ChevronRight size={14} aria-hidden="true" />
+                  <span className={styles.jumpLabel}>{nextSection ? `Next: ${nextSection.title}` : 'Last section'}</span>
+                  <Icon name="chevron-right" size={16} fillLayer={false} />
                 </button>
               </div>
 
-              {/* Speed Pills */}
-              <div className={styles.speedRow} role="radiogroup" aria-label="Playback speed">
+              {/* Speed (tablet and up; phones use the utility bar below) */}
+              <div className={styles.speed} role="radiogroup" aria-label="Playback speed">
                 {PLAYBACK_SPEEDS.map(speed => (
                   <button key={speed}
-                    className={playbackRate === speed ? styles.speedPillActive : styles.speedPill}
+                    className={`${styles.speedBtn} ${playbackRate === speed ? styles.speedBtnOn : ''}`}
                     onClick={() => {
                       store.setPlaybackRate(speed);
                       if (audioRef.current) audioRef.current.playbackRate = speed;
                     }}
                     role="radio" aria-checked={playbackRate === speed}>
-                    {speed}x
+                    {speed}×
                   </button>
                 ))}
               </div>
 
-              {/* Secondary Controls */}
-              <div className={styles.secondaryRow}>
-                {/* Audit fix 13 - a volume control that can actually be
-                    used. The old one was a bare <div role="slider"> with
-                    aria-valuenow and tabIndex=0 but only an onClick: it
-                    announced itself to a screen reader as an operable
-                    slider, then ignored every arrow key. It also
-                    duplicated the hardware volume keys on a phone, which
-                    is why it is hidden on coarse pointers now.
-
-                    The shadcn Slider is Radix underneath, so keyboard
-                    support, focus and the ARIA contract come with it
-                    rather than being hand-written and wrong. */}
-                <div className={styles.volumeControl}>
-                  <button className={isMuted ? styles.iconBtnActive : styles.iconBtn}
-                    onClick={() => store.toggleMute()}
-                    aria-label={isMuted ? 'Unmute' : 'Mute'}
-                    aria-pressed={isMuted}>
-                    {isMuted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
+              {/* Tablet/desktop pills */}
+              <div className={styles.pills}>
+                <div style={{ position: 'relative' }}>
+                  <button className={`${styles.glassBtn} ${styles.pill} ${sleepActive ? styles.glassBtnActive : ''}`}
+                    onClick={() => setShowSleepMenu(v => !v)} aria-haspopup="menu" aria-expanded={showSleepMenu}>
+                    <Icon name="theme" size={18} /> Sleep timer
+                  </button>
+                  {sleepMenu}
+                </div>
+                <button className={`${styles.glassBtn} ${styles.pill}`}
+                  onClick={() => router.push(`/reader?bookId=${bookId ?? ''}`)}>
+                  <Icon name="read" size={18} /> Switch to reading
+                </button>
+                <button className={`${styles.glassBtn} ${styles.pill} ${isChapterDrawerOpen ? styles.glassBtnActive : ''}`}
+                  onClick={() => openPanel('chapters')} aria-label="Chapters and sections">
+                  <Icon name="contents" size={18} /> Chapters
+                </button>
+                {/* Audit fix 13 - a volume control that can actually be used: Radix Slider underneath,
+                    so keyboard support and the ARIA contract come with it. Hidden on coarse pointers
+                    (the hardware keys do this). */}
+                <div className={`${styles.volume} [@media(pointer:coarse)]:hidden`}>
+                  <button className={`${styles.glassBtn} ${isMuted ? styles.glassBtnActive : ''}`}
+                    onClick={() => store.toggleMute()} aria-label={isMuted ? 'Unmute' : 'Mute'} aria-pressed={isMuted}>
+                    <Icon name={isMuted || volume === 0 ? 'volume-x' : 'volume'} size={20} />
                   </button>
                   <Slider
                     value={[Math.round((isMuted ? 0 : volume) * 100)]}
@@ -1012,146 +1044,76 @@ export default function AudiobookPlayerV2() {
                     className={styles.volumeSlider}
                   />
                 </div>
-
-                <div className={styles.divider} />
-
-                {/* Sleep Timer */}
-                <div style={{ position: 'relative' }}>
-                  <button className={sleepTimerRemaining ? styles.iconBtnActive : styles.iconBtn}
-                    onClick={() => setShowSleepMenu(!showSleepMenu)} aria-label="Sleep timer">
-                    <Clock size={18} />
-                  </button>
-                  {showSleepMenu && (
-                    <div style={{
-                      position: 'absolute', bottom: 52, left: '50%', transform: 'translateX(-50%)',
-                      background: 'var(--ap-bg-glass)', backdropFilter: 'blur(20px)',
-                      border: '1px solid var(--ap-border)', borderRadius: 12,
-                      padding: 8, minWidth: 130, zIndex: 60,
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                    }}>
-                      {(sleepTimerRemaining || sleepAtSectionEnd) && (
-                        <button className={styles.speedPill} style={{ width: '100%', color: 'var(--ap-danger)', marginBottom: 4 }}
-                          onClick={() => { store.setSleepTimer(null); store.setSleepAtSectionEnd(false); setShowSleepMenu(false); }}>Off</button>
-                      )}
-                      {/* Audit fix 15: first in the list because it is the
-                          option people actually want. A fixed countdown
-                          cuts off mid-sentence; this stops at a boundary
-                          the book itself defines. */}
-                      <button
-                        className={sleepAtSectionEnd ? styles.speedPillActive : styles.speedPill}
-                        style={{ width: '100%', marginBottom: 6 }}
-                        onClick={() => { store.setSleepAtSectionEnd(true); setShowSleepMenu(false); }}
-                      >
-                        End of section
-                      </button>
-                      {SLEEP_PRESETS.map(min => (
-                        <button key={min} className={styles.speedPill} style={{ width: '100%', marginBottom: 2 }}
-                          onClick={() => { store.setSleepTimer(min); setShowSleepMenu(false); }}>
-                          {min} min
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </div>
 
-              {/* Sleep Badge */}
-              {(sleepAtSectionEnd || (sleepTimerRemaining && sleepTimerRemaining > 0)) && (
+              {/* Phone: 4-cell glass utility bar */}
+              <div className={styles.utility} role="group" aria-label="Playback options">
+                <button className={styles.utilityCell} onClick={cycleSpeed} aria-label={`Speed ${playbackRate}×. Change speed`}>
+                  <span className={styles.utilityValue}>{playbackRate}×</span>
+                  <span className={styles.utilityLabel}>Speed</span>
+                </button>
+                <div className={styles.utilityCell} style={{ position: 'relative' }}>
+                  <button className={styles.utilityCell} style={{ position: 'absolute', inset: 0, border: 0 }} onClick={() => setShowSleepMenu(v => !v)}
+                    aria-haspopup="menu" aria-expanded={showSleepMenu} aria-label="Sleep timer">
+                    <Icon name="theme" size={22} />
+                    <span className={styles.utilityLabel}>{sleepActive ? 'On' : 'Sleep'}</span>
+                  </button>
+                  {sleepMenu}
+                </div>
+                <button className={styles.utilityCell} onClick={() => store.toggleGender()} aria-label={`Voice: ${NARRATORS[activeGender]}. Switch voice`}>
+                  <span className={styles.utilityValue}>{NARRATORS[activeGender]}</span>
+                  <span className={styles.utilityLabel}>Voice</span>
+                </button>
+                <button className={styles.utilityCell} onClick={() => openPanel('chapters')} aria-label="Chapters">
+                  <Icon name="contents" size={22} />
+                  <span className={styles.utilityLabel}>Chapters</span>
+                </button>
+              </div>
+
+              {/* Read along is the transcript. Always one tap away below 1280, permanent above. */}
+              <button className={`${styles.glassBtn} ${styles.pill} xl:hidden`} onClick={() => openPanel('read')} aria-label="Open transcript">
+                <Icon name="pdf" size={18} />
+                <span>
+                  {alignedWords && alignedWords.length > 0 && currentWordIndex >= 0
+                    ? `“…${alignedWords.slice(Math.max(0, currentWordIndex - 4), currentWordIndex + 4).map(w => w.word).join(' ')}…”`
+                    : 'Read along'}
+                </span>
+              </button>
+
+              {sleepActive && (
                 <div className={styles.sleepBadge}>
-                  <Clock size={14} aria-hidden="true" />
-                  {sleepAtSectionEnd
-                    ? 'Stopping at the end of this section'
-                    : `Sleep in ${Math.ceil((sleepTimerRemaining ?? 0) / 60)} min`}
+                  <Icon name="theme" size={16} fillLayer={false} />
+                  {sleepAtSectionEnd ? 'Stopping at the end of this section' : `Sleep in ${Math.ceil((sleepTimerRemaining ?? 0) / 60)} min`}
                 </div>
               )}
             </>
           )}
         </main>
 
-        {/* Audit fix 9 - the transcript peek bar.
-            The transcript used to be reachable only from a 38px tab
-            pinned at top:50%, right:0 - edge-hugging, overlapping the
-            cover on small screens, and easy to catch while scrolling.
-            This bar sits above the bottom edge, shows the line being
-            spoken, and drags the full panel up when tapped. It is both
-            the affordance and a preview of what is behind it. */}
-        {isInitialized && !showTranscript && (
-          <button
-            className={styles.transcriptPeek}
-            onClick={() => store.toggleTranscript()}
-            aria-label="Open transcript"
-            aria-expanded={false}
-          >
-            <span className={styles.transcriptPeekText}>
-              {alignedWords && alignedWords.length > 0 && currentWordIndex >= 0
-                ? `\u201C\u2026${alignedWords.slice(Math.max(0, currentWordIndex - 5), currentWordIndex + 4).map(w => w.word).join(' ')}\u2026\u201D`
-                : transcriptText
-                  ? 'Read along with the transcript'
-                  : 'No transcript for this section'}
-            </span>
-            <span className={styles.transcriptPeekTag}>TRANSCRIPT</span>
-          </button>
+        {/* ═══ PANEL: Read along · Chapters ═══ */}
+        {isInitialized && (panelOpen && !isWide) && <div className={styles.scrim} onClick={() => setPanelOpen(false)} />}
+        {isInitialized && (
+          <aside className={`${styles.panel} ${panelOpen ? styles.panelOpen : ''}`} aria-label="Read along and chapters">
+            <div className={styles.grabber} aria-hidden="true" />
+            <div className={styles.tabs} role="tablist">
+              <button role="tab" aria-selected={panelTab === 'read'} className={`${styles.tab} ${panelTab === 'read' ? styles.tabOn : ''}`} onClick={() => selectTab('read')}>Read along</button>
+              <button role="tab" aria-selected={panelTab === 'chapters'} className={`${styles.tab} ${panelTab === 'chapters' ? styles.tabOn : ''}`} onClick={() => selectTab('chapters')}>Chapters</button>
+              <button className={`${styles.glassBtn} ${styles.panelClose}`} onClick={() => setPanelOpen(false)} aria-label="Close panel">
+                <Icon name="close" size={18} fillLayer={false} />
+              </button>
+            </div>
+            <div className={styles.panelBody}>{panelTab === 'read' ? readAlong : chaptersList}</div>
+            <div className={styles.panelFoot}>
+              <span>Up next</span>
+              <strong>{nextSection ? nextSection.title : 'End of book'}</strong>
+            </div>
+          </aside>
         )}
-
-        {/* ═══ RIGHT SIDEBAR: Transcript ═══ */}
-        <aside className={`${styles.transcriptPanel} ${!showTranscript ? styles.transcriptPanelHidden : ''}`}>
-          <div className={styles.sidebarHeader}>
-            <span className={styles.sidebarTitle}>Transcript</span>
-            <button className={styles.iconBtn}
-              onClick={() => store.toggleTranscript()}
-              aria-label="Close transcript">
-              <X size={16} />
-            </button>
-          </div>
-          <div className={styles.transcriptScroller} ref={transcriptScrollerRef}>
-            {alignedWords && alignedWords.length > 0 ? (
-              // §5 — word-level sync: render the aligned words as a flowing
-              // sequence (paragraph breaks from the plain-text transcript
-              // aren't reconstructed here — the alignment data doesn't carry
-              // them — so this is one continuous block, a known trade-off of
-              // this v1). The current word highlights as playback passes its
-              // [startMs, endMs); clicking a word seeks the audio to it.
-              <p className={styles.transcriptParagraph}>
-                {alignedWords.map((w, idx) => (
-                  <span
-                    key={idx}
-                    onClick={() => handleSeek(w.startMs / 1000)}
-                    style={{
-                      cursor: 'pointer',
-                      borderRadius: 3,
-                      padding: '0 1px',
-                      backgroundColor: idx === currentWordIndex ? 'var(--ap-accent, #6366f1)' : 'transparent',
-                      color: idx === currentWordIndex ? '#fff' : 'inherit',
-                      transition: 'background-color 120ms ease',
-                    }}
-                  >
-                    {w.word}{' '}
-                  </span>
-                ))}
-              </p>
-            ) : transcriptParagraphs.length > 0 ? (
-              transcriptParagraphs.map((para, idx) => (
-                <div key={idx} className={styles.transcriptParagraph}>
-                  {para}
-                </div>
-              ))
-            ) : (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--ap-text-muted)' }}>
-                <FileText size={32} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
-                <p style={{ fontSize: 13 }}>No transcript available for this section</p>
-              </div>
-            )}
-          </div>
-        </aside>
       </div>
 
-      {/* Audit fix 14 - the announcement strip and its live region.
-          Auto-advance used to be silent: one track stopped, another
-          started, and nothing said which. Sighted users get the strip;
-          the aria-live region says the same words to a screen reader,
-          and is always in the DOM (rather than mounted on change) so the
-          announcement is not swallowed by the region appearing at the
-          same moment as its content. */}
+      {/* Audit fix 14 - the announcement strip and its live region. Auto-advance used to be
+          silent. The aria-live region is always in the DOM so the announcement is not swallowed
+          by the region appearing at the same moment as its content. */}
       <div className={styles.liveRegion} role="status" aria-live="polite" aria-atomic="true">
         {nowPlayingStrip ? `Now playing: ${nowPlayingStrip}` : ''}
       </div>
@@ -1161,19 +1123,16 @@ export default function AudiobookPlayerV2() {
         </div>
       )}
 
-      {/* Audit fix 14 - errors sit above the transport, not on it.
-          The old toast was pinned at bottom:24 and landed squarely over
-          the controls, so the first thing an error did was take away the
-          buttons you would use to recover from it. */}
+      {/* Audit fix 14 - errors sit above the transport, not on it. */}
       {error && isInitialized && (
         <div className={styles.errorToast} role="alert">
-          <AlertTriangle size={18} style={{ color: 'var(--ap-danger)', flexShrink: 0 }} aria-hidden="true" />
+          <Icon name="alert" size={20} style={{ flexShrink: 0 }} />
           <p className={styles.errorToastText}>{error}</p>
-          <button className={styles.errorToastRetry} onClick={handleRetry}>
-            <RotateCcw size={14} aria-hidden="true" /> Retry
+          <button className={`${styles.glassBtn} ${styles.pill}`} style={{ height: 36 }} onClick={handleRetry}>
+            <Icon name="rotate-ccw" size={16} fillLayer={false} /> Retry
           </button>
-          <button onClick={() => store.setError(null)} aria-label="Dismiss error" className={styles.errorToastClose}>
-            <X size={16} />
+          <button className={styles.iconTiny} onClick={() => store.setError(null)} aria-label="Dismiss error">
+            <Icon name="close" size={18} fillLayer={false} />
           </button>
         </div>
       )}

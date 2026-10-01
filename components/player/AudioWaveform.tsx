@@ -7,16 +7,17 @@ interface AudioWaveformProps {
     duration: number;
     isPlaying: boolean;
     onSeek: (time: number) => void;
-    accentColor?: string;
+    /** Colour of the bars that have not been played yet. */
+    trackColor?: string;
     barCount?: number;
+    /** Sized by CSS (height on this element); the canvas fills it. */
     className?: string;
 }
 
-// Generate a deterministic procedural waveform
+// Procedural waveform shape, generated once per mount.
 function generateWaveformData(count: number): number[] {
     const data: number[] = [];
     for (let i = 0; i < count; i++) {
-        // Create a natural-looking waveform pattern
         const base = 0.3 + Math.random() * 0.4;
         const wave = Math.sin(i * 0.15) * 0.15;
         const noise = (Math.random() - 0.5) * 0.2;
@@ -25,49 +26,50 @@ function generateWaveformData(count: number): number[] {
     return data;
 }
 
+// Design system: centred bars, radius 3, gap 3, played = peach→blaze vertical gradient.
+const GAP = 3;
+const RADIUS = 3;
+const PLAYED_TOP = '#FFC58A';
+const PLAYED_BOTTOM = '#FF5A0F';
+
+/** Seekable waveform scrubber: click, drag or use the arrow keys. */
 export function AudioWaveform({
     currentTime,
     duration,
     isPlaying,
     onSeek,
-    accentColor = '#f59e0b',
-    barCount = 100,
+    trackColor = 'rgba(255,255,255,0.18)',
+    barCount = 72,
     className = '',
 }: AudioWaveformProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const waveformData = useRef<number[]>(generateWaveformData(barCount));
-    const animationRef = useRef<number | null>(null);
-    const [hoverX, setHoverX] = useState<number | null>(null);
-    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+    const dragging = useRef(false);
+    const [size, setSize] = useState({ w: 0, h: 0 });
 
-    // Resize observer
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-
         const observer = new ResizeObserver((entries) => {
-            const { width } = entries[0].contentRect;
+            const { width, height } = entries[0].contentRect;
             const dpr = window.devicePixelRatio || 1;
-            setCanvasSize({ width: width * dpr, height: 64 * dpr });
-
-            if (canvasRef.current) {
-                canvasRef.current.width = width * dpr;
-                canvasRef.current.height = 64 * dpr;
-                canvasRef.current.style.width = `${width}px`;
-                canvasRef.current.style.height = '64px';
+            const canvas = canvasRef.current;
+            if (canvas) {
+                canvas.width = Math.round(width * dpr);
+                canvas.height = Math.round(height * dpr);
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
             }
+            setSize({ w: width, h: height });
         });
-
         observer.observe(container);
         return () => observer.disconnect();
     }, []);
 
-    // Draw the waveform
     const draw = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas || canvasSize.width === 0) return;
-
+        if (!canvas || size.w === 0 || size.h === 0) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -76,89 +78,48 @@ export function AudioWaveform({
         const h = canvas.height;
         const data = waveformData.current;
         const progress = duration > 0 ? currentTime / duration : 0;
-        const hoverProgress = hoverX !== null ? hoverX / (w / dpr) : null;
+        const gap = GAP * dpr;
+        const barW = Math.max(2 * dpr, (w - gap * (data.length - 1)) / data.length);
+        const maxH = h * 0.92;
 
         ctx.clearRect(0, 0, w, h);
-
-        const gap = 2 * dpr;
-        const barWidth = Math.max(2, (w - gap * (data.length - 1)) / data.length);
-        const maxBarHeight = h * 0.85;
-
         for (let i = 0; i < data.length; i++) {
-            const x = i * (barWidth + gap);
-            const barProgress = i / data.length;
-            const barH = data[i] * maxBarHeight;
+            const x = i * (barW + gap);
+            const barH = Math.max(4 * dpr, data[i] * maxH);
             const y = (h - barH) / 2;
-
-            const isPlayed = barProgress <= progress;
-            const isHovered = hoverProgress !== null && barProgress <= hoverProgress;
-
-            if (isPlayed) {
-                const grad = ctx.createLinearGradient(x, y, x, y + barH);
-                grad.addColorStop(0, accentColor);
-                grad.addColorStop(1, adjustColor(accentColor, -30));
-                ctx.fillStyle = grad;
-                ctx.globalAlpha = 1;
-            } else if (isHovered) {
-                ctx.fillStyle = accentColor;
-                ctx.globalAlpha = 0.35;
+            if (i / data.length <= progress) {
+                const g = ctx.createLinearGradient(0, y, 0, y + barH);
+                g.addColorStop(0, PLAYED_TOP);
+                g.addColorStop(1, PLAYED_BOTTOM);
+                ctx.fillStyle = g;
             } else {
-                ctx.fillStyle = getComputedStyle(canvas).getPropertyValue('--p-text-muted').trim() || '#64748b';
-                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = trackColor;
             }
-
             ctx.beginPath();
-            const radius = Math.min(barWidth / 2, 3 * dpr);
-            roundRect(ctx, x, y, barWidth, barH, radius);
+            const r = Math.min(barW / 2, RADIUS * dpr);
+            ctx.roundRect(x, y, barW, barH, r);
             ctx.fill();
-            ctx.globalAlpha = 1;
         }
-    }, [canvasSize, currentTime, duration, hoverX, accentColor]);
+    }, [size, currentTime, duration, trackColor]);
 
-    // Animation loop
+    // Redraw on every time/size change; no animation loop is needed (the playhead moves with timeupdate).
     useEffect(() => {
-        const animate = () => {
-            draw();
-            animationRef.current = requestAnimationFrame(animate);
-        };
-
-        if (isPlaying) {
-            animationRef.current = requestAnimationFrame(animate);
-        } else {
-            draw();
-        }
-
-        return () => {
-            if (animationRef.current) cancelAnimationFrame(animationRef.current);
-        };
+        draw();
     }, [draw, isPlaying]);
 
-    // Also redraw when not playing but time changes (seeking)
-    useEffect(() => {
-        if (!isPlaying) draw();
-    }, [currentTime, draw, isPlaying]);
-
-    const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const seekFromEvent = (clientX: number) => {
         const canvas = canvasRef.current;
         if (!canvas || duration <= 0) return;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const progress = x / rect.width;
-        onSeek(Math.max(0, Math.min(duration, progress * duration)));
-    };
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const rect = canvas.getBoundingClientRect();
-        setHoverX(e.clientX - rect.left);
+        const p = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        onSeek(p * duration);
     };
 
     return (
         <div
             ref={containerRef}
             className={className}
-            style={{ width: '100%', position: 'relative' }}
+            style={{ width: '100%', position: 'relative', touchAction: 'none' }}
             role="slider"
             aria-label="Audio progress"
             aria-valuemin={0}
@@ -169,39 +130,22 @@ export function AudioWaveform({
                 if (e.key === 'ArrowRight') onSeek(Math.min(duration, currentTime + 10));
                 if (e.key === 'ArrowLeft') onSeek(Math.max(0, currentTime - 10));
             }}
+            onPointerDown={(e) => {
+                dragging.current = true;
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                seekFromEvent(e.clientX);
+            }}
+            onPointerMove={(e) => {
+                if (dragging.current) seekFromEvent(e.clientX);
+            }}
+            onPointerUp={() => {
+                dragging.current = false;
+            }}
+            onPointerCancel={() => {
+                dragging.current = false;
+            }}
         >
-            <canvas
-                ref={canvasRef}
-                onClick={handleClick}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => setHoverX(null)}
-                style={{ cursor: 'pointer', display: 'block', borderRadius: '8px' }}
-            />
+            <canvas ref={canvasRef} style={{ cursor: 'pointer', display: 'block' }} />
         </div>
     );
-}
-
-// Helper: round rectangle
-function roundRect(
-    ctx: CanvasRenderingContext2D,
-    x: number, y: number, w: number, h: number, r: number
-) {
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-}
-
-// Helper: darken/lighten hex color
-function adjustColor(hex: string, amount: number): string {
-    const num = parseInt(hex.replace('#', ''), 16);
-    const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + amount));
-    const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
-    const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
-    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
