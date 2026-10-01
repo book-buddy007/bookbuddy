@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from "react";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardDescription } from "@/components/ui/enhanced-card";
+import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { DataTable, type DataColumn } from "@/components/ui/data-table";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { SearchInput } from "@/components/ui/search-input";
 import { StatCard } from "@/components/ui/stat-card";
-import { Input } from "@/components/ui/input";
-import { Search, BookPlus, Clock, AlertTriangle, CheckCircle2, Sparkles, BookOpen } from "@/components/ui/icons";
-import { Badge } from "@/components/ui/badge";
-import adminStyles from "@/app/admin.module.css";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Select,
   SelectContent,
@@ -15,21 +16,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
+interface BorrowRequest {
+  id: string;
+  title: string;
+  requestDate: string;
+  status: "Pending" | "Approved";
+  priority: "Normal" | "High";
+  notes: string;
+}
 
 export default function BorrowPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priority, setPriority] = useState("all");
 
   // Mock data - will be replaced with API calls
-  const borrowRequests = [
+  const borrowRequests: BorrowRequest[] = [
     {
       id: "BR1",
       title: "The Catcher in the Rye",
@@ -48,161 +50,103 @@ export default function BorrowPage() {
     },
   ];
 
+  const q = searchQuery.trim().toLowerCase();
+  const visible = borrowRequests.filter(
+    (r) =>
+      (priority === "all" || r.priority.toLowerCase() === priority) &&
+      (!q || r.title.toLowerCase().includes(q) || r.notes.toLowerCase().includes(q))
+  );
+
+  const columns: DataColumn<BorrowRequest>[] = [
+    { key: "title", header: "Title", cell: (r) => <span className="font-semibold">{r.title}</span>, className: "whitespace-nowrap" },
+    { key: "date", header: "Request date", cell: (r) => r.requestDate, className: "whitespace-nowrap text-bb-muted" },
+    {
+      key: "priority",
+      header: "Priority",
+      cell: (r) => <Chip selected={r.priority === "High"}>{r.priority}</Chip>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (r) =>
+        r.status === "Approved" ? (
+          <StatusBadge status="returned" label="Approved" />
+        ) : (
+          <StatusBadge status="pending" />
+        ),
+    },
+    { key: "notes", header: "Notes", cell: (r) => r.notes, className: "max-w-[220px] truncate text-bb-muted" },
+  ];
+
   return (
-    <div className="space-y-8 animate-vg-fade-in relative z-10">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <BookPlus className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
-            Borrow Requests
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Request new books and track your requests
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <EnhancedButton
-            size="lg"
-            className="shadow-lg hover:shadow-xl border-transparent"
-          >
-            <BookPlus className="h-5 w-5 mr-2" /> New Request
-          </EnhancedButton>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Student"
+        title="Borrow requests"
+        description="Request new books and track your requests."
+        actions={
+          <Button size="lg">
+            <Icon name="plus" size={18} /> New request
+          </Button>
+        }
+      />
 
-      {/* Stats Section */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          title="Total Requests"
-          value={borrowRequests.length.toString()}
+          variant="featured"
+          title="Total requests"
+          value={borrowRequests.length}
           description="All time requests"
-          icon={BookPlus}
-          iconColor="text-indigo-600 dark:text-indigo-400"
-          iconBgColor="bg-indigo-50 dark:bg-indigo-900/20"
-          variant="primary"
+          icon="library"
         />
         <StatCard
-          title="Pending Requests"
-          value={borrowRequests.filter(r => r.status === "Pending").length.toString()}
+          title="Pending requests"
+          value={borrowRequests.filter((r) => r.status === "Pending").length}
           description="Awaiting librarian approval"
-          icon={Clock}
-          iconColor="text-amber-600 dark:text-amber-400"
-          iconBgColor="bg-amber-50 dark:bg-amber-900/20"
-          variant="warning"
+          icon="calendar"
         />
         <StatCard
-          title="Approved Requests"
-          value={borrowRequests.filter(r => r.status === "Approved").length.toString()}
+          title="Approved requests"
+          value={borrowRequests.filter((r) => r.status === "Approved").length}
           description="Ready for pickup"
-          icon={CheckCircle2}
-          iconColor="text-emerald-600 dark:text-emerald-400"
-          iconBgColor="bg-emerald-50 dark:bg-emerald-900/20"
-          variant="success"
+          icon="check-circle"
         />
       </div>
 
-      {/* Table Section */}
-      <EnhancedCard variant="elevated" className={adminStyles.scallopedArch}>
-        <div className={adminStyles.archMotif} />
-        <EnhancedCardHeader className="relative pb-2 z-10">
-          <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
-            <BookOpen className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-            Request History
-          </EnhancedCardTitle>
-          <EnhancedCardDescription className="text-slate-600 dark:text-slate-400">
-            Track the status of your borrow requests
-          </EnhancedCardDescription>
-        </EnhancedCardHeader>
-        <EnhancedCardContent className="relative z-10 space-y-6">
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                type="search"
-                placeholder="Search requests..."
-                className="pl-12 h-11 rounded-lg border-indigo-200/40 dark:border-indigo-900/30 focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Request history</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <SearchInput
+              wrapperClassName="sm:w-72"
+              placeholder="Search requests"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger className="w-[180px] h-11 rounded-lg border-indigo-200/40 dark:border-indigo-900/30">
+              <SelectTrigger className="sm:w-[180px]">
                 <SelectValue placeholder="Filter by priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="high">High Priority</SelectItem>
-                <SelectItem value="normal">Normal Priority</SelectItem>
+                <SelectItem value="all">All priorities</SelectItem>
+                <SelectItem value="high">High priority</SelectItem>
+                <SelectItem value="normal">Normal priority</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          {/* Table */}
-          <div className="rounded-lg border border-indigo-200/40 dark:border-indigo-900/30 overflow-x-auto">
-            <Table className="min-w-[800px]">
-              <TableHeader>
-                <TableRow className="bg-indigo-50/50 dark:bg-indigo-900/20">
-                  <TableHead className="whitespace-nowrap font-semibold text-indigo-900 dark:text-indigo-100">Title</TableHead>
-                  <TableHead className="whitespace-nowrap font-semibold text-indigo-900 dark:text-indigo-100">Request Date</TableHead>
-                  <TableHead className="whitespace-nowrap font-semibold text-indigo-900 dark:text-indigo-100">Priority</TableHead>
-                  <TableHead className="whitespace-nowrap font-semibold text-indigo-900 dark:text-indigo-100">Status</TableHead>
-                  <TableHead className="font-semibold text-indigo-900 dark:text-indigo-100">Notes</TableHead>
-                  <TableHead className="text-right whitespace-nowrap font-semibold text-indigo-900 dark:text-indigo-100">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {borrowRequests.map((request) => (
-                  <TableRow
-                    key={request.id}
-                    className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors"
-                  >
-                    <TableCell className="font-medium whitespace-nowrap text-slate-900 dark:text-white">
-                      {request.title}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-slate-600 dark:text-slate-400">
-                      {request.requestDate}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={request.priority === "High" ? "destructive" : "secondary"}
-                        className={
-                          request.priority === "High"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                        }
-                      >
-                        {request.priority}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={request.status === "Pending" ? "outline" : "default"}
-                        className={
-                          request.status === "Approved"
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                        }
-                      >
-                        {request.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-600 dark:text-slate-400 max-w-[200px] truncate">
-                      {request.notes}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <EnhancedButton size="sm" className="bg-white/50 hover:bg-white/80 text-indigo-700 border-indigo-200">
-                        View Details
-                      </EnhancedButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </EnhancedCardContent>
-      </EnhancedCard>
+        </div>
+        <DataTable
+          columns={columns}
+          rows={visible}
+          rowKey={(r) => r.id}
+          emptyIcon="search"
+          emptyTitle="No matching requests"
+          emptyDescription="Try a different search or priority filter."
+          actionsHeader="Actions"
+          renderActions={() => <button>View details</button>}
+        />
+      </section>
     </div>
   );
 }

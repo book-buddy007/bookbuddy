@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import { useAuthStore } from '@/store/useAuthStore';
-import { EnhancedCard, EnhancedCardContent } from '@/components/ui/enhanced-card';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Brain, BookOpen, Loader2, CheckCircle2, ArrowRight } from '@/components/ui/icons';
+import { Button } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ResurfacingQueueItem {
   id: string;
@@ -56,70 +59,63 @@ export default function ReviewPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1
-          className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          <Brain className="h-6 w-6 text-[var(--peacock-teal)]" />
-          Quick Review
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Concepts you learned a while ago that could use a quick revisit, before you forget them.
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Student"
+        title="Quick review"
+        description="Concepts you learned a while ago that could use a quick revisit, before you forget them."
+      />
 
       {isLoading && (
-        <div className="flex items-center justify-center py-16 text-slate-400">
-          <Loader2 className="h-6 w-6 animate-spin" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-[76px] rounded-[18px]" />
+          ))}
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-900 text-center text-sm">
-          {error}
+        <div
+          role="alert"
+          className="flex items-center gap-3 rounded-[18px] bg-bb-danger-soft px-5 py-4 text-sm font-semibold text-bb-danger-ink"
+        >
+          <Icon name="alert-circle" size={20} />
+          <span className="flex-1">{error}</span>
+          <button onClick={fetchQueue} className="underline">
+            Retry
+          </button>
         </div>
       )}
 
       {!isLoading && !error && items.length === 0 && (
-        <EnhancedCard>
-          <EnhancedCardContent className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <CheckCircle2 className="h-10 w-10 text-green-500" />
-            <p className="text-slate-600 dark:text-slate-300 font-medium">You're all caught up!</p>
-            <p className="text-sm text-slate-400">
-              Nothing needs review right now — check back after you've read a bit more.
-            </p>
-          </EnhancedCardContent>
-        </EnhancedCard>
+        <EmptyState
+          icon="check-circle"
+          title="You're all caught up"
+          description="Nothing needs review right now. Check back after you've read a bit more."
+        />
       )}
 
       <div className="space-y-3">
         {items.map((item) => (
-          <EnhancedCard key={item.id} className="hover:shadow-md transition-shadow">
-            <EnhancedCardContent className="flex items-center justify-between gap-4 py-4">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--deep-saffron)]">
-                  {item.conceptLabel}
-                </p>
-                <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate flex items-center gap-1.5 mt-0.5">
-                  <BookOpen className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                  {item.bookTitle}
-                  {item.chapterTitle && <span className="text-slate-400"> — {item.chapterTitle}</span>}
-                </p>
-              </div>
-              <EnhancedButton
-                size="sm"
-                onClick={() => handleReview(item)}
-                loading={actioningId === item.id}
-                icon={<ArrowRight className="h-4 w-4" />}
-                iconPosition="right"
-                className="shrink-0"
-              >
-                Review
-              </EnhancedButton>
-            </EnhancedCardContent>
-          </EnhancedCard>
+          <article
+            key={item.id}
+            className="flex items-center justify-between gap-4 rounded-[18px] bg-bb-surface p-4 shadow-e1 sm:px-5"
+          >
+            <div className="min-w-0">
+              <Chip icon="sanchika" className="mb-1.5 max-w-full">
+                <span className="truncate">{item.conceptLabel}</span>
+              </Chip>
+              <p className="truncate text-sm font-semibold">
+                {item.bookTitle}
+                {item.chapterTitle && <span className="font-normal text-bb-muted"> · {item.chapterTitle}</span>}
+              </p>
+            </div>
+            <Button size="sm" className="shrink-0" onClick={() => handleReview(item)} disabled={actioningId === item.id}>
+              {actioningId === item.id ? <Icon name="loader" size={16} className="animate-spin" /> : null}
+              Review <Icon name="arrow-right" size={16} />
+            </Button>
+          </article>
         ))}
       </div>
     </div>

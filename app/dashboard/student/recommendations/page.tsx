@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import { useAuthStore } from '@/store/useAuthStore';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
+import { Button } from '@/components/ui/button';
+import { BookCover } from '@/components/ui/book-cover';
+import { Chip } from '@/components/ui/chip';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
+import { SearchInput } from '@/components/ui/search-input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/ui/stat-card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Search, Sparkles, Star, ChevronRight, BookMarked } from '@/components/ui/icons';
 import {
   Select,
   SelectContent,
@@ -16,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import adminStyles from "@/app/admin.module.css";
 
 export default function RecommendationsPage() {
   const { isAuthenticated } = useAuthStore();
@@ -49,207 +52,187 @@ export default function RecommendationsPage() {
   }, [isAuthenticated]);
 
   return (
-    <div className="space-y-8 animate-vg-fade-in relative z-10">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3 text-bb-accent">
-            <Sparkles className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
-            Book Recommendations
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Discover personalized book suggestions based on your interests
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[180px] border-indigo-200 dark:border-indigo-800 focus:ring-indigo-500">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="computer-science">Computer Science</SelectItem>
-              <SelectItem value="psychology">Psychology</SelectItem>
-              <SelectItem value="mathematics">Mathematics</SelectItem>
-              <SelectItem value="literature">Literature</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-            <SelectTrigger className="w-[180px] border-indigo-200 dark:border-indigo-800 focus:ring-indigo-500">
-              <SelectValue placeholder="Format" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Formats</SelectItem>
-              <SelectItem value="physical">Physical Books</SelectItem>
-              <SelectItem value="e-book">E-books</SelectItem>
-              <SelectItem value="audio">Audiobooks</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Student"
+        title="Book recommendations"
+        description="Personalised suggestions based on your reading history and interests."
+        actions={
+          <>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="computer-science">Computer Science</SelectItem>
+                <SelectItem value="psychology">Psychology</SelectItem>
+                <SelectItem value="mathematics">Mathematics</SelectItem>
+                <SelectItem value="literature">Literature</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue placeholder="Format" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All formats</SelectItem>
+                <SelectItem value="physical">Physical books</SelectItem>
+                <SelectItem value="e-book">E-books</SelectItem>
+                <SelectItem value="audio">Audiobooks</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        }
+      />
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <StatCard
+          variant="featured"
           title="Recommendations"
-          value={recommendations.length.toString()}
-          description="Personalized for you"
-          icon={Sparkles}
-          iconColor="text-indigo-600 dark:text-indigo-400"
-          iconBgColor="bg-indigo-50 dark:bg-indigo-900/20"
-          variant="primary"
+          value={recommendations.length}
+          description="Personalised for you"
+          icon="sparkles"
+          loading={isLoading}
         />
         <StatCard
-          title="Trending Books"
-          value={trendingBooks.length.toString()}
+          title="Trending books"
+          value={trendingBooks.length}
           description="Popular this week"
-          icon={Star}
-          iconColor="text-purple-600 dark:text-purple-400"
-          iconBgColor="bg-purple-50 dark:bg-purple-900/20"
-          variant="info"
-        />
-        <StatCard
-          title="Avg Rating"
-          value="4.6"
-          description="Recommended books"
-          icon={Star}
-          iconColor="text-amber-600 dark:text-amber-400"
-          iconBgColor="bg-amber-50 dark:bg-amber-900/20"
-          variant="warning"
+          icon="trending-up"
+          loading={isLoading}
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3 xl:grid-cols-2">
-        <EnhancedCard variant="elevated" className={`xl:col-span-1 border-indigo-100 dark:border-indigo-900/30 ${adminStyles.scallopedArch}`}>
-          <div className={adminStyles.archMotif} />
-          <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
-              <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              Personalized for You
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-slate-600 dark:text-slate-400 mt-1">
-              Selected based on your reading history and interests
-            </EnhancedCardDescription>
-          </EnhancedCardHeader>
-          <EnhancedCardContent className="relative z-10">
-            <div className="space-y-5 pt-2">
-              {isLoading ? (
-                <div className="text-center py-6 text-slate-500">Generating hyper-personalized recommendations...</div>
-              ) : recommendations.length === 0 ? (
-                <div className="text-center py-6 text-slate-500">Not enough history to generate recommendations yet.</div>
-              ) : recommendations.map((book) => (
-                <div key={book.id} className="group flex flex-col sm:flex-row gap-5 p-5 border border-slate-100 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 shadow-sm hover:shadow hover:border-indigo-200 dark:hover:border-indigo-800 transition-all duration-300">
-                  <div className="w-full sm:w-28 h-40 sm:h-36 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {book.coverUrl ? (
-                      <img src={book.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={book.title} />
-                    ) : (
-                      <BookOpen className="h-10 w-10 text-indigo-300 dark:text-indigo-700 group-hover:scale-110 transition-transform duration-500" />
-                    )}
-                  </div>
-                  <div className="flex-1 space-y-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{book.title}</h3>
-                        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-0.5">{book.author}</p>
-                      </div>
-                      <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-md shrink-0">
-                        <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-                        <span className="text-sm font-bold text-amber-700 dark:text-amber-400">{book.rating || "4.5"}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-transparent">{book.category || 'General'}</Badge>
-                      <Badge variant="outline" className="border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">{book.format || 'Digital'}</Badge>
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 my-2 line-clamp-2">{book.description || 'A recommended book based on your learning profile.'}</p>
-                    <div className="flex items-start gap-2 text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/20">
-                      <Sparkles className="h-4 w-4 shrink-0 mt-0.5" />
-                      <span className="leading-snug">{book.reason || 'Recommended by Advanced AI Algorithms.'}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <EnhancedButton variant="outline" size="sm" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800">
-                        <BookMarked className="mr-1.5 h-3.5 w-3.5" />
-                        Save
-                      </EnhancedButton>
-                      <EnhancedButton size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md border-transparent">
-                        <ChevronRight className="mr-1 h-4 w-4" />
-                        Details
-                      </EnhancedButton>
-                    </div>
-                  </div>
-                </div>
+      <div className="grid gap-6 xl:grid-cols-[3fr_2fr]">
+        <section className="space-y-4">
+          <div>
+            <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Personalised for you</h2>
+            <p className="text-[13px] text-bb-muted">Selected based on your reading history and interests</p>
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} className="h-44 rounded-[18px]" />
               ))}
             </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
-
-        <EnhancedCard variant="elevated" className={`xl:col-span-1 border-purple-100 dark:border-purple-900/30 ${adminStyles.scallopedArch}`}>
-          <div className={adminStyles.archMotif} />
-          <EnhancedCardHeader className="relative z-10 pb-2">
-            <EnhancedCardTitle className="text-xl flex items-center gap-2 text-bb-accent">
-              <Star className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              Trending Now
-            </EnhancedCardTitle>
-            <EnhancedCardDescription className="text-slate-600 dark:text-slate-400 mt-1">
-              Popular books among students this week
-            </EnhancedCardDescription>
-          </EnhancedCardHeader>
-          <EnhancedCardContent className="relative z-10">
-            <div className="space-y-4 pt-2">
-              {isLoading ? (
-                <div className="text-center py-6 text-slate-500">Loading trending books...</div>
-              ) : trendingBooks.length === 0 ? (
-                <div className="text-center py-6 text-slate-500">No trending books available right now.</div>
-              ) : trendingBooks.map((book) => (
-                <div key={book.id} className="group flex items-center justify-between p-4 border border-slate-100 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 shadow-sm hover:shadow hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-300">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-16 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg flex items-center justify-center border border-purple-100 dark:border-purple-800/50 shrink-0 overflow-hidden">
-                      {book.coverUrl ? (
-                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} />
-                      ) : (
-                        <BookOpen className="h-6 w-6 text-purple-400 dark:text-purple-600 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+          ) : recommendations.length === 0 ? (
+            <EmptyState
+              icon="sparkles"
+              title="Not enough history yet"
+              description="Read or borrow a few books and your recommendations will appear here."
+              action={
+                <Button asChild>
+                  <Link href="/catalog">Browse library</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-4">
+              {recommendations.map((book) => (
+                <article key={book.id} className="flex gap-4 rounded-[18px] bg-bb-surface p-4 shadow-e1 sm:gap-5 sm:p-5">
+                  <BookCover title={book.title} subject={book.category} coverUrl={book.coverUrl} width={96} />
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="line-clamp-2 text-base font-semibold leading-snug">{book.title}</h3>
+                        <p className="mt-0.5 truncate text-[13px] text-bb-muted">{book.author}</p>
+                      </div>
+                      {book.rating && (
+                        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold">
+                          <Icon name="star" size={16} /> {book.rating}
+                        </span>
                       )}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-1">{book.title}</h3>
-                      <p className="text-sm font-medium text-purple-600/80 dark:text-purple-400/80 mt-0.5">{book.author}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Chip>{book.category || 'General'}</Chip>
+                      <Chip>{book.format || 'Digital'}</Chip>
+                    </div>
+                    <p className="line-clamp-2 text-sm text-bb-muted">
+                      {book.description || 'A recommended book based on your learning profile.'}
+                    </p>
+                    {book.reason && (
+                      <p className="flex items-start gap-2 rounded-xl bg-bb-accent-soft px-3 py-2 text-[13px] font-medium text-bb-accent-ink">
+                        <Icon name="varta" size={16} className="mt-0.5 shrink-0" />
+                        <span className="leading-snug">{book.reason}</span>
+                      </p>
+                    )}
+                    <div className="mt-auto flex flex-wrap gap-2 pt-1">
+                      <Button variant="outline" size="sm">
+                        <Icon name="bookmark" size={16} /> Save
+                      </Button>
+                      <Button asChild size="sm">
+                        <Link href={`/catalog/${book.id}`}>
+                          Details <Icon name="arrow-right" size={16} />
+                        </Link>
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <Badge variant="secondary" className="bg-indigo-600 text-white border-transparent shadow-sm">
-                      #{book.trendingRank || Math.floor(Math.random() * 10) + 1} Trend
-                    </Badge>
-                    <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-md">
-                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                      <span className="text-xs font-bold text-amber-700 dark:text-amber-400">{book.rating || "4.8"}</span>
-                    </div>
-                  </div>
-                </div>
+                </article>
               ))}
             </div>
+          )}
+        </section>
 
-            <div className="mt-8">
-              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                <Search className="h-4 w-4 text-slate-400" />
-                Find Specific Topic
-              </h3>
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Input
-                    placeholder="Search titles, authors..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-4 pr-10 bg-white/50 dark:bg-slate-900/50 border-purple-200/50 focus:border-purple-500"
-                  />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                </div>
-                <EnhancedButton className="shadow-md sm:w-auto w-24">
-                  Explore
-                </EnhancedButton>
+        <section className="space-y-4">
+          <div>
+            <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Trending now</h2>
+            <p className="text-[13px] text-bb-muted">Popular among students this week</p>
+          </div>
+
+          <div className="rounded-[22px] bg-bb-surface p-4 shadow-e1 sm:p-5">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 rounded-xl" />
+                ))}
               </div>
+            ) : trendingBooks.length === 0 ? (
+              <p className="py-6 text-center text-sm text-bb-muted">No trending books right now.</p>
+            ) : (
+              <ul className="divide-y divide-bb-border">
+                {trendingBooks.map((book, i) => (
+                  <li key={book.id}>
+                    <Link
+                      href={`/catalog/${book.id}`}
+                      className="flex items-center gap-4 rounded-xl py-3 focus-visible:outline-none focus-visible:shadow-focus"
+                    >
+                      <span className="w-6 shrink-0 text-center font-display text-lg font-extrabold text-bb-accent-ink">
+                        {book.trendingRank || i + 1}
+                      </span>
+                      <BookCover title={book.title} subject={book.category} coverUrl={book.coverUrl} width={44} />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="line-clamp-1 text-sm font-semibold">{book.title}</h3>
+                        <p className="truncate text-xs text-bb-muted">{book.author}</p>
+                      </div>
+                      {book.rating && (
+                        <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold">
+                          <Icon name="star" size={14} /> {book.rating}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="rounded-[22px] bg-bb-surface p-4 shadow-e1 sm:p-5">
+            <h3 className="mb-3 text-sm font-semibold">Find a specific topic</h3>
+            <div className="flex gap-2">
+              <SearchInput
+                placeholder="Search titles, authors"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button asChild className="shrink-0">
+                <Link href="/catalog">Explore</Link>
+              </Button>
             </div>
-          </EnhancedCardContent>
-        </EnhancedCard>
+          </div>
+        </section>
       </div>
     </div>
   );
