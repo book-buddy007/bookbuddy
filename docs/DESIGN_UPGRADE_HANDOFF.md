@@ -47,7 +47,7 @@ User preferences: no screenshot-driven workflow, work as a code editor, be token
 
 # Session 2 addendum: all five role dashboards rebuilt
 
-Supersedes the "Status vs the 14-step plan" rows 7-13 above. Commits are local only (nothing pushed); none carry Claude attribution (repo CLAUDE.md). Same working rules as session 1: code-editor workflow, no screenshot loop, verify with `npx tsc --noEmit` (filter to touched files) and `next build`. **Nothing behind login has been viewed in a browser.** The last `next build` (after the super-admin work) was started but its result was not seen; rerun it first.
+Supersedes the "Status vs the 14-step plan" rows 7-13 above. Commits are local only (nothing pushed); none carry Claude attribution (repo CLAUDE.md). Same working rules as session 1: code-editor workflow, no screenshot loop, verify with `npx tsc --noEmit` (filter to touched files) and `next build`. **Nothing behind login has been viewed in a browser.** `next build` exited 0 after the super-admin work (all role routes compile).
 
 ## What was done (commit order)
 | Role | Commits | Notes |
@@ -78,7 +78,7 @@ Many pages have no backend yet. Rather than fake it:
 - Remaining tsc errors outside the role dashboards: `app/catalog/[id]/page.tsx` (nullable `book`) and `.next/types/.../catalog/builder/[bookId]/page.ts` (PageProps). Super-admin and student `profile` errors from session 1 are now fixed.
 
 ## Next steps
-1. Rerun `npx next build` (stop `next dev` first) and confirm exit 0.
+1. Rerun `npx next build` (stop `next dev` first) after any further changes; the last run exited 0.
 2. Dead `animate-vg-*` / `hover-vg-*` / transparenttextures classes remain in: `app/catalog/*`, `app/login`, `register`, `forgot-password`, `reset-password`, `onboarding`, `settings`, `institutions/join-request`, `reader/ReaderLanding`, `components/TrialExpirationBanner.tsx`, `components/ui/stat-pill.tsx` (StatPill is now unused by role pages; delete once those are clean). Mechanical cleanup.
 3. Public/auth pages (plan steps 7-8), catalog detail `app/catalog/[id]` (also fix its nullable `book` errors), subscription compare, legal pages, onboarding stepper, institutions browse/join: not rebuilt.
 4. Real rebuild (not codemod) of super-admin catalog dialogs/wizard/builder and homepage-editor field editors if desired.
