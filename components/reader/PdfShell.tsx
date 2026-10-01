@@ -74,16 +74,16 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
         display: 'flex',
         alignItems: 'center',
         gap: 6,
-        background: 'rgba(255, 248, 240, 0.95)',
+        background: 'color-mix(in srgb, var(--rd-panel) 94%, transparent)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid rgba(255,181,71, 0.25)',
+        border: '1px solid var(--rd-border)',
         borderRadius: 14,
         padding: '6px 10px',
         boxShadow: '0 12px 40px rgba(217, 119, 6, 0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
       }}
     >
-      <FileSearch style={{ width: 14, height: 14, color: '#B83300', flexShrink: 0 }} />
+      <FileSearch style={{ width: 14, height: 14, color: 'var(--bb-accent-ink)', flexShrink: 0 }} />
       <input
         ref={searchInputRef}
         type="text"
@@ -107,7 +107,7 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
           borderRadius: 8,
           padding: '6px 10px',
           fontSize: 13,
-          color: '#1A1A2E',
+          color: 'var(--rd-ink)',
           outline: 'none',
           width: 200,
           transition: 'border-color 0.2s ease',
@@ -125,7 +125,7 @@ function InnerSearchUI({ searchProps, toggleSearch }: { searchProps: any, toggle
         <span 
           style={{ 
             fontSize: 12, 
-            color: '#B83300',
+            color: 'var(--bb-accent-ink)',
             fontWeight: 600,
             backgroundColor: 'rgba(255,77,0, 0.1)',
             padding: '4px 8px',
@@ -206,20 +206,20 @@ function NoteInputPopup({
     >
       <div
         style={{
-          background: 'rgba(255,248,240,0.98)',
+          background: 'color-mix(in srgb, var(--rd-panel) 94%, transparent)',
           backdropFilter: 'blur(20px) saturate(180%)',
-          border: '1px solid rgba(255,181,71,0.3)',
+          border: '1px solid var(--rd-border)',
           borderRadius: 14,
           padding: '12px 14px',
           boxShadow: '0 12px 40px rgba(217,119,6,0.15), inset 0 1px 0 rgba(255,255,255,0.7)',
           width: 260,
         }}
       >
-        <div style={{ fontSize: 11, color: '#B83300', fontWeight: 600, marginBottom: 6, opacity: 0.7 }}>ADD NOTE</div>
+        <div style={{ fontSize: 11, color: 'var(--bb-accent-ink)', fontWeight: 600, marginBottom: 6, opacity: 0.7 }}>ADD NOTE</div>
         <div
           style={{
             fontSize: 12,
-            color: '#5A4E3C',
+            color: 'var(--rd-sub)',
             background: 'rgba(255,77,0,0.06)',
             borderRadius: 8,
             padding: '6px 8px',
@@ -251,7 +251,7 @@ function NoteInputPopup({
             borderRadius: 8,
             padding: '8px 10px',
             fontSize: 13,
-            color: '#1A1A2E',
+            color: 'var(--rd-ink)',
             background: 'rgba(255,77,0,0.04)',
             outline: 'none',
             fontFamily: 'inherit',
@@ -268,7 +268,7 @@ function NoteInputPopup({
               borderRadius: 8,
               border: '1px solid rgba(0,0,0,0.08)',
               background: 'transparent',
-              color: '#5A4E3C',
+              color: 'var(--rd-sub)',
               fontSize: 12,
               fontWeight: 500,
               cursor: 'pointer',
@@ -521,7 +521,7 @@ function SelectionQuickToolbar({
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }}
             title="Add Note"
-            style={quickBtnStyle('#B83300', 'rgba(255,77,0,0.1)', 'rgba(255,107,53,0.06)')}
+            style={quickBtnStyle('var(--bb-accent-ink)', 'rgba(255,77,0,0.1)', 'rgba(255,107,53,0.06)')}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
           >
@@ -602,7 +602,7 @@ function SelectionQuickToolbar({
                 onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSaveToSanchika(selectedText); cancel(); }}
                 title="Save to Sanchika"
-                style={quickBtnStyle('#D93A00', 'rgba(255,183,77,0.1)', 'rgba(255,152,0,0.06)')}
+                style={quickBtnStyle('var(--bb-accent-ink)', 'rgba(255,183,77,0.1)', 'rgba(255,152,0,0.06)')}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
               >
@@ -1018,7 +1018,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
           height: '100%',
           padding: '40px 24px',
           textAlign: 'center',
-          color: '#5A4E3C',
+          color: 'var(--rd-sub)',
           fontFamily: 'inherit',
         }}
       >
@@ -1038,7 +1038,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
         >
           <TriangleAlert
             size={28}
-            style={{ color: is204 ? '#D93A00' : '#DC2626' }}
+            style={{ color: is204 ? 'var(--bb-accent-ink)' : '#DC2626' }}
           />
         </div>
 
@@ -1047,7 +1047,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
             fontSize: 18,
             fontWeight: 700,
             margin: '0 0 8px 0',
-            color: '#1A1A2E',
+            color: 'var(--rd-ink)',
           }}
         >
           {is204 ? 'Download Manager Detected' : 'Failed to Load PDF'}
@@ -1059,7 +1059,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
             lineHeight: 1.6,
             maxWidth: 480,
             margin: '0 0 16px 0',
-            color: '#6B7280',
+            color: 'var(--rd-sub)',
           }}
         >
           {is204 ? (
@@ -1080,19 +1080,19 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
         {is204 && (
           <div
             style={{
-              background: 'rgba(255,248,240,0.95)',
-              border: '1px solid rgba(255,181,71,0.3)',
+              background: 'color-mix(in srgb, var(--rd-panel) 94%, transparent)',
+              border: '1px solid var(--rd-border)',
               borderRadius: 12,
               padding: '16px 20px',
               maxWidth: 480,
               textAlign: 'left',
               fontSize: 13,
               lineHeight: 1.6,
-              color: '#5A4E3C',
+              color: 'var(--rd-sub)',
               marginBottom: 16,
             }}
           >
-            <strong style={{ color: '#B83300' }}>How to fix this:</strong>
+            <strong style={{ color: 'var(--bb-accent-ink)' }}>How to fix this:</strong>
             <ol style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
               <li>Open <strong>Internet Download Manager</strong>.</li>
               <li>
@@ -1200,10 +1200,10 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
               display: 'flex',
               alignItems: 'center',
               gap: 2,
-              background: 'rgba(255, 248, 240, 0.88)',
+              background: 'color-mix(in srgb, var(--rd-panel) 94%, transparent)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              border: '1px solid rgba(255,181,71, 0.25)',
+              border: '1px solid var(--rd-border)',
               borderRadius: 14,
               padding: '4px 6px',
               boxShadow: '0 8px 32px rgba(217, 119, 6, 0.10), 0 0 40px rgba(255,77,0, 0.04), inset 0 1px 0 rgba(255,255,255,0.7)',
@@ -1237,7 +1237,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
                 borderRadius: 8,
                 fontSize: 12,
                 fontWeight: 700,
-                color: '#B83300',
+                color: 'var(--bb-accent-ink)',
                 letterSpacing: '0.02em',
                 minWidth: 48,
                 textAlign: 'center',
@@ -1363,7 +1363,7 @@ function ToolbarButton({
         background: active
           ? 'linear-gradient(135deg, rgba(255,77,0, 0.18), rgba(255, 107, 53, 0.12))'
           : 'transparent',
-        color: active ? '#D93A00' : '#5A4E3C',
+        color: active ? 'var(--bb-accent-ink)' : 'var(--rd-sub)',
         cursor: 'pointer',
         transition: 'all 0.25s ease',
         padding: 0,

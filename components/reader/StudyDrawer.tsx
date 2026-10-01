@@ -215,14 +215,14 @@ export function StudyDrawer({
            with the desktop step at lg (1024) so all three panels change
            together rather than each at its own breakpoint. */
         'w-full sm:w-96 lg:w-[420px]',
-        'border-l border-t border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10',
-        'bg-white/97 dark:bg-[var(--night-ink)]/97 backdrop-blur-md shadow-2xl',
+        'border-l border-[color:var(--rd-border)] text-[color:var(--rd-ink)]',
+        'bg-[color:var(--rd-panel)] shadow-e2',
         'transition-transform duration-300',
         isOpen ? 'translate-x-0' : 'translate-x-full',
       ].join(' ')}
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 shrink-0">
-        <h2 className="text-lg font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)]">
+      <div className="flex shrink-0 items-center justify-between border-b border-[color:var(--rd-border)] px-4 py-3">
+        <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">
           {activeLabel}
         </h2>
         <Button
@@ -249,7 +249,7 @@ export function StudyDrawer({
       <div
         role="tablist"
         aria-label={`${activeLabel} tools`}
-        className="flex gap-1 px-2 py-2 overflow-x-auto shrink-0 border-b border-[var(--accent-primary)]/10 dark:border-[var(--gold)]/[0.07]"
+        className="flex shrink-0 gap-1 overflow-x-auto border-b border-[color:var(--rd-border)] px-2 py-2"
       >
         {sectionTabs.map(({ id, label, icon: Icon, panelId }) => {
           const active = studyTab === id;
@@ -263,11 +263,11 @@ export function StudyDrawer({
               tabIndex={active ? 0 : -1}
               onClick={() => setStudyTab(id)}
               className={[
-                'hit-target flex items-center gap-1.5 px-3 rounded-lg shrink-0',
+                'hit-target flex shrink-0 items-center gap-1.5 rounded-full px-3',
                 'text-xs font-semibold transition-colors',
                 active
-                  ? 'bg-[var(--accent-strong)] text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-[var(--accent-soft)] dark:hover:bg-[var(--gold)]/10',
+                  ? 'bg-bb-accent-soft text-bb-accent-ink'
+                  : 'text-[color:var(--rd-sub)] hover:bg-[color:var(--rd-track)] hover:text-[color:var(--rd-ink)]',
               ].join(' ')}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />

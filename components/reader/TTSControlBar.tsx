@@ -109,7 +109,7 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
         className
       )}
     >
-      <div className="bg-[var(--night-ink)]/95 backdrop-blur-lg border border-[var(--gold)]/15 rounded-full shadow-[0_8px_32px_rgba(10,15,30,0.55)]">
+      <div className="bg-bb-ink/95 backdrop-blur-lg border border-bb-night-line rounded-full shadow-[0_8px_32px_rgba(10,15,30,0.55)]">
         {/* Compact Controls */}
         <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3">
           {/* Skip Back */}
@@ -118,7 +118,7 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
             variant="ghost"
             onClick={() => skipSentence('backward')}
             disabled={!state.isPlaying}
-            className="h-10 w-10 hit-target rounded-full hover:bg-white/[0.06] hover:text-[var(--accent-primary-dark)] transition-all duration-300 disabled:opacity-30"
+            className="h-10 w-10 hit-target rounded-full hover:bg-white/[0.06] hover:text-bb-blaze-light transition-all duration-300 disabled:opacity-30"
           >
             <SkipBack className="h-4 w-4" />
           </Button>
@@ -127,7 +127,7 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
           <Button
             size="icon"
             onClick={handlePlayPause}
-            className="h-12 w-12 rounded-full bg-[var(--accent-strong)] hover:bg-[var(--accent-contrast)] shadow-[0_8px_30px_rgba(180,83,9,0.35)] hover:scale-105 transition-all duration-300"
+            className="h-12 w-12 rounded-full bg-bb-primary text-white shadow-gloss motion-safe:hover:scale-105 transition-all duration-300"
           >
             {state.isPlaying && !state.isPaused ? (
               <Pause className="h-5 w-5" />
@@ -142,20 +142,20 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
             variant="ghost"
             onClick={() => skipSentence('forward')}
             disabled={!state.isPlaying}
-            className="h-10 w-10 hit-target rounded-full hover:bg-white/[0.06] hover:text-[var(--accent-primary-dark)] transition-all duration-300 disabled:opacity-30"
+            className="h-10 w-10 hit-target rounded-full hover:bg-white/[0.06] hover:text-bb-blaze-light transition-all duration-300 disabled:opacity-30"
           >
             <SkipForward className="h-4 w-4" />
           </Button>
 
           {/* Divider */}
-          <div className="h-8 w-px bg-[var(--gold)]/15" />
+          <div className="h-8 w-px bg-bb-night-line" />
 
           {/* Speed Control */}
           <Select value={options.rate.toString()} onValueChange={(v) => handleRateChange([parseFloat(v)])}>
-            <SelectTrigger className="w-20 sm:w-24 h-10 rounded-lg bg-white/[0.06] border-[var(--gold)]/15 hover:bg-white/[0.08] hover:border-[var(--accent-primary-dark)]/60 transition-all duration-300 text-sm">
+            <SelectTrigger className="w-20 sm:w-24 h-10 rounded-lg bg-white/[0.06] border-bb-night-line hover:bg-white/[0.08] hover:border-bb-blaze-light/60 transition-all duration-300 text-sm">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[var(--night-ink)]/95 backdrop-blur-lg border-[var(--gold)]/15">
+            <SelectContent className="bg-bb-ink/95 backdrop-blur-lg border-bb-night-line">
               <SelectItem value="0.5">0.5x</SelectItem>
               <SelectItem value="0.75">0.75x</SelectItem>
               <SelectItem value="0.95">0.95x</SelectItem>
@@ -170,10 +170,10 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
           {/* Voice Selection — hidden on very small screens */}
           <div className="hidden sm:block">
             <Select value={selectedVoiceIndex.toString()} onValueChange={handleVoiceChange}>
-              <SelectTrigger className="w-40 h-9 rounded-lg bg-white/[0.06] border-[var(--gold)]/15 hover:bg-white/[0.08] hover:border-[var(--accent-primary-dark)]/60 transition-all duration-300 text-sm">
+              <SelectTrigger className="w-40 h-9 rounded-lg bg-white/[0.06] border-bb-night-line hover:bg-white/[0.08] hover:border-bb-blaze-light/60 transition-all duration-300 text-sm">
                 <SelectValue placeholder="Select voice" />
               </SelectTrigger>
-              <SelectContent className="bg-[var(--night-ink)]/95 backdrop-blur-lg border-[var(--gold)]/15 max-h-60">
+              <SelectContent className="bg-bb-ink/95 backdrop-blur-lg border-bb-night-line max-h-60">
                 {voices.map((voice, index) => (
                   <SelectItem key={voice.name} value={index.toString()}>
                     {voice.name} ({voice.lang})
@@ -184,7 +184,7 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
           </div>
 
           {/* Divider */}
-          <div className="h-8 w-px bg-[var(--gold)]/15" />
+          <div className="h-8 w-px bg-bb-night-line" />
 
           {/* Settings Popover */}
           <Popover>
@@ -192,15 +192,15 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-10 w-10 hit-target rounded-full hover:bg-white/[0.06] hover:text-[var(--accent-primary-dark)] transition-all duration-300"
+                className="h-10 w-10 hit-target rounded-full hover:bg-white/[0.06] hover:text-bb-blaze-light transition-all duration-300"
               >
                 <Settings className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 bg-[var(--night-ink)]/95 backdrop-blur-lg border-[var(--gold)]/15 rounded-lg" side="top">
+            <PopoverContent className="w-80 bg-bb-ink/95 backdrop-blur-lg border-bb-night-line rounded-lg" side="top">
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-slate-200 mb-3 bg-[var(--accent-strong)] text-bb-accent">
+                  <h4 className="mb-3 font-display font-bold text-white">
                     Voice Settings
                   </h4>
                 </div>
@@ -208,8 +208,8 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
                 {/* Pitch Control */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-slate-300">Pitch</label>
-                    <span className="text-xs text-slate-300">{options.pitch.toFixed(1)}</span>
+                    <label className="text-sm font-medium text-bb-dim">Pitch</label>
+                    <span className="text-xs text-bb-dim">{options.pitch.toFixed(1)}</span>
                   </div>
                   <Slider
                     value={[options.pitch]}
@@ -224,14 +224,14 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
                 {/* Volume Control */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-slate-300">Volume</label>
-                    <span className="text-xs text-slate-300">{Math.round(options.volume * 100)}%</span>
+                    <label className="text-sm font-medium text-bb-dim">Volume</label>
+                    <span className="text-xs text-bb-dim">{Math.round(options.volume * 100)}%</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {options.volume === 0 ? (
-                      <VolumeX className="h-4 w-4 text-slate-300" />
+                      <VolumeX className="h-4 w-4 text-bb-dim" />
                     ) : (
-                      <Volume2 className="h-4 w-4 text-slate-300" />
+                      <Volume2 className="h-4 w-4 text-bb-dim" />
                     )}
                     <Slider
                       value={[options.volume]}
@@ -246,14 +246,14 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
 
                 {/* Progress */}
                 {state.isPlaying && (
-                  <div className="space-y-2 pt-2 border-t border-[var(--gold)]/15">
+                  <div className="space-y-2 pt-2 border-t border-bb-night-line">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-slate-300">Progress</label>
-                      <span className="text-xs text-slate-300">{Math.round(state.progress)}%</span>
+                      <label className="text-sm font-medium text-bb-dim">Progress</label>
+                      <span className="text-xs text-bb-dim">{Math.round(state.progress)}%</span>
                     </div>
                     <div className="w-full bg-white/[0.06] rounded-full h-2">
                       <div 
-                        className="bg-[var(--accent-strong)] h-2 rounded-full transition-all duration-300"
+                        className="bg-bb-progress h-2 rounded-full transition-all duration-300"
                         style={{ width: `${state.progress}%` }}
                       />
                     </div>

@@ -1,23 +1,22 @@
-import { useEffect, useRef } from 'react';
-import { List, Highlighter, NotebookPen, WandSparkles, Headphones, Square, ChevronDown, ChevronUp } from '@/components/ui/icons';
+import { useEffect, useRef, useState } from 'react';
+import * as SliderPrimitive from '@radix-ui/react-slider';
+import { Icon, type BBIconName } from '@/components/ui/icon';
 import { useReaderStore } from '@/store/useReaderStore';
+import { cn } from '@/lib/utils';
 
 /* ── One owner for the thumb zone (audit fix 2) ────────────────────────
-   The bottom of a phone screen used to be triple-booked: a FAB at
-   bottom:1rem/right:1rem, a floating stats strip edge-to-edge at
-   bottom:5rem, a settings sheet rising to 70vh, a floating TTS pill and
-   a fixed reader footer under all of it. Four layers competing for one
-   thumb, and no env(safe-area-inset-bottom) anywhere, so on an iPhone
-   the lowest of them sat under the home indicator.
+   The bottom of the reader is this component and nothing else. It has three
+   layouts, switched by CSS breakpoint so the measured height is always right:
 
-   This bar is the only thing that lives there now. Everything else
-   either moved into it, moved into the header, or moved into a sheet
-   that pushes the bar rather than covering it.
+   - Phone (< md): progress line, "Page x of y · n min left", and five labelled
+     actions (Contents, Notes, Sanchika, Varta, Listen).
+   - Tablet (md – xl): a floating pill toolbar (Contents, Display, Notes,
+     Sanchika, Varta, Listen) above a page scrubber strip.
+   - Desktop (xl+): one strip — page x of y, scrubber, time left — plus icon
+     buttons for Notes, Sanchika and Listen. Contents is the permanent rail and
+     Display / Varta live in the top bar at this width.
 
-   The progress line above the actions replaces the floating stats: the
-   audit's point was that three progress indicators answered no question,
-   so this states the two facts a student actually wants — where am I,
-   and how much is left — in words. Tapping it opens the full stats. */
+   Colours come from the reader theme (--rd-*), so the bar follows Paper / Sepia / Night. */
 
 interface ReaderBottomBarProps {
   /** 1-based. */
@@ -25,26 +24,34 @@ interface ReaderBottomBarProps {
   totalPages: number;
   minutesLeft: number;
   percentComplete: number;
-  isDarkMode?: boolean;
   /** True while text-to-speech is running, so Listen becomes Stop. */
   isListening?: boolean;
   onListen: () => void;
-  /* PDF has a drawing rail that collapses to its own "Annotate" pill,
-     centred at the bottom. When true, the collapsed bar pill docks just
-     right of centre so the two minimised pills sit side by side rather
-     than the bar pill stacking under the Annotate one. Off (EPUB) the bar
-     pill stays centred. */
+  /** Jump to a page (1-based) from the scrubber. Omit to show progress only. */
+  onSeek?: (page: number) => void;
+  /** Label for the unit being counted ("Page", or "Location" for reflowable EPUBs). */
+  unit?: string;
+  /* PDF has a drawing rail that collapses to its own "Annotate" pill, centred
+     at the bottom. When true, the collapsed bar pill docks just right of
+     centre so the two minimised pills sit side by side. */
   pairWithAnnotate?: boolean;
+  /** Kept for call-site compatibility; colours now come from the reader theme. */
+  isDarkMode?: boolean;
 }
+
+type Action = { key: string; label: string; icon: BBIconName; active: boolean; onClick: () => void };
+
+const panelBg = 'bg-[color-mix(in_srgb,var(--rd-panel)_94%,transparent)]';
 
 export function ReaderBottomBar({
   currentPage,
   totalPages,
   minutesLeft,
   percentComplete,
-  isDarkMode = false,
   isListening = false,
   onListen,
+  onSeek,
+  unit = 'Page',
   pairWithAnnotate = false,
 }: ReaderBottomBarProps) {
   const activePanel = useReaderStore((s) => s.activePanel);
@@ -53,62 +60,28 @@ export function ReaderBottomBar({
   const closePanel = useReaderStore((s) => s.closePanel);
   const studyTab = useReaderStore((s) => s.studyTab);
 
-  /* ── The three study entries toggle, like Contents ─────────────────────
-     Each of these buttons reports `aria-pressed`, which promises a control
-     that can be pressed AND released. `openStudy` only ever opens, so a
-     student who tapped the highlighted "Sanchika" got nothing back and a
-     screen reader announced "pressed" with no way to unpress from that
-     control — only Contents, on `togglePanel`, actually toggled.
-
-     The toggle lives HERE and not in `openStudy` on purpose. "Ask Varta"
-     from a text selection, `?tab=` deep links and "Save to Sanchika" all
-     call `openStudy` and must open the drawer whether or not it is already
-     showing that section; a store-level toggle would make each of them
-     close the very panel they were asked to open. The bar is a toggle
-     control, those are commands, and only the bar's own call site knows
-     which it is. */
+  /* The study entries toggle (they report aria-pressed). The toggle lives here,
+     not in `openStudy`: "Ask Varta" from a selection, `?tab=` links and "Save to
+     Sanchika" are commands that must always open, while the bar is a toggle. */
   const studyOpen = activePanel === 'study';
-  /* Each entry stays lit while the student is inside any tab of the
-     section it opens — Notes owns Vocabulary, Graph and Digest; Varta
-     owns Quiz. The grouping is StudyDrawer's SECTION_OF; kept as literals
-     here rather than imported so the bar does not depend on the drawer. */
+  // Each entry stays lit inside any tab of its section (StudyDrawer's SECTION_OF).
   const notesActive =
-    studyOpen &&
-    (studyTab === 'notes' || studyTab === 'vocab' || studyTab === 'graph' || studyTab === 'digest');
+    studyOpen && (studyTab === 'notes' || studyTab === 'vocab' || studyTab === 'graph' || studyTab === 'digest');
   const sanchikaActive = studyOpen && studyTab === 'sanchika';
   const vartaActive = studyOpen && (studyTab === 'varta' || studyTab === 'quiz');
+  const toggleStudy = (tab: 'notes' | 'sanchika' | 'varta', isActive: boolean) => (isActive ? closePanel() : openStudy(tab));
 
-  const toggleStudy = (tab: 'notes' | 'sanchika' | 'varta', isActive: boolean) =>
-    isActive ? closePanel() : openStudy(tab);
-
-  /* Collapsible, the same way the drawing rail collapses to an "Annotate"
-     pill (DrawingToolbar.tsx). The bar is primary navigation, so it starts
-     expanded — but a student who wants the whole screen for the page can
-     tuck it down to a single pill and bring it back with one tap. The flag
-     lives in the reader store, not here, so the reading area can reclaim
-     the space the bar used to reserve and the drawing rail can dock its
-     pill beside this one. */
   const collapsed = useReaderStore((s) => s.isBottomBarCollapsed);
   const toggleBottomBar = useReaderStore((s) => s.toggleBottomBar);
   const setBottomBarHeight = useReaderStore((s) => s.setBottomBarHeight);
 
-  /* ── Publish the bar's real height ────────────────────────────────────
-     The reading area and the Study drawer used to reserve a hardcoded 84px
-     for this bar. The bar is not 84px tall: `safe-bottom` adds
-     max(0.5rem, env(safe-area-inset-bottom)), which is ~34px on a phone
-     with a home indicator and 8px on a tablet, and the two text rows wrap
-     differently by width. So the reservation was too small on some devices
-     (bar overlapping the page) and too big on others — the blank strip
-     under the page — and it changed mid-session on mobile as the browser's
-     dynamic toolbar showed and hid.
-
-     The bar measures itself and publishes the result, so every consumer
-     reserves exactly what is there. Collapsed publishes 0: the pill floats
-     over the page rather than reserving a band. */
+  /* ── Publish the bar's real height ──
+     The reading area and Study drawer reserve exactly what the bar measures:
+     it varies with the safe-area inset, the breakpoint layout and the mobile
+     browser toolbar. Collapsed publishes 0 — the pill floats over the page. */
   const barRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (collapsed) {
-      /* The pill floats over the page rather than reserving a band. */
       setBottomBarHeight(0);
       return;
     }
@@ -118,8 +91,6 @@ export function ReaderBottomBar({
     apply();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(apply) : null;
     ro?.observe(el);
-    /* Mobile browsers resize the viewport when their toolbar hides, which
-       changes the safe-area inset — the reason this drifted mid-session. */
     window.addEventListener('resize', apply);
     window.addEventListener('orientationchange', apply);
     return () => {
@@ -129,164 +100,187 @@ export function ReaderBottomBar({
     };
   }, [collapsed, setBottomBarHeight]);
 
-  /* Focus mode unmounts the bar entirely — release the reservation so the
-     page is not left holding a band for something that is gone. */
+  // Focus mode unmounts the bar: release the reservation.
   useEffect(() => () => { useReaderStore.getState().setBottomBarHeight(0); }, []);
 
-  const actions = [
-    {
-      key: 'contents',
-      label: 'Contents',
-      icon: List,
-      active: activePanel === 'toc',
-      onClick: () => togglePanel('toc'),
-    },
-    {
-      key: 'notes',
-      label: 'Notes',
-      icon: Highlighter,
-      active: notesActive,
-      onClick: () => toggleStudy('notes', notesActive),
-    },
-    {
-      key: 'sanchika',
-      label: 'Sanchika',
-      icon: NotebookPen,
-      active: sanchikaActive,
-      onClick: () => toggleStudy('sanchika', sanchikaActive),
-    },
-    {
-      /* Varta is the conversation with the book — the chat plus Quiz,
-         which is the same conversation asking rather than answering.
-         Graph and Digest moved to Notes: neither is a conversation, and
-         both are things you look up beside your own notes. */
-      key: 'varta',
-      label: 'Varta',
-      icon: WandSparkles,
-      active: vartaActive,
-      onClick: () => toggleStudy('varta', vartaActive),
-    },
-    {
-      key: 'listen',
-      label: isListening ? 'Stop' : 'Listen',
-      icon: isListening ? Square : Headphones,
-      active: isListening,
-      onClick: onListen,
-    },
-  ];
+  // Scrubber shows the page under the thumb while dragging, and seeks on release.
+  const [scrub, setScrub] = useState<number | null>(null);
+  const total = Math.max(0, totalPages);
+  const shownPage = Math.min(Math.max(1, scrub ?? currentPage), Math.max(1, total));
+  const canSeek = !!onSeek && total > 1;
+  const pct = Math.min(100, Math.max(0, percentComplete));
+  const where = total > 0 ? `${unit} ${shownPage} of ${total}` : `${unit} ${shownPage}`;
+  const left = total > 0 && Number.isFinite(minutesLeft) ? `${Math.max(0, minutesLeft)} min left` : null;
 
-  /* ── Collapsed: a single unobtrusive pill, clear of the page ──
-     Mirrors the drawing rail's "Annotate" pill. Shows where the student
-     is and expands the full bar on tap. */
+  const contents: Action = { key: 'contents', label: 'Contents', icon: 'contents', active: activePanel === 'toc', onClick: () => togglePanel('toc') };
+  const display: Action = { key: 'display', label: 'Display', icon: 'theme', active: activePanel === 'settings', onClick: () => togglePanel('settings') };
+  const notes: Action = { key: 'notes', label: 'Notes', icon: 'highlight', active: notesActive, onClick: () => toggleStudy('notes', notesActive) };
+  const sanchika: Action = { key: 'sanchika', label: 'Sanchika', icon: 'sanchika', active: sanchikaActive, onClick: () => toggleStudy('sanchika', sanchikaActive) };
+  const varta: Action = { key: 'varta', label: 'Varta', icon: 'varta', active: vartaActive, onClick: () => toggleStudy('varta', vartaActive) };
+  const listen: Action = { key: 'listen', label: isListening ? 'Stop' : 'Listen', icon: isListening ? 'square' : 'audiobook', active: isListening, onClick: onListen };
+
+  /* ── Collapsed: a single pill, clear of the page ── */
   if (collapsed) {
-    /* Sits on the same bottom-5 baseline as the drawing rail's Annotate
-       pill. On a PDF the two are docked either side of centre (Annotate
-       left, this right) so they read as one pair; on an EPUB there is no
-       Annotate pill, so this one centres itself. */
-    const dock = pairWithAnnotate
-      ? 'left-1/2 ml-1'
-      : 'left-1/2 -translate-x-1/2';
+    const dock = pairWithAnnotate ? 'left-1/2 ml-1' : 'left-1/2 -translate-x-1/2';
     return (
       <button
         type="button"
         ref={(n) => { barRef.current = n; }}
         onClick={toggleBottomBar}
-        aria-label={`Show reader toolbar. Page ${currentPage} of ${totalPages}, about ${minutesLeft} minutes left.`}
-        className={[
-          'absolute bottom-5 z-[46]', dock,
-          'flex items-center gap-2 pl-3.5 pr-4 py-2 rounded-full',
-          'border backdrop-blur-md shadow-[0_8px_28px_-8px_rgba(0,0,0,0.18)] transition-colors',
-          isDarkMode
-            ? 'bg-[var(--night-ink)]/90 border-[var(--gold)]/15 text-slate-200 hover:text-[var(--accent-primary-dark)]'
-            : 'bg-white/90 border-[var(--accent-primary)]/25 text-slate-600 hover:text-[var(--accent-strong)]',
-        ].join(' ')}
+        aria-label={`Show reader toolbar. ${where}${left ? `, about ${left}` : ''}.`}
+        className={cn(
+          'absolute bottom-5 z-[46] flex items-center gap-2 rounded-full border border-[color:var(--rd-border)] py-2 pl-3.5 pr-4 text-[color:var(--rd-ink)] shadow-e2 backdrop-blur-md transition-colors hover:text-bb-accent-ink focus-visible:outline-none focus-visible:shadow-focus',
+          panelBg,
+          dock,
+        )}
       >
-        <ChevronUp className="h-4 w-4" aria-hidden="true" />
-        <span className="text-xs font-semibold">
-          Page {currentPage} / {totalPages}
-        </span>
+        <Icon name="chevron-up" size={16} fillLayer={false} />
+        <span className="text-xs font-semibold">{where}</span>
       </button>
     );
   }
+
+  const scrubber = (
+    <SliderPrimitive.Root
+      min={1}
+      max={Math.max(2, total)}
+      step={1}
+      value={[shownPage]}
+      disabled={!canSeek}
+      onValueChange={([v]) => setScrub(v)}
+      onValueCommit={([v]) => { setScrub(null); onSeek?.(v); }}
+      aria-label={`Go to ${unit.toLowerCase()}`}
+      className="group relative flex h-8 min-w-0 flex-1 touch-none select-none items-center data-[disabled]:opacity-60"
+    >
+      <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-[color:var(--rd-track)]">
+        {canSeek ? (
+          <SliderPrimitive.Range className="absolute h-full rounded-full bg-bb-progress" />
+        ) : (
+          <span className="absolute inset-y-0 left-0 rounded-full bg-bb-progress" style={{ width: `${pct}%` }} />
+        )}
+      </SliderPrimitive.Track>
+      {canSeek && (
+        <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-white bg-bb-accent shadow-e1 transition-transform duration-bb-micro hover:scale-110 focus-visible:outline-none focus-visible:shadow-focus" />
+      )}
+    </SliderPrimitive.Root>
+  );
+
+  const collapseBtn = (
+    <button
+      type="button"
+      onClick={toggleBottomBar}
+      aria-label="Hide reader toolbar"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[color:var(--rd-sub)] transition-colors hover:bg-[color:var(--rd-track)] hover:text-[color:var(--rd-ink)] focus-visible:outline-none focus-visible:shadow-focus"
+    >
+      <Icon name="chevron-down" size={18} fillLayer={false} />
+    </button>
+  );
+
+  const statsBtn = (className?: string) => (
+    <button
+      type="button"
+      onClick={() => togglePanel('progress')}
+      aria-label={`${where}${left ? `, about ${left}` : ''}. Open reading stats.`}
+      className={cn('shrink-0 rounded-lg text-left focus-visible:outline-none focus-visible:shadow-focus', className)}
+    >
+      <span aria-hidden className="text-sm font-semibold tabular-nums text-[color:var(--rd-ink)]">{where}</span>
+    </button>
+  );
 
   return (
     <nav
       ref={(n) => { barRef.current = n; }}
       aria-label="Reader actions"
-      className={[
-        'absolute bottom-0 left-0 right-0 z-[45] safe-bottom',
-        'border-t backdrop-blur-md',
-        isDarkMode
-          ? 'bg-[var(--night-ink)]/95 border-[var(--gold)]/12 text-slate-200'
-          : 'bg-white/95 border-[var(--accent-primary)]/20 text-slate-700',
-      ].join(' ')}
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[45] flex flex-col items-center"
     >
-      {/* Progress line — full-width, decorative to AT (the button below
-          carries the sentence). Pulled out of the button so the collapse
-          handle can sit beside the progress text without nesting buttons. */}
-      <div className="h-0.5 w-full bg-[var(--accent-primary)]/15 dark:bg-[var(--gold)]/10">
-        <div
-          className="h-full bg-[var(--accent-strong)] dark:bg-[var(--accent-primary-dark)] transition-[width] duration-500"
-          style={{ width: `${percentComplete}%` }}
-        />
-      </div>
-
-      <div className="flex items-stretch">
-        {/* Progress, in words. */}
-        <button
-          type="button"
-          onClick={() => togglePanel('progress')}
-          aria-label={`Page ${currentPage} of ${totalPages}, about ${minutesLeft} minutes left in this book. Open reading stats.`}
-          className="flex-1 block group"
-        >
-          <div
-            aria-hidden="true"
-            className="flex items-center justify-center gap-2 px-3 pt-1.5 pb-0.5 text-xs font-medium text-slate-600 dark:text-slate-400 group-hover:text-[var(--accent-strong)] dark:group-hover:text-[var(--accent-primary-dark)]"
-          >
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
-              Page {currentPage} of {totalPages}
-            </span>
-            <span className="opacity-50">·</span>
-            <span>{minutesLeft} min left</span>
-          </div>
-        </button>
-
-        {/* Collapse handle — tuck the bar down to a pill so the page gets
-            the full screen. */}
-        <button
-          type="button"
-          onClick={toggleBottomBar}
-          aria-label="Hide reader toolbar"
-          className="shrink-0 grid place-items-center px-3 text-slate-500 dark:text-slate-400 hover:text-[var(--accent-strong)] dark:hover:text-[var(--accent-primary-dark)] transition-colors"
-        >
-          <ChevronDown className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
-
-      <div className="flex items-stretch justify-around px-1 pb-1">
-        {actions.map(({ key, label, icon: Icon, active, onClick }) => (
+      {/* Tablet: floating pill toolbar above the scrubber strip */}
+      <div className={cn('pointer-events-auto mb-3 hidden items-center gap-0.5 rounded-full border border-[color:var(--rd-border)] p-1.5 shadow-e2 backdrop-blur-md md:flex xl:hidden', panelBg)}>
+        {[contents, display, notes, sanchika, varta, listen].map((a) => (
           <button
-            key={key}
+            key={a.key}
             type="button"
-            onClick={onClick}
-            aria-pressed={active}
-            /* 52px tall and labelled. The old FAB's four actions are
-               these four, so it is gone rather than duplicated here. */
-            className={[
-              'flex-1 flex flex-col items-center justify-center gap-0.5',
-              'min-h-[52px] rounded-xl px-1 transition-colors',
-              active
-                ? 'text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)] bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10'
-                : 'text-slate-600 dark:text-slate-400',
-            ].join(' ')}
+            onClick={a.onClick}
+            aria-pressed={a.active}
+            className={cn(
+              'flex h-12 min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-full px-3 text-[11px] font-semibold transition-colors duration-bb-micro focus-visible:outline-none focus-visible:shadow-focus',
+              a.active ? 'bg-bb-accent-soft text-bb-accent-ink' : 'text-[color:var(--rd-sub)] hover:bg-[color:var(--rd-track)] hover:text-[color:var(--rd-ink)]',
+            )}
           >
-            <Icon className="h-5 w-5" aria-hidden="true" />
-            {/* 12px is the floor set in styles/ux-foundation.css — the
-                old floating stat labels were 10px uppercase at 0.7
-                opacity, which is the pattern this replaces. */}
-            <span className="text-[0.75rem] font-semibold leading-none">{label}</span>
+            <Icon name={a.icon} size={18} />
+            {a.label}
           </button>
         ))}
+      </div>
+
+      <div className={cn('pointer-events-auto w-full border-t border-[color:var(--rd-border)] text-[color:var(--rd-ink)] backdrop-blur-md safe-bottom', panelBg)}>
+        {/* Phone */}
+        <div className="md:hidden">
+          <div className="h-0.5 w-full bg-[color:var(--rd-track)]">
+            <div className="h-full bg-bb-progress transition-[width] duration-500" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => togglePanel('progress')}
+              aria-label={`${where}${left ? `, about ${left} in this book` : ''}. Open reading stats.`}
+              className="flex flex-1 items-center justify-center gap-2 px-3 pb-0.5 pt-1.5 text-xs font-medium text-[color:var(--rd-sub)] focus-visible:outline-none"
+            >
+              <span aria-hidden className="font-semibold text-[color:var(--rd-ink)]">{where}</span>
+              {left && <><span aria-hidden className="opacity-50">·</span><span aria-hidden>{left}</span></>}
+            </button>
+            <button
+              type="button"
+              onClick={toggleBottomBar}
+              aria-label="Hide reader toolbar"
+              className="grid shrink-0 place-items-center px-3 text-[color:var(--rd-sub)] hover:text-[color:var(--rd-ink)]"
+            >
+              <Icon name="chevron-down" size={16} fillLayer={false} />
+            </button>
+          </div>
+          <div className="flex items-stretch justify-around px-1 pb-1">
+            {[contents, notes, sanchika, varta, listen].map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                onClick={a.onClick}
+                aria-pressed={a.active}
+                className={cn(
+                  'flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 transition-colors',
+                  a.active ? 'bg-bb-accent-soft text-bb-accent-ink' : 'text-[color:var(--rd-sub)]',
+                )}
+              >
+                <Icon name={a.icon} size={20} />
+                <span className="text-[0.75rem] font-semibold leading-none">{a.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tablet + desktop strip */}
+        <div className="hidden h-14 items-center gap-4 px-5 md:flex">
+          {statsBtn()}
+          {scrubber}
+          {left && <span className="shrink-0 text-sm text-[color:var(--rd-sub)]">{left}</span>}
+          <div className="hidden items-center gap-1 border-l border-[color:var(--rd-border)] pl-3 xl:flex">
+            {[notes, sanchika, listen].map((a) => (
+              <button
+                key={a.key}
+                type="button"
+                onClick={a.onClick}
+                aria-pressed={a.active}
+                aria-label={a.label}
+                title={a.label}
+                className={cn(
+                  'grid h-10 w-10 place-items-center rounded-full transition-colors duration-bb-micro focus-visible:outline-none focus-visible:shadow-focus',
+                  a.active ? 'bg-bb-accent-soft text-bb-accent-ink' : 'text-[color:var(--rd-sub)] hover:bg-[color:var(--rd-track)] hover:text-[color:var(--rd-ink)]',
+                )}
+              >
+                <Icon name={a.icon} size={20} />
+              </button>
+            ))}
+          </div>
+          {collapseBtn}
+        </div>
       </div>
     </nav>
   );

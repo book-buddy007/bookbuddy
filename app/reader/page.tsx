@@ -1,21 +1,14 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
-import { useToast } from "@/components/ui/use-toast";
-import { fetchWithRetry } from '@/lib/utils/fetch-with-retry';
 
 
 
 import { Button } from "@/components/ui/button"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Bookmark, ChevronLeft, ChevronRight, List, Moon, FileSearch, Sun, BookOpenText, X, BookOpenCheck, ScrollText, Eye, ALargeSmall } from "@/components/ui/icons"
-import { CircularProgress } from "@/components/ui/circular-progress"; // Pre-built circular progress component
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTheme } from "next-themes"
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useReaderStore } from '@/store/useReaderStore';
 import { useAppStore } from '@/store/useAppStore';
 import { useAnnotationStore } from '@/store/useAnnotationStore';
@@ -23,7 +16,6 @@ import { StudyDrawer } from '@/components/reader/StudyDrawer';
 import { ReaderBottomBar } from '@/components/reader/ReaderBottomBar';
 import { ReaderProgressSheet } from '@/components/reader/ReaderProgressSheet';
 import { useSanchikaStore } from '@/store/useSanchikaStore';
-import { HighlightedText } from '@/components/reader/HighlightedText';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useBookSearch } from '@/lib/hooks/useBookSearch';
 import { useReadingProgress } from '@/lib/hooks/useReadingProgress';
@@ -53,13 +45,19 @@ interface Page {
 
 export default function ReaderPage() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'linear-gradient(180deg, #FBFBFD 0%, #F2F4F8 100%)' }}>
-        <p className="text-sm font-medium text-amber-800 tracking-wide">Opening your book...</p>
-      </div>
-    }>
+    <Suspense fallback={<ReaderSplash />}>
       <ReaderContent />
     </Suspense>
+  );
+}
+
+/** Full-screen "opening" state, shown before auth and the book have resolved. */
+function ReaderSplash({ label = 'Opening your book…' }: { label?: string }) {
+  return (
+    <div role="status" className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bb-bg text-bb-text">
+      <Icon name="loader" size={28} fillLayer={false} className="animate-spin text-bb-accent" />
+      <p className="text-sm font-semibold text-bb-muted">{label}</p>
+    </div>
   );
 }
 
@@ -78,6 +76,22 @@ function ReaderContent() {
   const [personalFileId] = useState<string | null>(personalFileIdUrl);
   const [format, setFormat] = useState<string>(formatUrl);
   const [isMobile, setIsMobile] = useState(false);
+  /* `?page=N` (Varta's "Open in reader" citation links) opens at that page. It is
+     applied once, AFTER the saved position arrives from the server, so the citation
+     wins over "where you left off". Page numbers come from PDF citations, so an
+     EPUB (which paginates by location) ignores it. */
+  const pageParamRef = React.useRef<number | null>(
+    (() => {
+      const n = Number(searchParams.get('page'));
+      return Number.isFinite(n) && n >= 1 ? Math.floor(n) : null;
+    })(),
+  );
+  const applyPageParam = useCallback(() => {
+    const p = pageParamRef.current;
+    if (!p) return;
+    pageParamRef.current = null;
+    useReaderStore.getState().setCurrentPage(p);
+  }, []);
   const [hoverZone, setHoverZone] = useState<'left' | 'right' | 'center' | null>(null);
 
   // Use our Zustand store instead of local state
@@ -208,6 +222,18 @@ function ReaderContent() {
   const { data: content, isLoading: contentLoading, error: contentError } = useBookContent(bookId, format, personalFileId);
   const currentBookId = personalFileId || bookId || "book-1";
   const isPersonalFile = !!personalFileId;
+  // Contents rail summary: this book's highlights and notes.
+  const allAnnotations = useAnnotationStore((s) => s.annotations);
+  const annotationCounts = useMemo(() => {
+    let highlights = 0;
+    let notes = 0;
+    for (const a of allAnnotations) {
+      if (a.bookId !== currentBookId || a.parentId) continue;
+      if (a.type === 'highlight') highlights++;
+      else if (a.type === 'note') notes++;
+    }
+    return { highlights, notes };
+  }, [allAnnotations, currentBookId]);
   // Title, author and which reading modes the book offers (Read / PDF / Listen).
   const [bookTitle, setBookTitle] = useState(isPersonalFileInit() ? 'Your file' : 'Digital Library Reader');
   const [bookAuthor, setBookAuthor] = useState('');
@@ -233,6 +259,34 @@ function ReaderContent() {
   const [epubToc, setEpubToc] = useState<{ label: string; href: string }[]>([]);
   const [epubHref, setEpubHref] = useState('');
   const epubRenditionRef = React.useRef<import('epubjs').Rendition | null>(null);
+  /* EPUBs reflow, so epub.js's "page" is only the page within the current chapter
+     (and the total used to read 0). Book-wide positions come from generated
+     locations (~1600 characters each): the bar counts "Location x of y" and the
+     scrubber can seek. Until they are ready the chapter page is shown. */
+  const [epubLocationsReady, setEpubLocationsReady] = useState(false);
+  const epubLocationOf = useCallback((cfi: string): number | null => {
+    const book = epubRenditionRef.current?.book;
+    if (!book || !epubLocationsReady) return null;
+    const loc = book.locations.locationFromCfi(cfi) as unknown as number;
+    return typeof loc === 'number' && loc >= 0 ? loc + 1 : null;
+  }, [epubLocationsReady]);
+  const handleEpubReady = useCallback((rendition: import('epubjs').Rendition) => {
+    epubRenditionRef.current = rendition;
+    setEpubLocationsReady(false);
+    const book = rendition.book;
+    book.ready
+      .then(() => book.locations.generate(1600))
+      .then(() => {
+        if (epubRenditionRef.current !== rendition) return;
+        const total = book.locations.length();
+        if (total > 0) setTotalPages(total);
+        setEpubLocationsReady(true);
+        const cfi = (rendition.currentLocation() as any)?.start?.cfi;
+        const loc = cfi ? (book.locations.locationFromCfi(cfi) as unknown as number) : -1;
+        if (typeof loc === 'number' && loc >= 0) setCurrentPage(loc + 1);
+      })
+      .catch(() => undefined);
+  }, [setTotalPages, setCurrentPage]);
 
   // Text-to-Speech integration
   const tts = useTextToSpeech();
@@ -288,9 +342,12 @@ function ReaderContent() {
     if (isPersonalFile) {
       // Personal files: no institutional init, no annotations sync
       // Just init reading position from personal progress endpoint later
+      if (formatUrl !== 'epub') applyPageParam();
     } else {
       // Institutional book: full init + annotation sync
-      initFromServer(activeId);
+      initFromServer(activeId).finally(() => {
+        if (formatUrl !== 'epub') applyPageParam();
+      });
       fetchStreak();
       useAnnotationStore.getState().syncAnnotationsWithBackend(activeId);
     }
@@ -340,12 +397,26 @@ function ReaderContent() {
   }, [bookId, personalFileId, isPersonalFile, syncToServer, initFromServer, fetchStreak, updateStreak]);
 
 
+  // Scrubber: PDFs jump by page (PdfShell follows the store's currentPage);
+  // EPUBs display the CFI for the chosen location.
+  const handleSeek = useCallback((page: number) => {
+    if (format === 'epub') {
+      const r = epubRenditionRef.current;
+      const cfi = epubLocationsReady ? r?.book.locations.cfiFromLocation(page - 1) : null;
+      if (r && cfi) r.display(cfi);
+    } else {
+      setCurrentPage(page);
+    }
+  }, [format, epubLocationsReady, setCurrentPage]);
+  const canSeek = format !== 'epub' || epubLocationsReady;
+
   // Calculate reading stats
-  const percentComplete = Math.max(1, Math.round((currentPage / totalPages) * 100));
+  // totalPages is 0 until the document (or EPUB locations) report a count.
+  const percentComplete = totalPages > 0 ? Math.min(100, Math.max(1, Math.round((currentPage / totalPages) * 100))) : 0;
   const pagesTracked = Object.keys(sessionPageSeconds).length;
   const totalSecondsTracked = Object.values(sessionPageSeconds).reduce((a, b) => a + b, 0);
   const avgSecondsPerPage = pagesTracked > 0 ? Math.max(10, totalSecondsTracked / pagesTracked) : 60;
-  const minutesLeft = Math.ceil(((totalPages - currentPage) * avgSecondsPerPage) / 60);
+  const minutesLeft = totalPages > 0 ? Math.max(0, Math.ceil(((totalPages - currentPage) * avgSecondsPerPage) / 60)) : 0;
 
   // Keyboard shortcut listeners for search navigation
   useEffect(() => {
@@ -555,10 +626,15 @@ function ReaderContent() {
       color: p.ink,
       accentColor: 'var(--bb-accent)',
       borderColor: p.border,
-      filter: readerKey === 'sepia' ? `contrast(${contrast}) sepia(${colorTemperature}%)` : `contrast(${contrast})`,
       transition: 'background-color 300ms, color 300ms',
     } as React.CSSProperties;
   };
+  /* Warmth and contrast tint the page only. They used to sit on the reader root,
+     which filtered the toolbars, panels and popovers along with the text. */
+  const contentFilter = [
+    contrast !== 1 ? `contrast(${contrast})` : '',
+    colorTemperature > 0 ? `sepia(${colorTemperature}%)` : '',
+  ].filter(Boolean).join(' ') || undefined;
 
   // Helper function to determine if we're in dark mode (for highlight colors)
   const isDarkMode = () => {
@@ -595,7 +671,6 @@ function ReaderContent() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const wordsPerMin = Math.max(1, Math.round((currentPage * 250) / Math.max(1, sessionSeconds / 60)));
 
   /* The FAB's eight-item radial menu was here (audit fix 2). Every one
      of its actions now has a permanent home: Search and Aa in the
@@ -608,15 +683,7 @@ function ReaderContent() {
 
   // Show loading state while checking authentication
   if (!isClient || !isAuthenticated) {
-    return (
-      <div className={`flex flex-col items-center justify-center min-h-screen gap-5 ${isDarkMode() ? 'bg-slate-950' : 'bg-gradient-to-b from-white to-slate-50'}`}>
-        <div className="relative">
-          <div className="h-12 w-12 border-4 border-slate-200 dark:border-slate-700/50 rounded-full" />
-          <div className="h-12 w-12 border-4 border-transparent border-t-[var(--deep-saffron)] rounded-full animate-spin absolute inset-0" />
-        </div>
-        <p className="text-sm font-semibold tracking-wide text-bb-accent">Opening your book...</p>
-      </div>
-    );
+    return <ReaderSplash />;
   }
 
   // No book was requested via the URL — show the reader landing page
@@ -637,10 +704,7 @@ function ReaderContent() {
        That left the whole reader shifted left with a blank band on the right.
        The individual callers pass preventScroll; this is the backstop that
        makes the failure mode impossible rather than merely unlikely. */
-    <div ref={protectionRef} data-reader={readerKey} onScroll={(e) => { const el = e.currentTarget; if (el.scrollLeft !== 0) el.scrollLeft = 0; if (el.scrollTop !== 0) el.scrollTop = 0; }} className={`relative w-full h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden transition-colors duration-500 ${isDarkMode() ? 'text-slate-100' : 'text-slate-900'}`} style={getThemeStyles()}>
-      
-      {/* Background patterns if in dark mode */}
-      {isDarkMode() && <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[url('/grid.svg')] z-0"></div>}
+    <div ref={protectionRef} data-reader={readerKey} onScroll={(e) => { const el = e.currentTarget; if (el.scrollLeft !== 0) el.scrollLeft = 0; if (el.scrollTop !== 0) el.scrollTop = 0; }} className="relative h-screen w-full overflow-hidden text-[color:var(--rd-ink)] supports-[height:100dvh]:h-[100dvh]" style={getThemeStyles()}>
 
       {/* DRM: Dynamic Watermark Overlay */}
       {user && (
@@ -707,27 +771,29 @@ function ReaderContent() {
           and with how its labels wrap, so a fixed number left a blank strip
           on some screens and overlapped the page on others. 0px when the
           bar is collapsed to a pill. */}
+      {/* On xl the contents rail is permanent, so the page column starts after it. */}
       <main
-        className={`absolute inset-0 z-20 transition-all duration-300 ${!isFocusMode ? 'mt-[calc(66px+var(--bb-safe-top))]' : ''}`}
-        style={!isFocusMode ? { marginBottom: bottomBarHeight } : undefined}
+        className={`absolute inset-0 z-20 transition-[margin,padding] duration-300 ${!isFocusMode ? 'mt-[calc(70px+var(--bb-safe-top))] xl:pl-[260px]' : ''}`}
+        style={{ ...(!isFocusMode ? { marginBottom: bottomBarHeight } : {}), filter: contentFilter }}
       >
         {contentLoading && (
-           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 dark:bg-slate-950/70 backdrop-blur-sm z-30 gap-4">
-             <div className="relative">
-               <div className="h-10 w-10 border-4 border-slate-200 dark:border-slate-700/30 rounded-full" />
-               <div className="h-10 w-10 border-4 border-transparent border-t-[var(--deep-saffron)] rounded-full animate-spin absolute inset-0" />
-             </div>
-             <p className="text-xs font-semibold tracking-wide text-bb-accent">Loading content...</p>
-           </div>
+          <div role="status" className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-[color:var(--rd-bg)]">
+            <Icon name="loader" size={26} fillLayer={false} className="animate-spin text-bb-accent" />
+            <p className="text-sm font-semibold text-[color:var(--rd-sub)]">Loading your book…</p>
+          </div>
         )}
-        
+
         {contentError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-30 gap-4">
-            <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20">
-              <X className="h-8 w-8 text-red-400" />
-            </div>
-            <p className="text-sm font-semibold text-red-500 dark:text-red-400">Failed to load book content</p>
-            <p className="text-xs text-slate-400">Please try refreshing the page</p>
+          <div role="alert" className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 px-6 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-bb-lg bg-bb-danger-soft text-bb-danger-ink">
+              <Icon name="alert-circle" size={26} fillLayer={false} />
+            </span>
+            <p className="font-display text-lg font-bold">Couldn&apos;t open this book</p>
+            <p className="text-sm text-[color:var(--rd-sub)]">Check your connection, then reload the page.</p>
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+              <Icon name="rotate-cw" fillLayer={false} />
+              Reload
+            </Button>
           </div>
         )}
 
@@ -744,11 +810,11 @@ function ReaderContent() {
                   lineHeight={lineHeight}
                   onLocationChange={(cfi, page, href) => {
                     setLastCfi(cfi);
-                    setCurrentPage(page);
+                    setCurrentPage(epubLocationOf(cfi) ?? page);
                     if (href) setEpubHref(href);
                   }}
                   onTocLoad={setEpubToc}
-                  onReady={(rendition) => { epubRenditionRef.current = rendition; }}
+                  onReady={handleEpubReady}
                   onSpeakText={handleSpeakText}
                   onAskVarta={handleAskVarta}
                   onSaveToSanchika={handleSaveToSanchika}
@@ -774,83 +840,87 @@ function ReaderContent() {
 
       {/* Slide-out Panels overlaid on top of content */}
       
-      {/* Search Overlay */}
+      {/* Search overlay (EPUB; PDFs search inside PdfShell) */}
       {activePanel === 'search' && (
-        <div className={`absolute inset-0 z-50 flex items-start justify-center pt-24 animate-in fade-in zoom-in-95 duration-200 ${isDarkMode() ? 'bg-slate-950/70' : 'bg-slate-900/30'} backdrop-blur-sm`} onClick={(e) => { if (e.target === e.currentTarget) closePanel(); }}>
-          <div className={`w-full max-w-lg mx-4 rounded-2xl shadow-2xl border ${isDarkMode() ? 'bg-slate-950/95 border-slate-700/50' : 'bg-white/95 border-slate-200/50'} backdrop-blur-md overflow-hidden flex flex-col`}>
-            <div className={`p-4 border-b ${isDarkMode() ? 'border-slate-700/30' : 'border-slate-200/50'} flex items-center space-x-3`}>
-              <FileSearch className="h-5 w-5 text-[var(--deep-saffron)]" />
+        <div
+          className="absolute inset-0 z-50 flex items-start justify-center bg-[rgba(10,15,36,0.35)] pt-24 backdrop-blur-sm animate-in fade-in-0 duration-bb-ui"
+          onClick={(e) => { if (e.target === e.currentTarget) closePanel(); }}
+        >
+          <div role="dialog" aria-label="Search in book" className="mx-4 flex w-full max-w-lg flex-col overflow-hidden rounded-bb-lg border border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] text-[color:var(--rd-ink)] shadow-e2 animate-in zoom-in-95 duration-bb-ui">
+            <div className="flex items-center gap-3 border-b border-[color:var(--rd-border)] px-4 py-3">
+              <Icon name="search" size={20} className="shrink-0 text-bb-accent" />
               <input
-                type="text"
+                type="search"
                 autoFocus
-                placeholder="Search in book..."
+                aria-label="Search in book"
+                placeholder="Search in this book…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`flex-1 bg-transparent border-none outline-none text-base font-medium ${isDarkMode() ? 'text-slate-100 placeholder-slate-500' : 'text-slate-800 placeholder-slate-400'}`}
+                className="min-w-0 flex-1 border-none bg-transparent text-base font-medium outline-none placeholder:text-[color:var(--rd-sub)]"
               />
-              <Button variant="ghost" size="icon" onClick={closePanel} aria-label="Close search" className="hit-target rounded-full">
-                <X className="h-4 w-4" />
-              </Button>
+              <button type="button" onClick={closePanel} aria-label="Close search" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-[color:var(--rd-track)] focus-visible:outline-none focus-visible:shadow-focus">
+                <Icon name="close" size={18} fillLayer={false} />
+              </button>
             </div>
-            
+
             {searchQuery.length > 0 && (
-              <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex flex-1 flex-col overflow-hidden">
                 {isSearching ? (
-                  <div className="flex items-center justify-center p-8">
-                    <div className="h-6 w-6 border-2 border-slate-300 border-t-[var(--deep-saffron)] rounded-full animate-spin" />
+                  <div role="status" className="flex items-center justify-center p-8">
+                    <Icon name="loader" size={22} fillLayer={false} className="animate-spin text-bb-accent" />
                   </div>
                 ) : searchResults.length > 0 ? (
                   <>
-                    <div className={`flex justify-between items-center text-xs px-5 py-3 border-b ${isDarkMode() ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'}`}>
-                      <span>{searchResults.length} results found</span>
-                      <span>Use <kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">Ctrl+G</kbd> to cycle</span>
+                    <div className="flex items-center justify-between border-b border-[color:var(--rd-border)] px-5 py-2.5 text-xs text-[color:var(--rd-sub)]">
+                      <span>{searchResults.length} results</span>
+                      <span className="hidden sm:inline">
+                        <kbd className="rounded bg-[color:var(--rd-track)] px-1.5 py-0.5 text-[10px] font-semibold">Ctrl+G</kbd> next
+                      </span>
                     </div>
-                    <ScrollArea className="max-h-[50vh] p-3">
-                      <div className="space-y-2">
-                        {searchResults.map((result, index) => (
-                          <button
-                            key={`${result.pageIndex}-${result.charStart}-${index}`}
-                            onClick={() => {
-                              setActiveResultIndex(index);
-                              setCurrentPage(result.pageIndex);
-                              closePanel();
-                            }}
-                            className={`w-full text-left p-3 rounded-xl transition-all border ${activeResultIndex === index ? (isDarkMode() ? 'bg-[var(--deep-saffron)]/10 border-[var(--deep-saffron)]/30' : 'bg-[var(--peacock-teal)]/10 border-slate-300') : (isDarkMode() ? 'border-transparent hover:bg-slate-800/80' : 'border-transparent hover:bg-slate-50')}`}
-                          >
-                            <div className="flex justify-between text-xs mb-1">
-                              <span className={`font-semibold ${isDarkMode() ? 'text-[var(--saffron)]' : 'text-[var(--peacock-teal)]'}`}>Page {result.pageIndex}</span>
-                              <span className={isDarkMode() ? 'text-slate-500' : 'text-slate-400'}>{result.chapterTitle}</span>
-                            </div>
-                            <div className={`text-sm line-clamp-2 leading-relaxed ${isDarkMode() ? 'text-slate-300' : 'text-slate-700'}`}>
-                              {(() => {
-                                const lowerPreview = result.preview.toLowerCase();
-                                const lowerQuery = searchQuery.toLowerCase();
-                                const matchIndex = lowerPreview.indexOf(lowerQuery);
-                                if (matchIndex === -1) return result.preview;
-                                const before = result.preview.substring(0, matchIndex);
-                                const match = result.preview.substring(matchIndex, matchIndex + searchQuery.length);
-                                const after = result.preview.substring(matchIndex + searchQuery.length);
-                                return (
-                                  <>
-                                    {before}
-                                    <span className="bg-[var(--gold)]/30 text-[var(--deep-saffron)] dark:text-[var(--gold)] font-bold px-0.5 rounded mx-px">{match}</span>
-                                    {after}
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                    <ScrollArea className="max-h-[50vh] p-2">
+                      <ul className="space-y-1">
+                        {searchResults.map((result, index) => {
+                          const lowerPreview = result.preview.toLowerCase();
+                          const matchIndex = lowerPreview.indexOf(searchQuery.toLowerCase());
+                          return (
+                            <li key={`${result.pageIndex}-${result.charStart}-${index}`}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveResultIndex(index);
+                                  setCurrentPage(result.pageIndex);
+                                  closePanel();
+                                }}
+                                aria-current={activeResultIndex === index ? 'true' : undefined}
+                                className={`w-full rounded-bb-md p-3 text-left transition-colors ${activeResultIndex === index ? 'bg-[color:var(--rd-track)]' : 'hover:bg-[color:var(--rd-track)]'}`}
+                              >
+                                <span className="mb-1 flex justify-between gap-3 text-xs">
+                                  <span className="font-bold text-bb-accent-ink">Page {result.pageIndex}</span>
+                                  <span className="truncate text-[color:var(--rd-sub)]">{result.chapterTitle}</span>
+                                </span>
+                                <span className="line-clamp-2 font-reading text-[15px] leading-relaxed">
+                                  {matchIndex === -1 ? result.preview : (
+                                    <>
+                                      {result.preview.substring(0, matchIndex)}
+                                      <mark className="rounded bg-[color:var(--rd-hl)] px-0.5 font-semibold text-inherit">
+                                        {result.preview.substring(matchIndex, matchIndex + searchQuery.length)}
+                                      </mark>
+                                      {result.preview.substring(matchIndex + searchQuery.length)}
+                                    </>
+                                  )}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </ScrollArea>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-                    <div className={`p-4 rounded-2xl mb-4 ${isDarkMode() ? 'bg-[var(--peacock-teal)]/10' : 'bg-[var(--peacock-teal)]/10'}`}>
-                      <FileSearch className="h-8 w-8 text-[var(--saffron)]" />
-                    </div>
-                    <p className={`text-sm font-semibold mb-1 ${isDarkMode() ? 'text-slate-300' : 'text-slate-700'}`}>No results found</p>
-                    <p className={`text-xs ${isDarkMode() ? 'text-slate-500' : 'text-slate-400'}`}>Try a different search for "{searchQuery}"</p>
+                  <div className="flex flex-col items-center px-4 py-10 text-center">
+                    <Icon name="search" size={28} className="mb-3 text-[color:var(--rd-sub)]" />
+                    <p className="text-sm font-semibold">No results</p>
+                    <p className="mt-1 text-xs text-[color:var(--rd-sub)]">Nothing matches &ldquo;{searchQuery}&rdquo; in this book.</p>
                   </div>
                 )}
               </div>
@@ -859,139 +929,146 @@ function ReaderContent() {
         </div>
       )}
 
-      {/* Slide Out Panel - TOC (Left) */}
-      {/* Full height at z-[47], matching StudyDrawer: each of these owns a close
-          button, so covering the header and the bottom bar costs nothing and
-          buys a full column of list. z-40 would have let the bar (z-[45]) punch
-          through the bottom — see the note in StudyDrawer. */}
-      <div className={`absolute inset-y-0 left-0 w-[88vw] max-w-[300px] sm:max-w-none sm:w-[300px] lg:w-[340px] pb-[env(safe-area-inset-bottom)] shadow-2xl z-[47] transform transition-transform duration-300 flex flex-col ${activePanel === 'toc' && !isFocusMode ? 'translate-x-0' : '-translate-x-full'} border-r border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] text-[color:var(--rd-ink)] backdrop-blur-md`}>
-         <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50 flex flex-col gap-3 shrink-0">
-            <div className="flex items-center justify-between">
-               <h3 className="text-xl font-bold tracking-tight flex items-center gap-2 text-bb-accent">
-                 <List className="h-5 w-5 text-[var(--peacock-teal)] dark:text-[var(--saffron)]" />
-                 Index & Bookmarks
-               </h3>
-               <Button 
-                 variant="ghost" 
-                 size="icon" 
-                 onClick={closePanel}
-                 aria-label="Close contents"
-                 className="hit-target rounded-full"
-               >
-                  <X className="h-4 w-4" />
-               </Button>
-            </div>
-         </div>
-         
-         <div className="p-4 flex-1 overflow-hidden flex flex-col">
-            <Tabs defaultValue="contents" className="flex-1 flex flex-col min-h-0">
-              <TabsList className="grid grid-cols-3 mx-0 mb-4 p-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm min-h-[44px]">
-                <TabsTrigger 
-                  value="contents" 
-                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
-                >Index</TabsTrigger>
-                <TabsTrigger 
-                  value="pages" 
-                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
-                >Pages</TabsTrigger>
-                <TabsTrigger 
-                  value="bookmarks" 
-                  className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400 flex items-center gap-1"
-                >
-                  <Bookmark className="h-3.5 w-3.5" /> Bookmarks
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="contents" forceMount className="flex-1 min-h-0 mt-3 data-[state=inactive]:hidden">
-                <ScrollArea className="h-full pr-2">
-                  {format === 'pdf' ? (
-                    <div id="pdf-toc-container" className="space-y-1.5 text-sm" />
-                  ) : format === 'epub' && epubToc.length > 0 ? (
-                    <nav aria-label="Chapters" className="space-y-1">
-                      {epubToc.map((item, i) => {
-                        const base = item.href.split('#')[0];
-                        const active = !!epubHref && epubHref.split('#')[0].endsWith(base);
-                        return (
-                          <button
-                            key={item.href + i}
-                            onClick={() => { epubRenditionRef.current?.display(item.href); closePanel(); }}
-                            aria-current={active ? 'true' : undefined}
-                            className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition-colors ${active ? 'bg-[color:var(--rd-track)] font-semibold' : 'hover:bg-[color:var(--rd-track)]'}`}
-                          >
-                            <span className={`w-6 shrink-0 text-xs font-bold ${active ? 'text-bb-accent' : 'text-[color:var(--rd-sub)]'}`}>{i + 1}</span>
-                            <span className="line-clamp-2 flex-1">{item.label}</span>
-                            <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-bb-accent' : 'bg-transparent'}`} />
-                          </button>
-                        );
-                      })}
-                    </nav>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {bookContent.map((page) => {
-                        const isCompleted = currentPage > page.number || (sessionPageSeconds[page.number] && sessionPageSeconds[page.number] > 60);
-                        const isActive = currentPage === page.number;
-                        const timeSpent = sessionPageSeconds[page.number] || 0;
-                        return (
-                          <button
-                            key={page.number}
-                            onClick={() => setCurrentPage(page.number)}
-                            className={`w-full text-left p-3 rounded-xl transition-all border block ${isActive ? (isDarkMode() ? 'bg-[var(--deep-saffron)]/10 border-[var(--deep-saffron)]/30' : 'bg-[var(--peacock-teal)]/10 border-slate-300') : (isDarkMode() ? 'border-transparent hover:bg-slate-800/80' : 'border-transparent hover:bg-slate-50')}`}
-                          >
-                            <div className="flex justify-between items-start gap-2">
-                              <span className={`font-medium line-clamp-1 flex-1 text-sm ${isActive ? 'text-[var(--peacock-teal)] dark:text-[var(--saffron)]' : ''}`}>
-                                Ch. {page.number}: {page.content.split('\n')[0].replace('Chapter ' + page.number + ':', '')}
-                              </span>
-                              {isCompleted && <BookOpenCheck className="h-4 w-4 text-emerald-500 shrink-0" />}
-                            </div>
-                            <div className="flex items-center justify-between text-[10px] mt-2 opacity-70">
-                               <span>{isActive ? 'Reading now' : isCompleted ? 'Read' : `${Math.max(1, Math.ceil(page.content.length / 1000))} min`}</span>
-                               {timeSpent > 0 && <span>{Math.floor(timeSpent / 60)}m spent</span>}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
+      {/* ── Contents: a drawer below xl, a permanent 260px rail from xl up ──
+          Below xl it is full height at z-[47] (it owns a close button, so covering
+          the bars costs nothing). From xl it sits between the top bar and the
+          bottom bar, under both, and the page column starts after it. It is ONE
+          element at every size because PdfShell portals the PDF outline and
+          thumbnails into #pdf-toc-container / #pdf-thumbnails-container. */}
+      <aside
+        aria-label="Contents"
+        style={{ ['--rail-bottom' as string]: `${bottomBarHeight}px` }}
+        className={[
+          'absolute inset-y-0 left-0 z-[47] flex w-[88vw] max-w-[320px] flex-col border-r border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] pb-[env(safe-area-inset-bottom)] text-[color:var(--rd-ink)] shadow-e2 transition-transform duration-300 sm:w-[320px]',
+          activePanel === 'toc' && !isFocusMode ? 'translate-x-0' : '-translate-x-full',
+          !isFocusMode
+            ? 'xl:bottom-[var(--rail-bottom)] xl:top-[calc(70px+var(--bb-safe-top))] xl:z-[44] xl:w-[260px] xl:translate-x-0 xl:pb-0 xl:shadow-none'
+            : '',
+        ].join(' ')}
+      >
+        <div className="flex shrink-0 items-center justify-between px-4 pb-2 pt-4">
+          <h3 className="font-display text-lg font-extrabold tracking-[-0.02em]">Contents</h3>
+          <button
+            type="button"
+            onClick={closePanel}
+            aria-label="Close contents"
+            className="grid h-10 w-10 place-items-center rounded-full hover:bg-[color:var(--rd-track)] focus-visible:outline-none focus-visible:shadow-focus xl:hidden"
+          >
+            <Icon name="close" size={18} fillLayer={false} />
+          </button>
+        </div>
 
-              <TabsContent value="pages" forceMount className="flex-1 min-h-0 mt-3 data-[state=inactive]:hidden">
-                <ScrollArea className="h-full pr-2">
-                  <div id="pdf-thumbnails-container" className="pdf-thumbnails-grid" />
-                </ScrollArea>
-              </TabsContent>
+        <Tabs defaultValue="contents" className="flex min-h-0 flex-1 flex-col px-3">
+          <TabsList className="grid h-auto grid-cols-3 rounded-full bg-[color:var(--rd-track)] p-1">
+            {[
+              { value: 'contents', label: 'Chapters' },
+              { value: 'pages', label: 'Pages' },
+              { value: 'bookmarks', label: 'Saved' },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="min-h-9 rounded-full text-[13px] font-semibold text-[color:var(--rd-sub)] shadow-none data-[state=active]:bg-[color:var(--rd-panel)] data-[state=active]:text-[color:var(--rd-ink)] data-[state=active]:shadow-e1"
+              >
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-              <TabsContent value="bookmarks" forceMount className="flex-1 min-h-0 mt-3 data-[state=inactive]:hidden">
-                <ScrollArea className="h-full pr-2">
-                  {bookmarks.length > 0 ? (
-                    <div className="space-y-2">
-                    {bookmarks.map(page => (
-                      <button key={page} onClick={() => setCurrentPage(page)} className={`w-full text-left p-3 rounded-xl transition-all duration-200 border group ${currentPage === page ? (isDarkMode() ? 'bg-[var(--deep-saffron)]/10 border-[var(--deep-saffron)]/30' : 'bg-[var(--peacock-teal)]/10 border-slate-300') : (isDarkMode() ? 'border-slate-800/50 hover:bg-[var(--peacock-teal)]/10 hover:border-[var(--deep-saffron)]/20' : 'border-slate-100 hover:bg-[var(--peacock-teal)]/5 hover:border-slate-300/50')}`}>
-                        <div className="font-medium text-sm flex items-center gap-2.5">
-                          <div className={`p-1.5 rounded-lg ${currentPage === page ? 'bg-[var(--deep-saffron)]/20' : (isDarkMode() ? 'bg-slate-800' : 'bg-[var(--peacock-teal)]/10')} transition-colors`}>
-                            <Bookmark className="h-3.5 w-3.5 text-[var(--deep-saffron)]" fill={currentPage === page ? 'currentColor' : 'none'} />
-                          </div>
-                          <span className={`${currentPage === page ? 'text-[var(--peacock-teal)] dark:text-[var(--saffron)]' : ''}`}>Page {page}</span>
-                        </div>
+          <TabsContent value="contents" forceMount className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+            <ScrollArea className="h-full pr-1">
+              {format === 'pdf' ? (
+                <div id="pdf-toc-container" className="space-y-1.5 text-sm" />
+              ) : epubToc.length > 0 ? (
+                <nav aria-label="Chapters" className="space-y-0.5 pb-2">
+                  {(() => {
+                    const activeIdx = epubToc.findIndex((item) => !!epubHref && epubHref.split('#')[0].endsWith(item.href.split('#')[0]));
+                    return epubToc.map((item, i) => {
+                      const active = i === activeIdx;
+                      const done = activeIdx > -1 && i < activeIdx;
+                      return (
+                        <button
+                          key={item.href + i}
+                          type="button"
+                          onClick={() => { epubRenditionRef.current?.display(item.href); closePanel(); }}
+                          aria-current={active ? 'true' : undefined}
+                          className={`flex min-h-11 w-full items-center gap-3 rounded-bb-md px-3 text-left text-sm transition-colors ${active ? 'bg-[color:var(--rd-track)] font-semibold' : 'hover:bg-[color:var(--rd-track)]'}`}
+                        >
+                          <span className={`w-6 shrink-0 text-xs font-bold tabular-nums ${active ? 'text-bb-accent' : 'text-[color:var(--rd-sub)]'}`}>{i + 1}</span>
+                          <span className="line-clamp-2 flex-1">{item.label}</span>
+                          <span
+                            aria-label={active ? 'Reading now' : done ? 'Read' : undefined}
+                            className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-bb-accent' : done ? 'bg-bb-cobalt-light' : 'bg-transparent'}`}
+                          />
+                        </button>
+                      );
+                    });
+                  })()}
+                </nav>
+              ) : (
+                <p className="px-2 py-6 text-center text-sm text-[color:var(--rd-sub)]">This book has no table of contents.</p>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="pages" forceMount className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+            <ScrollArea className="h-full pr-1">
+              {format === 'pdf' ? (
+                <div id="pdf-thumbnails-container" className="pdf-thumbnails-grid" />
+              ) : (
+                <p className="px-2 py-6 text-center text-sm text-[color:var(--rd-sub)]">Page thumbnails are available for PDFs.</p>
+              )}
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="bookmarks" forceMount className="mt-3 min-h-0 flex-1 data-[state=inactive]:hidden">
+            <ScrollArea className="h-full pr-1">
+              {bookmarks.length > 0 ? (
+                <ul className="space-y-0.5 pb-2">
+                  {[...bookmarks].sort((a, b) => a - b).map((page) => (
+                    <li key={page}>
+                      <button
+                        type="button"
+                        onClick={() => handleSeek(page)}
+                        aria-current={currentPage === page ? 'true' : undefined}
+                        className={`flex min-h-11 w-full items-center gap-3 rounded-bb-md px-3 text-left text-sm transition-colors ${currentPage === page ? 'bg-[color:var(--rd-track)] font-semibold' : 'hover:bg-[color:var(--rd-track)]'}`}
+                      >
+                        <Icon name="bookmark" size={16} className="text-bb-accent" />
+                        {format === 'epub' ? 'Location' : 'Page'} {page}
                       </button>
-                    ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-                      <div className={`p-4 rounded-2xl mb-4 ${isDarkMode() ? 'bg-[var(--peacock-teal)]/10' : 'bg-[var(--peacock-teal)]/10'}`}>
-                        <Bookmark className="h-8 w-8 text-[var(--saffron)]" />
-                      </div>
-                      <p className={`text-sm font-semibold mb-1 ${isDarkMode() ? 'text-slate-300' : 'text-slate-700'}`}>No bookmarks yet</p>
-                      <p className={`text-xs ${isDarkMode() ? 'text-slate-500' : 'text-slate-400'}`}>Tap the bookmark icon to save pages</p>
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center px-4 py-8 text-center">
+                  <Icon name="bookmark" size={26} className="mb-3 text-[color:var(--rd-sub)]" />
+                  <p className="text-sm font-semibold">No bookmarks yet</p>
+                  <p className="mt-1 text-xs text-[color:var(--rd-sub)]">Use the bookmark button in the top bar to save a page.</p>
+                </div>
+              )}
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
 
-
-            </Tabs>
-         </div>
-      </div>
+        {/* Highlights summary */}
+        {!isPersonalFile && (
+          <div className="m-3 shrink-0 rounded-bb-md bg-[color:var(--rd-track)] p-4">
+            <p className="text-xs font-bold uppercase tracking-[0.08em] text-[color:var(--rd-sub)]">Your highlights</p>
+            <p className="mt-1 font-display text-base font-bold">
+              {annotationCounts.highlights} highlight{annotationCounts.highlights === 1 ? '' : 's'}
+              <span className="font-normal text-[color:var(--rd-sub)]"> · {annotationCounts.notes} note{annotationCounts.notes === 1 ? '' : 's'}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => openStudy('notes')}
+              className="mt-2 inline-flex items-center gap-1 rounded text-sm font-semibold text-bb-accent-ink hover:underline focus-visible:outline-none focus-visible:shadow-focus"
+            >
+              Open notes
+              <Icon name="arrow-right" size={14} fillLayer={false} />
+            </button>
+          </div>
+        )}
+      </aside>
 
       {/* Display panel ("Aa"): a 320px popover from tablet up, a bottom sheet on phones. */}
       {activePanel === 'settings' && !isFocusMode && (
@@ -1015,24 +1092,21 @@ function ReaderContent() {
         </div>
       </div>
 
-      {/* Floating View Mode Switch (EPUB only).
-          Was at bottom-6, which is now inside the bottom bar. Moved above
-          it — one more thing that had been quietly sharing the thumb
-          zone (audit fix 2). */}
-      {!isFocusMode && format !== 'pdf' && (
-        <div className="absolute bottom-[96px] left-1/2 -translate-x-1/2 z-[43]">
-          <EnhancedButton variant="outline" size="sm" onClick={toggleViewMode} className={`rounded-full px-5 py-2.5 shadow-2xl backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-[var(--deep-saffron)]/20 ${isDarkMode() ? 'bg-slate-900/90 text-white border-slate-700/50 hover:border-[var(--deep-saffron)]/50' : 'bg-white/95 text-slate-800 border-slate-300/60 hover:border-indigo-300'}`}>
-            {viewMode === 'scroll' ? <><BookOpenCheck className="h-4 w-4 mr-2 text-[var(--deep-saffron)]" /> <span className="font-semibold">Page View</span></> : <><ScrollText className="h-4 w-4 mr-2 text-[var(--deep-saffron)]" /> <span className="font-semibold">Scroll View</span></>}
-          </EnhancedButton>
-        </div>
-      )}
+      {/* (The floating "Page View / Scroll View" switch that used to sit here toggled
+          `viewMode`, which no reader component reads, so it was removed.) */}
 
-      {/* Floating Exit Focus Mode Button */}
+      {/* Exit focus mode. Always visible (faint until hovered or focused): touch
+          devices have no hover, and this is the only way back besides Escape. */}
       {isFocusMode && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-          <EnhancedButton variant="outline" size="sm" onClick={toggleFocusMode} className={`rounded-full px-5 py-2.5 shadow-2xl backdrop-blur-md border transition-all duration-300 hover:scale-105 ${isDarkMode() ? 'bg-slate-900/90 text-slate-200 border-slate-700/50 hover:border-[var(--deep-saffron)]/50 hover:shadow-[var(--deep-saffron)]/20' : 'bg-white/95 text-slate-700 border-slate-300/60 hover:border-indigo-300 hover:shadow-[var(--deep-saffron)]/10'}`}>
-            <X className="h-4 w-4 mr-2 text-red-400" /> <span className="font-semibold">Exit Focus Mode</span>
-          </EnhancedButton>
+        <div className="absolute left-1/2 top-[calc(12px+var(--bb-safe-top))] z-50 -translate-x-1/2 opacity-60 transition-opacity duration-bb-ui focus-within:opacity-100 hover:opacity-100">
+          <button
+            type="button"
+            onClick={toggleFocusMode}
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] px-4 text-sm font-semibold text-[color:var(--rd-ink)] shadow-e2 focus-visible:outline-none focus-visible:shadow-focus"
+          >
+            <Icon name="close" size={16} fillLayer={false} />
+            Exit focus mode
+          </button>
         </div>
       )}
 
@@ -1062,7 +1136,7 @@ function ReaderContent() {
             percentComplete={percentComplete}
             minutesLeft={minutesLeft}
             sessionSeconds={sessionSeconds}
-            wordsPerMin={wordsPerMin}
+            unit={format === 'epub' && epubLocationsReady ? 'Location' : 'Page'}
             isDarkMode={isDarkMode()}
           />
           <ReaderBottomBar
@@ -1073,6 +1147,8 @@ function ReaderContent() {
             isDarkMode={isDarkMode()}
             isListening={ttsState.isPlaying}
             onListen={() => handleReadAloud()}
+            onSeek={canSeek ? handleSeek : undefined}
+            unit={format === 'epub' && epubLocationsReady ? 'Location' : 'Page'}
             pairWithAnnotate={format === 'pdf'}
           />
         </>

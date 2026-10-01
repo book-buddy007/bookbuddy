@@ -7,6 +7,7 @@ import { EpubSelectionPopover } from "@/components/reader/EpubSelectionPopover"
 import { READER_PALETTES, readerFontStack, type ReaderThemeKey } from "@/lib/reader-themes"
 import { useReaderStore } from "@/store/useReaderStore"
 import { toReaderKey } from "@/lib/reader-themes"
+import { ReaderBottomBar } from "@/components/reader/ReaderBottomBar"
 
 /** Dev-only preview of the reader chrome (top bar, Display panel, selection popover, text). */
 export default function ReaderPreviewPage() {
@@ -14,6 +15,7 @@ export default function ReaderPreviewPage() {
   const key: ReaderThemeKey = toReaderKey(theme)
   const p = READER_PALETTES[key]
   const [bookmarked, setBookmarked] = React.useState(false)
+  const [page, setPage] = React.useState(42)
 
   return (
     <div data-reader={key} className="relative min-h-dvh overflow-hidden" style={{ background: p.bg, color: p.ink }}>
@@ -50,10 +52,18 @@ export default function ReaderPreviewPage() {
             onClose={() => undefined}
           />
         </article>
+        {/* Mock PDF page: the canvas layer takes the Sepia / Night filters */}
+        <div className="rpv-core__inner-pages rounded-[22px] p-4 lg:col-span-2">
+          <div className="rpv-core__canvas-layer !static mx-auto max-w-[420px] bg-white p-6 text-[#111] shadow-e1">
+            <p className="font-bold">PDF page {page}</p>
+            <p className="mt-2 text-sm">Black text on a white bitmap, with a <span style={{ color: "#d00" }}>red</span> and <span style={{ color: "#06c" }}>blue</span> figure label.</p>
+          </div>
+        </div>
         <aside className="rounded-[22px] border p-5" style={{ background: p.panel, borderColor: p.border }}>
           <ReaderDisplayContent />
         </aside>
       </div>
+      <ReaderBottomBar currentPage={page} totalPages={240} minutesLeft={95} percentComplete={Math.round((page / 240) * 100)} onListen={() => undefined} onSeek={setPage} />
     </div>
   )
 }

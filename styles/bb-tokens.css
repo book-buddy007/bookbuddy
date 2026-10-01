@@ -151,6 +151,15 @@
 [data-reader="sepia"] { --rd-bg: #F6EEDF; --rd-ink: #3B2F22; --rd-sub: #75634C; --rd-hl: #EBCB8B; --rd-panel: #FBF5EA; --rd-border: #E3D5BC; --rd-track: #EDE2CC; }
 [data-reader="night"] { --rd-bg: #0A0F24; --rd-ink: #E6EAF1; --rd-sub: #A9B4D0; --rd-hl: rgba(255, 181, 71, .32); --rd-panel: #121A33; --rd-border: #1A2340; --rd-track: #1A2340; }
 
+/* PDF pages follow the reader theme. A PDF page is a rendered bitmap, so it cannot be
+   recoloured like reflowable text: Sepia warms it, Night inverts it (hue-rotated back so
+   colours stay roughly true) and dims it a touch. Only the canvas is filtered — the text
+   layer stays transparent and selectable, and the ink overlay keeps the student's colours. */
+[data-reader] { --rpv-core__inner-page-background-color: var(--rd-bg); }
+[data-reader] .rpv-core__inner-pages { background: var(--rd-bg); transition: background-color 300ms; }
+[data-reader="sepia"] .rpv-core__canvas-layer { filter: sepia(.4) saturate(1.15) brightness(.98); }
+[data-reader="night"] .rpv-core__canvas-layer { filter: invert(.9) hue-rotate(180deg) brightness(.95) contrast(.95); }
+
 /* ---- Base ----
    Declared unlayered and imported after the legacy design systems, so these win
    over their element-level rules (notably the old Yatra One h1–h3 treatment). */
