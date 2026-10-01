@@ -5,38 +5,78 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authClient } from '@/lib/auth-client';
 import { useUserProfile } from '@/lib/hooks/useUserProfile';
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
-import { Progress } from "@/components/ui/progress";
-import { 
-  Building, 
-  UserCircle,
-  CheckCircle2, 
-  ArrowRight, 
-  ShieldCheck,
-  Mail,
-  Phone,
-  Search,
-  MessageCircle,
-  MessageSquare
-} from '@/components/ui/icons';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Icon, type BBIconName } from '@/components/ui/icon';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AuthBackdrop } from '@/components/auth/auth-backdrop';
+import { AuthCardSkeleton } from '@/components/auth/auth-card';
+import { cn } from '@/lib/utils';
 
 const WhatsappIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
   </svg>
 );
+
+const STEPS = ['Verify your email', 'Choose your path'];
+
+function Stepper({ current }: { current: number }) {
+  return (
+    <ol aria-label="Setup progress" className="mb-5 flex items-center gap-3">
+      {STEPS.map((label, i) => {
+        const n = i + 1;
+        const done = n < current;
+        const active = n === current;
+        return (
+          <li key={label} className="flex flex-1 items-center gap-3" aria-current={active ? 'step' : undefined}>
+            <span
+              className={cn(
+                'grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold',
+                done && 'bg-bb-success text-white',
+                active && 'bg-bb-primary text-white shadow-gloss',
+                !done && !active && 'bg-white/10 text-bb-dim',
+              )}
+            >
+              {done ? <Icon name="check" size={16} fillLayer={false} /> : n}
+            </span>
+            <span className={cn('text-sm font-semibold', active || done ? 'text-white' : 'text-bb-dim')}>{label}</span>
+            {n < STEPS.length && <span aria-hidden className="h-px flex-1 bg-bb-night-line-2" />}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function StepCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-bb-xl bg-bb-surface p-6 text-bb-text shadow-e2 animate-in fade-in-0 slide-in-from-bottom-2 duration-bb-ui sm:p-10">
+      <h1 className="font-display text-[28px] font-extrabold leading-tight tracking-[-0.03em] sm:text-[32px]">{title}</h1>
+      <p className="mt-2 text-[15px] text-bb-muted">{description}</p>
+      <div className="mt-8">{children}</div>
+    </section>
+  );
+}
+
+function IconTile({ name, className }: { name: BBIconName; className?: string }) {
+  return (
+    <span className={cn('grid h-12 w-12 shrink-0 place-items-center rounded-bb-md bg-bb-accent-soft text-bb-accent-ink', className)}>
+      <Icon name={name} size={24} />
+    </span>
+  );
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuthStore();
   const { userProfile, loading, refetch } = useUserProfile();
-  
+
   const [currentStep, setCurrentStep] = useState<number | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
-  
-  // Phone and OTP State
+
+  // Phone and OTP state
   const [editingPhone, setEditingPhone] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [activeOtpType, setActiveOtpType] = useState<null | 'email' | 'phone'>(null);
@@ -46,33 +86,34 @@ export default function OnboardingPage() {
   const [otpError, setOtpError] = useState('');
   const [profileError, setProfileError] = useState('');
 
-  // B2B Search State
+  // B2B search state
   const [searchQuery, setSearchQuery] = useState('');
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchedFor, setSearchedFor] = useState<string | null>(null);
 
   // B2C grade self-report — independent students have no Vidyaverse Class/Section
   // to resolve this from, so it's asked here, once, before completing onboarding.
   const [showGradePicker, setShowGradePicker] = useState(false);
   const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
   const [gradeError, setGradeError] = useState('');
-  
+
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) router.replace('/login');
   }, [isAuthenticated, isAuthLoading, router]);
 
   useEffect(() => {
     if (userProfile && currentStep === null) {
-      if (userProfile.onboardingCompleted || userProfile.onboardingStep >= 3) {
+      if (userProfile.onboardingCompleted || (userProfile.onboardingStep ?? 0) >= 3) {
         router.replace('/dashboard/student');
       } else {
-        // Step 1: Verification, Step 2: Path Choice
+        // Step 1: verification, step 2: path choice
         setCurrentStep(userProfile.onboardingStep || 1);
       }
     }
   }, [userProfile, router, currentStep]);
 
-  // Polling for email verification with exponential backoff
+  // Poll for email verification with exponential backoff
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     let pollInterval = 3000;
@@ -91,7 +132,7 @@ export default function OnboardingPage() {
       } catch (e) {
         // ignore
       }
-      
+
       pollInterval = Math.min(pollInterval * 1.5, maxInterval);
       timeoutId = setTimeout(poll, pollInterval);
     };
@@ -99,7 +140,7 @@ export default function OnboardingPage() {
     if (activeOtpType === 'email') {
       timeoutId = setTimeout(poll, pollInterval);
     }
-    
+
     return () => clearTimeout(timeoutId);
   }, [activeOtpType, refetch]);
 
@@ -109,6 +150,7 @@ export default function OnboardingPage() {
     }
   }, [userProfile?.phone, editingPhone]);
 
+  // Phone capture is kept for when mobile verification is switched back on.
   const handleSavePhone = async () => {
     if (!phoneNumber) return;
     setProfileError('');
@@ -145,7 +187,7 @@ export default function OnboardingPage() {
         },
         ...(body && { body })
       });
-      
+
       if (!res.ok) {
         const data = await res.json();
         setOtpError(data.error || `Failed to send ${type === 'email' ? 'link' : 'OTP'}`);
@@ -195,6 +237,7 @@ export default function OnboardingPage() {
       const res = await fetch(`/api/institutions/browse?search=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
       setInstitutions(data.data || []);
+      setSearchedFor(searchQuery);
     } catch (e) {
       console.error(e);
     }
@@ -209,7 +252,7 @@ export default function OnboardingPage() {
     setIsCompleting(true);
     try {
       if (accountType === 'INSTITUTIONAL' && tenantId) {
-        // Create Join Request First
+        // Create the join request first
         await fetch('/api/join-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -217,7 +260,7 @@ export default function OnboardingPage() {
         });
       }
 
-      // Finalize Onboarding
+      // Finalise onboarding
       await fetch('/api/user/complete-onboarding', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -228,7 +271,6 @@ export default function OnboardingPage() {
         }),
       });
 
-      // Use router push since we now use React Query to manage state cleanly
       router.push('/dashboard/student');
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -246,15 +288,15 @@ export default function OnboardingPage() {
   };
 
   const handleNextStep = async () => {
-     if (currentStep === 1) {
-       // Save partial progression
-       await fetch('/api/user/complete-onboarding', {
-         method: 'PUT',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ onboardingStep: 2 }),
-       });
-       setCurrentStep(2);
-     }
+    if (currentStep === 1) {
+      // Save partial progression
+      await fetch('/api/user/complete-onboarding', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onboardingStep: 2 }),
+      });
+      setCurrentStep(2);
+    }
   };
 
   const handleLogout = async () => {
@@ -262,278 +304,231 @@ export default function OnboardingPage() {
     window.location.href = '/login';
   };
 
+  const signOut = (
+    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 dark:text-white" onClick={handleLogout}>
+      <Icon name="logout" fillLayer={false} />
+      Sign out
+    </Button>
+  );
+
   if (loading || currentStep === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-900 dark:via-blue-900 dark:to-cyan-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-          <p className="text-gray-600 dark:text-gray-300 font-medium">Loading your profile...</p>
-        </div>
-      </div>
+      <AuthBackdrop>
+        <AuthCardSkeleton />
+      </AuthBackdrop>
     );
   }
 
-  const stepsTotal = 2;
-  const progress = (currentStep / stepsTotal) * 100;
+  const spinner = <Icon name="loader" fillLayer={false} className="animate-spin" />;
+  const emailVerified = !!userProfile?.emailVerified;
+  const showVerifyPanel = !!(activeOtpType || (!emailVerified ? 'email' : null));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-gray-900 dark:via-blue-900 dark:to-cyan-900 p-4 flex flex-col relative overflow-hidden">
-      
-      {/* Top Navbar for Logout */}
-      <div className="w-full flex justify-end p-4 z-20">
-        <EnhancedButton variant="ghost" className="text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-medium" onClick={handleLogout}>
-          Log Out
-        </EnhancedButton>
-      </div>
+    <AuthBackdrop wide actions={signOut}>
+      <Stepper current={currentStep} />
 
-      <div className="w-full max-w-3xl mx-auto my-auto relative z-10 flex-1 flex flex-col justify-center">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Step {currentStep} of {stepsTotal}
-            </span>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {progress}%
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
+      {/* STEP 1: VERIFICATION */}
+      {currentStep === 1 && (
+        <StepCard title="Secure your account" description="We just need to confirm your email address before you start reading.">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4 rounded-bb-lg border border-bb-border p-4">
+              <IconTile name="mail" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">Email address</p>
+                {/* truncate + min-w-0: a long email must not push the badge off a narrow card */}
+                <p className="truncate text-sm text-bb-muted">{userProfile?.email}</p>
+              </div>
+              {emailVerified ? (
+                <StatusBadge status="success" label="Verified" />
+              ) : (
+                <StatusBadge status="warning" label="Pending" />
+              )}
+            </div>
 
-        <EnhancedCard variant="glass" className="animate-in fade-in-0 duration-bb-ui">
-          {/* STEP 1: VERIFICATION */}
-          {currentStep === 1 && (
-            <>
-              <EnhancedCardHeader className="text-center space-y-2">
-                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
-                  Secure Your Account
-                </EnhancedCardTitle>
-                <EnhancedCardDescription>
-                  Keep your library safe. We just need to verify your contact details.
-                </EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent className="space-y-6">
-                
-                <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg shrink-0">
-                        <Mail className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">Email Address</h4>
-                        {/* truncate + min-w-0 above: a long email must not push the
-                            "Verified" badge past the card edge on a narrow screen. */}
-                        <p className="text-sm text-gray-500 truncate">{userProfile?.email}</p>
-                      </div>
-                    </div>
-                    {userProfile?.emailVerified ? (
-                      <span className="flex items-center shrink-0 whitespace-nowrap text-green-600 text-sm font-medium"><CheckCircle2 className="w-4 h-4 mr-1"/> Verified</span>
-                    ) : (
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <div className="flex items-center gap-2">
-                          <span className="flex items-center text-amber-500 text-sm font-medium whitespace-nowrap">Pending Verification</span>
-                          {activeOtpType !== 'email' && (
-                            <EnhancedButton size="sm" variant="outline" onClick={() => handleSendOtp('email')} loading={otpSending && activeOtpType !== 'phone'}>Verify</EnhancedButton>
-                          )}
-                        </div>
-                        {otpError && !activeOtpType && <span className="text-xs text-red-500">{otpError}</span>}
+            {/* Mobile verification suppressed for the development phase */}
+
+            {showVerifyPanel && (
+              <div className="rounded-bb-lg bg-bb-surface-2 p-5 animate-in fade-in-0 duration-bb-ui">
+                {activeOtpType === 'email' || (!emailVerified && !activeOtpType) ? (
+                  <div className="flex flex-col gap-4">
+                    <p className="text-sm text-bb-muted">
+                      {activeOtpType === 'email'
+                        ? 'We sent a secure link to your inbox. Open it to verify; this page updates by itself.'
+                        : 'Your email must be verified to continue.'}
+                    </p>
+                    {!emailVerified && !activeOtpType && (
+                      <Button className="self-start" onClick={() => handleSendOtp('email')} disabled={otpSending}>
+                        {otpSending ? spinner : <Icon name="send" fillLayer={false} />}
+                        {otpSending ? 'Sending…' : 'Send verification link'}
+                      </Button>
+                    )}
+                    {activeOtpType === 'email' && (
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span role="status" className="inline-flex items-center gap-2 text-sm font-semibold text-bb-cobalt dark:text-bb-periwinkle">
+                          {spinner}
+                          Waiting for verification…
+                        </span>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveOtpType(null)}>Cancel</Button>
                       </div>
                     )}
-                  </div>
-                </div>
-
-                {/* Mobile verification suppressed for development phase */}
-
-
-                {/* Verification Section */}
-                {(activeOtpType || (!userProfile?.emailVerified ? 'email' : null)) && (
-                  <div className="p-4 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 animate-in fade-in-0 duration-bb-ui">
-                    <h4 className="font-semibold mb-2">Verify your {activeOtpType || 'email'}</h4>
-                    
-                    {activeOtpType === 'email' || (!userProfile?.emailVerified && !activeOtpType) ? (
-                      <div className="space-y-4">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {activeOtpType === 'email' 
-                            ? "Action Required: We sent a secure link to your email. Please click the link to verify your account."
-                            : "Your email must be verified to continue."}
-                        </p>
-                        {(!userProfile?.emailVerified && !activeOtpType) && (
-                          <EnhancedButton variant="vg-primary" onClick={() => handleSendOtp('email')} loading={otpSending}>
-                            Send Verification Link
-                          </EnhancedButton>
-                        )}
-                        {(activeOtpType === 'email') && (
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
-                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                              Waiting for verification...
-                            </div>
-                            <EnhancedButton variant="ghost" onClick={() => setActiveOtpType(null)}>Cancel</EnhancedButton>
-                          </div>
-                        )}
-                        {otpError && <p className="text-sm text-red-500 mt-2">{otpError}</p>}
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {activeOtpType === 'phone' ? (
-                          <div className="flex flex-col mb-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium bg-green-100/50 dark:bg-green-900/20 w-fit px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800/60 mb-2">
-                              <WhatsappIcon className="w-4 h-4 text-green-600" />
-                              <span>We've sent a 6-digit code to your WhatsApp</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">We've sent a 6-digit code. Please enter it below.</p>
-                        )}
-                        <div className="flex gap-2">
-                          <Input 
-                            placeholder="Enter 6-digit code" 
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value)}
-                            className="max-w-[200px]"
-                            onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
-                          />
-                          <EnhancedButton variant="vg-primary" onClick={handleVerifyOtp} loading={otpVerifying}>
-                            Submit
-                          </EnhancedButton>
-                          <EnhancedButton variant="ghost" onClick={() => setActiveOtpType(null)}>Cancel</EnhancedButton>
-                        </div>
-                        {activeOtpType === 'phone' && (
-                          <p className="text-xs text-muted-foreground mt-3 flex items-center">
-                            Didn't get it on WhatsApp?{' '}
-                            <button className="ml-1 text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center" onClick={() => handleSendOtp('phone')}>
-                              <MessageSquare className="w-3 h-3 mr-1"/> Send via SMS instead
-                            </button>
-                          </p>
-                        )}
-                        {otpError && <p className="text-sm text-red-500 mt-2">{otpError}</p>}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-4">
-                  <EnhancedButton 
-                    variant="vg-primary" 
-                    onClick={handleNextStep}
-                    disabled={!userProfile?.emailVerified}
-                    icon={<ArrowRight className="h-4 w-4" />}
-                    iconPosition="right"
-                  >
-                    Continue
-                  </EnhancedButton>
-                </div>
-              </EnhancedCardContent>
-            </>
-          )}
-
-          {/* STEP 2: PATH CHOICE */}
-          {currentStep === 2 && (
-            <>
-              <EnhancedCardHeader className="text-center space-y-2">
-                <EnhancedCardTitle className="text-3xl font-bold text-bb-accent">
-                  Choose Your Path
-                </EnhancedCardTitle>
-                <EnhancedCardDescription>
-                  Are you learning independently or joining a school/college library?
-                </EnhancedCardDescription>
-              </EnhancedCardHeader>
-              <EnhancedCardContent className="space-y-6">
-                {showGradePicker ? (
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Which class are you in?</h4>
-                      <p className="text-sm text-gray-500">This helps us match content and quizzes to your level. You can't change this later without contacting support.</p>
-                    </div>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map((grade) => (
-                        <button
-                          key={grade}
-                          type="button"
-                          onClick={() => { setSelectedGrade(grade); setGradeError(''); }}
-                          className={`h-12 rounded-lg border-2 font-semibold text-sm transition-all ${
-                            selectedGrade === grade
-                              ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                              : 'border-gray-200 dark:border-gray-800 hover:border-blue-300 text-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {grade}
-                        </button>
-                      ))}
-                    </div>
-                    {gradeError && <p className="text-sm text-red-500">{gradeError}</p>}
-                    <div className="flex justify-between pt-2">
-                      <EnhancedButton variant="ghost" onClick={() => { setShowGradePicker(false); setSelectedGrade(null); setGradeError(''); }}>
-                        Back
-                      </EnhancedButton>
-                      <EnhancedButton variant="vg-primary" onClick={handleConfirmGrade} loading={isCompleting}>
-                        Continue
-                      </EnhancedButton>
-                    </div>
                   </div>
                 ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* B2C Option */}
-                  <div className="p-6 rounded-xl border-2 border-transparent hover:border-blue-500 bg-white dark:bg-gray-900 shadow-sm transition-all cursor-pointer flex flex-col justify-between"
-                       onClick={() => setShowGradePicker(true)}>
-                    <div>
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg inline-block mb-4">
-                        <UserCircle className="h-8 w-8 text-blue-600" />
-                      </div>
-                      <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Independent Learner</h4>
-                      <p className="text-sm text-gray-500">I want to browse the public library and learn on my own.</p>
+                  <div className="flex flex-col gap-4">
+                    {activeOtpType === 'phone' ? (
+                      <p className="inline-flex w-fit items-center gap-2 rounded-full bg-bb-success-soft px-3 py-1.5 text-sm font-semibold text-bb-success-ink">
+                        <WhatsappIcon className="h-4 w-4" />
+                        We&apos;ve sent a 6-digit code to your WhatsApp
+                      </p>
+                    ) : (
+                      <p className="text-sm text-bb-muted">We&apos;ve sent a 6-digit code. Enter it below.</p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <Input
+                        aria-label="6-digit code"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        placeholder="6-digit code"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value)}
+                        className="max-w-[200px] bg-bb-surface"
+                        onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
+                      />
+                      <Button onClick={handleVerifyOtp} disabled={otpVerifying}>
+                        {otpVerifying && spinner}
+                        Submit
+                      </Button>
+                      <Button variant="ghost" onClick={() => setActiveOtpType(null)}>Cancel</Button>
                     </div>
-                    <EnhancedButton className="mt-6 w-full" variant="outline">Select</EnhancedButton>
+                    {activeOtpType === 'phone' && (
+                      <p className="text-xs text-bb-muted">
+                        Didn&apos;t get it on WhatsApp?{' '}
+                        <button className="inline-flex items-center gap-1 font-semibold text-bb-accent-ink hover:underline" onClick={() => handleSendOtp('phone')}>
+                          <Icon name="chat" size={12} fillLayer={false} /> Send by SMS instead
+                        </button>
+                      </p>
+                    )}
                   </div>
-
-                  {/* B2B Option */}
-                  <div className="p-6 rounded-xl border-2 border-transparent hover:border-teal-500 bg-white dark:bg-gray-900 shadow-sm transition-all flex flex-col justify-between"
-                       >
-                    <div>
-                      <div className="p-3 bg-teal-100 dark:bg-teal-900/30 rounded-lg inline-block mb-4">
-                        <Building className="h-8 w-8 text-teal-600" />
-                      </div>
-                      <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Join an Institution</h4>
-                      <p className="text-sm text-gray-500 mb-4">I belong to a school, college, or organization library.</p>
-                      
-                      <div className="flex gap-2">
-                        <Input 
-                          placeholder="Search for your school..." 
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && searchInstitutions()}
-                        />
-                        <EnhancedButton variant="vg-primary" onClick={searchInstitutions} loading={searching}>
-                          <Search className="h-4 w-4"/>
-                        </EnhancedButton>
-                      </div>
-
-                      {institutions.length > 0 && (
-                        <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-2">
-                          {institutions.map(inst => (
-                            <div key={inst.id} className="p-3 flex justify-between items-center rounded-lg border border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800">
-                              <span className="font-medium text-sm truncate">{inst.name}</span>
-                              <EnhancedButton 
-                                size="sm" 
-                                onClick={() => handleCompleteOnboarding('INSTITUTIONAL', inst.id)}
-                                loading={isCompleting}
-                              >
-                                Request Join
-                              </EnhancedButton>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
                 )}
-              </EnhancedCardContent>
-            </>
-          )}
+              </div>
+            )}
 
-        </EnhancedCard>
-      </div>
-    </div>
+            {(otpError || profileError) && (
+              <Alert variant="destructive">
+                <Icon name="alert-circle" fillLayer={false} />
+                <AlertDescription>{otpError || profileError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <Button size="lg" onClick={handleNextStep} disabled={!emailVerified}>
+                Continue
+                <Icon name="arrow-right" fillLayer={false} />
+              </Button>
+            </div>
+          </div>
+        </StepCard>
+      )}
+
+      {/* STEP 2: PATH CHOICE */}
+      {currentStep === 2 && (
+        showGradePicker ? (
+          <StepCard
+            title="Which class are you in?"
+            description="We use it to match books and quizzes to your level. Changing it later needs a word with support."
+          >
+            <div role="radiogroup" aria-label="Class" className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((grade) => (
+                <button
+                  key={grade}
+                  type="button"
+                  role="radio"
+                  aria-checked={selectedGrade === grade}
+                  onClick={() => { setSelectedGrade(grade); setGradeError(''); }}
+                  className={cn(
+                    'h-12 rounded-bb-md border-[1.5px] font-display text-base font-bold transition-colors duration-bb-micro focus-visible:outline-none focus-visible:shadow-focus',
+                    selectedGrade === grade
+                      ? 'border-bb-accent bg-bb-accent-soft text-bb-accent-ink'
+                      : 'border-bb-border text-bb-text hover:border-bb-accent/40',
+                  )}
+                >
+                  {grade}
+                </button>
+              ))}
+            </div>
+            {gradeError && <p role="alert" className="mt-3 text-[13px] text-bb-danger-ink">{gradeError}</p>}
+            <div className="mt-8 flex justify-between">
+              <Button variant="ghost" onClick={() => { setShowGradePicker(false); setSelectedGrade(null); setGradeError(''); }}>
+                <Icon name="arrow-left" fillLayer={false} />
+                Back
+              </Button>
+              <Button size="lg" onClick={handleConfirmGrade} disabled={isCompleting}>
+                {isCompleting && spinner}
+                Finish setup
+              </Button>
+            </div>
+          </StepCard>
+        ) : (
+          <StepCard title="Choose your path" description="Are you reading on your own, or joining your school or college library?">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* B2C */}
+              <button
+                type="button"
+                onClick={() => setShowGradePicker(true)}
+                className="group flex flex-col items-start rounded-bb-lg border-[1.5px] border-bb-border p-6 text-left transition-[border-color,transform,box-shadow] duration-bb-ui hover:border-bb-accent motion-safe:hover:-translate-y-0.5 hover:shadow-e1 focus-visible:outline-none focus-visible:shadow-focus"
+              >
+                <IconTile name="profile" />
+                <span className="mt-4 font-display text-xl font-bold">Independent learner</span>
+                <span className="mt-1 text-sm text-bb-muted">Browse the public library and learn at your own pace.</span>
+                <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-bb-accent-ink">
+                  Choose this
+                  <Icon name="arrow-right" size={16} fillLayer={false} className="transition-transform duration-bb-micro group-hover:translate-x-0.5" />
+                </span>
+              </button>
+
+              {/* B2B */}
+              <div className="flex flex-col rounded-bb-lg border-[1.5px] border-bb-border p-6">
+                <IconTile name="institution" className="bg-bb-info-soft text-bb-info-ink" />
+                <h2 className="mt-4 font-display text-xl font-bold">Join an institution</h2>
+                <p className="mt-1 text-sm text-bb-muted">You belong to a school, college or organisation library.</p>
+
+                <form
+                  className="mt-5 flex gap-2"
+                  role="search"
+                  onSubmit={(e) => { e.preventDefault(); searchInstitutions(); }}
+                >
+                  <Input
+                    aria-label="Search institutions"
+                    placeholder="Search for your school…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Button type="submit" variant="secondary" size="icon-md" aria-label="Search" disabled={searching}>
+                    {searching ? spinner : <Icon name="search" fillLayer={false} />}
+                  </Button>
+                </form>
+
+                {institutions.length > 0 ? (
+                  <ul className="mt-4 max-h-48 space-y-2 overflow-y-auto pr-1">
+                    {institutions.map((inst) => (
+                      <li key={inst.id} className="flex items-center justify-between gap-3 rounded-bb-md bg-bb-surface-2 p-3">
+                        <span className="truncate text-sm font-semibold">{inst.name}</span>
+                        <Button size="sm" onClick={() => handleCompleteOnboarding('INSTITUTIONAL', inst.id)} disabled={isCompleting}>
+                          {isCompleting && spinner}
+                          Request to join
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : searchedFor !== null && !searching ? (
+                  <p className="mt-4 text-sm text-bb-muted">
+                    No institutions match &ldquo;{searchedFor}&rdquo;. Check the spelling, or ask your librarian for the exact name.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </StepCard>
+        )
+      )}
+    </AuthBackdrop>
   );
 }
