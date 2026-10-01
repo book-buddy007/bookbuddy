@@ -15,7 +15,7 @@
      folder doesn't know about, it stops and says so.
 #>
 param(
-    [string]$Remote = 'https://github.com/book-buddy007/bookbuddy.git',
+    [string]$Remote = 'https://book-buddy007@github.com/book-buddy007/bookbuddy.git',
     [string]$Branch = 'main',
     [string]$LogFile = ''
 )
@@ -97,8 +97,10 @@ try {
     if ($remotes -contains 'origin') { Run 'git' @('remote', 'set-url', 'origin', $Remote) | Out-Null }
     else { Run 'git' @('remote', 'add', 'origin', $Remote) | Out-Null }
 
-    # May open a GitHub sign-in window the first time.
-    Run 'git' @('fetch', 'origin') | Out-Null
+    # May open a GitHub sign-in window the first time (sign in as the repo owner).
+    if ((Run 'git' @('fetch', 'origin') -AllowFail) -ne 0) {
+        throw "GitHub refused access to $Remote. Make sure the repository exists, and sign in as an account that can push to it when Git asks."
+    }
     $remoteHead = Capture 'git' @('rev-parse', '--verify', '-q', "origin/$Branch")
     if ($remoteHead) {
         $isAncestor = (Run 'git' @('merge-base', '--is-ancestor', "origin/$Branch", 'HEAD') -AllowFail) -eq 0
