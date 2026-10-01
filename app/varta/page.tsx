@@ -1,319 +1,184 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import {
-  WandSparkles,
-  MessageCircle,
-  HelpCircle,
-  Target,
-  Brain,
-  ArrowLeft,
-  Clock,
-  BookOpen,
-  CheckCircle2,
-  XCircle,
-  Sparkles,
-} from '@/components/ui/icons';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Icon } from '@/components/ui/icon';
+import { Segmented } from '@/components/ui/segmented';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { EmptyState } from '@/components/ui/empty-state';
+import { BookListCard } from '@/components/ui/book-list-card';
+import { VartaOrb } from '@/components/ui/varta';
+import { VartaChat, type ActiveCitation } from '@/components/varta/varta-chat';
+import type { DialogueMode } from '@/hooks/useBookChat';
+import { VartaHistory } from '@/components/varta/varta-history';
+import { VartaSourcePanel } from '@/components/varta/varta-source-panel';
+import { VartaActivityView } from '@/components/varta/varta-activity';
+import { useVartaActivity, useVartaBooks } from '@/components/varta/use-varta-data';
+import { buildCiteMaps } from '@/lib/varta-citations';
+import { useBookChat } from '@/hooks/useBookChat';
 
-/* Varta activity hub — a dedicated page (kept out of the reader's narrow drawer,
-   which would be cluttered). Shows the signed-in student's Varta chat + quiz
-   activity, scoped to one book (?bookId=) or across all books. Deliberately
-   Varta-only: Graph, Digest, Notes and Sanchika are not counted. */
+/* Varta — full-screen workspace (opens over the app shell, like the player and reader).
 
-interface Labelled { label: string; mastery: number }
-interface Activity {
-  scope: 'book' | 'global';
-  book: { id: string; title: string; author: string } | null;
-  stats: {
-    questionsAsked: number;
-    modeBreakdown: Record<string, number>;
-    quiz: { answered: number; correct: number; accuracy: number | null };
-    mastery: { average: number | null; tracked: number; strongest: Labelled[]; weakest: Labelled[] };
-  };
-  usage: {
-    series: { date: string; varta: number; quiz: number }[];
-    trial: {
-      isTrial: boolean;
-      isPaid: boolean;
-      trialEndsAt: string | null;
-      remaining: { varta: number; quiz: number; limit: number } | null;
-    };
-  };
-  recentChats: { bookId: string; bookTitle: string; mode: string; preview: string; createdAt: string }[];
-  recentQuizzes: {
-    bookId: string; bookTitle: string; chapterTitle: string; citedPage: number | null;
-    prompt: string; correct: boolean; answeredAt: string;
-  }[];
-}
+   Chat view: history rail · conversation · source panel (desktop); the history becomes a
+   sheet on tablet/phone and the cited excerpt shows inline inside the answer.
+   Activity view: the student's Varta chat + quiz stats, scoped to one book (?bookId=) or all.
 
-const MODE_LABEL: Record<string, string> = {
-  explain: 'Explain', socratic: 'Socratic', debate: 'Debate', quiz_me: 'Quiz me',
-};
+   Data comes from the same endpoints as before: /api/students/me/varta-activity,
+   /api/v1/books and the per-book chat stream (hooks/useBookChat). */
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return d < 30 ? `${d}d ago` : new Date(iso).toLocaleDateString();
-}
+type View = 'chat' | 'activity';
 
-function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
-      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-medium">
-        <Icon className="h-4 w-4 text-indigo-500" /> {label}
-      </div>
-      <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{value}</div>
-      {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
-    </div>
-  );
-}
-
-function VartaHub() {
+function VartaWorkspace() {
+  const router = useRouter();
   const params = useSearchParams();
   const bookId = params.get('bookId') || params.get('id') || undefined;
-  const [data, setData] = useState<Activity | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const view: View = params.get('view') === 'activity' ? 'activity' : 'chat';
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch(`/api/students/me/varta-activity${bookId ? `?bookId=${encodeURIComponent(bookId)}` : ''}`, {
-      credentials: 'include',
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then(setData)
-      .catch(() => setError('Could not load your Varta activity.'))
-      .finally(() => setLoading(false));
-  }, [bookId]);
+  const { books, loading: booksLoading } = useVartaBooks();
+  const { data: activity, loading: activityLoading, error: activityError } = useVartaActivity(view === 'activity' ? bookId : undefined);
+  const { data: history, loading: historyLoading } = useVartaActivity(undefined);
 
-  const maxUsage = useMemo(
-    () => Math.max(1, ...(data?.usage.series.map((s) => s.varta + s.quiz) ?? [1])),
-    [data],
+  const [historyOpen, setHistoryOpen] = useState(false);
+
+  const book = useMemo(() => books.find((b) => b.id === bookId), [books, bookId]);
+
+  const go = useCallback(
+    (next: { bookId?: string; view?: View }) => {
+      const q = new URLSearchParams();
+      const b = 'bookId' in next ? next.bookId : bookId;
+      if (b) q.set('bookId', b);
+      if (next.view === 'activity') q.set('view', 'activity');
+      router.replace(`/varta${q.toString() ? `?${q}` : ''}`);
+      setHistoryOpen(false);
+    },
+    [router, bookId],
   );
 
-  if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading your Varta activity…</div>;
-  }
-  if (error || !data) {
-    return <div className="p-10 text-center text-red-500">{error ?? 'No data.'}</div>;
-  }
-
-  const { stats, usage, recentChats, recentQuizzes } = data;
-  const accuracyPct = stats.quiz.accuracy != null ? `${Math.round(stats.quiz.accuracy * 100)}%` : '—';
-  const masteryPct = stats.mastery.average != null ? `${Math.round(stats.mastery.average * 100)}%` : '—';
+  const historyRail = (
+    <VartaHistory
+      chats={history?.recentChats ?? []}
+      loading={historyLoading}
+      activeBookId={bookId}
+      onSelect={(id) => go({ bookId: id, view: 'chat' })}
+      onNew={() => go({ bookId: undefined, view: 'chat' })}
+    />
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <WandSparkles className="h-6 w-6 text-indigo-500" /> Varta activity
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {data.scope === 'book' && data.book
-                ? <>Your chats and quizzes in <span className="font-medium text-slate-700 dark:text-slate-300">{data.book.title}</span></>
-                : 'Your chats and quizzes across every book'}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {bookId && (
-              <>
-                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-600 text-white">This book</span>
-                <Link href="/varta" className="text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900">
-                  All books
-                </Link>
-              </>
-            )}
-            {bookId && (
-              <Link href={`/reader?bookId=${bookId}&tab=varta`} className="text-xs font-semibold px-3 py-1.5 rounded-full border border-indigo-300 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 flex items-center gap-1">
-                <ArrowLeft className="h-3 w-3" /> Back to reading
-              </Link>
-            )}
-          </div>
+    <div className="grid h-dvh grid-cols-1 bg-bb-bg text-bb-text lg:grid-cols-[272px_minmax(0,1fr)]">
+      <aside className="hidden min-h-0 lg:block">{historyRail}</aside>
+
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="left" className="w-[85vw] max-w-sm border-0 bg-bb-navy p-0 lg:hidden">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Chat history</SheetTitle>
+          </SheetHeader>
+          {historyRail}
+        </SheetContent>
+      </Sheet>
+
+      <main className="flex min-h-0 min-w-0 flex-col">
+        {/* View switch — kept inside the conversation column so the rails stay clean */}
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-bb-border bg-bb-surface px-4 py-2 pt-[calc(0.5rem+var(--bb-safe-top))] sm:px-6">
+          <Segmented<View>
+            size="sm"
+            aria-label="Varta view"
+            value={view}
+            onValueChange={(v) => go({ view: v })}
+            options={[
+              { value: 'chat', label: 'Chat' },
+              { value: 'activity', label: 'Activity' },
+            ]}
+          />
+          <Link href="/dashboard/student" className="text-[13px] font-semibold text-bb-accent-ink hover:underline">
+            Dashboard
+          </Link>
         </div>
 
-        {/* Trial banner */}
-        {usage.trial.isTrial && usage.trial.remaining && (
-          <div className="mb-6 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
-            <Sparkles className="h-4 w-4 shrink-0" />
-            <span>
-              Free trial — today you have <b>{usage.trial.remaining.varta}</b> Varta and{' '}
-              <b>{usage.trial.remaining.quiz}</b> quiz questions left (of {usage.trial.remaining.limit} each).
-            </span>
+        {view === 'activity' ? (
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8">
+            <div className="mx-auto max-w-5xl">
+              <header className="mb-8">
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-bb-accent-ink">Varta</p>
+                <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.05] tracking-[-0.03em]">Your activity</h1>
+                <p className="mt-2 text-[15px] text-bb-muted">
+                  {activity?.scope === 'book' && activity.book ? <>Chats and quizzes in <b className="text-bb-text">{activity.book.title}</b></> : 'Your chats and quizzes across every book'}
+                </p>
+              </header>
+              <VartaActivityView data={activity} loading={activityLoading} error={activityError} bookId={bookId} />
+            </div>
+          </div>
+        ) : bookId ? (
+          <ChatSession
+            key={bookId}
+            bookId={bookId}
+            book={book}
+            books={books}
+            onSelectBook={(id) => go({ bookId: id, view: 'chat' })}
+            onOpenHistory={() => setHistoryOpen(true)}
+            backHref={`/reader?bookId=${bookId}`}
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-10 sm:px-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-8 flex flex-col items-center gap-3 text-center">
+                <VartaOrb size={64} />
+                <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold tracking-[-0.03em]">Ask Varta</h1>
+                <p className="max-w-md text-[15px] text-bb-muted">Pick a textbook. Varta answers only from its pages and shows you where.</p>
+              </div>
+              {booksLoading ? (
+                <p className="text-center text-sm text-bb-muted">Loading your books…</p>
+              ) : books.length === 0 ? (
+                <EmptyState icon="varta" title="No Varta-enabled books yet" description="Books with Varta turned on will appear here." />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {books.map((b) => (
+                    <button key={b.id} type="button" onClick={() => go({ bookId: b.id, view: 'chat' })} className="text-left focus-visible:outline-none">
+                      <BookListCard interactive title={b.title} publisher={b.author} coverUrl={b.coverUrl} formats={[{ label: 'Varta', icon: 'varta' }]} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
+      </main>
 
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <StatCard icon={MessageCircle} label="Questions asked" value={String(stats.questionsAsked)} />
-          <StatCard icon={HelpCircle} label="Quiz questions" value={String(stats.quiz.answered)} sub={`${stats.quiz.correct} correct`} />
-          <StatCard icon={Target} label="Quiz accuracy" value={accuracyPct} />
-          <StatCard icon={Brain} label="Avg. mastery" value={masteryPct} sub={`${stats.mastery.tracked} concepts`} />
-        </div>
-
-        {/* Usage over time */}
-        <section className="mb-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Usage · last 30 days</h2>
-            <div className="flex items-center gap-3 text-[11px] text-slate-500">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-indigo-500" /> Varta</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-purple-400" /> Quiz</span>
-            </div>
-          </div>
-          <div className="flex items-end gap-[3px] h-24">
-            {usage.series.map((s) => {
-              const total = s.varta + s.quiz;
-              const h = (total / maxUsage) * 100;
-              const vH = total > 0 ? (s.varta / total) * 100 : 0;
-              return (
-                <div key={s.date} className="flex-1 flex flex-col justify-end group relative" title={`${s.date}: ${s.varta} varta, ${s.quiz} quiz`}>
-                  <div className="w-full rounded-t-sm overflow-hidden flex flex-col-reverse" style={{ height: `${Math.max(h, total > 0 ? 6 : 2)}%` }}>
-                    <div className="bg-indigo-500" style={{ height: `${vH}%` }} />
-                    <div className="bg-purple-400" style={{ height: `${100 - vH}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Recent conversations */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 text-indigo-500" /> Recent Varta conversations
-            </h2>
-            {recentChats.length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">No Varta questions yet.</p>
-            ) : (
-              <ul className="space-y-2">
-                {recentChats.map((c, i) => (
-                  <li key={i}>
-                    <Link
-                      href={`/reader?bookId=${c.bookId}&tab=varta`}
-                      className="block p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-indigo-300 hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors"
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-indigo-500">{MODE_LABEL[c.mode] ?? c.mode}</span>
-                        <span className="text-[10px] text-slate-400 flex items-center gap-1"><Clock className="h-3 w-3" /> {timeAgo(c.createdAt)}</span>
-                      </div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">{c.preview}</p>
-                      {data.scope === 'global' && (
-                        <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1"><BookOpen className="h-3 w-3" /> {c.bookTitle}</p>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {/* Recent quizzes */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
-              <HelpCircle className="h-4 w-4 text-indigo-500" /> Recent quiz answers
-            </h2>
-            {recentQuizzes.length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">No quiz attempts yet.</p>
-            ) : (
-              <ul className="space-y-2">
-                {recentQuizzes.map((q, i) => (
-                  <li key={i} className="p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex items-start gap-2">
-                    {q.correct
-                      ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                      : <XCircle className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />}
-                    <div className="min-w-0">
-                      <p className="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">{q.prompt}</p>
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        {data.scope === 'global' && <>{q.bookTitle} · </>}
-                        {q.chapterTitle}{q.citedPage != null ? ` · pg. ${q.citedPage}` : ''} · {timeAgo(q.answeredAt)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          {/* Mastery */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
-              <Brain className="h-4 w-4 text-indigo-500" /> Concept mastery
-            </h2>
-            {stats.mastery.tracked === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">Answer some quizzes to build mastery.</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <MasteryList title="Strongest" items={stats.mastery.strongest} good />
-                <MasteryList title="Needs work" items={stats.mastery.weakest} />
-              </div>
-            )}
-          </section>
-
-          {/* Mode breakdown */}
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">How you use Varta</h2>
-            {Object.keys(stats.modeBreakdown).length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">No conversations yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {Object.entries(stats.modeBreakdown).sort((a, b) => b[1] - a[1]).map(([mode, count]) => {
-                  const total = Object.values(stats.modeBreakdown).reduce((s, n) => s + n, 0);
-                  return (
-                    <div key={mode}>
-                      <div className="flex justify-between text-xs text-slate-500 mb-0.5">
-                        <span>{MODE_LABEL[mode] ?? mode}</span><span>{count}</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500" style={{ width: `${(count / total) * 100}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
     </div>
   );
 }
 
-function MasteryList({ title, items, good }: { title: string; items: Labelled[]; good?: boolean }) {
+/** One chat session: owns the conversation hook so the thread and the source column read the same live messages. */
+function ChatSession({ bookId, ...rest }: Omit<React.ComponentProps<typeof VartaChat>, 'chat' | 'mode' | 'onModeChange' | 'active' | 'onActiveChange'>) {
+  const [mode, setMode] = useState<DialogueMode>('explain');
+  const chat = useBookChat(bookId, mode);
+  const [active, setActive] = useState<ActiveCitation | null>(null);
+
+  const message = chat.messages.find((m) => m.id === active?.messageId);
+  const { byIndex } = buildCiteMaps(message?.citations);
+  const citation = active ? byIndex.get(active.index) ?? null : null;
+  const others = (message?.citations ?? []).filter((c) => typeof c.index === 'number' && c.pageNumber != null && c.index !== active?.index);
+
   return (
-    <div>
-      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-2">{title}</h3>
-      <ul className="space-y-1.5">
-        {items.map((m, i) => (
-          <li key={i} className="text-xs">
-            <div className="flex justify-between text-slate-600 dark:text-slate-300 mb-0.5">
-              <span className="truncate pr-2">{m.label}</span>
-              <span>{Math.round(m.mastery * 100)}%</span>
-            </div>
-            <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              <div className={`h-full ${good ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${Math.round(m.mastery * 100)}%` }} />
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="grid min-h-0 flex-1 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <VartaChat {...rest} bookId={bookId} chat={chat} mode={mode} onModeChange={setMode} active={active} onActiveChange={setActive} />
+      <aside className="hidden min-h-0 border-l border-bb-border bg-bb-surface xl:block">
+        <VartaSourcePanel
+          citation={citation}
+          others={others}
+          bookId={bookId}
+          onSelect={(index) => active && setActive({ messageId: active.messageId, index })}
+        />
+      </aside>
     </div>
   );
 }
 
-export default function VartaActivityPage() {
+export default function VartaPage() {
   return (
-    <Suspense fallback={<div className="p-10 text-center text-slate-400">Loading…</div>}>
-      <VartaHub />
+    <Suspense fallback={<div className="flex h-dvh items-center justify-center bg-bb-bg"><Icon name="loader" size={32} className="animate-spin" /></div>}>
+      <VartaWorkspace />
     </Suspense>
   );
 }
