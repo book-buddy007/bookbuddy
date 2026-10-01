@@ -12,7 +12,7 @@ type Mode = "light" | "dark" | "system"
  * `bb-theme`) and applies it to <html> as data-theme and the `dark` class; "system"
  * follows prefers-color-scheme, which is the default.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, fullWidth }: { className?: string; fullWidth?: boolean }) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
@@ -21,6 +21,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     <Segmented<Mode>
       aria-label="Colour theme"
       className={className}
+      fullWidth={fullWidth}
       value={(mounted ? (theme as Mode) : "system") ?? "system"}
       onValueChange={setTheme}
       options={[

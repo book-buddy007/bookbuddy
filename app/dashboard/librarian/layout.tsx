@@ -1,15 +1,6 @@
-'use client';
+import type React from "react"
 
-import type React from "react";
-
-export default function LibrarianDashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="p-6">
-      {children}
-    </div>
-  );
-} 
+// Page gutters are provided by the shared AppShell (app/dashboard/layout.tsx).
+export default function LibrarianDashboardLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}

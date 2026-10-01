@@ -19,6 +19,7 @@ const statCardVariants = cva(
         default: "bg-bb-surface text-bb-text shadow-e1",
         featured: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
         primary: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
+        info: "bg-bb-surface text-bb-text shadow-e1",
         success: "bg-bb-surface text-bb-text shadow-e1",
         warning: "bg-bb-surface text-bb-text shadow-e1",
         error: "bg-bb-surface text-bb-text shadow-e1",
