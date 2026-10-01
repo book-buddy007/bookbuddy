@@ -83,27 +83,27 @@ export function AssignCollectionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
+      <DialogContent className="sm:max-w-[425px] rounded-2xl border-bb-border/60 bg-bb-surface dark:bg-bb-bg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
+          <DialogTitle className="text-xl font-bold text-bb-text dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
             <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
               <Shield className="h-4 w-4" />
             </div>
             Assign Collections (RBAC)
           </DialogTitle>
-          <DialogDescription className="text-slate-500 dark:text-slate-400">
+          <DialogDescription className="text-bb-muted">
             Grant {user?.name || 'this user'} granular access to specific collections within an institution.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="tenant" className="text-slate-700 dark:text-slate-300 font-semibold">Institution Membership</Label>
+            <Label htmlFor="tenant" className="text-bb-text font-semibold">Institution Membership</Label>
             <Select value={selectedTenant} onValueChange={handleTenantChange}>
-              <SelectTrigger id="tenant" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40">
+              <SelectTrigger id="tenant" className="rounded-xl bg-bb-surface-2 border-bb-border focus:ring-2 focus:ring-bb-accent/40">
                 <SelectValue placeholder="Select an institution" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
+              <SelectContent className="rounded-xl bg-bb-surface dark:bg-bb-bg border-bb-border/60">
                 {userMemberships.length === 0 ? (
                   <SelectItem value="none" disabled>No active memberships</SelectItem>
                 ) : (
@@ -118,16 +118,16 @@ export function AssignCollectionsDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="collections" className="text-slate-700 dark:text-slate-300 font-semibold">Assigned Collections (Comma-separated IDs)</Label>
+            <Label htmlFor="collections" className="text-bb-text font-semibold">Assigned Collections (Comma-separated IDs)</Label>
             <Input 
               id="collections"
               placeholder="e.g. math_101, science_advanced, english_dept" 
               value={collectionsInput} 
               onChange={(e) => setCollectionsInput(e.target.value)}
               disabled={!selectedTenant || selectedTenant === 'none'}
-              className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40"
+              className="rounded-xl bg-bb-surface-2 border-bb-border focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40"
             />
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-xs text-bb-faint">
                Enter the unique IDs of the collections this user should manage. Granular RBAC permissions will apply.
             </p>
           </div>
@@ -139,7 +139,7 @@ export function AssignCollectionsDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className="rounded-xl border-slate-200 dark:border-slate-700"
+            className="rounded-xl border-bb-border"
           >
             Cancel
           </EnhancedButton>

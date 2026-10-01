@@ -219,9 +219,9 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
       <BookContextHeader book={initialBook} />
 
       {/* ── Toolbar ── */}
-      <div className="bg-bb-surface-2 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+      <div className="bg-bb-surface-2 p-4 rounded-2xl border border-bb-border/60 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div>
-          <h3 className="font-semibold flex items-center gap-2"><Music className="w-5 h-5 text-amber-500" /> Audiobook Structure</h3>
+          <h3 className="font-semibold flex items-center gap-2"><Music className="w-5 h-5 text-bb-warning-ink" /> Audiobook Structure</h3>
           <p className="text-sm text-muted-foreground">Drag to reorder. Click titles to rename.</p>
         </div>
         <div className="flex gap-2">
@@ -229,7 +229,7 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
             onClick={() => addChapterMutation.mutate()}
             loading={addChapterMutation.isPending}
             variant="outline"
-            className="gap-2 rounded-xl border-slate-200 dark:border-slate-700"
+            className="gap-2 rounded-xl border-bb-border"
           >
             {!addChapterMutation.isPending && <Plus className="w-4 h-4" />}
             Add Chapter
@@ -248,11 +248,11 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
       {/* ── Chapter List ── */}
       {isLoading ? (
         <div className="space-y-4 animate-pulse">
-           <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
-           <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
+           <div className="h-20 bg-bb-surface-2 rounded-xl"></div>
+           <div className="h-20 bg-bb-surface-2 rounded-xl"></div>
         </div>
       ) : chapters.length === 0 ? (
-        <div className="text-center p-12 border-2 border-dashed rounded-xl text-muted-foreground border-slate-200 dark:border-slate-800">
+        <div className="text-center p-12 border-2 border-dashed rounded-xl text-muted-foreground border-bb-border">
            <Music className="w-12 h-12 mx-auto mb-4 opacity-50" />
            <p>No chapters yet. Add your first chapter to get started.</p>
         </div>

@@ -92,41 +92,41 @@ export function DeleteFormatDialog({ open, onOpenChange, target }: DeleteFormatD
       open={open}
       onOpenChange={(v) => { if (!deleteMutation.isPending) { onOpenChange(v); reset(); } }}
     >
-      <DialogContent className="sm:max-w-[460px] border-red-200/50 dark:border-red-900/40">
+      <DialogContent className="sm:max-w-[460px] border-bb-danger/50">
         <DialogHeader>
           <div className="mx-auto mb-3 relative">
-            <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl animate-pulse scale-150" />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-bb-danger-soft border border-red-200 dark:border-red-800/50 shadow-sm">
-              <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+            <div className="absolute inset-0 bg-bb-danger/20 rounded-full blur-xl animate-pulse scale-150" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-bb-danger-soft border border-bb-danger/30 shadow-sm">
+              <AlertTriangle className="h-8 w-8 text-bb-danger-ink" />
             </div>
           </div>
-          <DialogTitle className="text-center text-lg font-bold text-slate-900 dark:text-white">
+          <DialogTitle className="text-center text-lg font-bold text-bb-text dark:text-white">
             Delete This File From The Server?
           </DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
             Removes {whatItIs} from <strong className="text-foreground">{target.bookTitle}</strong> and
             deletes the stored file. The book itself stays.
-            This <strong className="text-red-600 dark:text-red-400">cannot be undone</strong>.
+            This <strong className="text-bb-danger-ink">cannot be undone</strong>.
           </DialogDescription>
         </DialogHeader>
 
         {/* The file's own identity, spelled out — the whole point of gate one. */}
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/40 p-3 space-y-1.5">
+        <div className="rounded-xl border border-bb-border bg-bb-surface-2/70 p-3 space-y-1.5">
           <div className="flex items-center justify-between gap-3 text-xs">
             <span className="font-semibold uppercase tracking-wider text-muted-foreground">
               {target.type}{isMarkdown && target.partIndex ? ` · Chapter ${target.partIndex}` : ''}
             </span>
             <span className="font-medium text-muted-foreground">{target.sizeLabel}</span>
           </div>
-          <p className="font-mono text-[11px] leading-snug break-all text-slate-700 dark:text-slate-300">
+          <p className="font-mono text-[11px] leading-snug break-all text-bb-text">
             {target.filename}
           </p>
         </div>
 
         {isMarkdown && (
-          <div className="flex gap-2.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-950/25 p-3">
-            <BrainCircuit className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-            <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-200">
+          <div className="flex gap-2.5 rounded-xl border border-bb-warning/30 bg-bb-warning-soft/70 p-3">
+            <BrainCircuit className="h-4 w-4 shrink-0 mt-0.5 text-bb-warning-ink" />
+            <p className="text-xs leading-relaxed text-bb-warning-ink">
               Already-embedded text is <strong>not</strong> removed. This chapter's chunks stay in the
               shared index — and the tutor can still quote them — until the book is re-ingested.
             </p>
@@ -140,9 +140,9 @@ export function DeleteFormatDialog({ open, onOpenChange, target }: DeleteFormatD
             checked={acknowledged}
             onChange={(e) => setAcknowledged(e.target.checked)}
             disabled={deleteMutation.isPending}
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 dark:border-slate-600 text-red-600 focus:ring-2 focus:ring-red-500/40 cursor-pointer"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-bb-border text-bb-danger-ink focus:ring-2 focus:ring-bb-danger/40 cursor-pointer"
           />
-          <span className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+          <span className="text-sm leading-relaxed text-bb-text">
             I mean to delete <strong className="text-foreground">{whatItIs}</strong>
             {isMarkdown ? ', not another chapter' : ''}.
           </span>
@@ -152,7 +152,7 @@ export function DeleteFormatDialog({ open, onOpenChange, target }: DeleteFormatD
         <div>
           <label className="text-sm font-medium text-muted-foreground block mb-2">
             Type{' '}
-            <span className="font-mono bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-md text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/40">
+            <span className="font-mono bg-bb-danger-soft px-2 py-0.5 rounded-md text-bb-danger-ink border border-bb-danger/30">
               delete
             </span>{' '}
             to confirm
@@ -163,10 +163,10 @@ export function DeleteFormatDialog({ open, onOpenChange, target }: DeleteFormatD
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="delete"
             disabled={deleteMutation.isPending || !acknowledged}
-            className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm
- focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400
-              bg-white dark:bg-slate-900 transition-all duration-200 disabled:opacity-50
-              placeholder:text-slate-400 dark:placeholder:text-slate-600"
+            className="w-full px-4 py-2.5 border border-bb-border rounded-xl text-sm
+ focus:outline-none focus:ring-2 focus:ring-bb-danger/40 focus:border-bb-danger/30
+              bg-bb-surface transition-all duration-200 disabled:opacity-50
+              placeholder:text-bb-faint"
           />
         </div>
 
@@ -184,8 +184,8 @@ export function DeleteFormatDialog({ open, onOpenChange, target }: DeleteFormatD
             disabled={!canConfirm || deleteMutation.isPending}
             className={`gap-2 rounded-xl text-white shadow-sm transition-all duration-200
               ${canConfirm
-                ? 'bg-bb-danger hover:brightness-95 shadow-red-500/20'
-                : 'bg-slate-300 dark:bg-slate-700 cursor-not-allowed'
+                ? 'bg-bb-danger hover:brightness-95'
+                : 'bg-bb-border cursor-not-allowed'
               }`}
           >
             {deleteMutation.isPending ? (

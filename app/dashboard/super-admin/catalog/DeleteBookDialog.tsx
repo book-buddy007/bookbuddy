@@ -52,15 +52,15 @@ export function DeleteBookDialog({ open, onOpenChange, book }: DeleteBookDialogP
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!deleteMutation.isPending) onOpenChange(v); }}>
-      <DialogContent className="sm:max-w-[440px] border-amber-200/50 dark:border-amber-900/40">
+      <DialogContent className="sm:max-w-[440px] border-bb-warning/50">
         <DialogHeader>
           <div className="mx-auto mb-3 relative">
-            <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl animate-pulse scale-150" />
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-bb-progress border border-amber-200 dark:border-amber-800/50 shadow-sm">
-              <Trash2 className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+            <div className="absolute inset-0 bg-bb-warning/20 rounded-full blur-xl animate-pulse scale-150" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-bb-progress border border-bb-warning/30 shadow-sm">
+              <Trash2 className="h-8 w-8 text-bb-warning-ink" />
             </div>
           </div>
-          <DialogTitle className="text-center text-lg font-bold text-slate-900 dark:text-white">Move to Bin?</DialogTitle>
+          <DialogTitle className="text-center text-lg font-bold text-bb-text dark:text-white">Move to Bin?</DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
             <strong className="text-foreground">{book.title}</strong> by {book.author} will be moved to the Bin and hidden from the library. It stays fully recoverable — files, embeddings and its map are only deleted when you permanently delete it from the Bin.
           </DialogDescription>
@@ -78,7 +78,7 @@ export function DeleteBookDialog({ open, onOpenChange, book }: DeleteBookDialogP
           <EnhancedButton
             onClick={() => deleteMutation.mutate()}
             disabled={deleteMutation.isPending}
-            className="gap-2 rounded-xl text-white shadow-sm shadow-amber-500/20"
+            className="gap-2 rounded-xl text-white shadow-sm"
           >
             {deleteMutation.isPending ? (
               <><Loader2 className="h-4 w-4 animate-spin" /> Moving...</>

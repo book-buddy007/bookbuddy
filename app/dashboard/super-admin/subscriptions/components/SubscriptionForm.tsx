@@ -120,19 +120,19 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-slate-200/60 dark:border-white/[0.07] bg-bb-bg dark:bg-bb-surface shadow-2xl flex flex-col max-h-[90dvh]">
+            <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-bb-border/60 dark:border-white/[0.07] bg-bb-bg dark:bg-bb-surface shadow-2xl flex flex-col max-h-[90dvh]">
                 <div 
                     className="relative overflow-hidden bg-bb-navy px-6 pt-6 pb-8 shrink-0"
                 >
                     
-                    <button onClick={onClose} className="absolute right-4 top-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors z-20">
+                    <button onClick={onClose} className="absolute right-4 top-4 text-white/70 hover:text-white bg-bb-surface/10 hover:bg-bb-surface/20 p-1.5 rounded-full transition-colors z-20">
                         <X className="w-4 h-4" />
                     </button>
 
                     <div className="relative z-10">
                         <DialogHeader className="text-left space-y-1.5">
                             <DialogTitle className="text-xl font-bold text-white flex items-center gap-2.5">
-                                <div className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 border border-white/10 shadow-inner">
+                                <div className="bg-bb-surface/15 backdrop-blur-sm rounded-lg p-1.5 border border-white/10 shadow-inner">
                                     <Crown className="h-5 w-5 text-bb-accent-ink" />
                                 </div>
                                 {isEditing ? "Edit Subscription" : "Create Subscription"}
@@ -150,9 +150,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                             
                             {!isEditing && (
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-2 mb-2 border-b border-slate-200/60 dark:border-slate-700/40 pb-2">
+                                    <div className="flex items-center gap-2 mb-2 border-b border-bb-border/60 pb-2">
                                         <div className="w-1 h-4 rounded-full bg-bb-progress" />
-                                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Institution Details</h3>
+                                        <h3 className="text-sm font-bold text-bb-text uppercase tracking-wider">Institution Details</h3>
                                     </div>
 
                                     <FormField
@@ -160,14 +160,14 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         name="tenantId"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Select Institution</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">Select Institution</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="border-slate-200 dark:border-white/[0.07] bg-white dark:bg-bb-surface-2 focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent h-11 transition-all">
+                                                        <SelectTrigger className="border-bb-border dark:border-white/[0.07] bg-bb-surface dark:bg-bb-surface-2 focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent h-11 transition-all">
                                                             <SelectValue placeholder="Select an institution" />
                                                         </SelectTrigger>
                                                     </FormControl>
-                                                    <SelectContent className="bg-white dark:bg-bb-surface border-slate-200 dark:border-white/[0.07] shadow-xl">
+                                                    <SelectContent className="bg-bb-surface dark:bg-bb-surface border-bb-border dark:border-white/[0.07] shadow-xl">
                                                         {tenants.map((t) => (
                                                             <SelectItem key={t.id} value={t.id} className="focus:bg-bb-accent-soft focus:text-bb-accent-ink cursor-pointer">
                                                                 {t.name}
@@ -183,9 +183,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                             )}
 
                             <div className="space-y-4 pt-1">
-                                <div className="flex items-center gap-2 mb-2 border-b border-slate-200/60 dark:border-slate-700/40 pb-2">
+                                <div className="flex items-center gap-2 mb-2 border-b border-bb-border/60 pb-2">
                                     <div className="w-1 h-4 rounded-full bg-bb-progress" />
-                                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Plan & Access</h3>
+                                    <h3 className="text-sm font-bold text-bb-text uppercase tracking-wider">Plan & Access</h3>
                                 </div>
 
                                 <FormField
@@ -193,7 +193,7 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                     name="planId"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Subscription Plan</FormLabel>
+                                            <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">Subscription Plan</FormLabel>
                                             <FormControl>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                                     {plans.map((plan) => {
@@ -204,13 +204,13 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                                                 onClick={() => field.onChange(plan.id)}
                                                                 className={cn(
                                                                     "relative flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all",
-                                                                    isSelected ? `border-bb-accent bg-bb-accent-soft shadow-sm` : `border-transparent bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700`
+                                                                    isSelected ? `border-bb-accent bg-bb-accent-soft shadow-sm` : `border-transparent bg-bb-surface border-bb-border hover:border-bb-border`
                                                                 )}
                                                             >
-                                                                <div className={cn("p-1.5 rounded-full mb-1 border bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400")}>
+                                                                <div className={cn("p-1.5 rounded-full mb-1 border bg-bb-surface-2 border-bb-border text-bb-muted")}>
                                                                     <Crown className="w-4 h-4" />
                                                                 </div>
-                                                                <span className={cn("text-[10px] font-bold tracking-wider text-center line-clamp-1", isSelected ? "text-bb-accent-ink" : "text-slate-500 dark:text-slate-400")}>{plan.name || plan.tier}</span>
+                                                                <span className={cn("text-[10px] font-bold tracking-wider text-center line-clamp-1", isSelected ? "text-bb-accent-ink" : "text-bb-muted")}>{plan.name || plan.tier}</span>
                                                             </div>
                                                         )
                                                     })}
@@ -227,9 +227,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         name="startDate"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Start Date</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">Start Date</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="border-slate-200 dark:border-white/[0.07] bg-white dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
+                                                    <Input type="date" className="border-bb-border dark:border-white/[0.07] bg-bb-surface dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -241,9 +241,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         name="endDate"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">End Date</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">End Date</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="border-slate-200 dark:border-white/[0.07] bg-white dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
+                                                    <Input type="date" className="border-bb-border dark:border-white/[0.07] bg-bb-surface dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -253,9 +253,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                             </div>
 
                             <div className="space-y-4 pt-1">
-                                <div className="flex items-center gap-2 mb-2 border-b border-slate-200/60 dark:border-slate-700/40 pb-2">
+                                <div className="flex items-center gap-2 mb-2 border-b border-bb-border/60 pb-2">
                                     <div className="w-1 h-4 rounded-full bg-bb-progress" />
-                                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Quotas & Configuration</h3>
+                                    <h3 className="text-sm font-bold text-bb-text uppercase tracking-wider">Quotas & Configuration</h3>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -264,9 +264,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         name="maxUsers"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Max Readers (Optional)</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">Max Readers (Optional)</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" placeholder="Unlimited" className="border-slate-200 dark:border-white/[0.07] bg-white dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
+                                                    <Input type="number" placeholder="Unlimited" className="border-bb-border dark:border-white/[0.07] bg-bb-surface dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -278,9 +278,9 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         name="maxStorage"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Max Storage GB (Optional)</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">Max Storage GB (Optional)</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" placeholder="Unlimited" className="border-slate-200 dark:border-white/[0.07] bg-white dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
+                                                    <Input type="number" placeholder="Unlimited" className="border-bb-border dark:border-white/[0.07] bg-bb-surface dark:bg-bb-surface-2 focus-visible:ring-bb-accent/30 focus-visible:border-bb-accent h-11" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -294,18 +294,18 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         name="status"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Account Status</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-bb-muted uppercase tracking-wide">Account Status</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                        <SelectTrigger className="border-slate-200 dark:border-white/[0.07] bg-white dark:bg-bb-surface-2 focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent h-11">
+                                                        <SelectTrigger className="border-bb-border dark:border-white/[0.07] bg-bb-surface dark:bg-bb-surface-2 focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent h-11">
                                                             <SelectValue placeholder="Select status" />
                                                         </SelectTrigger>
                                                     </FormControl>
-                                                    <SelectContent className="bg-white dark:bg-bb-surface border-slate-200 dark:border-white/[0.07] shadow-xl">
+                                                    <SelectContent className="bg-bb-surface dark:bg-bb-surface border-bb-border dark:border-white/[0.07] shadow-xl">
                                                         <SelectItem value="ACTIVE" className="focus:bg-bb-accent-soft focus:text-bb-accent-ink font-medium">Active</SelectItem>
-                                                        <SelectItem value="EXPIRED" className="focus:bg-red-500/10 focus:text-red-500 font-medium">Expired</SelectItem>
-                                                        <SelectItem value="CANCELLED" className="focus:bg-red-500/10 focus:text-red-500 font-medium">Cancelled</SelectItem>
-                                                        <SelectItem value="SUSPENDED" className="focus:bg-amber-500/10 focus:text-amber-500 font-medium">Suspended</SelectItem>
+                                                        <SelectItem value="EXPIRED" className="focus:bg-bb-danger/10 focus:text-bb-danger-ink font-medium">Expired</SelectItem>
+                                                        <SelectItem value="CANCELLED" className="focus:bg-bb-danger/10 focus:text-bb-danger-ink font-medium">Cancelled</SelectItem>
+                                                        <SelectItem value="SUSPENDED" className="focus:bg-bb-warning/10 focus:text-bb-warning-ink font-medium">Suspended</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -317,10 +317,10 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                                         control={form.control}
                                         name="autoRenew"
                                         render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-xl border border-slate-200 dark:border-white/[0.07] p-3.5 bg-white dark:bg-bb-surface-2 shadow-sm overflow-hidden relative">
+                                            <FormItem className="flex flex-row items-center justify-between rounded-xl border border-bb-border dark:border-white/[0.07] p-3.5 bg-bb-surface dark:bg-bb-surface-2 shadow-sm overflow-hidden relative">
                                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-bb-accent opacity-50" />
                                                 <div className="space-y-0.5 ml-2">
-                                                    <FormLabel className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                                    <FormLabel className="text-sm font-bold text-bb-text flex items-center gap-1.5">
                                                         Auto-Renew
                                                     </FormLabel>
                                                 </div>
@@ -341,13 +341,13 @@ export function SubscriptionForm({ open, onClose, onSubmit, isLoading, initialDa
                     </Form>
                 </div>
                 
-                <div className="px-6 py-4 border-t border-slate-200/60 dark:border-white/[0.07] bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3 shrink-0">
+                <div className="px-6 py-4 border-t border-bb-border/60 dark:border-white/[0.07] bg-bb-surface-2 flex justify-end gap-3 shrink-0">
                     <Button
                         type="button"
                         variant="ghost"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
+                        className="text-bb-muted hover:text-bb-text hover:bg-bb-surface-2/50"
                     >
                         Cancel
                     </Button>

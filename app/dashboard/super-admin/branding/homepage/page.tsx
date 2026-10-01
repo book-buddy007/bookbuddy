@@ -126,7 +126,7 @@ function FeaturedBooksSelector({
             >
               <BookOpen className="h-3.5 w-3.5" />
               {book.title}
-              <button type="button" onClick={() => removeBook(book.id)} className="hover:text-red-500 transition-colors">
+              <button type="button" onClick={() => removeBook(book.id)} className="hover:text-bb-danger-ink transition-colors">
                 <X className="h-3 w-3" />
               </button>
             </span>
@@ -136,24 +136,24 @@ function FeaturedBooksSelector({
 
       {/* Search + Add */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-bb-faint" />
         <input
           type="text"
           placeholder="Search library to add books…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-bb-border bg-bb-surface text-sm text-bb-text dark:text-white placeholder:text-bb-faint focus:ring-2 focus:ring-bb-accent/30 focus:border-bb-accent outline-none transition-all"
         />
       </div>
 
       {isLoading && (
-        <div className="flex items-center gap-2 text-xs text-slate-400">
+        <div className="flex items-center gap-2 text-xs text-bb-faint">
           <Loader2 className="animate-spin h-3 w-3" /> Searching library…
         </div>
       )}
 
       {search && catalogBooks.length > 0 && (
-        <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="max-h-48 overflow-y-auto rounded-xl border border-bb-border divide-y divide-bb-border">
           {catalogBooks.slice(0, 10).map(book => {
             const isSelected = selectedBooks.some(b => b.id === book.id);
             return (
@@ -162,12 +162,12 @@ function FeaturedBooksSelector({
                 type="button"
                 disabled={isSelected}
                 onClick={() => addBook(book)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${isSelected ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${isSelected ? 'opacity-50 cursor-not-allowed bg-bb-surface-2' : 'hover:bg-bb-surface-2'}`}
               >
-                <BookOpen className="h-4 w-4 text-slate-400 shrink-0" />
-                <span className="font-medium text-slate-700 dark:text-slate-300">{book.title}</span>
-                {book.author && <span className="text-xs text-slate-400 ml-auto">{book.author}</span>}
-                {isSelected && <span className="text-xs text-emerald-500 ml-auto">Added</span>}
+                <BookOpen className="h-4 w-4 text-bb-faint shrink-0" />
+                <span className="font-medium text-bb-text">{book.title}</span>
+                {book.author && <span className="text-xs text-bb-faint ml-auto">{book.author}</span>}
+                {isSelected && <span className="text-xs text-bb-success-ink ml-auto">Added</span>}
               </button>
             );
           })}
@@ -635,7 +635,7 @@ export default function HomepageEditorPage() {
                 />
 
                 <div className="space-y-4">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Announcement Items</label>
+                  <label className="text-sm font-medium text-bb-text">Announcement Items</label>
                   {formValues.announcements.items.map((item, index) => (
                     <Controller
                       key={index}
@@ -663,7 +663,7 @@ export default function HomepageEditorPage() {
                                 shouldValidate: true
                               });
                             }}
-                            className="shrink-0 border-red-200 dark:border-red-800/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="shrink-0 border-bb-danger/30 text-bb-danger-ink hover:bg-bb-danger-soft"
                           >
                             Remove
                           </Button>
@@ -683,7 +683,7 @@ export default function HomepageEditorPage() {
                         shouldValidate: true
                       });
                     }}
-                    className="border-slate-200 dark:border-slate-700/40 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    className="border-bb-border text-bb-text hover:bg-bb-surface-2"
                   >
                     Add Announcement
                   </Button>
@@ -712,7 +712,7 @@ export default function HomepageEditorPage() {
                   control={control}
                   render={({ field }) => (
                     <div className="space-y-2 mt-4">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Display Layout</label>
+                      <label className="text-sm font-medium text-bb-text">Display Layout</label>
                       <div className="flex gap-4">
                         <div className="flex items-center">
                           <input
@@ -723,7 +723,7 @@ export default function HomepageEditorPage() {
                             onChange={() => field.onChange('grid')}
                             className="mr-2 accent-[var(--bb-accent)]"
                           />
-                          <label htmlFor="layout-grid" className="text-sm text-slate-600 dark:text-slate-400">Grid</label>
+                          <label htmlFor="layout-grid" className="text-sm text-bb-muted">Grid</label>
                         </div>
                         <div className="flex items-center">
                           <input
@@ -734,7 +734,7 @@ export default function HomepageEditorPage() {
                             onChange={() => field.onChange('carousel')}
                             className="mr-2 accent-[var(--bb-accent)]"
                           />
-                          <label htmlFor="layout-carousel" className="text-sm text-slate-600 dark:text-slate-400">Carousel</label>
+                          <label htmlFor="layout-carousel" className="text-sm text-bb-muted">Carousel</label>
                         </div>
                       </div>
                     </div>

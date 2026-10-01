@@ -109,7 +109,7 @@ export function UsersList({ limit }: UsersListProps) {
             <div className="col-span-2">
               <div className="flex items-center gap-2">
                 <div
-                  className={`h-2 w-2 rounded-full ${user.status === "Active" ? "bg-green-500" : "bg-gray-300"}`}
+                  className={`h-2 w-2 rounded-full ${user.status === "Active" ? "bg-bb-success" : "bg-bb-border"}`}
                 ></div>
                 <span>{user.status}</span>
               </div>

@@ -125,15 +125,15 @@ export function AddUserSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white dark:bg-bb-bg border-l border-slate-200/60 dark:border-slate-700/40" side="right">
-        <SheetHeader className="pb-6 border-b border-slate-200/60 dark:border-slate-700/40 mb-6">
-          <SheetTitle className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-bb-surface dark:bg-bb-bg border-l border-bb-border/60" side="right">
+        <SheetHeader className="pb-6 border-b border-bb-border/60 mb-6">
+          <SheetTitle className="text-2xl font-bold text-bb-text dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
             <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
               <UserCircle className="h-5 w-5" />
             </div>
             Add New User
           </SheetTitle>
-          <SheetDescription className="text-slate-500 dark:text-slate-400">
+          <SheetDescription className="text-bb-muted">
             Register a new user to the platform. Choose whether they are an independent subscriber or affiliated with an institution.
           </SheetDescription>
         </SheetHeader>
@@ -142,13 +142,13 @@ export function AddUserSheet({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             
             {/* Account Type Toggle */}
-            <div className="bg-slate-100 dark:bg-slate-800/60 p-1.5 rounded-xl inline-flex w-full">
+            <div className="bg-bb-surface-2 p-1.5 rounded-xl inline-flex w-full">
               <button
                 type="button"
                 onClick={() => form.setValue('accountType', 'INDEPENDENT')}
                 className={`flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all duration-300 ${accountType === 'INDEPENDENT' 
-                  ? 'bg-white dark:bg-bb-bg shadow-md text-bb-accent-ink border border-slate-200/60 dark:border-slate-700/40' 
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  ? 'bg-bb-surface dark:bg-bb-bg shadow-md text-bb-accent-ink border border-bb-border/60' 
+                  : 'text-bb-muted hover:text-bb-text'}`}
               >
                 Independent User (B2C)
               </button>
@@ -156,8 +156,8 @@ export function AddUserSheet({
                 type="button"
                 onClick={() => form.setValue('accountType', 'INSTITUTIONAL')}
                 className={`flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all duration-300 ${accountType === 'INSTITUTIONAL' 
-                  ? 'bg-white dark:bg-bb-bg shadow-md text-bb-accent-ink border border-slate-200/60 dark:border-slate-700/40' 
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  ? 'bg-bb-surface dark:bg-bb-bg shadow-md text-bb-accent-ink border border-bb-border/60' 
+                  : 'text-bb-muted hover:text-bb-text'}`}
               >
                 Affiliated User (B2B)
               </button>
@@ -170,8 +170,8 @@ export function AddUserSheet({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 dark:text-slate-300">Full Name</FormLabel>
-                    <FormControl><Input placeholder="John Doe" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
+                    <FormLabel className="text-bb-text">Full Name</FormLabel>
+                    <FormControl><Input placeholder="John Doe" className="rounded-xl bg-bb-surface-2 border-bb-border focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -181,8 +181,8 @@ export function AddUserSheet({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 dark:text-slate-300">Email Address</FormLabel>
-                    <FormControl><Input type="email" placeholder="john@example.com" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
+                    <FormLabel className="text-bb-text">Email Address</FormLabel>
+                    <FormControl><Input type="email" placeholder="john@example.com" className="rounded-xl bg-bb-surface-2 border-bb-border focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -192,8 +192,8 @@ export function AddUserSheet({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 dark:text-slate-300">Password</FormLabel>
-                    <FormControl><Input type="password" placeholder="********" className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
+                    <FormLabel className="text-bb-text">Password</FormLabel>
+                    <FormControl><Input type="password" placeholder="********" className="rounded-xl bg-bb-surface-2 border-bb-border focus:ring-2 focus:ring-bb-accent/40 focus:border-bb-accent/40" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -203,12 +203,12 @@ export function AddUserSheet({
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 dark:text-slate-300">Primary Role</FormLabel>
+                    <FormLabel className="text-bb-text">Primary Role</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl bg-bb-surface-2 border-bb-border"><SelectValue placeholder="Select a role" /></SelectTrigger>
                       </FormControl>
-                      <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
+                      <SelectContent className="rounded-xl bg-bb-surface dark:bg-bb-bg border-bb-border/60">
                         <SelectItem value="student">Student</SelectItem>
                         <SelectItem value="teacher">Teacher</SelectItem>
                         <SelectItem value="librarian">Librarian</SelectItem>
@@ -222,8 +222,8 @@ export function AddUserSheet({
               />
             </div>
 
-            <div className="border-t border-slate-200/60 dark:border-slate-700/40 pt-6 mt-6">
-              <h3 className="text-base font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <div className="border-t border-bb-border/60 pt-6 mt-6">
+              <h3 className="text-base font-bold mb-4 text-bb-text dark:text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
                 {accountType === 'INDEPENDENT' ? 'Subscription Details' : 'Institutional Onboarding Details'}
               </h3>
 
@@ -234,12 +234,12 @@ export function AddUserSheet({
                   name="subscriptionTier"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-700 dark:text-slate-300">B2C Subscription Tier</FormLabel>
+                      <FormLabel className="text-bb-text">B2C Subscription Tier</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select a tier" /></SelectTrigger>
+                          <SelectTrigger className="rounded-xl bg-bb-surface-2 border-bb-border"><SelectValue placeholder="Select a tier" /></SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
+                        <SelectContent className="rounded-xl bg-bb-surface dark:bg-bb-bg border-bb-border/60">
                           <SelectItem value="trial">Free Trial</SelectItem>
                           <SelectItem value="basic">Basic Plan</SelectItem>
                           <SelectItem value="premium">Premium Plan</SelectItem>
@@ -257,12 +257,12 @@ export function AddUserSheet({
                     name="tenantId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700 dark:text-slate-300">Select Institution</FormLabel>
+                        <FormLabel className="text-bb-text">Select Institution</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"><SelectValue placeholder="Search or select an institution" /></SelectTrigger>
+                            <SelectTrigger className="rounded-xl bg-bb-surface-2 border-bb-border"><SelectValue placeholder="Search or select an institution" /></SelectTrigger>
                           </FormControl>
-                          <SelectContent className="rounded-xl bg-white dark:bg-bb-bg border-slate-200/60 dark:border-slate-700/40">
+                          <SelectContent className="rounded-xl bg-bb-surface dark:bg-bb-bg border-bb-border/60">
                             {institutions.map(inst => (
                               <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
                             ))}
@@ -273,37 +273,37 @@ export function AddUserSheet({
                     )}
                   />
 
-                  <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl space-y-4 border border-slate-200/60 dark:border-slate-700/40">
+                  <div className="bg-bb-surface-2 p-4 rounded-2xl space-y-4 border border-bb-border/60">
                     <h4 className="font-bold text-sm text-bb-accent-ink">Academic & Personal Metadata</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField control={form.control} name="rollNo" render={({ field }) => (
-                        <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Roll No / Student ID</FormLabel><FormControl><Input placeholder="e.g. 101" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="text-bb-text">Roll No / Student ID</FormLabel><FormControl><Input placeholder="e.g. 101" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={form.control} name="admissionNumber" render={({ field }) => (
-                        <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Admission Number</FormLabel><FormControl><Input placeholder="e.g. ADM-2023-001" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="text-bb-text">Admission Number</FormLabel><FormControl><Input placeholder="e.g. ADM-2023-001" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={form.control} name="bloodGroup" render={({ field }) => (
-                        <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Blood Group</FormLabel><FormControl><Input placeholder="e.g. O+" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="text-bb-text">Blood Group</FormLabel><FormControl><Input placeholder="e.g. O+" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={form.control} name="aadharNumber" render={({ field }) => (
-                        <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit number" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="text-bb-text">Aadhar Number</FormLabel><FormControl><Input placeholder="12-digit number" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl space-y-4 border border-slate-200/60 dark:border-slate-700/40">
+                  <div className="bg-bb-surface-2 p-4 rounded-2xl space-y-4 border border-bb-border/60">
                     <h4 className="font-bold text-sm text-bb-accent-ink">Family & Contact Metadata</h4>
                     <div className="grid grid-cols-1 gap-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={form.control} name="fatherName" render={({ field }) => (
-                          <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Father's Name</FormLabel><FormControl><Input placeholder="" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem><FormLabel className="text-bb-text">Father's Name</FormLabel><FormControl><Input placeholder="" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="motherName" render={({ field }) => (
-                          <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Mother's Name</FormLabel><FormControl><Input placeholder="" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormItem><FormLabel className="text-bb-text">Mother's Name</FormLabel><FormControl><Input placeholder="" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                       </div>
                       <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem><FormLabel className="text-slate-700 dark:text-slate-300">Complete Address</FormLabel><FormControl><Input placeholder="123 Street Name, City, State" className="rounded-xl bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="text-bb-text">Complete Address</FormLabel><FormControl><Input placeholder="123 Street Name, City, State" className="rounded-xl bg-bb-surface border-bb-border" {...field} /></FormControl><FormMessage /></FormItem>
                       )} />
                     </div>
                   </div>

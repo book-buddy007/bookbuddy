@@ -14,21 +14,12 @@ interface Props {
 }
 
 export function BookContextHeader({ book }: Props) {
-  if (!book) return <div className="mb-6 h-28 bg-slate-100 rounded-2xl animate-pulse border border-slate-200" />;
+  if (!book) return <div className="mb-6 h-28 bg-bb-surface-2 rounded-2xl animate-pulse border border-bb-border" />;
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-5 shadow-lg border border-white/10 mb-6"
-      style={{
-        background:
-          'linear-gradient(135deg, var(--night-ink, #0f172a) 0%, var(--indigo-deep, #312e81) 50%, var(--peacock-teal, #0f766e) 100%)',
-      }}
+      className="relative mb-6 overflow-hidden rounded-bb-lg border border-white/10 bg-bb-navy p-5 shadow-e2"
     >
-      {/* Grain overlay for depth */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{ backgroundImage: 'url("/noise.svg")' }}
-      />
 
       {/* Book cover — right-anchored */}
       {book.coverUrl && (

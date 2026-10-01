@@ -440,38 +440,38 @@ export default function SuperAdminCatalogPage() {
       {/* Tab Content: GLOBAL */}
       {activeTab === 'GLOBAL' && (
         <div className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm">
+          <div className="flex flex-col md:flex-row gap-4 bg-bb-surface/70 backdrop-blur-xl p-4 rounded-2xl border border-bb-border/60 shadow-sm">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 transition-colors peer-focus:text-indigo-500" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-bb-faint transition-colors peer-focus:text-bb-info-ink" />
               <Input
                 placeholder="Search by title, author, ISBN..."
-                className="pl-9 bg-slate-50/80 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/40 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all peer rounded-xl"
+                className="pl-9 bg-bb-surface-2/80 border-bb-border/60 focus:ring-2 focus:ring-bb-info/30 focus:border-bb-info/30 transition-all peer rounded-xl"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <EnhancedButton variant="outline" size="icon" onClick={() => refetchGlobal()} disabled={isFetchingGlobal} className="rounded-xl border-slate-200/60 dark:border-slate-700/40">
-              <RefreshCw className={`h-4 w-4 ${isFetchingGlobal ? 'animate-spin text-indigo-600' : ''}`} />
+            <EnhancedButton variant="outline" size="icon" onClick={() => refetchGlobal()} disabled={isFetchingGlobal} className="rounded-xl border-bb-border/60">
+              <RefreshCw className={`h-4 w-4 ${isFetchingGlobal ? 'animate-spin text-bb-info-ink' : ''}`} />
             </EnhancedButton>
           </div>
 
           {/* ── Loading State ── */}
           {isLoadingGlobal ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
+              <Loader2 className="h-8 w-8 text-bb-info-ink animate-spin" />
               <p className="text-sm text-muted-foreground mt-3">Loading library...</p>
             </div>
           ) : globalBooks.length === 0 ? (
             /* ── Empty State ── */
             <div className="flex flex-col items-center justify-center py-20 px-4">
               <div className="relative mb-6">
-                <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-2xl scale-150" />
-                <div className="relative flex items-center justify-center h-20 w-20 bg-bb-progress rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
-                  <BookMarked className="h-10 w-10 text-indigo-400 dark:text-indigo-500" />
+                <div className="absolute inset-0 bg-bb-info/10 rounded-full blur-2xl scale-150" />
+                <div className="relative flex items-center justify-center h-20 w-20 bg-bb-progress rounded-2xl border border-bb-info/30">
+                  <BookMarked className="h-10 w-10 text-bb-info-ink" />
                 </div>
               </div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">No books found</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-5 text-center max-w-xs">
+              <h3 className="text-lg font-bold text-bb-text dark:text-white">No books found</h3>
+              <p className="text-sm text-bb-muted mt-1 mb-5 text-center max-w-xs">
                 {search ? `No results for "${search}". Try a different search term.` : 'Your global library is empty. Add your first book to get started.'}
               </p>
               {!search && (
@@ -488,21 +488,21 @@ export default function SuperAdminCatalogPage() {
                   <div
                     key={book.id}
                     id={`book-mobile-${book.id}`}
-                    className={`flex items-start gap-3.5 p-4 rounded-2xl bg-white dark:bg-white/[0.04] border shadow-sm hover:shadow-md transition-all ${
+                    className={`flex items-start gap-3.5 p-4 rounded-2xl bg-bb-surface dark:bg-white/[0.04] border shadow-sm hover:shadow-md transition-all ${
                       newBookIds.has(book.id)
-                        ? 'border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/30 dark:bg-emerald-900/10'
-                        : 'border-slate-200/60 dark:border-white/[0.07]'
+                        ? 'border-bb-success/30 bg-bb-success-soft/30'
+                        : 'border-bb-border/60 dark:border-white/[0.07]'
                     }`}
                   >
                     {/* Cover Thumbnail */}
                     <div
-                      className="w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-bb-surface-2 border border-slate-200/80 dark:border-slate-700/80 shadow-sm cursor-pointer"
+                      className="w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-bb-surface-2 border border-bb-border/80 shadow-sm cursor-pointer"
                       onClick={() => { setViewBookId(book.id); setIsViewerOpen(true); }}
                     >
                       {book.coverUrl && !imageErrors[book.id] ? (
                         <img src={book.coverUrl} onError={() => setImageErrors(prev => ({ ...prev, [book.id]: true }))} className="w-full h-full object-cover" alt={book.title} />
                       ) : (
-                        <div className="flex items-center justify-center h-full w-full text-slate-400 dark:text-slate-600">
+                        <div className="flex items-center justify-center h-full w-full text-bb-faint">
                           <BookOpen className="h-4 w-4" />
                         </div>
                       )}
@@ -512,21 +512,21 @@ export default function SuperAdminCatalogPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p
-                          className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1 cursor-pointer"
+                          className="font-bold text-sm text-bb-text dark:text-white line-clamp-1 cursor-pointer"
                           onClick={() => { setViewBookId(book.id); setIsViewerOpen(true); }}
                         >
                           {book.title}
                         </p>
                         {newBookIds.has(book.id) && (
-                          <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase bg-emerald-500 text-white rounded-full animate-pulse">NEW</span>
+                          <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase bg-bb-success text-white rounded-full animate-pulse">NEW</span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-white/40 line-clamp-1">{book.author}</p>
+                      <p className="text-xs text-bb-muted dark:text-white/40 line-clamp-1">{book.author}</p>
                       <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                         <TierBadge tier={book.accessTier} />
                         <FormatBadges bookFormats={book.bookFormats} />
                         {book.embeddingStatus && book.embeddingStatus !== 'NONE' && (
-                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/30 dark:text-cyan-300 dark:border-cyan-800">
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-bb-info-soft text-bb-info-ink border-bb-info/30">
                             <BrainCircuit className="h-2.5 w-2.5 mr-0.5" /> AI
                           </Badge>
                         )}
@@ -536,21 +536,21 @@ export default function SuperAdminCatalogPage() {
                     {/* Three-dot menu */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-white/[0.06] -mt-1 -mr-1 shrink-0">
+                        <button className="p-2 rounded-lg text-bb-faint hover:text-bb-muted hover:bg-bb-surface-2 dark:hover:bg-white/[0.06] -mt-1 -mr-1 shrink-0">
                           <MoreVertical className="h-4 w-4" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-52">
                         <DropdownMenuItem onSelect={() => setTimeout(() => { setViewBookId(book.id); setIsViewerOpen(true); }, 100)}>
-                          <Eye className="h-4 w-4 mr-2 text-indigo-500" /> View Details
+                          <Eye className="h-4 w-4 mr-2 text-bb-info-ink" /> View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => setTimeout(() => { setFormatBook({ id: book.id, title: book.title, bookFormats: book.bookFormats }); setIsFormatOpen(true); }, 100)}>
-                          <FilePlus className="h-4 w-4 mr-2 text-emerald-500" /> Add Format
+                          <FilePlus className="h-4 w-4 mr-2 text-bb-success-ink" /> Add Format
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onSelect={() => setTimeout(() => { setDeleteBook({ id: book.id, title: book.title, author: book.author }); setIsDeleteOpen(true); }, 100)}
-                          className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/30"
+                          className="text-bb-danger-ink focus:text-bb-danger-ink focus:bg-bb-danger-soft"
                         >
                           <Trash2 className="h-4 w-4 mr-2" /> Move to Bin
                         </DropdownMenuItem>
@@ -561,10 +561,10 @@ export default function SuperAdminCatalogPage() {
               </div>
 
               {/* ═══ Desktop Table (≥ md) ═══ */}
-              <div className="hidden md:block rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden">
+              <div className="hidden md:block rounded-2xl border border-bb-border/60 bg-bb-surface/80 backdrop-blur-sm shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <Table className="min-w-[640px]">
-                    <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
+                    <TableHeader className="bg-bb-surface-2/80">
                       <TableRow>
                         <TableHead className="w-[50px]"></TableHead>
                         <TableHead>Book Details</TableHead>
@@ -581,23 +581,23 @@ export default function SuperAdminCatalogPage() {
                           key={book.id}
                           className={`group transition-colors ${
                             newBookIds.has(book.id)
-                              ? 'bg-emerald-50/50 dark:bg-emerald-900/10 ring-1 ring-emerald-200 dark:ring-emerald-800'
+                              ? 'bg-bb-success-soft/50 ring-1 ring-bb-success/30'
                               : idx % 2 === 1
-                                ? 'bg-slate-50/30 dark:bg-slate-800/20'
+                                ? 'bg-bb-surface-2/30'
                                 : ''
-                          } hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20`}
+                          } hover:bg-bb-info-soft/40`}
                           id={`book-${book.id}`}
                         >
                           {/* Cover Thumbnail */}
                           <TableCell className="pr-0">
                             <div
-                              className="h-14 w-10 rounded-lg bg-bb-surface-2 overflow-hidden ring-1 ring-slate-200/80 dark:ring-slate-700/80 shadow-sm flex-shrink-0 cursor-pointer hover:shadow-lg hover:ring-indigo-300 dark:hover:ring-indigo-700 transition-all"
+                              className="h-14 w-10 rounded-lg bg-bb-surface-2 overflow-hidden ring-1 ring-bb-border/80 shadow-sm flex-shrink-0 cursor-pointer hover:shadow-lg hover:ring-bb-info/30 transition-all"
                               onClick={() => { setViewBookId(book.id); setIsViewerOpen(true); }}
                             >
                               {book.coverUrl && !imageErrors[book.id] ? (
                                 <img src={book.coverUrl} onError={() => setImageErrors(prev => ({ ...prev, [book.id]: true }))} className="h-full w-full object-cover" alt={book.title} />
                               ) : (
-                                <div className="flex items-center justify-center h-full w-full text-slate-400 dark:text-slate-600">
+                                <div className="flex items-center justify-center h-full w-full text-bb-faint">
                                   <BookOpen className="h-4 w-4" />
                                 </div>
                               )}
@@ -609,13 +609,13 @@ export default function SuperAdminCatalogPage() {
                             <div className="flex flex-col min-w-0 max-w-[240px] xl:max-w-sm">
                               <div className="flex items-center gap-2">
                                 <span
-                                  className="font-semibold text-sm truncate cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                  className="font-semibold text-sm truncate cursor-pointer hover:text-bb-info-ink transition-colors"
                                   onClick={() => { setViewBookId(book.id); setIsViewerOpen(true); }}
                                 >
                                   {book.title}
                                 </span>
                                 {newBookIds.has(book.id) && (
-                                  <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-emerald-500 text-white rounded-full animate-pulse shadow-sm shadow-emerald-500/30">
+                                  <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-bb-success text-white rounded-full animate-pulse shadow-sm">
                                     NEW
                                   </span>
                                 )}
@@ -623,9 +623,9 @@ export default function SuperAdminCatalogPage() {
                               <span className="text-xs text-muted-foreground truncate">{book.author}</span>
                               <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
                                 {book.publisher && <span className="truncate max-w-[120px]">{book.publisher}</span>}
-                                {book.publisher && book.isbn && <span className="text-slate-300 dark:text-slate-700">•</span>}
+                                {book.publisher && book.isbn && <span className="text-bb-faint">•</span>}
                                 {book.isbn && <span className="font-mono">{book.isbn}</span>}
-                                {(book.publisher || book.isbn) && book.language && <span className="text-slate-300 dark:text-slate-700">•</span>}
+                                {(book.publisher || book.isbn) && book.language && <span className="text-bb-faint">•</span>}
                                 {book.language && (
                                   <span className="inline-flex items-center gap-0.5"><Languages className="h-3 w-3" />{book.language}</span>
                                 )}
@@ -639,18 +639,18 @@ export default function SuperAdminCatalogPage() {
                               {book.categories && book.categories.length > 0 ? (
                                 <>
                                   {book.categories.slice(0, 2).map((c: any) => (
-                                    <Badge key={c.category?.id || c.id} variant="outline" className="text-[10px] px-1.5 py-0 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800">
+                                    <Badge key={c.category?.id || c.id} variant="outline" className="text-[10px] px-1.5 py-0 bg-bb-info-soft text-bb-info-ink border-bb-info/30">
                                       {c.category?.name || c.name}
                                     </Badge>
                                   ))}
                                   {book.categories.length > 2 && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-slate-500">
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-bb-muted">
                                       +{book.categories.length - 2}
                                     </Badge>
                                   )}
                                 </>
                               ) : (
-                                <span className="text-xs text-slate-400 italic">—</span>
+                                <span className="text-xs text-bb-faint italic">—</span>
                               )}
                             </div>
                           </TableCell>
@@ -670,14 +670,14 @@ export default function SuperAdminCatalogPage() {
                             <div className="flex flex-col gap-1">
                               <Badge variant="outline" className={`text-[10px] px-1.5 py-0 w-fit ${
                                 book.catalogScope === 'GLOBAL'
-                                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300 dark:border-blue-800'
-                                  : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                  ? 'bg-bb-info-soft text-bb-info-ink border-bb-info/30'
+                                  : 'bg-bb-surface-2 text-bb-muted border-bb-border'
                               }`}>
                                 {book.catalogScope === 'GLOBAL' ? <Globe className="h-3 w-3 mr-0.5" /> : <Building2 className="h-3 w-3 mr-0.5" />}
                                 {book.catalogScope}
                               </Badge>
                               {book.embeddingStatus && book.embeddingStatus !== 'NONE' && (
-                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-fit bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/30 dark:text-cyan-300 dark:border-cyan-800">
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-fit bg-bb-info-soft text-bb-info-ink border-bb-info/30">
                                   <BrainCircuit className="h-3 w-3 mr-0.5" />
                                   AI: {book.embeddingStatus}
                                 </Badge>
@@ -695,13 +695,13 @@ export default function SuperAdminCatalogPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-52">
                                 <DropdownMenuItem onSelect={() => setTimeout(() => { setViewBookId(book.id); setIsViewerOpen(true); }, 100)}>
-                                  <Eye className="h-4 w-4 mr-2 text-indigo-500" /> View Details
+                                  <Eye className="h-4 w-4 mr-2 text-bb-info-ink" /> View Details
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => setTimeout(() => { setFormatBook({ id: book.id, title: book.title, bookFormats: book.bookFormats }); setIsFormatOpen(true); }, 100)}>
-                                  <FilePlus className="h-4 w-4 mr-2 text-emerald-500" /> Add Format
+                                  <FilePlus className="h-4 w-4 mr-2 text-bb-success-ink" /> Add Format
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => setTimeout(() => { setEditBook(book); setIsEditOpen(true); }, 100)}>
-                                  <Pencil className="h-4 w-4 mr-2 text-amber-500" /> Edit Metadata
+                                  <Pencil className="h-4 w-4 mr-2 text-bb-warning-ink" /> Edit Metadata
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuLabel className="text-[11px] uppercase tracking-wide text-muted-foreground">Access Tier</DropdownMenuLabel>
@@ -713,8 +713,8 @@ export default function SuperAdminCatalogPage() {
                                       disabled={tierMutation.isPending}
                                       className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all ${
                                         book.accessTier === t
-                                          ? 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-900 dark:text-indigo-300 ring-1 ring-indigo-400/30'
-                                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 hover:border-slate-300'
+                                          ? 'bg-bb-info-soft text-bb-info-ink border-bb-info/30 ring-1 ring-bb-info/30'
+                                          : 'bg-bb-surface-2 text-bb-muted border-bb-border hover:bg-bb-surface-2 hover:border-bb-border'
                                       }`}
                                     >
                                       {t}
@@ -744,12 +744,12 @@ export default function SuperAdminCatalogPage() {
                                     }
                                   }}
                                 >
-                                  <BrainCircuit className="h-4 w-4 mr-2 text-cyan-500" /> Trigger AI Embed
+                                  <BrainCircuit className="h-4 w-4 mr-2 text-bb-info-ink" /> Trigger AI Embed
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onSelect={() => setTimeout(() => { setDeleteBook({ id: book.id, title: book.title, author: book.author }); setIsDeleteOpen(true); }, 100)}
-                                  className="text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-950/30"
+                                  className="text-bb-danger-ink focus:text-bb-danger-ink focus:bg-bb-danger-soft"
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" /> Move to Bin
                                 </DropdownMenuItem>
@@ -765,15 +765,15 @@ export default function SuperAdminCatalogPage() {
 
               {/* ── Pagination ── */}
               <div className="flex justify-between items-center px-1 pt-2">
-                <span className="text-sm text-slate-500 dark:text-slate-400">
-                  Showing <span className="font-semibold text-slate-700 dark:text-slate-300">{globalBooks.length}</span> of <span className="font-semibold text-slate-700 dark:text-slate-300">{globalMeta.total}</span> books
-                  {globalMeta.totalPages > 1 && <span className="ml-1.5 text-slate-400 dark:text-slate-500">• Page {globalMeta.page} of {globalMeta.totalPages}</span>}
+                <span className="text-sm text-bb-muted">
+                  Showing <span className="font-semibold text-bb-text">{globalBooks.length}</span> of <span className="font-semibold text-bb-text">{globalMeta.total}</span> books
+                  {globalMeta.totalPages > 1 && <span className="ml-1.5 text-bb-faint">• Page {globalMeta.page} of {globalMeta.totalPages}</span>}
                 </span>
                 <div className="flex gap-2">
-                  <EnhancedButton variant="outline" size="sm" onClick={() => setGlobalPage(p => Math.max(1, p - 1))} disabled={globalMeta.page <= 1} className="rounded-xl border-slate-200/60 dark:border-slate-700/40 disabled:opacity-40">
+                  <EnhancedButton variant="outline" size="sm" onClick={() => setGlobalPage(p => Math.max(1, p - 1))} disabled={globalMeta.page <= 1} className="rounded-xl border-bb-border/60 disabled:opacity-40">
                     ← Prev
                   </EnhancedButton>
-                  <EnhancedButton variant="outline" size="sm" onClick={() => setGlobalPage(p => p + 1)} disabled={globalMeta.page >= globalMeta.totalPages} className="rounded-xl border-slate-200/60 dark:border-slate-700/40 disabled:opacity-40">
+                  <EnhancedButton variant="outline" size="sm" onClick={() => setGlobalPage(p => p + 1)} disabled={globalMeta.page >= globalMeta.totalPages} className="rounded-xl border-bb-border/60 disabled:opacity-40">
                     Next →
                   </EnhancedButton>
                 </div>
@@ -786,10 +786,10 @@ export default function SuperAdminCatalogPage() {
       {/* Tab Content: PENDING */}
       {activeTab === 'PENDING' && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-bb-border/60 bg-bb-surface/80 backdrop-blur-sm shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
             <Table className="min-w-[640px]">
-              <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
+              <TableHeader className="bg-bb-surface-2/80">
                 <TableRow>
                   <TableHead>Book Details</TableHead>
                   <TableHead>Submitted By</TableHead>
@@ -799,32 +799,32 @@ export default function SuperAdminCatalogPage() {
               </TableHeader>
               <TableBody>
                 {isLoadingPending ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="h-6 w-6 text-indigo-500 animate-spin mx-auto" /><p className="text-sm text-muted-foreground mt-2">Loading requests...</p></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="h-6 w-6 text-bb-info-ink animate-spin mx-auto" /><p className="text-sm text-muted-foreground mt-2">Loading requests...</p></TableCell></TableRow>
                 ) : pendingBooks.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-16">
                       <div className="relative inline-block mb-4">
-                        <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl scale-150" />
-                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-success-soft rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
-                          <Inbox className="h-8 w-8 text-emerald-400 dark:text-emerald-500" />
+                        <div className="absolute inset-0 bg-bb-success/10 rounded-full blur-2xl scale-150" />
+                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-success-soft rounded-2xl border border-bb-success/30">
+                          <Inbox className="h-8 w-8 text-bb-success-ink" />
                         </div>
                       </div>
-                      <p className="text-lg font-bold text-slate-800 dark:text-white">All caught up!</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">No pending submissions to review.</p>
+                      <p className="text-lg font-bold text-bb-text dark:text-white">All caught up!</p>
+                      <p className="text-sm text-bb-muted mt-1">No pending submissions to review.</p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   pendingBooks.map((book: any, idx: number) => (
-                    <TableRow key={book.id} className={`transition-colors ${idx % 2 === 1 ? 'bg-slate-50/30 dark:bg-slate-800/20' : ''} hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20`}>
+                    <TableRow key={book.id} className={`transition-colors ${idx % 2 === 1 ? 'bg-bb-surface-2/30' : ''} hover:bg-bb-info-soft/40`}>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900 dark:text-white">{book.title}</span>
+                          <span className="font-semibold text-bb-text dark:text-white">{book.title}</span>
                           <span className="text-xs text-muted-foreground">{book.author}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-slate-400" />
+                          <Building2 className="h-4 w-4 text-bb-faint" />
                           <span>{book.tenant?.name || 'Unknown Institution'}</span>
                         </div>
                       </TableCell>
@@ -836,7 +836,7 @@ export default function SuperAdminCatalogPage() {
                           <EnhancedButton
                             size="sm"
                             variant="outline"
-                            className="text-teal-600 border-teal-200 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 dark:text-teal-400 dark:border-teal-800 dark:hover:bg-teal-950/30 rounded-lg"
+                            className="text-bb-success-ink border-bb-success/30 hover:bg-bb-success-soft hover:text-bb-success-ink hover:border-bb-success/30 rounded-lg"
                             onClick={() => approveMutation.mutate(book.id)}
                             disabled={approveMutation.isPending || rejectMutation.isPending}
                           >
@@ -845,7 +845,7 @@ export default function SuperAdminCatalogPage() {
                           <EnhancedButton
                             size="sm"
                             variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/30 rounded-lg"
+                            className="text-bb-danger-ink border-bb-danger/30 hover:bg-bb-danger-soft hover:text-bb-danger-ink hover:border-bb-danger/30 rounded-lg"
                             onClick={() => {
                               const reason = prompt("Enter rejection reason (optional):");
                               if (reason !== null) rejectMutation.mutate({ id: book.id, reason: reason || undefined });
@@ -862,11 +862,11 @@ export default function SuperAdminCatalogPage() {
               </TableBody>
             </Table>
             </div>
-            <div className="flex justify-between items-center p-4 border-t border-slate-200/60 dark:border-slate-700/40">
-               <span className="text-sm text-slate-500 dark:text-slate-400">Total: <span className="font-semibold text-slate-700 dark:text-slate-300">{pendingMeta.total}</span></span>
+            <div className="flex justify-between items-center p-4 border-t border-bb-border/60">
+               <span className="text-sm text-bb-muted">Total: <span className="font-semibold text-bb-text">{pendingMeta.total}</span></span>
                <div className="flex gap-2">
-                 <EnhancedButton variant="outline" size="sm" onClick={() => setPendingPage(p => Math.max(1, p - 1))} disabled={pendingMeta.page <= 1} className="rounded-xl border-slate-200/60 dark:border-slate-700/40 disabled:opacity-40">Prev</EnhancedButton>
-                 <EnhancedButton variant="outline" size="sm" onClick={() => setPendingPage(p => p + 1)} disabled={pendingMeta.page >= pendingMeta.totalPages} className="rounded-xl border-slate-200/60 dark:border-slate-700/40 disabled:opacity-40">Next</EnhancedButton>
+                 <EnhancedButton variant="outline" size="sm" onClick={() => setPendingPage(p => Math.max(1, p - 1))} disabled={pendingMeta.page <= 1} className="rounded-xl border-bb-border/60 disabled:opacity-40">Prev</EnhancedButton>
+                 <EnhancedButton variant="outline" size="sm" onClick={() => setPendingPage(p => p + 1)} disabled={pendingMeta.page >= pendingMeta.totalPages} className="rounded-xl border-bb-border/60 disabled:opacity-40">Next</EnhancedButton>
                </div>
             </div>
           </div>
@@ -876,10 +876,10 @@ export default function SuperAdminCatalogPage() {
       {/* Tab Content: PUBLISHERS */}
       {activeTab === 'PUBLISHERS' && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-bb-border/60 bg-bb-surface/80 backdrop-blur-sm shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
             <Table className="min-w-[640px]">
-              <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
+              <TableHeader className="bg-bb-surface-2/80">
                 <TableRow>
                   <TableHead>Institution Name</TableHead>
                   <TableHead>Domain</TableHead>
@@ -889,31 +889,31 @@ export default function SuperAdminCatalogPage() {
               </TableHeader>
               <TableBody>
                 {isLoadingPublishers ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="h-6 w-6 text-indigo-500 animate-spin mx-auto" /><p className="text-sm text-muted-foreground mt-2">Loading publishers...</p></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="h-6 w-6 text-bb-info-ink animate-spin mx-auto" /><p className="text-sm text-muted-foreground mt-2">Loading publishers...</p></TableCell></TableRow>
                 ) : publishers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-16">
                       <div className="relative inline-block mb-4">
-                        <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-2xl scale-150" />
-                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-progress rounded-2xl border border-purple-100 dark:border-purple-900/40">
-                          <Building2 className="h-8 w-8 text-purple-400 dark:text-purple-500" />
+                        <div className="absolute inset-0 bg-bb-info/10 rounded-full blur-2xl scale-150" />
+                        <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-progress rounded-2xl border border-bb-info/30">
+                          <Building2 className="h-8 w-8 text-bb-info-ink" />
                         </div>
                       </div>
-                      <p className="text-lg font-bold text-slate-800 dark:text-white">No institutions found</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Institutions will appear here once they register.</p>
+                      <p className="text-lg font-bold text-bb-text dark:text-white">No institutions found</p>
+                      <p className="text-sm text-bb-muted mt-1">Institutions will appear here once they register.</p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   publishers.map((pub: any, idx: number) => (
-                    <TableRow key={pub.id} className={`transition-colors ${idx % 2 === 1 ? 'bg-slate-50/30 dark:bg-slate-800/20' : ''} hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20`}>
-                      <TableCell className="font-semibold text-slate-900 dark:text-white">{pub.name}</TableCell>
+                    <TableRow key={pub.id} className={`transition-colors ${idx % 2 === 1 ? 'bg-bb-surface-2/30' : ''} hover:bg-bb-info-soft/40`}>
+                      <TableCell className="font-semibold text-bb-text dark:text-white">{pub.name}</TableCell>
                       <TableCell className="text-muted-foreground font-mono text-sm">{pub.domain}</TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
                           className={pub.isGlobalPublisher
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800'
-                            : 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                            ? 'bg-bb-success-soft text-bb-success-ink border-bb-success/30'
+                            : 'bg-bb-surface-2 text-bb-muted border-bb-border'
                           }
                         >
                           {pub.isGlobalPublisher ? '✓ Enabled' : 'Disabled'}
@@ -925,7 +925,7 @@ export default function SuperAdminCatalogPage() {
                           variant={pub.isGlobalPublisher ? 'outline' : 'default'} 
                           className={!pub.isGlobalPublisher
                             ? 'bg-bb-success hover:brightness-95 text-white shadow-sm rounded-lg'
-                            : 'text-slate-600 border-slate-200 hover:bg-slate-100 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-slate-800 rounded-lg'
+                            : 'text-bb-muted border-bb-border hover:bg-bb-surface-2 rounded-lg'
                           }
                           onClick={() => publisherStatusMutation.mutate({ id: pub.id, val: !pub.isGlobalPublisher })}
                           disabled={publisherStatusMutation.isPending}
@@ -946,17 +946,17 @@ export default function SuperAdminCatalogPage() {
       {/* Tab Content: BIN */}
       {activeTab === 'BIN' && (
         <div className="space-y-4">
-          <div className="flex items-start gap-3 rounded-2xl border border-red-200/60 dark:border-red-900/40 bg-red-50/40 dark:bg-red-950/20 p-4">
-            <Trash className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+          <div className="flex items-start gap-3 rounded-2xl border border-bb-danger/60 bg-bb-danger-soft/40 p-4">
+            <Trash className="h-5 w-5 text-bb-danger-ink shrink-0 mt-0.5" />
+            <p className="text-sm text-bb-muted">
               Books here are hidden from the library but not yet deleted. <strong>Restore</strong> puts a book back; <strong>Delete Forever</strong> permanently removes it and flushes its files, embeddings and concept map — this cannot be undone.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-bb-border/60 bg-bb-surface/80 backdrop-blur-sm shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <Table className="min-w-[640px]">
-                <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
+                <TableHeader className="bg-bb-surface-2/80">
                   <TableRow>
                     <TableHead>Book Details</TableHead>
                     <TableHead className="hidden lg:table-cell">Formats</TableHead>
@@ -966,28 +966,28 @@ export default function SuperAdminCatalogPage() {
                 </TableHeader>
                 <TableBody>
                   {isLoadingBin ? (
-                    <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="h-6 w-6 text-indigo-500 animate-spin mx-auto" /><p className="text-sm text-muted-foreground mt-2">Loading Bin…</p></TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="h-6 w-6 text-bb-info-ink animate-spin mx-auto" /><p className="text-sm text-muted-foreground mt-2">Loading Bin…</p></TableCell></TableRow>
                   ) : binBooks.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-16">
                         <div className="relative inline-block mb-4">
-                          <div className="absolute inset-0 bg-slate-500/10 rounded-full blur-2xl scale-150" />
-                          <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-surface-2 rounded-2xl border border-slate-200 dark:border-slate-700/40">
-                            <Trash className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                          <div className="absolute inset-0 bg-bb-muted/10 rounded-full blur-2xl scale-150" />
+                          <div className="relative flex items-center justify-center h-16 w-16 mx-auto bg-bb-surface-2 rounded-2xl border border-bb-border">
+                            <Trash className="h-8 w-8 text-bb-faint" />
                           </div>
                         </div>
-                        <p className="text-lg font-bold text-slate-800 dark:text-white">The Bin is empty</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Deleted books will appear here.</p>
+                        <p className="text-lg font-bold text-bb-text dark:text-white">The Bin is empty</p>
+                        <p className="text-sm text-bb-muted mt-1">Deleted books will appear here.</p>
                       </TableCell>
                     </TableRow>
                   ) : (
                     binBooks.map((book: any, idx: number) => (
-                      <TableRow key={book.id} className={`transition-colors ${idx % 2 === 1 ? 'bg-slate-50/30 dark:bg-slate-800/20' : ''} hover:bg-red-50/30 dark:hover:bg-red-950/10`}>
+                      <TableRow key={book.id} className={`transition-colors ${idx % 2 === 1 ? 'bg-bb-surface-2/30' : ''} hover:bg-bb-danger-soft/30`}>
                         <TableCell>
                           <div className="flex flex-col min-w-0 max-w-[280px]">
-                            <span className="font-semibold text-sm text-slate-900 dark:text-white truncate">{book.title}</span>
+                            <span className="font-semibold text-sm text-bb-text dark:text-white truncate">{book.title}</span>
                             <span className="text-xs text-muted-foreground truncate">{book.author}</span>
-                            {book.isbn && <span className="text-[11px] font-mono text-slate-400">{book.isbn}</span>}
+                            {book.isbn && <span className="text-[11px] font-mono text-bb-faint">{book.isbn}</span>}
                           </div>
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
@@ -1001,7 +1001,7 @@ export default function SuperAdminCatalogPage() {
                             <EnhancedButton
                               size="sm"
                               variant="outline"
-                              className="text-teal-600 border-teal-200 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 dark:text-teal-400 dark:border-teal-800 dark:hover:bg-teal-950/30 rounded-lg"
+                              className="text-bb-success-ink border-bb-success/30 hover:bg-bb-success-soft hover:text-bb-success-ink hover:border-bb-success/30 rounded-lg"
                               onClick={() => restoreMutation.mutate(book.id)}
                               disabled={restoreMutation.isPending}
                             >
@@ -1010,7 +1010,7 @@ export default function SuperAdminCatalogPage() {
                             <EnhancedButton
                               size="sm"
                               variant="outline"
-                              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/30 rounded-lg"
+                              className="text-bb-danger-ink border-bb-danger/30 hover:bg-bb-danger-soft hover:text-bb-danger-ink hover:border-bb-danger/30 rounded-lg"
                               onClick={() => { setPurgeBook({ id: book.id, title: book.title, author: book.author }); setIsPurgeOpen(true); }}
                             >
                               <Trash2 className="h-4 w-4 mr-1" /> Delete Forever
@@ -1023,11 +1023,11 @@ export default function SuperAdminCatalogPage() {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex justify-between items-center p-4 border-t border-slate-200/60 dark:border-slate-700/40">
-              <span className="text-sm text-slate-500 dark:text-slate-400">In Bin: <span className="font-semibold text-slate-700 dark:text-slate-300">{binMeta.total}</span></span>
+            <div className="flex justify-between items-center p-4 border-t border-bb-border/60">
+              <span className="text-sm text-bb-muted">In Bin: <span className="font-semibold text-bb-text">{binMeta.total}</span></span>
               <div className="flex gap-2">
-                <EnhancedButton variant="outline" size="sm" onClick={() => setBinPage(p => Math.max(1, p - 1))} disabled={binMeta.page <= 1} className="rounded-xl border-slate-200/60 dark:border-slate-700/40 disabled:opacity-40">Prev</EnhancedButton>
-                <EnhancedButton variant="outline" size="sm" onClick={() => setBinPage(p => p + 1)} disabled={binMeta.page >= binMeta.totalPages} className="rounded-xl border-slate-200/60 dark:border-slate-700/40 disabled:opacity-40">Next</EnhancedButton>
+                <EnhancedButton variant="outline" size="sm" onClick={() => setBinPage(p => Math.max(1, p - 1))} disabled={binMeta.page <= 1} className="rounded-xl border-bb-border/60 disabled:opacity-40">Prev</EnhancedButton>
+                <EnhancedButton variant="outline" size="sm" onClick={() => setBinPage(p => p + 1)} disabled={binMeta.page >= binMeta.totalPages} className="rounded-xl border-bb-border/60 disabled:opacity-40">Next</EnhancedButton>
               </div>
             </div>
           </div>

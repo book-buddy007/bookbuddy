@@ -14,10 +14,10 @@ const FORMAT_ICONS: Record<string, any> = {
 };
 
 const FORMAT_COLORS: Record<string, string> = {
-  PDF: 'bg-red-50 text-red-700 border-red-200/60 dark:bg-red-950/30 dark:text-red-300 dark:border-red-800/50',
-  EPUB: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-800/50',
-  AUDIOBOOK: 'bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-800/50',
-  AI_EMBED: 'bg-cyan-50 text-cyan-700 border-cyan-200/60 dark:bg-cyan-950/30 dark:text-cyan-300 dark:border-cyan-800/50',
+  PDF: 'bg-bb-danger-soft text-bb-danger-ink border-bb-danger/60',
+  EPUB: 'bg-bb-success-soft text-bb-success-ink border-bb-success/60',
+  AUDIOBOOK: 'bg-bb-warning-soft text-bb-warning-ink border-bb-warning/60',
+  AI_EMBED: 'bg-bb-info-soft text-bb-info-ink border-bb-info/60',
 };
 
 export function formatFileSize(bytes: number | null | undefined) {
@@ -79,8 +79,8 @@ interface FormatFileListProps {
 export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: FormatFileListProps) {
   if (!formats || formats.length === 0) {
     return (
-      <div className="py-8 text-center bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-        <Layers className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+      <div className="py-8 text-center bg-bb-surface-2/50 rounded-xl border border-dashed border-bb-border">
+        <Layers className="h-8 w-8 mx-auto text-bb-faint mb-2" />
         <p className="text-sm text-muted-foreground">No format files uploaded yet.</p>
       </div>
     );
@@ -105,14 +105,14 @@ export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: 
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2 bg-white/60 dark:bg-white/[0.08] rounded-lg shrink-0">
+                <div className="p-2 bg-bb-surface/60 dark:bg-white/[0.08] rounded-lg shrink-0">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm">{fmt.type}</span>
                     {chapterLabel && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/70 dark:bg-white/[0.12]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-bb-surface/70 dark:bg-white/[0.12]">
                         {chapterLabel}
                       </span>
                     )}
@@ -159,7 +159,7 @@ export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: 
                       bookTitle,
                     })
                   }
-                  className="p-1.5 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1.5 rounded-lg text-bb-danger-ink hover:bg-bb-danger/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>

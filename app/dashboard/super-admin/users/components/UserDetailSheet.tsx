@@ -34,12 +34,12 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md border-l border-slate-200/60 dark:border-slate-700/40 shadow-2xl p-0 overflow-y-auto bg-slate-50 dark:bg-bb-bg">
+      <SheetContent className="w-full sm:max-w-md border-l border-bb-border/60 shadow-2xl p-0 overflow-y-auto bg-bb-surface-2 dark:bg-bb-bg">
         {/* Accent strip */}
         <div className="absolute top-0 left-0 w-1 p-0 h-full bg-bb-progress opacity-80" />
 
         {/* Header with avatar */}
-        <div className="p-6 pb-0 bg-white dark:bg-bb-bg border-b border-slate-200/60 dark:border-slate-700/40">
+        <div className="p-6 pb-0 bg-bb-surface dark:bg-bb-bg border-b border-bb-border/60">
           <SheetHeader className="text-left">
             <div className="flex flex-col items-center text-center space-y-4 pt-6 pb-4">
               <Avatar className="h-24 w-24 ring-4 ring-bb-accent/20 shadow-xl">
@@ -49,7 +49,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
                 </AvatarFallback>
               </Avatar>
               <div>
-                <SheetTitle className="text-2xl font-bold text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>
+                <SheetTitle className="text-2xl font-bold text-bb-text dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>
                   {user.name}
                 </SheetTitle>
                 <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
@@ -59,8 +59,8 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
                   </Badge>
                   <Badge
                     className={user.isActive 
-                      ? 'bg-bb-accent-soft text-bb-accent-ink  dark:text-emerald-300 border border-bb-accent/20 font-semibold' 
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-semibold'}
+                      ? 'bg-bb-accent-soft text-bb-accent-ink  border border-bb-accent/20 font-semibold' 
+                      : 'bg-bb-surface-2 text-bb-muted border border-bb-border font-semibold'}
                   >
                     {user.isActive ? 'Active' : 'Suspended'}
                   </Badge>
@@ -72,42 +72,42 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
 
         <div className="p-6 space-y-5">
           {/* Contact Info */}
-          <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4 relative overflow-hidden">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
+          <div className="bg-bb-surface dark:bg-bb-bg p-5 rounded-2xl border border-bb-border/60 shadow-sm space-y-4 relative overflow-hidden">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-bb-faint dark:text-white/30 flex items-center gap-2">
               <UserCircle className="w-4 h-4 text-bb-accent-ink" /> Contact Information
             </h4>
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-bb-surface-2 border border-bb-border">
                 <div className="p-1.5 rounded-lg bg-bb-accent-soft text-bb-accent-ink mt-0.5">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{user.email}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Primary Email</p>
+                  <p className="text-sm font-medium text-bb-text">{user.email}</p>
+                  <p className="text-xs text-bb-muted">Primary Email</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Account Activity */}
-          <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
+          <div className="bg-bb-surface dark:bg-bb-bg p-5 rounded-2xl border border-bb-border/60 shadow-sm space-y-4">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-bb-faint dark:text-white/30 flex items-center gap-2">
               <Clock className="w-4 h-4 text-bb-accent-ink" /> Account Activity
             </h4>
             <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-bb-surface-2 border border-bb-border">
+                <span className="text-sm text-bb-muted flex items-center gap-2">
                   <Calendar className="w-4 h-4" /> Joined
                 </span>
-                <span className="text-sm font-semibold text-slate-900 dark:text-slate-200">
+                <span className="text-sm font-semibold text-bb-text">
                   {user.createdAt ? format(new Date(user.createdAt), 'MMMM d, yyyy') : 'Unknown'}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-bb-surface-2 border border-bb-border">
+                <span className="text-sm text-bb-muted flex items-center gap-2">
                   <Clock className="w-4 h-4" /> Last Login
                 </span>
-                <span className="text-sm font-semibold text-slate-900 dark:text-slate-200">
+                <span className="text-sm font-semibold text-bb-text">
                   {user.lastLoginAt ? format(new Date(user.lastLoginAt), 'MMM d, yy HH:mm') : 'Never'}
                 </span>
               </div>
@@ -115,12 +115,12 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
           </div>
 
           {/* Institution Memberships */}
-          <div className="bg-white dark:bg-bb-bg p-5 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm space-y-4">
+          <div className="bg-bb-surface dark:bg-bb-bg p-5 rounded-2xl border border-bb-border/60 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-white/30 flex items-center gap-2">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-bb-faint dark:text-white/30 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-bb-accent-ink" /> Institution Access
               </h4>
-              <Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 font-bold text-xs">
+              <Badge variant="secondary" className="rounded-full bg-bb-surface-2 text-bb-muted border border-bb-border font-bold text-xs">
                 {user.tenantMemberships?.length || 0}
               </Badge>
             </div>
@@ -128,8 +128,8 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
             {user.tenantMemberships && user.tenantMemberships.length > 0 ? (
               <div className="space-y-3 mt-2">
                 {user.tenantMemberships.map((membership: any, idx: number) => (
-                  <div key={idx} className="flex flex-col gap-1 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/30">
-                    <p className="font-semibold text-sm text-slate-900 dark:text-slate-200">
+                  <div key={idx} className="flex flex-col gap-1 p-3 rounded-xl bg-bb-surface-2 border border-bb-border">
+                    <p className="font-semibold text-sm text-bb-text">
                       {membership.tenant?.name || 'Unknown Institution'}
                     </p>
                     <div className="flex items-center justify-between mt-1">
@@ -138,7 +138,7 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
                       </p>
                       <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 rounded-md ${membership.status === 'ACTIVE' 
                         ? 'text-bb-accent-ink border-bb-accent/30 bg-bb-accent-soft' 
-                        : 'text-slate-500 border-slate-300 dark:border-slate-700'}`}>
+                        : 'text-bb-muted border-bb-border'}`}>
                         {membership.status}
                       </Badge>
                     </div>
@@ -146,10 +146,10 @@ export function UserDetailSheet({ open, onOpenChange, user }: UserDetailSheetPro
                 ))}
               </div>
             ) : (
-              <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                <Building2 className="w-8 h-8 text-slate-300 mx-auto mb-2 dark:text-slate-600" />
-                <p className="text-sm text-slate-500 font-medium">No institution access</p>
-                <p className="text-xs text-slate-400 mt-1">This user is not tied to any institutions yet.</p>
+              <div className="text-center p-6 bg-bb-surface-2 rounded-xl border border-dashed border-bb-border">
+                <Building2 className="w-8 h-8 text-bb-faint mx-auto mb-2" />
+                <p className="text-sm text-bb-muted font-medium">No institution access</p>
+                <p className="text-xs text-bb-faint mt-1">This user is not tied to any institutions yet.</p>
               </div>
             )}
           </div>

@@ -133,18 +133,18 @@ export function UploadSlot({ bookId, sectionId, gender, track, onUploadSuccess, 
 
   return (
     <div className={`relative flex items-center justify-between p-3 rounded-lg border transition-all
-      ${hasTrack ? 'bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50' : 'bg-slate-50 border-dashed border-slate-300 dark:bg-slate-800/40 dark:border-slate-700'} 
+      ${hasTrack ? 'bg-bb-success-soft/50 border-bb-success/30' : 'bg-bb-surface-2 border-dashed border-bb-border'} 
     `}>
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-full ${gender === 'MALE' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400'}`}>
+        <div className={`p-2 rounded-full ${gender === 'MALE' ? 'bg-bb-info-soft text-bb-info-ink' : 'bg-bb-info-soft text-bb-info-ink'}`}>
           {gender === 'MALE' ? <Mic className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          <p className="text-sm font-semibold text-bb-text">
             {gender === 'MALE' ? 'Male Voice' : 'Female Voice'}
           </p>
           {hasTrack && uploadStatus === 'IDLE' && (
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-bb-success-ink flex items-center gap-1 mt-0.5">
               <CheckCircle2 className="w-3 h-3" /> Uploaded {getFormatDuration(track.durationMs)}
             </p>
           )}
@@ -165,8 +165,8 @@ export function UploadSlot({ bookId, sectionId, gender, track, onUploadSuccess, 
               onClick={() => fileInputRef.current?.click()}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors
                 ${hasTrack
-                  ? 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700'
-                  : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60'
+                  ? 'bg-bb-surface text-bb-muted border border-bb-border hover:bg-bb-surface-2'
+                  : 'bg-bb-info-soft text-bb-info-ink hover:bg-bb-info-soft'
                 }
               `}
             >
@@ -175,7 +175,7 @@ export function UploadSlot({ bookId, sectionId, gender, track, onUploadSuccess, 
             {hasTrack && onClearTrack && (
               <button
                 onClick={() => onClearTrack(gender)}
-                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors dark:hover:bg-red-900/20"
+                className="p-1.5 text-bb-faint hover:text-bb-danger-ink hover:bg-bb-danger-soft rounded-md transition-colors"
                 title="Remove track"
               >
                 <Trash2 className="w-4 h-4" />
@@ -187,27 +187,27 @@ export function UploadSlot({ bookId, sectionId, gender, track, onUploadSuccess, 
         {(uploadStatus === 'READING' || uploadStatus === 'UPLOADING') && (
           <div className="flex items-center gap-3">
             <div className="flex flex-col items-end">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span className="text-xs font-medium text-bb-muted">
                 {uploadStatus === 'READING' ? 'Processing audio...' : `Uploading ${progress}%`}
               </span>
               {uploadStatus === 'UPLOADING' && (
-                <div className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-1 overflow-hidden">
-                  <div className="h-full bg-indigo-500 transition-all duration-200 ease-out" style={{ width: `${progress}%` }} />
+                <div className="w-24 h-1.5 bg-bb-surface-2 rounded-full mt-1 overflow-hidden">
+                  <div className="h-full bg-bb-info transition-all duration-200 ease-out" style={{ width: `${progress}%` }} />
                 </div>
               )}
             </div>
-            <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />
+            <Loader2 className="w-4 h-4 text-bb-info-ink animate-spin" />
           </div>
         )}
 
         {uploadStatus === 'SUCCESS' && (
-          <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
+          <span className="text-xs font-medium text-bb-success-ink flex items-center gap-1">
             <CheckCircle2 className="w-4 h-4" /> Done
           </span>
         )}
 
         {uploadStatus === 'ERROR' && (
-          <span className="text-xs font-medium text-red-500 flex items-center gap-1">
+          <span className="text-xs font-medium text-bb-danger-ink flex items-center gap-1">
             <AlertCircle className="w-4 h-4" /> Error
           </span>
         )}

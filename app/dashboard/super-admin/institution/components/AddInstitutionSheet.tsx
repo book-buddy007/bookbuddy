@@ -29,15 +29,15 @@ export function AddInstitutionSheet({
 }: AddInstitutionSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white dark:bg-bb-bg border-l border-slate-200/60 dark:border-slate-700/40" side="right">
-        <SheetHeader className="pb-6 border-b border-slate-200/60 dark:border-slate-700/40 mb-6">
-          <SheetTitle className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-bb-surface dark:bg-bb-bg border-l border-bb-border/60" side="right">
+        <SheetHeader className="pb-6 border-b border-bb-border/60 mb-6">
+          <SheetTitle className="text-2xl font-bold text-bb-text dark:text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
             <div className="p-2 rounded-xl bg-bb-accent-soft text-bb-accent-ink">
               <Building2 className="h-5 w-5" />
             </div>
             {title}
           </SheetTitle>
-          <SheetDescription className="text-slate-500 dark:text-slate-400">
+          <SheetDescription className="text-bb-muted">
             {description}
           </SheetDescription>
         </SheetHeader>

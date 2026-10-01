@@ -137,33 +137,33 @@ export function EmbeddingProgressDialog({
             <div
               className={`absolute inset-0 rounded-full blur-xl scale-150 ${
                 isFailed
-                  ? 'bg-red-500/20'
+                  ? 'bg-bb-danger/20'
                   : isReady
-                    ? 'bg-emerald-500/20'
-                    : 'bg-cyan-500/20 animate-pulse'
+                    ? 'bg-bb-success/20'
+                    : 'bg-bb-info/20 animate-pulse'
               }`}
             />
             <div
               className={`relative flex h-16 w-16 items-center justify-center rounded-2xl border shadow-sm ${
                 isFailed
-                  ? 'bg-bb-danger-soft border-red-200 dark:border-red-800/50'
+                  ? 'bg-bb-danger-soft border-bb-danger/30'
                   : isReady
-                    ? 'bg-bb-success-soft border-emerald-200 dark:border-emerald-800/50'
+                    ? 'bg-bb-success-soft border-bb-success/30'
                     : 'bg-bb-info-soft border-transparent'
               }`}
             >
               {isFailed ? (
-                <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                <AlertTriangle className="h-8 w-8 text-bb-danger-ink" />
               ) : isReady ? (
-                <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 className="h-8 w-8 text-bb-success-ink" />
               ) : running ? (
-                <Loader2 className="h-8 w-8 text-cyan-600 dark:text-cyan-400 animate-spin" />
+                <Loader2 className="h-8 w-8 text-bb-info-ink animate-spin" />
               ) : (
-                <BrainCircuit className="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
+                <BrainCircuit className="h-8 w-8 text-bb-info-ink" />
               )}
             </div>
           </div>
-          <DialogTitle className="text-center text-lg font-bold text-slate-900 dark:text-white">
+          <DialogTitle className="text-center text-lg font-bold text-bb-text dark:text-white">
             {heading}
           </DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
@@ -181,9 +181,9 @@ export function EmbeddingProgressDialog({
         )}
 
         {error && (
-          <div className="flex gap-2.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/70 dark:bg-red-950/25 p-3">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
-            <p className="text-xs leading-relaxed text-red-800 dark:text-red-200">{error}</p>
+          <div className="flex gap-2.5 rounded-xl border border-bb-danger/30 bg-bb-danger-soft/70 p-3">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-bb-danger-ink" />
+            <p className="text-xs leading-relaxed text-bb-danger-ink">{error}</p>
           </div>
         )}
 
@@ -202,10 +202,10 @@ export function EmbeddingProgressDialog({
                 value={pct}
                 className={
                   isFailed
-                    ? '[&>div]:bg-red-500'
+                    ? '[&>div]:bg-bb-danger'
                     : isReady
-                      ? '[&>div]:bg-emerald-500'
-                      : '[&>div]:bg-cyan-500'
+                      ? '[&>div]:bg-bb-success'
+                      : '[&>div]:bg-bb-info'
                 }
               />
               {data.queueState && (
@@ -217,7 +217,7 @@ export function EmbeddingProgressDialog({
             </div>
 
             {data.totalChunks > 0 && (
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/40 p-3 text-xs text-muted-foreground">
+              <div className="rounded-xl border border-bb-border bg-bb-surface-2/70 p-3 text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground tabular-nums">
                   {data.embeddedChunks}
                 </span>{' '}
@@ -230,11 +230,11 @@ export function EmbeddingProgressDialog({
             )}
 
             {isFailed && data.errorMessage && (
-              <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/70 dark:bg-red-950/25 p-3">
+              <div className="rounded-xl border border-bb-danger/30 bg-bb-danger-soft/70 p-3">
                 {/* The backend's message is the useful part — DCP refuses with a
                     reason an operator can act on (not APPROVED, missing chapter
                     number, ISBN mismatch). Showing it verbatim is the point. */}
-                <p className="text-xs leading-relaxed text-red-800 dark:text-red-200 whitespace-pre-wrap break-words">
+                <p className="text-xs leading-relaxed text-bb-danger-ink whitespace-pre-wrap break-words">
                   {data.errorMessage}
                 </p>
               </div>

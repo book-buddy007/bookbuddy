@@ -358,8 +358,8 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
             <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Already Uploaded</p>
             <div className="flex gap-2">
               {ALL_FORMATS.filter(f => existingFormats.has(f.key)).map(fmt => (
-                <div key={fmt.key} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-sm border border-slate-200/60 dark:border-slate-700/40">
-                  <Check className="h-4 w-4 text-emerald-500" />
+                <div key={fmt.key} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-bb-surface-2 text-bb-muted text-sm border border-bb-border/60">
+                  <Check className="h-4 w-4 text-bb-success-ink" />
                   <fmt.icon className="h-4 w-4" />
                   <span>{fmt.label}</span>
                 </div>
@@ -372,32 +372,32 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
         {availableFormats.length === 0 ? (
           <div className="py-10 text-center">
             <div className="relative inline-block mb-3">
-              <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl scale-150" />
-              <div className="relative flex items-center justify-center h-14 w-14 mx-auto bg-bb-success-soft rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
-                <Check className="h-7 w-7 text-emerald-500" />
+              <div className="absolute inset-0 bg-bb-success/10 rounded-full blur-2xl scale-150" />
+              <div className="relative flex items-center justify-center h-14 w-14 mx-auto bg-bb-success-soft rounded-2xl border border-bb-success/30">
+                <Check className="h-7 w-7 text-bb-success-ink" />
               </div>
             </div>
-            <p className="font-bold text-slate-800 dark:text-white">All formats uploaded!</p>
+            <p className="font-bold text-bb-text dark:text-white">All formats uploaded!</p>
             <p className="text-sm text-muted-foreground mt-1">This book has all available formats.</p>
           </div>
         ) : isDone ? (
           <div className="py-10 text-center">
             {/* Success checkmark with animation */}
             <div className="relative inline-block mb-4">
-              <div className="absolute inset-0 bg-emerald-500/15 rounded-full blur-2xl scale-150 animate-pulse" />
-              <div className="relative h-16 w-16 mx-auto bg-bb-success rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <div className="absolute inset-0 bg-bb-success/15 rounded-full blur-2xl scale-150 animate-pulse" />
+              <div className="relative h-16 w-16 mx-auto bg-bb-success rounded-2xl flex items-center justify-center shadow-lg">
                 <Check className="h-8 w-8 text-white" strokeWidth={3} />
               </div>
             </div>
-            <p className="font-bold text-lg text-slate-900 dark:text-white">{selectedLabel} Uploaded!</p>
+            <p className="font-bold text-lg text-bb-text dark:text-white">{selectedLabel} Uploaded!</p>
             <p className="text-sm text-muted-foreground mt-1">Format has been added to the book.</p>
 
             {indexState === 'queued' && (
-              <div className="mt-4 mx-auto max-w-sm rounded-xl border border-cyan-200/70 dark:border-cyan-800/50 bg-cyan-50/70 dark:bg-cyan-950/20 p-3 text-left">
-                <p className="text-sm font-semibold text-cyan-800 dark:text-cyan-300 flex items-center gap-1.5">
+              <div className="mt-4 mx-auto max-w-sm rounded-xl border border-bb-info/70 bg-bb-info-soft/70 p-3 text-left">
+                <p className="text-sm font-semibold text-bb-info-ink flex items-center gap-1.5">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Indexing queued
                 </p>
-                <p className="text-xs text-cyan-700/80 dark:text-cyan-400/80 mt-1">
+                <p className="text-xs text-bb-info-ink mt-1">
                   The chapter is being chunked and embedded into the shared library. Varta can
                   answer from it once this finishes — it does not block the reader or the player.
                 </p>
@@ -405,12 +405,12 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
             )}
 
             {indexState === 'failed' && (
-              <div className="mt-4 mx-auto max-w-sm rounded-xl border border-amber-200/70 dark:border-amber-800/50 bg-amber-50/70 dark:bg-amber-950/20 p-3 text-left">
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              <div className="mt-4 mx-auto max-w-sm rounded-xl border border-bb-warning/70 bg-bb-warning-soft/70 p-3 text-left">
+                <p className="text-sm font-semibold text-bb-warning-ink">
                   Uploaded, but indexing did not start
                 </p>
-                <p className="text-xs text-amber-700/90 dark:text-amber-400/90 mt-1">{indexError}</p>
-                <p className="text-xs text-amber-700/70 dark:text-amber-400/70 mt-1.5">
+                <p className="text-xs text-bb-warning-ink mt-1">{indexError}</p>
+                <p className="text-xs text-bb-warning-ink mt-1.5">
                   The file is saved against the book. Fix the cause and re-run indexing — nothing
                   needs re-uploading.
                 </p>
@@ -445,7 +445,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                       <fmt.icon className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <span className="font-semibold text-sm text-slate-800 dark:text-white">{fmt.label}</span>
+                      <span className="font-semibold text-sm text-bb-text dark:text-white">{fmt.label}</span>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {fmt.key === 'PDF' && 'Upload a PDF document'}
                         {fmt.key === 'EPUB' && 'Upload an EPUB e-book file'}
@@ -463,13 +463,13 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                 {mdQueue.length > 0 ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between px-0.5">
-                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <p className="text-xs font-semibold text-bb-muted">
                         {mdQueue.length} chapter{mdQueue.length === 1 ? '' : 's'} selected
                       </p>
                       {!isUploading && (
                         <button
                           onClick={() => { setMdQueue([]); setSelectedFormat(null); }}
-                          className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                          className="text-xs text-bb-muted hover:text-bb-text"
                         >
                           Clear
                         </button>
@@ -479,13 +479,13 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                       {mdQueue.map((item, idx) => (
                         <div
                           key={`${item.chapter}-${item.file.name}`}
-                          className="flex items-center gap-2.5 p-2.5 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200/60 dark:border-slate-700/40"
+                          className="flex items-center gap-2.5 p-2.5 bg-bb-surface-2 rounded-lg border border-bb-border/60"
                         >
-                          <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-cyan-100 text-cyan-700 dark:bg-cyan-950/50 dark:text-cyan-300">
+                          <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-bb-info-soft text-bb-info-ink">
                             Ch {item.chapter}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate text-slate-800 dark:text-white">{item.file.name}</p>
+                            <p className="text-xs font-medium truncate text-bb-text dark:text-white">{item.file.name}</p>
                             <p className="text-[10px] text-muted-foreground">
                               {formatFileSize(item.file.size)}
                               {item.detail ? ` · ${item.detail}` : ''}
@@ -500,7 +500,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                           {!isUploading && item.status === 'ready' && (
                             <button
                               onClick={() => setMdQueue((q) => q.filter((_, i) => i !== idx))}
-                              className="shrink-0 p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded"
+                              className="shrink-0 p-1 hover:bg-bb-surface-2 rounded"
                             >
                               <X className="h-3 w-3" />
                             </button>
@@ -516,7 +516,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                     )}
                   </div>
                 ) : (
-                <div className="flex items-center gap-3 p-3.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-slate-700/40">
+                <div className="flex items-center gap-3 p-3.5 bg-bb-surface-2 rounded-xl border border-bb-border/60">
                   {(() => {
                     const fmt = ALL_FORMATS.find(f => f.key === selectedFormat);
                     const Icon = fmt?.icon || FileText;
@@ -527,11 +527,11 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                     );
                   })()}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate text-slate-800 dark:text-white">{selectedFile?.name}</p>
+                    <p className="font-semibold text-sm truncate text-bb-text dark:text-white">{selectedFile?.name}</p>
                     <p className="text-xs text-muted-foreground">{selectedFile ? formatFileSize(selectedFile.size) : ''} · {selectedLabel}</p>
                   </div>
                   {!isUploading && (
-                    <button onClick={() => { setSelectedFile(null); setSelectedFormat(null); }} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                    <button onClick={() => { setSelectedFile(null); setSelectedFormat(null); }} className="p-1.5 hover:bg-bb-surface-2 rounded-lg transition-colors">
                       <X className="h-4 w-4" />
                     </button>
                   )}
@@ -542,7 +542,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                 {/* Gradient Progress */}
                 {isUploading && (
                   <div className="space-y-2">
-                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-bb-surface-2 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-bb-progress rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
@@ -558,7 +558,7 @@ export function AddFormatDialog({ open, onOpenChange, book }: AddFormatDialogPro
                 <EnhancedButton
                   onClick={handleUpload}
                   disabled={isUploading}
-                  className="w-full gap-2 rounded-xl text-white shadow-md shadow-indigo-600/20"
+                  className="w-full gap-2 rounded-xl text-white shadow-md"
                   size="lg"
                 >
                   {isUploading ? (
