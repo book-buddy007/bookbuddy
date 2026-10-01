@@ -6,7 +6,7 @@ import {
   AudioLines, Share2, NotebookPen, Copy, Check, Quote, Wand2,
 } from "@/components/ui/icons";
 import { useAnnotationStore, AnnotationColor } from "@/store/useAnnotationStore";
-import { HIGHLIGHT_SWATCHES, HIGHLIGHT_INK } from "./highlightPalette";
+import { HIGHLIGHT_SWATCHES, HIGHLIGHT_PICKER, HIGHLIGHT_INK } from "./highlightPalette";
 
 /* ── The selection surface (audit fixes 3, 4, 5, 7) ────────────────────
    This was a desktop popover rendered on phones unchanged: position
@@ -232,7 +232,7 @@ export function AnnotationToolbar({
 
   const colorRow = (
     <div className="flex items-center gap-2 flex-wrap" role="radiogroup" aria-label="Highlight colour">
-      {HIGHLIGHT_SWATCHES.map((swatch) => {
+      {HIGHLIGHT_PICKER.map((swatch) => {
         const selected = color === swatch.value;
         return (
           <button

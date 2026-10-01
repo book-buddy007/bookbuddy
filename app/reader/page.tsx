@@ -33,6 +33,10 @@ import { CreateFlashcardModal } from '@/components/reader/CreateFlashcardModal';
 import { CitationGeneratorModal } from '@/components/reader/CitationGeneratorModal';
 import { useTextToSpeech } from '@/lib/hooks/useTextToSpeech';
 import { TTSControlBar } from '@/components/reader/TTSControlBar';
+import { ReaderTopBar, type ReaderMode } from '@/components/reader/ReaderTopBar';
+import { ReaderDisplayContent } from '@/components/reader/ReaderDisplayContent';
+import { READER_PALETTES, toReaderKey } from '@/lib/reader-themes';
+import { Icon } from '@/components/ui/icon';
 import { useDictionaryStore } from '@/store/useDictionaryStore';
 
 import { useBookContent } from '@/lib/hooks/useBookContent';
@@ -59,6 +63,8 @@ export default function ReaderPage() {
     </Suspense>
   );
 }
+
+const isPersonalFileInit = () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('personalFileId');
 
 function ReaderContent() {
   const router = useRouter();
@@ -203,9 +209,31 @@ function ReaderContent() {
   const { data: content, isLoading: contentLoading, error: contentError } = useBookContent(bookId, format, personalFileId);
   const currentBookId = personalFileId || bookId || "book-1";
   const isPersonalFile = !!personalFileId;
-  const bookTitle = 'Digital Library Reader';
-  const bookAuthor = '';
+  // Title, author and which reading modes the book offers (Read / PDF / Listen).
+  const [bookTitle, setBookTitle] = useState(isPersonalFileInit() ? 'Your file' : 'Digital Library Reader');
+  const [bookAuthor, setBookAuthor] = useState('');
+  const [bookFormatTypes, setBookFormatTypes] = useState<string[]>([]);
+  useEffect(() => {
+    if (!bookId || personalFileId) return;
+    let cancelled = false;
+    fetch(`/api/v1/books/${encodeURIComponent(bookId)}`, { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        const b = json?.data ?? json;
+        if (cancelled || !b) return;
+        if (b.title) setBookTitle(b.title);
+        if (b.author) setBookAuthor(b.author);
+        if (Array.isArray(b.bookFormats)) setBookFormatTypes(Array.from(new Set(b.bookFormats.map((x: any) => String(x.type)))));
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [bookId, personalFileId]);
   const bookContent = useMemo<Page[]>(() => [], []);
+
+  // EPUB table of contents (fed by epub.js) and the spine document currently on screen.
+  const [epubToc, setEpubToc] = useState<{ label: string; href: string }[]>([]);
+  const [epubHref, setEpubHref] = useState('');
+  const epubRenditionRef = React.useRef<import('epubjs').Rendition | null>(null);
 
   // Text-to-Speech integration
   const tts = useTextToSpeech();
@@ -511,43 +539,26 @@ function ReaderContent() {
     }
   }, [readerTheme, setNextTheme]);
 
-  const getThemeStyles = () => {
-    // Detect system theme preference when using 'system' theme
-    const effectiveTheme = readerTheme === 'light' && theme === 'dark'
+  /* Reader themes are Paper / Sepia / Night (lib/reader-themes.ts, mirrored by the
+     [data-reader] tokens). The persisted store still calls them light / eye-comfort / dark. */
+  const effectiveReaderTheme =
+    readerTheme === 'light' && theme === 'dark'
       ? 'dark'
       : readerTheme === 'light' && theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : readerTheme;
+  const readerKey = toReaderKey(effectiveReaderTheme);
 
-    switch (effectiveTheme) {
-      case 'dark':
-        return {
-          backgroundColor: '#0A0F1E', // Night ink
-          color: '#FFF8F0', // Ivory cream
-          accentColor: '#FF9933', // Deep saffron
-          borderColor: 'rgba(255, 215, 0, 0.12)',
-          filter: `contrast(${contrast})`,
-          boxShadow: '0 0 60px rgba(10, 15, 30, 0.5)',
-        };
-      case 'eye-comfort':
-        return {
-          backgroundColor: '#FFF8F0', // Ivory cream
-          color: '#4a3f35',
-          accentColor: '#B8860B', // Temple stone
-          borderColor: 'rgba(255, 153, 51, 0.2)',
-          filter: `contrast(${contrast}) sepia(${colorTemperature}%)`,
-          boxShadow: '0 0 40px rgba(255, 153, 51, 0.08)',
-        };
-      default: // light
-        return {
-          backgroundColor: '#FFFCF7', // Warm off-white
-          color: '#334155',
-          accentColor: '#006A6E', // Peacock teal
-          borderColor: 'rgba(255, 153, 51, 0.15)',
-          filter: `contrast(${contrast})`,
-          boxShadow: '0 0 40px rgba(255, 153, 51, 0.04)',
-        };
-    }
+  const getThemeStyles = () => {
+    const p = READER_PALETTES[readerKey];
+    return {
+      backgroundColor: p.bg,
+      color: p.ink,
+      accentColor: 'var(--bb-accent)',
+      borderColor: p.border,
+      filter: readerKey === 'sepia' ? `contrast(${contrast}) sepia(${colorTemperature}%)` : `contrast(${contrast})`,
+      transition: 'background-color 300ms, color 300ms',
+    } as React.CSSProperties;
   };
 
   // Helper function to determine if we're in dark mode (for highlight colors)
@@ -627,7 +638,7 @@ function ReaderContent() {
        That left the whole reader shifted left with a blank band on the right.
        The individual callers pass preventScroll; this is the backstop that
        makes the failure mode impossible rather than merely unlikely. */
-    <div ref={protectionRef} onScroll={(e) => { const el = e.currentTarget; if (el.scrollLeft !== 0) el.scrollLeft = 0; if (el.scrollTop !== 0) el.scrollTop = 0; }} className={`relative w-full h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden transition-colors duration-500 ${isDarkMode() ? 'text-slate-100' : 'text-slate-900'}`} style={getThemeStyles()}>
+    <div ref={protectionRef} data-reader={readerKey} onScroll={(e) => { const el = e.currentTarget; if (el.scrollLeft !== 0) el.scrollLeft = 0; if (el.scrollTop !== 0) el.scrollTop = 0; }} className={`relative w-full h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden transition-colors duration-500 ${isDarkMode() ? 'text-slate-100' : 'text-slate-900'}`} style={getThemeStyles()}>
       
       {/* Background patterns if in dark mode */}
       {isDarkMode() && <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[url('/grid.svg')] z-0"></div>}
@@ -643,100 +654,44 @@ function ReaderContent() {
         </div>
       )}
 
-      {/* Top Header - Absolutely positioned to not disrupt layout flow */}
-      <header className={`absolute top-0 left-0 right-0 z-40 h-16 flex items-center justify-between px-4 md:px-6 transition-transform duration-500 ${isFocusMode ? '-translate-y-full' : 'translate-y-0'} ${isDarkMode() ? 'bg-slate-950/95 border-b border-slate-700/50 text-slate-200' : 'bg-white/95 border-b border-slate-200/50 text-slate-700'} backdrop-blur-md shadow-sm`}>
-        <div className="flex items-center gap-2 lg:gap-4">
-          <EnhancedButton variant="outline" size="sm" onClick={() => router.push('/catalog')} className={`hidden sm:flex gap-2 rounded-xl transition-all duration-300 ${isDarkMode() ? 'border-slate-700/50 hover:bg-[var(--peacock-teal)]/10 text-slate-300 hover:text-[var(--saffron)]' : 'border-slate-200 hover:bg-[var(--peacock-teal)]/10 text-slate-600 hover:text-[var(--peacock-teal)]'}`}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className="font-medium">Library</span>
-          </EnhancedButton>
-          <EnhancedButton variant="ghost" size="icon" onClick={() => router.push('/catalog')} className={`sm:hidden rounded-xl transition-all ${isDarkMode() ? 'hover:bg-[var(--peacock-teal)]/10 hover:text-[var(--saffron)] text-slate-300' : 'hover:bg-[var(--peacock-teal)]/10 hover:text-[var(--peacock-teal)] text-slate-600'}`}>
-            <ArrowLeft className="h-5 w-5" />
-          </EnhancedButton>
-          {/* Contents used to be here too. It is one of the four
-              actions in the bottom bar now (audit fix 2) — the same
-              control in two places is what made the header this long. */}
+      {/* Top bar (66px): back · title/chapter · Read/PDF/Listen · search · bookmark · Aa · Ask Varta.
+          Search, bookmark and Aa are the three header actions the earlier audit settled on;
+          the study tools live in the Study drawer and the bottom bar. */}
+      {!isFocusMode && (
+        <ReaderTopBar
+          title={bookTitle}
+          chapter={bookAuthor || undefined}
+          mode={format === 'epub' ? 'read' : 'pdf'}
+          modes={(() => {
+        const t = bookFormatTypes.map((x) => x.toUpperCase());
+        const m: ReaderMode[] = [];
+        if (t.some((x) => /EPUB|E_BOOK|EBOOK/.test(x)) || format === 'epub') m.push('read');
+        if (t.includes('PDF') || format === 'pdf') m.push('pdf');
+        if (t.some((x) => /AUDIO/.test(x))) m.push('listen');
+        return m;
+      })()}
+          onMode={(m) => {
+            if (m === 'listen') router.push(`/player?bookId=${bookId ?? ''}`);
+            else setFormat(m === 'read' ? 'epub' : 'pdf');
+          }}
+          onBack={() => router.push('/catalog')}
+          onSearch={format !== 'pdf' ? () => togglePanel('search') : undefined}
+          searchActive={activePanel === 'search'}
+          bookmarked={bookmarks.includes(currentPage)}
+          onBookmark={() => toggleBookmark(currentPage)}
+          onDisplay={() => togglePanel('settings')}
+          displayActive={activePanel === 'settings'}
+          onVarta={() => openStudy('varta')}
+        />
+      )}
+
+      {/* Progress ribbon under the bar */}
+      {!isFocusMode && (
+        <div className="absolute inset-x-0 z-30 h-1 bg-[color:var(--rd-track)]" style={{ top: 'calc(66px + var(--bb-safe-top))' }}>
+          <div className="h-full bg-bb-progress transition-all duration-500" style={{ width: `${percentComplete}%` }} />
         </div>
+      )}
 
-        {/* Center Progress Box */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-          {viewMode === 'page' ? (
-             <div className={`flex items-center gap-2 md:gap-4 px-3 md:px-5 py-1.5 rounded-full border backdrop-blur-md shadow-sm transition-all duration-300 ${isDarkMode() ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/90 border-slate-200/60 hover:shadow-md'}`}>
-               <EnhancedButton variant="ghost" size="icon" className={`h-7 w-7 rounded-full transition-colors ${isDarkMode() ? 'hover:bg-[var(--peacock-teal)]/10 hover:text-[var(--saffron)]' : 'hover:bg-[var(--peacock-teal)]/10 hover:text-[var(--peacock-teal)]'}`} onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1}>
-                 <ChevronLeft className="h-4 w-4" />
-               </EnhancedButton>
-               <span className="text-sm font-bold tracking-wide whitespace-nowrap">
-                 <span className="bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">{currentPage}</span> <span className="text-slate-400 font-medium">/ {totalPages}</span>
-               </span>
-               <EnhancedButton variant="ghost" size="icon" className={`h-7 w-7 rounded-full transition-colors ${isDarkMode() ? 'hover:bg-[var(--peacock-teal)]/10 hover:text-[var(--saffron)]' : 'hover:bg-[var(--peacock-teal)]/10 hover:text-[var(--peacock-teal)]'}`} onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}>
-                 <ChevronRight className="h-4 w-4" />
-               </EnhancedButton>
-             </div>
-          ) : (
-            <div className={`flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-full border transition-all duration-300 ${isDarkMode() ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/90 border-slate-200/60'}`}>
-              <ScrollText className="h-4 w-4 text-[var(--deep-saffron)]" />
-              <span className="hidden sm:inline bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">Continuous View</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right nav icons.
-            Was eight: search, bookmark, highlights, Sanchika, Varta,
-            Explore, settings, read-aloud — five of them `hidden sm:`,
-            so the phone header and the desktop header disagreed about
-            what the reader could even do.
-
-            Three remain, and they are the three the audit puts here:
-            Search, Bookmark, and Aa (settings). Highlights, Varta and
-            Explore are tabs of the Study drawer; Sanchika and read-aloud
-            are reachable from the bottom bar and the selection sheet.
-            The percent/minutes chips are gone too — the bottom bar
-            states the same thing in words, on every screen size. */}
-        <div className="flex items-center gap-1 lg:gap-2">
-          {format !== 'pdf' && (
-            <EnhancedButton
-              variant="ghost"
-              size="icon"
-              onClick={() => togglePanel('search')}
-              aria-label="Search in book"
-              aria-pressed={activePanel === 'search'}
-              className={`hit-target rounded-xl transition-all ${activePanel === 'search' ? 'bg-[var(--accent-soft)] text-[var(--accent-strong)]' : ''}`}
-            >
-              <FileSearch className="h-5 w-5" />
-            </EnhancedButton>
-          )}
-
-          <EnhancedButton
-            variant="ghost"
-            size="icon"
-            onClick={() => toggleBookmark(currentPage)}
-            aria-label={bookmarks.includes(currentPage) ? 'Remove bookmark from this page' : 'Bookmark this page'}
-            aria-pressed={bookmarks.includes(currentPage)}
-            className={`hit-target rounded-xl transition-all ${bookmarks.includes(currentPage) ? 'text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)] bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10' : ''}`}
-          >
-            <Bookmark className="h-5 w-5" fill={bookmarks.includes(currentPage) ? 'currentColor' : 'none'} />
-          </EnhancedButton>
-
-          {/* Labelled "Aa" rather than a cog: it sets type, size and
-              theme, which is what a reader expects behind those two
-              letters and not what it expects behind a gear. */}
-          <EnhancedButton
-            variant="ghost"
-            size="icon"
-            onClick={() => togglePanel('settings')}
-            aria-label="Text and display settings"
-            aria-pressed={activePanel === 'settings'}
-            className={`hit-target rounded-xl transition-all font-semibold ${activePanel === 'settings' ? 'bg-[var(--accent-soft)] text-[var(--accent-strong)]' : ''}`}
-          >
-            <ALargeSmall className="h-5 w-5" />
-          </EnhancedButton>
-        </div>
-      </header>
-
-      {/* Progress Bar Ribbon */}
-      <div className={`absolute top-16 left-0 right-0 z-30 h-1 ${isDarkMode() ? 'bg-slate-900' : 'bg-slate-100'}`}>
-        <div className="h-full bg-gradient-to-r from-[var(--ruby-red)] via-[var(--deep-saffron)] to-[var(--saffron)] transition-all duration-500 shadow-sm shadow-[var(--deep-saffron)]/20" style={{ width: `${percentComplete}%` }} />
-      </div>
 
       {/* Main Reading Viewer Area */}
       {/* 
@@ -754,7 +709,7 @@ function ReaderContent() {
           on some screens and overlapped the page on others. 0px when the
           bar is collapsed to a pill. */}
       <main
-        className={`absolute inset-0 z-20 transition-all duration-300 ${!isFocusMode ? 'mt-[66px]' : ''}`}
+        className={`absolute inset-0 z-20 transition-all duration-300 ${!isFocusMode ? 'mt-[calc(66px+var(--bb-safe-top))]' : ''}`}
         style={!isFocusMode ? { marginBottom: bottomBarHeight } : undefined}
       >
         {contentLoading && (
@@ -784,11 +739,17 @@ function ReaderContent() {
                 <EpubShell
                   url={content.url}
                   initialCfi={lastCfi || ""}
-                  onLocationChange={(cfi, page) => {
+                  theme={readerKey}
+                  fontSize={fontSize}
+                  fontFamily={fontFamily}
+                  lineHeight={lineHeight}
+                  onLocationChange={(cfi, page, href) => {
                     setLastCfi(cfi);
                     setCurrentPage(page);
+                    if (href) setEpubHref(href);
                   }}
-                  onReady={(rendition) => {}}
+                  onTocLoad={setEpubToc}
+                  onReady={(rendition) => { epubRenditionRef.current = rendition; }}
                   onSpeakText={handleSpeakText}
                   onAskVarta={handleAskVarta}
                   onSaveToSanchika={handleSaveToSanchika}
@@ -904,7 +865,7 @@ function ReaderContent() {
           button, so covering the header and the bottom bar costs nothing and
           buys a full column of list. z-40 would have let the bar (z-[45]) punch
           through the bottom — see the note in StudyDrawer. */}
-      <div className={`absolute inset-y-0 left-0 w-[88vw] max-w-[300px] sm:max-w-none sm:w-[300px] lg:w-[340px] pb-[env(safe-area-inset-bottom)] shadow-2xl z-[47] transform transition-transform duration-300 flex flex-col ${activePanel === 'toc' && !isFocusMode ? 'translate-x-0' : '-translate-x-full'} ${isDarkMode() ? 'bg-slate-950/95 border-r border-slate-700/50 text-slate-200' : 'bg-white/95 border-r border-slate-200/50 text-slate-800'} backdrop-blur-md`}>
+      <div className={`absolute inset-y-0 left-0 w-[88vw] max-w-[300px] sm:max-w-none sm:w-[300px] lg:w-[340px] pb-[env(safe-area-inset-bottom)] shadow-2xl z-[47] transform transition-transform duration-300 flex flex-col ${activePanel === 'toc' && !isFocusMode ? 'translate-x-0' : '-translate-x-full'} border-r border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] text-[color:var(--rd-ink)] backdrop-blur-md`}>
          <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50 flex flex-col gap-3 shrink-0">
             <div className="flex items-center justify-between">
                <h3 className="text-xl font-bold tracking-tight bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent flex items-center gap-2">
@@ -946,6 +907,25 @@ function ReaderContent() {
                 <ScrollArea className="h-full pr-2">
                   {format === 'pdf' ? (
                     <div id="pdf-toc-container" className="space-y-1.5 text-sm" />
+                  ) : format === 'epub' && epubToc.length > 0 ? (
+                    <nav aria-label="Chapters" className="space-y-1">
+                      {epubToc.map((item, i) => {
+                        const base = item.href.split('#')[0];
+                        const active = !!epubHref && epubHref.split('#')[0].endsWith(base);
+                        return (
+                          <button
+                            key={item.href + i}
+                            onClick={() => { epubRenditionRef.current?.display(item.href); closePanel(); }}
+                            aria-current={active ? 'true' : undefined}
+                            className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition-colors ${active ? 'bg-[color:var(--rd-track)] font-semibold' : 'hover:bg-[color:var(--rd-track)]'}`}
+                          >
+                            <span className={`w-6 shrink-0 text-xs font-bold ${active ? 'text-bb-accent' : 'text-[color:var(--rd-sub)]'}`}>{i + 1}</span>
+                            <span className="line-clamp-2 flex-1">{item.label}</span>
+                            <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-bb-accent' : 'bg-transparent'}`} />
+                          </button>
+                        );
+                      })}
+                    </nav>
                   ) : (
                     <div className="space-y-1.5">
                       {bookContent.map((page) => {
@@ -1014,125 +994,26 @@ function ReaderContent() {
          </div>
       </div>
 
-      {/* Slide Out Panel - Settings (Right) */}
-      <div className={`absolute inset-y-0 right-0 w-[88vw] max-w-[300px] sm:max-w-none sm:w-[300px] lg:w-[340px] pb-[env(safe-area-inset-bottom)] shadow-2xl z-[47] transform transition-transform duration-300 flex flex-col ${activePanel === 'settings' && !isFocusMode ? 'translate-x-0' : 'translate-x-[100%]'} ${isDarkMode() ? 'bg-slate-950/95 border-l border-slate-700/50 text-slate-200' : 'bg-white/95 border-l border-slate-200/50 text-slate-800'} backdrop-blur-md`}>
-         <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between shrink-0">
-            {/* Titled "Text & display" to match the Aa button that
-                opens it — a cog labelled "Settings" promised account
-                and privacy controls that are not in here. */}
-            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)] flex items-center gap-2">
-              <ALargeSmall className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
-              Text &amp; display
-            </h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={closePanel}
-              aria-label="Close settings"
-              className="hit-target rounded-full"
-            >
-               <X className="h-4 w-4" />
-            </Button>
-         </div>
-
-         <div className="p-4 flex-1 overflow-y-auto">
-            <div className="space-y-5">
-              <div className={`space-y-3 p-3.5 rounded-xl border ${isDarkMode() ? 'bg-slate-900/50 border-slate-800/50' : 'bg-slate-50/80 border-slate-200/50'}`}>
-                <label className="text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">Theme</label>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setTheme('light')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border transition-colors ${readerTheme === 'light' ? 'bg-[var(--deep-saffron)] text-white border-[var(--deep-saffron)]' : isDarkMode() ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-                  >
-                    <Sun className="h-3.5 w-3.5" /> Light
-                  </button>
-                  <button
-                    onClick={() => setTheme('dark')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border transition-colors ${readerTheme === 'dark' ? 'bg-[var(--deep-saffron)] text-white border-[var(--deep-saffron)]' : isDarkMode() ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-                  >
-                    <Moon className="h-3.5 w-3.5" /> Dark
-                  </button>
-                  <button
-                    onClick={() => setTheme('eye-comfort')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border transition-colors ${readerTheme === 'eye-comfort' ? 'bg-[var(--deep-saffron)] text-white border-[var(--deep-saffron)]' : isDarkMode() ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
-                  >
-                    <BookOpenText className="h-3.5 w-3.5" /> Eye Comfort
-                  </button>
-                </div>
-              </div>
-
-              {/* Font/Layout settings - EPUB only */}
-              {format !== 'pdf' && (
-                <>
-                  <div className={`space-y-3 p-3.5 rounded-xl border ${isDarkMode() ? 'bg-slate-900/50 border-slate-800/50' : 'bg-slate-50/80 border-slate-200/50'}`}>
-                    <label className="text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">Font Size</label>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-medium w-6 ${isDarkMode() ? 'text-slate-500' : 'text-slate-400'}`}><ALargeSmall className="h-3.5 w-3.5" /></span>
-                      <input type="range" min="12" max="24" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="w-full accent-[var(--peacock-teal)] h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer" />
-                      <span className={`text-xs font-semibold w-8 text-right ${isDarkMode() ? 'text-slate-400' : 'text-slate-500'}`}>{fontSize}px</span>
-                    </div>
-                  </div>
-                  <div className={`space-y-3 p-3.5 rounded-xl border ${isDarkMode() ? 'bg-slate-900/50 border-slate-800/50' : 'bg-slate-50/80 border-slate-200/50'}`}>
-                    <label className="text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">Line Height</label>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-medium w-6 ${isDarkMode() ? 'text-slate-500' : 'text-slate-400'}`}>1.0</span>
-                      <input type="range" min="1" max="2" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))} className="w-full accent-[var(--peacock-teal)] h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer" />
-                      <span className={`text-xs font-semibold w-8 text-right ${isDarkMode() ? 'text-slate-400' : 'text-slate-500'}`}>{lineHeight}x</span>
-                    </div>
-                  </div>
-                  <div className={`space-y-3 p-3.5 rounded-xl border ${isDarkMode() ? 'bg-slate-900/50 border-slate-800/50' : 'bg-slate-50/80 border-slate-200/50'}`}>
-                    <label className="text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">Font Family</label>
-                    <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className={`w-full p-2.5 rounded-xl border text-sm font-medium focus:ring-2 focus:ring-[var(--peacock-teal)] focus:border-[var(--deep-saffron)] transition-colors ${isDarkMode() ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-white border-slate-200 text-slate-700'}`}>
-                      <option value="Inter">Inter</option>
-                      <option value="Merriweather">Merriweather</option>
-                      <option value="Source Serif Pro">Source Serif Pro</option>
-                    </select>
-                  </div>
-                </>
-              )}
-
-              <div className={`space-y-3 p-3.5 rounded-xl border ${isDarkMode() ? 'bg-slate-900/50 border-slate-800/50' : 'bg-slate-50/80 border-slate-200/50'}`}>
-                <label className="text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-[var(--ruby-red)] to-[var(--deep-saffron)] bg-clip-text text-transparent">Color Temperature</label>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-medium w-8 ${isDarkMode() ? 'text-slate-500' : 'text-slate-400'}`}>Cool</span>
-                  <input type="range" min="0" max="100" value={colorTemperature} onChange={(e) => setColorTemperature(Number(e.target.value))} className="w-full accent-[var(--deep-saffron)] h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer" />
-                  <span className={`text-xs font-semibold w-10 text-right ${isDarkMode() ? 'text-slate-400' : 'text-slate-500'}`}>{colorTemperature}%</span>
-                </div>
-              </div>
-
-              <div className={`space-y-3 p-3.5 rounded-xl border ${isDarkMode() ? 'bg-slate-900/50 border-slate-800/50' : 'bg-slate-50/80 border-slate-200/50'}`}>
-                <label className="text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] bg-clip-text text-transparent">Contrast</label>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-medium w-6 ${isDarkMode() ? 'text-slate-500' : 'text-slate-400'}`}>−</span>
-                  <input type="range" min="0.5" max="1.5" step="0.1" value={contrast} onChange={(e) => setContrast(Number(e.target.value))} className="w-full accent-[var(--peacock-teal)] h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer" />
-                  <span className={`text-xs font-semibold w-8 text-right ${isDarkMode() ? 'text-slate-400' : 'text-slate-500'}`}>{contrast}x</span>
-                </div>
-              </div>
-
-              <div className={`pt-4 border-t ${isDarkMode() ? 'border-slate-700/30' : 'border-slate-200/50'}`}>
-                <label className={`flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all duration-200 ${isFocusMode ? (isDarkMode() ? 'bg-[var(--deep-saffron)]/10 border border-[var(--deep-saffron)]/30' : 'bg-[var(--peacock-teal)]/10 border border-slate-300') : (isDarkMode() ? 'hover:bg-[var(--peacock-teal)]/10 border border-transparent' : 'hover:bg-[var(--peacock-teal)]/5 border border-transparent')}`}>
-                   <div className="flex items-center space-x-3">
-                      <div className={`p-1.5 rounded-lg ${isFocusMode ? 'bg-[var(--deep-saffron)]/20' : (isDarkMode() ? 'bg-slate-800' : 'bg-[var(--peacock-teal)]/10')}`}>
-                        <Eye className="h-4 w-4 text-[var(--deep-saffron)]" />
-                      </div>
-                      <span className="text-sm font-semibold">Focus Mode</span>
-                   </div>
-                   <input type="checkbox" checked={isFocusMode} onChange={toggleFocusMode} className="w-4 h-4 accent-[var(--peacock-teal)] rounded" />
-                </label>
-                
-                <label className={`flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all duration-200 mt-1.5 ${autoTheme ? (isDarkMode() ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-amber-50 border border-amber-200') : (isDarkMode() ? 'hover:bg-[var(--peacock-teal)]/10 border border-transparent' : 'hover:bg-[var(--peacock-teal)]/5 border border-transparent')}`}>
-                   <div className="flex items-center space-x-3">
-                      <div className={`p-1.5 rounded-lg ${autoTheme ? 'bg-amber-500/20' : (isDarkMode() ? 'bg-slate-800' : 'bg-amber-50')}`}>
-                        <Sun className="h-4 w-4 text-amber-500" />
-                      </div>
-                      <span className="text-sm font-semibold">Auto Theme (Time)</span>
-                   </div>
-                   <input type="checkbox" checked={autoTheme} onChange={toggleAutoTheme} className="w-4 h-4 accent-[var(--deep-saffron)] rounded" />
-                </label>
-              </div>
-
-            </div>
-         </div>
+      {/* Display panel ("Aa"): a 320px popover from tablet up, a bottom sheet on phones. */}
+      {activePanel === 'settings' && !isFocusMode && (
+        <div className="absolute inset-0 z-[46] md:hidden" onClick={closePanel} aria-hidden="true" />
+      )}
+      <div
+        role="dialog"
+        aria-label="Text and display"
+        aria-hidden={!(activePanel === 'settings' && !isFocusMode)}
+        className={`absolute z-[47] flex flex-col border border-[color:var(--rd-border)] bg-[color:var(--rd-panel)] text-[color:var(--rd-ink)] shadow-e2 backdrop-blur-md transition-[transform,opacity] duration-bb-ui ease-bb inset-x-0 bottom-0 max-h-[85dvh] rounded-t-[30px] pb-[env(safe-area-inset-bottom)] md:inset-x-auto md:bottom-auto md:right-5 md:top-[78px] md:max-h-[calc(100dvh-100px)] md:w-[320px] md:rounded-[22px] md:pb-0 ${activePanel === 'settings' && !isFocusMode ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-[110%] opacity-0 md:-translate-y-2 md:translate-y-0'}`}
+      >
+        <div aria-hidden className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-[color:var(--rd-track)] md:hidden" />
+        <div className="flex shrink-0 items-center justify-between px-5 pb-1 pt-3">
+          <h3 className="font-display text-xl font-extrabold tracking-[-0.03em]">Text &amp; display</h3>
+          <button type="button" onClick={closePanel} aria-label="Close settings" className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-[color:var(--rd-track)] focus-visible:outline-none focus-visible:shadow-focus">
+            <Icon name="close" size={20} fillLayer={false} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
+          <ReaderDisplayContent showTextControls={format !== 'pdf'} />
+        </div>
       </div>
 
       {/* Floating View Mode Switch (EPUB only).

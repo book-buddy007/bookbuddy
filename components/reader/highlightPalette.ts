@@ -37,15 +37,23 @@ export interface HighlightSwatch {
   label: string;
   light: string;
   dark: string;
+  /** Rendered for existing annotations but not offered in the picker. */
+  legacy?: boolean;
 }
 
 export const HIGHLIGHT_SWATCHES: readonly HighlightSwatch[] = [
-  { value: 'yellow', label: 'Butter', light: '#FFE9A8', dark: '#6B5A1F' },
-  { value: 'green',  label: 'Mint',   light: '#C7EFD8', dark: '#24543C' },
-  { value: 'blue',   label: 'Sky',    light: '#C9E4FB', dark: '#1F4666' },
-  { value: 'pink',   label: 'Rose',   light: '#FBD0DA', dark: '#6B2A3C' },
-  { value: 'purple', label: 'Lilac',  light: '#E0D4F7', dark: '#45336B' },
+  // Design system highlight colours. The persisted enum values are unchanged: 'green' is now
+  // the blaze-tint swatch (no green accents in the system) and 'purple' is kept only so
+  // highlights saved before the redesign still render; it is not offered in the picker.
+  { value: 'yellow', label: 'Cream',      light: '#FFE3A3', dark: '#5C4A1E' },
+  { value: 'green',  label: 'Blaze',      light: '#FFB37A', dark: '#6B3A1A' },
+  { value: 'blue',   label: 'Periwinkle', light: '#A9BCFF', dark: '#2F3C75' },
+  { value: 'pink',   label: 'Rose',       light: '#F4B3C2', dark: '#6B2A3C' },
+  { value: 'purple', label: 'Lilac',      light: '#E0D4F7', dark: '#45336B', legacy: true },
 ] as const;
+
+/** The four swatches offered when making a new highlight. */
+export const HIGHLIGHT_PICKER = HIGHLIGHT_SWATCHES.filter((s) => !s.legacy);
 
 /* Text drawn over a highlight. Both clear 7:1 against every swatch
    above, so highlighted text stays as readable as unhighlighted text
@@ -63,5 +71,5 @@ export function highlightColor(color: string, isDarkMode = false): string {
 }
 
 export function highlightLabel(color: string): string {
-  return HIGHLIGHT_SWATCHES.find((s) => s.value === color)?.label ?? 'Butter';
+  return HIGHLIGHT_SWATCHES.find((s) => s.value === color)?.label ?? 'Cream';
 }
