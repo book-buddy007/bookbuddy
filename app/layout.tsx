@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { Toaster } from "@/components/ui/toaster"
+import { PwaRegister } from "@/components/pwa/pwa-register"
+import { Splash } from "@/components/pwa/splash"
 import "@/app/globals.css"
 // Must stay after globals.css: it re-points the shadcn variables, body and heading
 // rules at the design-system tokens (see the note in globals.css).
@@ -43,7 +45,15 @@ export const metadata = {
   // per the landing audit (finding 9).
   icons: {
     icon: "/favicon.svg",
+    apple: "/pwa-icon/180",
   },
+  // iOS standalone: full-screen with a translucent status bar over the navy header.
+  appleWebApp: {
+    capable: true,
+    title: "Book Buddy",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: { telephone: false },
 }
 
 // viewport-fit=cover lets the PWA draw under the notch; safe-area insets are
@@ -87,6 +97,8 @@ export default function RootLayout({
             >
               {children}
               <Toaster />
+              <Splash />
+              <PwaRegister />
             </ThemeProvider>
           </QueryProvider>
         </AuthProvider>

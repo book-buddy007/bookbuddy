@@ -36,6 +36,10 @@ const publicRoutes = [
   '/terms',
   '/cookies',
   '/subscription/compare',
+  // PWA: install metadata, app icons and the offline fallback must load without a session.
+  '/manifest.webmanifest',
+  '/pwa-icon',
+  '/offline',
   // Unauthenticated so error tracking can be verified end-to-end (it throws).
   '/api/debug-sentry',
   // Living style guide: open in development only so it can be reviewed without a login.

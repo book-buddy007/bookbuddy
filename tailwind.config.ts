@@ -2,6 +2,8 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
 	darkMode: ["class"],
+	// hover: variants only apply on devices that can hover, so touch screens never get stuck hover states.
+	future: { hoverOnlyWhenSupported: true },
 	content: [
 		"./pages/**/*.{js,ts,jsx,tsx,mdx}",
 		"./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -255,6 +257,7 @@ const config: Config = {
 			},
 			keyframes: {
 				'bb-shimmer': { '100%': { transform: 'translateX(100%)' } },
+				'bb-loader': { '0%': { transform: 'translateX(-100%)' }, '100%': { transform: 'translateX(200%)' } },
 				'accordion-down': {
 					from: {
 						height: '0'

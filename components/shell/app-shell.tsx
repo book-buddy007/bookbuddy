@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationBell } from "@/components/shell/notification-bell"
 import { UserAvatar, UserMenu, type ShellUser } from "@/components/shell/user-menu"
 import { MiniPlayerDock } from "@/components/shell/mini-player-dock"
+import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { ROLE_LABEL, accessibleSections, isDashRole, navForRole, sectionFromPath, type DashRole } from "@/lib/nav"
 
 const SECTION_ICON: Record<DashRole, NavItem["icon"]> = {
@@ -124,7 +125,10 @@ export function AppShellFrame({ children, user, onLogout, section, disableNotifi
           </header>
         )}
 
-        <main className={cn(chrome && "mx-auto w-full max-w-[1600px] px-5 pb-40 pt-6 sm:px-6 md:px-10 md:pb-12 lg:px-14")}>{children}</main>
+        <main className={cn(chrome && "mx-auto w-full max-w-[1600px] px-5 pb-40 pt-6 sm:px-6 md:px-10 md:pb-12 lg:px-14")}>
+          {chrome && pathname === nav.home && <InstallPrompt className="mb-6" />}
+          {children}
+        </main>
       </div>
 
       {chrome && user && (
