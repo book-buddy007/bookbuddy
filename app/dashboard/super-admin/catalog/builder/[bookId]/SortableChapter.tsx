@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronDown, ChevronUp, ListPlus, Trash2, Pencil, Check } from 'lucide-react';
+import { GripVertical, ChevronDown, ChevronUp, ListPlus, Trash2, Pencil, Check } from '@/components/ui/icons';
 import type { FlatChapter, FlatSection } from './AudiobookBuilder';
 import { UploadSlot } from './UploadSlot';
 

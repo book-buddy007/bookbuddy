@@ -6,14 +6,14 @@ import { EnhancedCard, EnhancedCardContent } from "@/components/ui/enhanced-card
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { Plus, Search, Filter, Users as UsersIcon } from "lucide-react";
+import { Plus, Search, Filter, Users as UsersIcon } from "@/components/ui/icons";
 import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash } from "@/components/ui/icons";
 import { useAdminState, User, UserRole, UserStatus } from "@/hooks/use-admin-state";
 
 export default function UserManagementPage() {

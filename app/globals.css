@@ -23,6 +23,12 @@
    without needing !important on every rule. */
 @import '../styles/ux-foundation.css';
 
+/* NOTE: the Book Buddy design tokens (styles/bb-tokens.css) are imported from
+   app/layout.tsx AFTER this file. css-loader hoists every @import in this file ahead
+   of Tailwind's own output, so importing the tokens here would let the legacy :root
+   values below win. The five legacy sheets above are removed page-by-page as the
+   redesign lands. */
+
 @layer base {
   :root {
     /* VG Educational Background Colors */

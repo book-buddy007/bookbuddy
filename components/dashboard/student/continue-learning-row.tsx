@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRef, useEffect, useCallback } from 'react';
-import { BookOpen, Headphones, Sparkles, FileText, Mic } from 'lucide-react';
+import { BookOpen, Headphones, Sparkles, FileText, Mic } from '@/components/ui/icons';
 
 export interface ContinueBook {
   id: string;

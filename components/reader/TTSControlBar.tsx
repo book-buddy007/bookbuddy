@@ -24,7 +24,7 @@ import {
   SkipForward, 
   SkipBack,
   X,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { useTextToSpeech } from "@/lib/hooks/useTextToSpeech";
 import { cn } from "@/lib/utils";
 

@@ -17,7 +17,7 @@ import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Progress } from '@/components/ui/progress';
 import {
   FileText, BookOpenCheck, Headphones, Check, Upload, Loader2, X, FileUp, Sparkles,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 const ALL_FORMATS = [
   { key: 'PDF', icon: FileText, label: 'PDF', accept: '.pdf', mimeType: 'application/pdf', color: 'border-red-200 bg-red-50/80 dark:bg-red-950/20 dark:border-red-800/50', accentGradient: 'from-red-500 to-rose-500' },

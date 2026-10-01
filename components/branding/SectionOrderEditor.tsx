@@ -1,7 +1,7 @@
 import React from 'react';
 import { SectionEditor } from './SectionEditor';
 import { Reorder } from 'framer-motion';
-import { GripVertical } from 'lucide-react';
+import { GripVertical } from '@/components/ui/icons';
 
 const SECTION_LABELS: Record<string, string> = {
     hero: 'Hero Section',

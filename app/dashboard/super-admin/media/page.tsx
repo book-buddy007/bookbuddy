@@ -27,7 +27,7 @@ import {
   BarChart3,
   Database,
   Activity,
-} from "lucide-react";
+} from "@/components/ui/icons";
 
 const STORAGE_QUERY_KEY = ["super-admin", "storage-intelligence"] as const;
 const STALE_TIME = 5 * 60 * 1000;

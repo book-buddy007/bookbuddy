@@ -8,7 +8,7 @@ import {
   ArrowRight, X, AlertCircle, CheckCircle2, Loader2, HardDrive, Edit3, 
   Check, Folder, FolderPlus, MoreVertical, Star, List, Grid, ChevronRight, 
   Plus, UploadCloud, FolderOpen, Settings2, Info, Bot, Tag, Menu, ChevronDown
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from '@/components/ui/dialog';

@@ -17,7 +17,7 @@ import {
   BookOpen,
   Calendar, Globe, Building2, User, Hash, Languages, FileType2,
   Layers, Shield, Loader2, ExternalLink, ImageIcon, Sparkles,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 const TIER_COLORS: Record<string, string> = {
   FREE: 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',

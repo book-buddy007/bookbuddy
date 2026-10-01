@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X } from '@/components/ui/icons';
 import { useEffect, useState } from 'react';
 
 interface FilterOptions {

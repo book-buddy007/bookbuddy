@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Download, Upload } from "lucide-react"
+import { Download, Upload } from "@/components/ui/icons"
 
 export function RecentActivity() {
   const activities = [

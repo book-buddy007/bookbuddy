@@ -6,7 +6,7 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 import { StatCard } from '@/components/ui/stat-card';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Input } from '@/components/ui/input';
-import { Boxes, Plus, Filter, FileDown, ImportIcon, Package, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Boxes, Plus, Filter, FileDown, ImportIcon, Package, AlertTriangle, CheckCircle2 } from '@/components/ui/icons';
 const ScientificCatalogSystem = (props: any) => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Scientific Classification System (Under Construction)</div>;
 const InventoryHealthMonitor = (props: any) => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Inventory Health Monitor (Under Construction)</div>;
 const InventoryTable = (props: any) => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Inventory Table Component (Under Construction)</div>;

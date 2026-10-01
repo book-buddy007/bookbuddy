@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdminState, Policies } from "@/hooks/use-admin-state";
-import { Save, Calculator, AlertCircle, BookOpen, Settings } from "lucide-react";
+import { Save, Calculator, AlertCircle, BookOpen, Settings } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/use-toast";
 
 type MaterialType = 'book' | 'ebook' | 'audiobook';

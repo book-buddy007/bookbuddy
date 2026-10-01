@@ -1,4 +1,4 @@
-import { ShieldCheck, Building2, Users, KeyRound, Lock, Network, FileCheck2 } from "lucide-react"
+import { ShieldCheck, Building2, Users, KeyRound, Lock, Network, FileCheck2 } from "@/components/ui/icons"
 
 /**
  * "Secure for Bharat" — deepens the enterprise story with the real multi-tenant

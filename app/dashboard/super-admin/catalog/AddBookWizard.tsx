@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BookOpen, Check, ChevronRight, ChevronLeft, Loader2, X, FileUp, Sparkles, Building2, BookOpenCheck, Headphones, FileText, RotateCcw, Eye, PlusCircle, PartyPopper, ImageIcon, FileType2, Tag } from 'lucide-react';
+import { BookOpen, Check, ChevronRight, ChevronLeft, Loader2, X, FileUp, Sparkles, Building2, BookOpenCheck, Headphones, FileText, RotateCcw, Eye, PlusCircle, PartyPopper, ImageIcon, FileType2, Tag } from '@/components/ui/icons';
 
 import { GenreMultiSelect } from '@/components/catalog/GenreMultiSelect';
 import { CoverUploadZone } from '@/components/catalog/CoverUploadZone';

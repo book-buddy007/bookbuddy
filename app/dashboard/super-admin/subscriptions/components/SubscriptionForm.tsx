@@ -29,7 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Sparkles, ShieldCheck, Crown, Zap, X } from "lucide-react"
+import { Sparkles, ShieldCheck, Crown, Zap, X } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 
 const subscriptionSchema = z.object({

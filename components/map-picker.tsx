@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { MapPin, Search, X } from "lucide-react"
+import { MapPin, Search, X } from "@/components/ui/icons"
 
 // Declare types for Google Maps API
 declare global {

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardFooter, EnhancedCardHeader, EnhancedCardTitle } from "@/components/ui/enhanced-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, GraduationCap, UserPlus, ArrowRight, CheckCircle2, Mail } from 'lucide-react';
+import { Terminal, GraduationCap, UserPlus, ArrowRight, CheckCircle2, Mail } from '@/components/ui/icons';
 import Link from 'next/link';
 import { AuthBackdrop, authCardClassName, authLogoHaloClassName } from '@/components/auth/auth-backdrop';
 import { MandalaMark } from '@/components/auth/mandala-mark';

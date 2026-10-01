@@ -17,7 +17,7 @@ import {
   Users,
   X,
   Clock,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { useSidebar } from "@/components/sidebar-provider"

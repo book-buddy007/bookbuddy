@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCatalogCategories, createCatalogCategory } from '@/lib/api/adminApi';
-import { Check, ChevronsUpDown, Loader2, Plus, Tag, X } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Tag, X } from '@/components/ui/icons';
 import { Badge } from '@/components/ui/badge';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

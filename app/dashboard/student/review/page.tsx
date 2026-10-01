@@ -6,7 +6,7 @@ import apiClient from '@/lib/apiClient';
 import { useAuthStore } from '@/store/useAuthStore';
 import { EnhancedCard, EnhancedCardContent } from '@/components/ui/enhanced-card';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Brain, BookOpen, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Brain, BookOpen, Loader2, CheckCircle2, ArrowRight } from '@/components/ui/icons';
 
 interface ResurfacingQueueItem {
   id: string;

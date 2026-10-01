@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { LayoutGrid, Smartphone, Tablet, RefreshCw, ExternalLink } from 'lucide-react';
+import { LayoutGrid, Smartphone, Tablet, RefreshCw, ExternalLink } from '@/components/ui/icons';
 import Link from 'next/link';
 import { toast } from '@/components/ui/use-toast';
 

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { X, Plus, StickyNote, Bookmark, Highlighter, CircleUserRound, Share2, Trash2, FileDown, Loader2, BookA, BookOpen } from "lucide-react";
+import { X, Plus, StickyNote, Bookmark, Highlighter, CircleUserRound, Share2, Trash2, FileDown, Loader2, BookA, BookOpen } from "@/components/ui/icons";
 import { useAnnotationStore } from "@/store/useAnnotationStore";
 import { formatDistanceToNow } from 'date-fns';
 import { panelShellClass } from "./panelShell";

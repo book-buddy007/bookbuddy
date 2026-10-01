@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { List, Highlighter, NotebookPen, WandSparkles, Headphones, Square, ChevronDown, ChevronUp } from 'lucide-react';
+import { List, Highlighter, NotebookPen, WandSparkles, Headphones, Square, ChevronDown, ChevronUp } from '@/components/ui/icons';
 import { useReaderStore } from '@/store/useReaderStore';
 
 /* ── One owner for the thumb zone (audit fix 2) ────────────────────────

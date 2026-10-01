@@ -17,7 +17,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Institution } from '@/types/admin';
-import { Building2 } from 'lucide-react';
+import { Building2 } from '@/components/ui/icons';
 
 interface AssignTenantRoleDialogProps {
   open: boolean;

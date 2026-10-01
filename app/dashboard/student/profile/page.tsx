@@ -13,7 +13,7 @@ import {
   User, Mail, IdCard, Calendar, Settings, Shield, Bell, Palette, Type, Eye,
   Camera, Save, Loader2, CheckCircle2, Crown, Sparkles, BookOpen, Clock, TrendingUp,
   KeyRound, AlertTriangle, Phone, BadgeCheck, SendHorizontal, RotateCcw
-} from "lucide-react"
+} from "@/components/ui/icons"
 import adminStyles from "@/app/admin.module.css"
 
 export default function StudentProfilePage() {

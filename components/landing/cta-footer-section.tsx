@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Rocket, PhoneCall } from "lucide-react"
+import { Rocket, PhoneCall } from "@/components/ui/icons"
 import { getLoadingButtonClasses } from "@/components/landing/loading-button"
 import { SunMandalaSVG } from "@/components/landing/mandala-svgs"
 import { HomeFooter } from "@/components/home-footer"

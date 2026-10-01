@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { AlertTriangle, Loader2, Trash2, FileX, BrainCircuit, Network } from 'lucide-react';
+import { AlertTriangle, Loader2, Trash2, FileX, BrainCircuit, Network } from '@/components/ui/icons';
 
 interface PurgeBookDialogProps {
   open: boolean;

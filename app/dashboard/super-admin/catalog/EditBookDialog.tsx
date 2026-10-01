@@ -23,7 +23,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { BookOpen, CheckCircle, Loader2, Sparkles, X } from 'lucide-react';
+import { BookOpen, CheckCircle, Loader2, Sparkles, X } from '@/components/ui/icons';
 import type { BookUpdatePayload } from '@/types/book-update.types';
 
 export interface EditBookDialogProps {

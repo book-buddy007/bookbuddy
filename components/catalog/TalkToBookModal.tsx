@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, StopCircle, BookOpen } from 'lucide-react';
+import { Send, Loader2, StopCircle, BookOpen } from '@/components/ui/icons';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 

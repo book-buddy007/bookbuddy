@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, Sparkles, Highlighter, Headphones, Play, ArrowRight } from 'lucide-react';
+import { BookOpen, Sparkles, Highlighter, Headphones, Play, ArrowRight } from '@/components/ui/icons';
 import type { ReactNode } from 'react';
 
 /* ───── Shared Card Shell ───── */

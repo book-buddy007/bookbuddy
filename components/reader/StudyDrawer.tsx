@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { X, Highlighter, Languages, WandSparkles, HelpCircle, Network, AudioLines } from 'lucide-react';
+import { X, Highlighter, Languages, WandSparkles, HelpCircle, Network, AudioLines } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { useReaderStore, type StudyTab } from '@/store/useReaderStore';
 import { AnnotationSidebar } from './AnnotationSidebar';

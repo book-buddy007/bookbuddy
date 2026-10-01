@@ -6,7 +6,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 const ResourceLinker = (props: any) => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Resource Linker (Under Construction)</div>;
-import { CalendarDays, FileText, Plus, BookOpen, ClipboardList, TrendingUp } from 'lucide-react';
+import { CalendarDays, FileText, Plus, BookOpen, ClipboardList, TrendingUp } from '@/components/ui/icons';
 
 // Mock data for demo purposes
 const mockAssignments = [

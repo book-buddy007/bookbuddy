@@ -22,7 +22,7 @@ import { SortableChapter } from './SortableChapter';
 import { BookContextHeader } from './BookContextHeader';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useToast } from '@/components/ui/use-toast';
-import { Music, Plus, Save } from 'lucide-react';
+import { Music, Plus, Save } from '@/components/ui/icons';
 
 // ─── Types ────────────────────────────────────────────────────────────
 

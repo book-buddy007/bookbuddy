@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
-import { Clock, GraduationCap, BookOpen, Flame } from 'lucide-react';
+import { Clock, GraduationCap, BookOpen, Flame } from '@/components/ui/icons';
 import { MandalaSVG } from '@/components/landing/mandala-svgs';
 import { MandalaMark } from '@/components/auth/mandala-mark';
 

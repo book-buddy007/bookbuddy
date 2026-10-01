@@ -7,7 +7,7 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 import { StatCard } from "@/components/ui/stat-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import { Globe, Mail, Eye, Bookmark, Sun, Moon, BookOpen, Settings, User, Bell, Shield, Palette } from "lucide-react"
+import { Globe, Mail, Eye, Bookmark, Sun, Moon, BookOpen, Settings, User, Bell, Shield, Palette } from "@/components/ui/icons"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"

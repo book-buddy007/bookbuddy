@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ChevronDown, Rocket, BookOpen, Bot, ShieldCheck, Headphones } from "lucide-react"
+import { ChevronDown, Rocket, BookOpen, Bot, ShieldCheck, Headphones } from "@/components/ui/icons"
 import { getLoadingButtonClasses } from "@/components/landing/loading-button"
 import { MandalaSVG } from "@/components/landing/mandala-svgs"
 import styles from "@/app/home.module.css"

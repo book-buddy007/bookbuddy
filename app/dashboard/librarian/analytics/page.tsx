@@ -34,7 +34,7 @@ import {
   BookOpen,
   BookUp,
   TrendingUp,
-} from "lucide-react";
+} from "@/components/ui/icons";
 
 export const metadata: Metadata = {
   title: "Analytics | Librarian Dashboard",

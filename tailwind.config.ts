@@ -11,6 +11,18 @@ const config: Config = {
 	theme: {
 		extend: {
 			colors: {
+				bb: {
+				ink: '#0A0F24', cobalt: '#1E3A8A', 'cobalt-light': '#3B5BDB', periwinkle: '#5B7CFF',
+				blaze: '#FF4D00', 'blaze-light': '#FF8A3D', 'blaze-dark': '#D93A00', amber: '#FFB547', cream: '#FFE3A3', cloud: '#F2F4F8',
+				bg: 'var(--bb-bg)', surface: 'var(--bb-surface)', 'surface-2': 'var(--bb-surface-2)', border: 'var(--bb-border)',
+				text: 'var(--bb-text)', muted: 'var(--bb-text-muted)', faint: 'var(--bb-text-faint)',
+				accent: 'var(--bb-accent)', 'accent-soft': 'var(--bb-accent-soft)', 'accent-ink': 'var(--bb-accent-ink)',
+				success: 'var(--bb-success)', 'success-soft': 'var(--bb-success-soft)', 'success-ink': 'var(--bb-success-ink)',
+				warning: 'var(--bb-warning)', 'warning-soft': 'var(--bb-warning-soft)', 'warning-ink': 'var(--bb-warning-ink)',
+				danger: 'var(--bb-danger)', 'danger-soft': 'var(--bb-danger-soft)', 'danger-ink': 'var(--bb-danger-ink)',
+				info: 'var(--bb-info)', 'info-soft': 'var(--bb-info-soft)', 'info-ink': 'var(--bb-info-ink)',
+				hover: 'var(--bb-hover)',
+				},
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {
@@ -164,12 +176,24 @@ const config: Config = {
 				},
 			},
 			fontFamily: {
-				sans: ['var(--font-vg-primary)', 'system-ui', 'sans-serif'],
-				mono: ['var(--font-vg-mono)', 'monospace'],
-				'vg-primary': ['var(--font-vg-primary)', 'system-ui', 'sans-serif'],
-				'vg-cultural': ['var(--font-vg-cultural)', 'serif'],
+				sans: ['var(--bb-font-ui)'],
+				display: ['var(--bb-font-display)'],
+				ui: ['var(--bb-font-ui)'],
+				reading: ['var(--bb-font-reading)'],
+				mono: ['var(--font-vg-mono)', 'ui-monospace', 'monospace'],
+				'vg-primary': ['var(--bb-font-ui)'],
+				'vg-cultural': ['var(--bb-font-display)'],
 			},
 			fontSize: {
+				'display-xl': ['80px', { lineHeight: '0.96', letterSpacing: '-0.04em', fontWeight: '800' }],
+				display: ['56px', { lineHeight: '1', letterSpacing: '-0.035em', fontWeight: '800' }],
+				h1: ['40px', { lineHeight: '1.05', letterSpacing: '-0.03em', fontWeight: '800' }],
+				h2: ['28px', { lineHeight: '1.1', letterSpacing: '-0.03em', fontWeight: '800' }],
+				h3: ['20px', { lineHeight: '1.25', letterSpacing: '-0.01em', fontWeight: '600' }],
+				'body-lg': ['18px', { lineHeight: '1.55' }],
+				body: ['15px', { lineHeight: '1.55' }],
+				label: ['13px', { lineHeight: '1.3', letterSpacing: '0.02em', fontWeight: '600' }],
+				reading: ['19px', { lineHeight: '1.75' }],
 				'vg-xs': 'var(--vg-text-xs)',
 				'vg-sm': 'var(--vg-text-sm)',
 				'vg-base': 'var(--vg-text-base)',
@@ -195,6 +219,7 @@ const config: Config = {
 				'vg-20': 'var(--vg-space-20)',
 			},
 			boxShadow: {
+				e0: 'var(--bb-shadow-e0)', e1: 'var(--bb-shadow-e1)', e2: 'var(--bb-shadow-e2)', gloss: 'var(--bb-shadow-gloss)', focus: 'var(--bb-focus-ring)',
 				'vg-xs': 'var(--vg-shadow-xs)',
 				'vg-sm': 'var(--vg-shadow-sm)',
 				'vg-md': 'var(--vg-shadow-md)',
@@ -206,6 +231,7 @@ const config: Config = {
 				'vg-cultural': 'var(--vg-shadow-cultural)',
 			},
 			borderRadius: {
+				'bb-xs': '6px', 'bb-sm': '10px', 'bb-md': '14px', 'bb-lg': '22px', 'bb-xl': '28px',
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
@@ -216,6 +242,11 @@ const config: Config = {
 				'vg-2xl': 'var(--vg-radius-2xl)',
 				'vg-3xl': 'var(--vg-radius-3xl)',
 			},
+			backgroundImage: {
+				'bb-primary': 'var(--bb-grad-primary)', 'bb-navy': 'var(--bb-grad-navy)',
+				'bb-progress': 'var(--bb-grad-progress)', 'bb-orb': 'var(--bb-varta-orb)',
+			},
+			transitionTimingFunction: { bb: 'cubic-bezier(.2,.8,.2,1)' },
 			backdropBlur: {
 				'vg-sm': 'var(--vg-blur-sm)',
 				'vg-md': 'var(--vg-blur-md)',

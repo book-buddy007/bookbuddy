@@ -14,7 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   GripVertical,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { cn } from '@/lib/utils';
 import { PlaybackSpeed } from '@/types/audiobook';
 

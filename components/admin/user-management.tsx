@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MoreHorizontal, Pencil, Search, Trash } from "lucide-react"
+import { MoreHorizontal, Pencil, Search, Trash } from "@/components/ui/icons"
 import {
   DropdownMenu,
   DropdownMenuContent,

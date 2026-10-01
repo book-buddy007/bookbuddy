@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Loader2,
   Clock,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import { getBookEmbeddingStatus, type EmbeddingProgress } from '@/lib/api/adminApi';
 
 const POLL_MS = 2000;

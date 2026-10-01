@@ -20,7 +20,7 @@ import {
   Waypoints,
   Maximize2,
   Minimize2,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { useReaderStore } from "@/store/useReaderStore";
 import { panelShellClass } from "./panelShell";
 import type { GraphCanvasNode, GraphCanvasEdge } from "./GraphCanvas";

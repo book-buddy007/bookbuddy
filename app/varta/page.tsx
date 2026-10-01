@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   Sparkles,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 /* Varta activity hub — a dedicated page (kept out of the reader's narrow drawer,
    which would be cluttered). Shows the signed-in student's Varta chat + quiz

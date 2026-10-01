@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Library, Search } from "lucide-react"
+import { Library, Search } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 
 export function DashboardHero() {

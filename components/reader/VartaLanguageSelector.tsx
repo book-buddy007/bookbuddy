@@ -7,7 +7,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Languages, ChevronDown, Check } from 'lucide-react';
+import { Languages, ChevronDown, Check } from '@/components/ui/icons';
 
 /**
  * Which language Varta answers in. Two choices, English and Hindi — there is

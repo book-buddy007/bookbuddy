@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Headphones, ChevronLeft, Library, MessageCircle, Lock, AlertCircle, RefreshCcw } from "lucide-react";
+import { BookOpen, Headphones, ChevronLeft, Library, MessageCircle, Lock, AlertCircle, RefreshCcw } from "@/components/ui/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Image from "next/image";
 import apiClient from '@/lib/apiClient';

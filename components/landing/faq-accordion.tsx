@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 import styles from "@/app/home.module.css"
 

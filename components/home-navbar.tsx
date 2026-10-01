@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { getLoadingButtonClasses } from "@/components/landing/loading-button"
-import { GraduationCap, Menu, X } from "lucide-react"
+import { GraduationCap, Menu, X } from "@/components/ui/icons"
 import { brand } from "@/shared/design/content"
 
 export function HomeNavbar() {

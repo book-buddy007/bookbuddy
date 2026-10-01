@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, BookCopy, BookOpen, RotateCcw, Calendar, RefreshCw, AlertCircle } from "lucide-react";
+import { Search, BookCopy, BookOpen, RotateCcw, Calendar, RefreshCw, AlertCircle } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 

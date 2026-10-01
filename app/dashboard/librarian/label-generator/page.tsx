@@ -34,7 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Download, Printer, QrCode, Barcode, PlusCircle, Tag, FileText } from "lucide-react";
+import { Download, Printer, QrCode, Barcode, PlusCircle, Tag, FileText } from "@/components/ui/icons";
 
 const LabelGeneratorPage = () => {
   // Single label form state

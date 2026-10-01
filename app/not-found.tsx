@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { FileQuestion } from "lucide-react"
+import { FileQuestion } from "@/components/ui/icons"
 import Link from "next/link"
 
 // The buttons are Links styled with `buttonVariants` rather than

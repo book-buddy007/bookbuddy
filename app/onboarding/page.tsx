@@ -19,7 +19,7 @@ import {
   Search,
   MessageCircle,
   MessageSquare
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 
 const WhatsappIcon = (props: React.SVGProps<SVGSVGElement>) => (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Upload, Loader2, CheckCircle2, AlertCircle, PlaySquare, Trash2, X, Mic } from 'lucide-react';
+import { Upload, Loader2, CheckCircle2, AlertCircle, PlaySquare, Trash2, X, Mic } from '@/components/ui/icons';
 import { useToast } from '@/components/ui/use-toast';
 import * as adminApi from '@/lib/api/adminApi';
 

@@ -1,4 +1,4 @@
-import { X, Clock, Gauge, Flame, Target, BookOpen } from 'lucide-react';
+import { X, Clock, Gauge, Flame, Target, BookOpen } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { useReaderStore } from '@/store/useReaderStore';
 

@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { FileText, X, Loader2, Check } from 'lucide-react';
+import { FileText, X, Loader2, Check } from '@/components/ui/icons';
 import { Badge } from '@/components/ui/badge';
 
 export interface SampleUploadZoneProps {

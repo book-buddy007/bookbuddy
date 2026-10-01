@@ -1,5 +1,5 @@
 import { AnimatedCounter } from "@/components/landing/animated-counter"
-import { Sparkles } from "lucide-react"
+import { Sparkles } from "@/components/ui/icons"
 
 export function StatsBand() {
   // Capability stats — every number here is true of the product today (no fabricated

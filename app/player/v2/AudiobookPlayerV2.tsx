@@ -7,7 +7,7 @@ import {
   List, Moon, Pause, Play, Rewind, RotateCcw, Sun,
   Volume1, Volume2, VolumeX, X, AlertTriangle,
   User, Download, CheckCircle2, WifiOff, Headphones,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import { useAudioPlayerStore, AudioGender, PlaybackSpeed, AudioSection } from '@/store/useAudioPlayerStore';
 import { AudioWaveform } from '@/components/player/AudioWaveform';
 import { Slider } from '@/components/ui/slider';

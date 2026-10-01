@@ -7,7 +7,7 @@ import {
   BookOpen, Headphones, Sparkles, Highlighter, Bookmark, Moon,
   Search, Library, Loader2, MousePointerClick, NotebookPen, WandSparkles,
   Layers, BookA, Languages, Globe, X, BookmarkPlus, ChevronRight, ChevronLeft,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';

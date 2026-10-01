@@ -4,7 +4,7 @@ import {
   Loader2,
   Mic2,
   FileText,
-} from "lucide-react";
+} from "@/components/ui/icons";
 
 interface RecapContentProps {
   bookId: string;

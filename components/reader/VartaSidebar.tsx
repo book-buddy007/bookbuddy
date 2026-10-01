@@ -1,4 +1,4 @@
-import { X, Send, Bot, User, StopCircle, RefreshCw, WandSparkles, Download, BookOpen, Lightbulb, MessageCircleQuestion, Swords, HelpCircle, AudioLines, Wand2, SquarePen } from "lucide-react";
+import { X, Send, Bot, User, StopCircle, RefreshCw, WandSparkles, Download, BookOpen, Lightbulb, MessageCircleQuestion, Swords, HelpCircle, AudioLines, Wand2, SquarePen } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";

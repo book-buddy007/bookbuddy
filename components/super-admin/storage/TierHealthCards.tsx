@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { StorageBar } from "@/components/super-admin/storage/StorageBar";
 import { formatBytes } from "@/utils/storage.utils";
 import { notifyInstitution } from "@/lib/api/adminApi";
-import { Bell, Loader2, AlertTriangle, ShieldAlert, Users } from "lucide-react";
+import { Bell, Loader2, AlertTriangle, ShieldAlert, Users } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 

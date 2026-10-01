@@ -15,7 +15,7 @@ import {
   SlidersHorizontal,
   Check,
   ChevronDown,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 /* ── Color Palette ── */
 const COLORS = [

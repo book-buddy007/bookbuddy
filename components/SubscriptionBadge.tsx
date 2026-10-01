@@ -14,7 +14,7 @@ import {
   Sparkles, 
   Zap,
   Clock
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 interface SubscriptionBadgeProps {
   showIcon?: boolean;

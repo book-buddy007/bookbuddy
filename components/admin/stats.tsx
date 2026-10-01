@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, Clock, Library, Users } from "lucide-react"
+import { BookOpen, Clock, Library, Users } from "@/components/ui/icons"
 
 export function AdminStats() {
   return (

@@ -40,7 +40,7 @@ import {
   Calendar,
   FileText,
   Loader2,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { toast } from "@/hooks/use-toast";
 
 interface JoinRequest {

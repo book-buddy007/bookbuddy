@@ -6,7 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { InstitutionForm, InstitutionFormValues } from "@/components/institution-form"
-import { Building2 } from "lucide-react"
+import { Building2 } from "@/components/ui/icons"
 
 interface AddInstitutionSheetProps {
   open: boolean

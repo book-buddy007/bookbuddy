@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { AlertTriangle, Loader2, Trash2, BrainCircuit } from 'lucide-react';
+import { AlertTriangle, Loader2, Trash2, BrainCircuit } from '@/components/ui/icons';
 
 /** One format file, as the drawer knows it. */
 export interface FormatFileTarget {

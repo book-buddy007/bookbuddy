@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, ImageIcon, ArrowLeft, Info, Shield } from 'lucide-react';
+import { Loader2, ImageIcon, ArrowLeft, Info, Shield } from '@/components/ui/icons';
 import { toast } from "@/components/ui/use-toast";
 import { LogoUploader } from '@/components/branding/ImageUploader';
 import { EnhancedButton } from '@/components/ui/enhanced-button';

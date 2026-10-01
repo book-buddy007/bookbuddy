@@ -5,7 +5,7 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 // Placeholder components for missing imports
 const BookUpload = () => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Book Upload Component (Under Construction)</div>;
 const StudentUpload = () => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Student Upload Component (Under Construction)</div>;
-import { FileText, Users, Upload, AlertCircle, CheckCircle, FileSpreadsheet } from 'lucide-react';
+import { FileText, Users, Upload, AlertCircle, CheckCircle, FileSpreadsheet } from '@/components/ui/icons';
 
 export default function BulkUploadPage() {
   return (

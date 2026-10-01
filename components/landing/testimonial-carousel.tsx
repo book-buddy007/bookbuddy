@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Star, ChevronLeft, ChevronRight } from "lucide-react"
+import { Star, ChevronLeft, ChevronRight } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 import styles from "@/app/home.module.css"
 

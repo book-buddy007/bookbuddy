@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { BookOpen, FileText, Headphones, Bot, Type, Sun, ZoomIn, Gauge, Quote } from "lucide-react"
+import { BookOpen, FileText, Headphones, Bot, Type, Sun, ZoomIn, Gauge, Quote } from "@/components/ui/icons"
 import styles from "@/app/home.module.css"
 
 /**

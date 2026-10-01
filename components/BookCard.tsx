@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { BookOpen, Headphones, Star, Library, Eye, Clock, Play, MessageCircle } from "lucide-react";
+import { BookOpen, Headphones, Star, Library, Eye, Clock, Play, MessageCircle } from "@/components/ui/icons";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useState } from "react";

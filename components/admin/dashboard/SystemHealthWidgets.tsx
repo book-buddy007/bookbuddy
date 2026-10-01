@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HardDrive, Server, Activity, Cpu } from "lucide-react";
+import { HardDrive, Server, Activity, Cpu } from "@/components/ui/icons";
 
 export function SystemHealthWidgets() {
   return (

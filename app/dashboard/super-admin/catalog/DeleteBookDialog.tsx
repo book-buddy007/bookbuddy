@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from '@/components/ui/icons';
 
 interface DeleteBookDialogProps {
   open: boolean;

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { useAdminState } from "@/hooks/use-admin-state";
 import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
-import { BarChart, LineChart, PieChart, TrendingUp, Users, BookOpen, Download } from "lucide-react";
+import { BarChart, LineChart, PieChart, TrendingUp, Users, BookOpen, Download } from "@/components/ui/icons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Mock data for analytics

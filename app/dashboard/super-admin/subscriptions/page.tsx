@@ -33,7 +33,7 @@ import {
   ChevronRight,
   Crown,
   Inbox
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // No mock data — everything is fetched from the backend API

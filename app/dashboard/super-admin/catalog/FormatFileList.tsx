@@ -3,7 +3,7 @@
 import {
   FileText, BookOpenCheck, Headphones, BrainCircuit,
   Layers, ExternalLink, Trash2,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import type { FormatFileTarget } from './DeleteFormatDialog';
 
 const FORMAT_ICONS: Record<string, any> = {

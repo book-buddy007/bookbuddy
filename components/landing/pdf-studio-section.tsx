@@ -1,4 +1,4 @@
-import { PenTool, Shapes, Highlighter, EyeOff, ScanText, Mic, MousePointer2 } from "lucide-react"
+import { PenTool, Shapes, Highlighter, EyeOff, ScanText, Mic, MousePointer2 } from "@/components/ui/icons"
 
 /**
  * PDF Studio — surfaces the real in-browser annotation toolset from the codebase

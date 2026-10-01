@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon } from "@/components/ui/icons"
 import { EnhancedCard } from "./enhanced-card"
 
 const statCardVariants = cva(

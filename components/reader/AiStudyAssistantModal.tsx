@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, User, Send, Sparkles, Loader2 } from "lucide-react";
+import { Bot, User, Send, Sparkles, Loader2 } from "@/components/ui/icons";
 
 interface AiStudyAssistantModalProps {
     isOpen: boolean;

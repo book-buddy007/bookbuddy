@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { BookOpen, Check, MoreHorizontal, Pencil, Search, Tag, Trash, X } from "lucide-react"
+import { BookOpen, Check, MoreHorizontal, Pencil, Search, Tag, Trash, X } from "@/components/ui/icons"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function CatalogOversight() {

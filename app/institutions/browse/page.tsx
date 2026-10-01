@@ -27,7 +27,7 @@ import {
   XCircle,
   AlertCircle,
   ArrowLeft
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuthStore } from "@/store/useAuthStore"
 import { toast } from "@/hooks/use-toast"

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Institution } from '@/types/admin';
-import { Shield } from 'lucide-react';
+import { Shield } from '@/components/ui/icons';
 
 interface AssignCollectionsDialogProps {
   open: boolean;

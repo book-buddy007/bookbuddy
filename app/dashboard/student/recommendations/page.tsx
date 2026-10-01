@@ -8,7 +8,7 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 import { StatCard } from '@/components/ui/stat-card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Search, Sparkles, Star, ChevronRight, BookMarked } from 'lucide-react';
+import { BookOpen, Search, Sparkles, Star, ChevronRight, BookMarked } from '@/components/ui/icons';
 import {
   Select,
   SelectContent,

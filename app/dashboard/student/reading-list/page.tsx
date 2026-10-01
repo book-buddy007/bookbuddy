@@ -9,7 +9,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Search, BookMarked, Star, ChevronRight, Trash2, CheckCircle2, Bookmark, BookmarkCheck, BookmarkX } from 'lucide-react';
+import { BookOpen, Search, BookMarked, Star, ChevronRight, Trash2, CheckCircle2, Bookmark, BookmarkCheck, BookmarkX } from '@/components/ui/icons';
 import {
   Select,
   SelectContent,

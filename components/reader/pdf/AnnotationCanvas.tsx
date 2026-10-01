@@ -14,7 +14,7 @@ import {
   Circle,
   Square,
   Minus,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 interface AnnotationCanvasProps {
   pageNumber: number;

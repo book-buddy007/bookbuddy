@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wand2, Loader2, Lightbulb } from "lucide-react";
+import { Wand2, Loader2, Lightbulb } from "@/components/ui/icons";
 
 interface SimplifyContentProps {
   bookId: string;

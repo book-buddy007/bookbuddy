@@ -16,7 +16,7 @@ import {
   Check,
   X,
   type LucideIcon,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import type { DialogueMode } from '@/hooks/useBookChat';
 
 /**

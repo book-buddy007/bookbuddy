@@ -15,7 +15,7 @@ import {
   Trophy,
   // Aliased: the bare name resolves to the DOM `History` interface, not the icon.
   History as HistoryIcon,
-} from "lucide-react";
+} from "@/components/ui/icons";
 
 interface ChapterQuizContentProps {
   bookId: string;

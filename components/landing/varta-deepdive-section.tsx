@@ -1,4 +1,4 @@
-import { Bot, Quote, Layers, FileQuestion, BookMarked, ShieldCheck, Sparkles } from "lucide-react"
+import { Bot, Quote, Layers, FileQuestion, BookMarked, ShieldCheck, Sparkles } from "@/components/ui/icons"
 import styles from "@/app/home.module.css"
 
 /**

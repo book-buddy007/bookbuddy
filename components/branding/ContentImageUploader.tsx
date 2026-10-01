@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { UploadCloud, Check, AlertCircle } from 'lucide-react';
+import { UploadCloud, Check, AlertCircle } from '@/components/ui/icons';
 import Image from 'next/image';
 
 interface ImageUploaderProps {

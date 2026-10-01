@@ -15,7 +15,7 @@ import {
   Heart,
   Star,
   Zap
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { useState } from "react"
 
 export default function DesignSystemPage() {

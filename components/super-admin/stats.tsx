@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { StatPill } from '@/components/ui/stat-pill';
 import { useOverviewStats } from '@/app/dashboard/super-admin/hooks/useSuperAdmin';
-import { Building, Users, BookOpen, CreditCard, RefreshCw, AlertCircle } from 'lucide-react';
+import { Building, Users, BookOpen, CreditCard, RefreshCw, AlertCircle } from '@/components/ui/icons';
 
 export function SuperAdminStats() {
   const { data: statsData, isLoading, error } = useOverviewStats();

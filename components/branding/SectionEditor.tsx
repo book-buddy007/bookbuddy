@@ -3,7 +3,7 @@
 import { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
 interface SectionEditorProps {

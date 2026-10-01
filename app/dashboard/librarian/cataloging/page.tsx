@@ -22,7 +22,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { PlusCircle, FileEdit, FileText, BookPlus, Upload } from "lucide-react";
+import { PlusCircle, FileEdit, FileText, BookPlus, Upload } from "@/components/ui/icons";
 import { BookFormModal } from "@/components/catalog/BookFormModal";
 
 const CatalogingPage = () => {

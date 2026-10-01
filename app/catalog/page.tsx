@@ -5,7 +5,7 @@ import { EnhancedButton } from "@/components/ui/enhanced-button"
 import { EnhancedCard, EnhancedCardContent } from "@/components/ui/enhanced-card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, ChevronLeft, ChevronDown, Filter, Headphones, Search, SlidersHorizontal, Sparkles, ArrowUpDown, Library, AlertCircle, X, FileText, RefreshCcw } from "lucide-react"
+import { BookOpen, ChevronLeft, ChevronDown, Filter, Headphones, Search, SlidersHorizontal, Sparkles, ArrowUpDown, Library, AlertCircle, X, FileText, RefreshCcw } from "@/components/ui/icons"
 import {
   DropdownMenu,
   DropdownMenuContent,

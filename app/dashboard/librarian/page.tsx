@@ -24,7 +24,7 @@ import {
   Boxes,
   Library,
   TrendingUp,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"

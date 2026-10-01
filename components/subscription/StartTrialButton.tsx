@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Check, Loader2, Crown } from 'lucide-react';
+import { Sparkles, Check, Loader2, Crown } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { useTrialActivation } from '@/hooks/useTrialActivation';
 import { useAuthStore } from '@/store/useAuthStore';

@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Highlighter, FileText, X, BookOpenCheck, Layers, WandSparkles,
   AudioLines, Share2, NotebookPen, Copy, Check, Quote, Wand2,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { useAnnotationStore, AnnotationColor } from "@/store/useAnnotationStore";
 import { HIGHLIGHT_SWATCHES, HIGHLIGHT_INK } from "./highlightPalette";
 

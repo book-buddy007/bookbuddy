@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Image as ImageIcon, Home, Paintbrush2, ArrowRight, Upload, Sparkles } from 'lucide-react';
+import { Image as ImageIcon, Home, Paintbrush2, ArrowRight, Upload, Sparkles } from '@/components/ui/icons';
 
 export default function BrandingPage() {
   return (

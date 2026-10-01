@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookMarked, Copy, Check } from 'lucide-react';
+import { BookMarked, Copy, Check } from '@/components/ui/icons';
 
 interface CitationGeneratorModalProps {
     isOpen: boolean;

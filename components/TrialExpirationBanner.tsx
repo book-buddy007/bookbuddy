@@ -18,7 +18,7 @@ import {
   X,
   Crown,
   Zap
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 export function TrialExpirationBanner() {
   const router = useRouter();

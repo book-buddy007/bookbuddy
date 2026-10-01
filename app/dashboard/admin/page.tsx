@@ -6,7 +6,7 @@ import { QuickStats } from "@/components/admin/dashboard/QuickStats";
 import { SystemHealthWidgets } from "@/components/admin/dashboard/SystemHealthWidgets";
 import { NavigationCards } from "@/components/admin/dashboard/NavigationCards";
 import { DashboardOverview } from "@/components/admin/dashboard/DashboardOverview";
-import { Bell, LayoutDashboard } from "lucide-react";
+import { Bell, LayoutDashboard } from "@/components/ui/icons";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 
 export default function AdminDashboard() {

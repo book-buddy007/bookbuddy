@@ -31,7 +31,7 @@ import {
   User,
   GraduationCap,
   Brain,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 /* ───── Nav items ───── */
 interface NavItem {

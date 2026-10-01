@@ -1,0 +1,214 @@
+/* Book Buddy design tokens — single source of truth (from the design handoff).
+   Light is default. Dark applies under [data-theme="dark"] on <html>; the `.dark`
+   class is set alongside it by next-themes so Tailwind `dark:` variants and the
+   older shadcn components keep working.
+   Fonts are loaded by next/font in app/layout.tsx, which sets --font-bricolage,
+   --font-familjen and --font-newsreader on <html>. */
+
+:root {
+  /* core palette */
+  --bb-ink: #0A0F24; --bb-navy-2: #0F1F5C; --bb-cobalt: #1E3A8A; --bb-cobalt-light: #3B5BDB; --bb-periwinkle: #5B7CFF;
+  --bb-blaze: #FF4D00; --bb-blaze-light: #FF8A3D; --bb-blaze-dark: #D93A00; --bb-amber: #FFB547; --bb-cream: #FFE3A3; --bb-cloud: #F2F4F8;
+  /* semantic (light) */
+  --bb-bg: #F2F4F8; --bb-surface: #FFFFFF; --bb-surface-2: #E6EAF1; --bb-border: #DCE1EA;
+  --bb-text: #0A0F24; --bb-text-muted: #4A5470; --bb-text-faint: #8E9AB8;
+  --bb-accent: #FF4D00; --bb-accent-soft: #FFE7DC; --bb-accent-ink: #B83300;
+  --bb-info: #3B5BDB; --bb-info-soft: #DCE8FF; --bb-info-ink: #1E3A8A;
+  --bb-success: #12B85A; --bb-success-soft: #DDF8E6; --bb-success-ink: #0B7A3B;
+  --bb-warning: #F5B800; --bb-warning-soft: #FFF4C2; --bb-warning-ink: #7A5A00;
+  --bb-danger: #E5283A; --bb-danger-soft: #FFE1E4; --bb-danger-ink: #B0182A;
+  --bb-highlight: #FFE3A3;
+  --bb-hover: #FAFBFD;
+  --bb-on-accent: #FFFFFF;
+  /* gradients (glossy) */
+  --bb-grad-primary: linear-gradient(180deg, #FF8A3D 0%, #FF4D00 55%, #D93A00 100%);
+  --bb-grad-navy: linear-gradient(160deg, #1E3A8A 0%, #0F1F5C 45%, #0A0F24 100%);
+  --bb-grad-progress: linear-gradient(90deg, #FF8A3D, #FF4D00);
+  --bb-grad-waveform-played: linear-gradient(180deg, #FFC58A, #FF5A0F);
+  --bb-varta-orb: radial-gradient(circle at 32% 28%, #FFFFFF 0%, #C9D4FF 16%, #5B7CFF 45%, #1E3A8A 75%);
+  /* subject covers */
+  --bb-cover-physics: linear-gradient(150deg, #7D97FF 0%, #3B5BDB 55%, #1E3A8A 100%);
+  --bb-cover-science: linear-gradient(150deg, #FFB37A 0%, #FF4D00 48%, #9A2600 100%);
+  --bb-cover-english: linear-gradient(150deg, #FFE04A 0%, #FF9A1F 55%, #FF4D2E 100%);
+  --bb-cover-history: linear-gradient(150deg, #FF9A55 0%, #E5283A 60%, #8A0F2A 100%);
+  --bb-cover-hindi: linear-gradient(150deg, #2A3556 0%, #121A33 60%, #0A0F24 100%);
+  /* shadows */
+  --bb-shadow-e0: 0 1px 0 var(--bb-border);
+  --bb-shadow-e1: 0 1px 0 var(--bb-border), 0 18px 40px -26px rgba(6, 10, 30, .5);
+  --bb-shadow-e2: 0 40px 60px -30px rgba(6, 10, 30, .55);
+  --bb-shadow-gloss: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 0 rgba(120, 30, 0, .25), 0 10px 24px -8px rgba(255, 77, 0, .6);
+  --bb-shadow-navy: inset 0 1px 0 rgba(255, 255, 255, .2);
+  --bb-focus-ring: 0 0 0 4px rgba(255, 77, 0, .15);
+  /* glass (player, dark overlays) */
+  --bb-glass-bg: rgba(255, 255, 255, .08); --bb-glass-border: rgba(255, 255, 255, .14); --bb-glass-blur: blur(14px);
+  /* radius */
+  --bb-r-xs: 6px; --bb-r-sm: 10px; --bb-r-md: 14px; --bb-r-lg: 22px; --bb-r-xl: 28px; --bb-r-full: 999px;
+  /* spacing (4pt) */
+  --bb-s-1: 4px; --bb-s-2: 8px; --bb-s-3: 12px; --bb-s-4: 16px; --bb-s-6: 24px; --bb-s-8: 32px; --bb-s-12: 48px; --bb-s-16: 64px;
+  /* type */
+  --bb-font-display: var(--font-bricolage), 'Bricolage Grotesque', system-ui, sans-serif;
+  --bb-font-ui: var(--font-familjen), 'Familjen Grotesk', system-ui, sans-serif;
+  --bb-font-reading: var(--font-newsreader), 'Newsreader', Georgia, serif;
+  /* legacy aliases so un-migrated code (Indic/VG sheets, inline styles) follows the new faces */
+  --font-display: var(--bb-font-display);
+  --font-body: var(--bb-font-ui);
+  --font-vg-primary: var(--bb-font-ui);
+  --font-vg-cultural: var(--bb-font-display);
+  /* motion */
+  --bb-dur-micro: 120ms; --bb-dur-ui: 240ms; --bb-ease: cubic-bezier(.2, .8, .2, 1);
+  /* safe-area insets (PWA / notched phones) */
+  --bb-safe-top: env(safe-area-inset-top, 0px); --bb-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --bb-safe-left: env(safe-area-inset-left, 0px); --bb-safe-right: env(safe-area-inset-right, 0px);
+
+  /* ---- shadcn/ui bridge: HSL triplets derived from the tokens above, so every
+     existing `bg-background`, `text-muted-foreground`, `border-border`… utility
+     re-themes without touching component code. ---- */
+  --background: 220 30% 96%;
+  --foreground: 228 57% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 228 57% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 228 57% 9%;
+  --primary: 18 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 218 28% 92%;
+  --secondary-foreground: 228 57% 9%;
+  --muted: 218 28% 92%;
+  --muted-foreground: 224 20% 36%;
+  --accent: 19 100% 93%;
+  --accent-foreground: 17 100% 36%;
+  --destructive: 354 78% 53%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 219 25% 89%;
+  --input: 219 25% 89%;
+  --ring: 18 100% 50%;
+  --radius: 14px;
+  /* charts: navy/cobalt series, orange is the highlight series. No rainbow. */
+  --chart-1: 228 69% 55%;
+  --chart-2: 18 100% 50%;
+  --chart-3: 224 64% 33%;
+  --chart-4: 228 100% 68%;
+  --chart-5: 223 23% 64%;
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 228 57% 9%;
+  --sidebar-primary: 18 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 218 28% 92%;
+  --sidebar-accent-foreground: 228 57% 9%;
+  --sidebar-border: 219 25% 89%;
+  --sidebar-ring: 18 100% 50%;
+}
+
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+  --bb-bg: #0A0F24; --bb-surface: #121A33; --bb-surface-2: #18213C; --bb-border: #2A3556;
+  --bb-text: #F2F4F8; --bb-text-muted: #A9B4D0; --bb-text-faint: #8E9AB8;
+  --bb-accent: #FF5A0F; --bb-accent-soft: #3A1A0C; --bb-accent-ink: #FF8A3D;
+  --bb-info: #7D97FF; --bb-info-soft: #16224A; --bb-info-ink: #A9BCFF;
+  --bb-success: #3DDC84; --bb-success-soft: #0F2E1F; --bb-success-ink: #3DDC84;
+  --bb-warning: #FFD23F; --bb-warning-soft: #33290A; --bb-warning-ink: #FFD23F;
+  --bb-danger: #FF5468; --bb-danger-soft: #3A1520; --bb-danger-ink: #FF8A98;
+  --bb-highlight: rgba(255, 181, 71, .32);
+  --bb-hover: #151E3A;
+  --bb-shadow-e1: 0 1px 0 var(--bb-border), 0 18px 40px -26px rgba(0, 0, 0, .7);
+
+  --background: 228 57% 9%;
+  --foreground: 220 30% 96%;
+  --card: 225 48% 14%;
+  --card-foreground: 220 30% 96%;
+  --popover: 225 48% 14%;
+  --popover-foreground: 220 30% 96%;
+  --primary: 19 100% 53%;
+  --secondary: 225 43% 16%;
+  --secondary-foreground: 220 30% 96%;
+  --muted: 225 43% 16%;
+  --muted-foreground: 223 29% 74%;
+  --accent: 18 66% 14%;
+  --accent-foreground: 24 100% 62%;
+  --destructive: 353 100% 66%;
+  --border: 225 34% 25%;
+  --input: 225 34% 25%;
+  --ring: 19 100% 53%;
+  --chart-1: 228 100% 75%;
+  --chart-2: 19 100% 53%;
+  --chart-3: 228 69% 55%;
+  --chart-4: 223 29% 74%;
+  --chart-5: 223 23% 64%;
+  --sidebar-background: 225 48% 14%;
+  --sidebar-foreground: 220 30% 96%;
+  --sidebar-primary: 19 100% 53%;
+  --sidebar-accent: 225 43% 16%;
+  --sidebar-accent-foreground: 220 30% 96%;
+  --sidebar-border: 225 34% 25%;
+  --sidebar-ring: 19 100% 53%;
+}
+
+/* Reader themes (scoped to the reader surface) */
+[data-reader="paper"] { --rd-bg: #FBFBFD; --rd-ink: #0A0F24; --rd-sub: #4A5470; --rd-hl: #FFE3A3; --rd-panel: #FFFFFF; --rd-border: #E6EAF1; --rd-track: #EEF1F6; }
+[data-reader="sepia"] { --rd-bg: #F6EEDF; --rd-ink: #3B2F22; --rd-sub: #75634C; --rd-hl: #EBCB8B; --rd-panel: #FBF5EA; --rd-border: #E3D5BC; --rd-track: #EDE2CC; }
+[data-reader="night"] { --rd-bg: #0A0F24; --rd-ink: #E6EAF1; --rd-sub: #A9B4D0; --rd-hl: rgba(255, 181, 71, .32); --rd-panel: #121A33; --rd-border: #1A2340; --rd-track: #1A2340; }
+
+/* ---- Base ----
+   Declared unlayered and imported after the legacy design systems, so these win
+   over their element-level rules (notably the old Yatra One h1–h3 treatment). */
+html { -webkit-text-size-adjust: 100%; background: var(--bb-bg); }
+
+body,
+.dark body {
+  background: var(--bb-bg);
+  background-image: none;
+  color: var(--bb-text);
+  font-family: var(--bb-font-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2 {
+  font-family: var(--bb-font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+h1 { font-size: clamp(2rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.5rem, 2.4vw, 1.75rem); }
+h3 {
+  font-family: var(--bb-font-ui);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  font-size: 1.25rem;
+}
+/* Tailwind text-* utilities and component classes still win over the element
+   sizes above, so existing explicit sizes are unaffected. */
+
+a { color: inherit; }
+::selection { background: var(--bb-highlight); color: var(--bb-ink); }
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--bb-focus-ring);
+  border-color: var(--bb-accent);
+}
+/* Elements that are not boxes (links, icons) fall back to an outline. */
+a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--bb-accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bb-lift { transition: transform 350ms var(--bb-ease), box-shadow 350ms var(--bb-ease); }
+  .bb-lift:hover { transform: translateY(-10px) rotateX(6deg); box-shadow: var(--bb-shadow-e2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

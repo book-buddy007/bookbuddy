@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Home, ArrowLeft, Save, Send, RotateCcw, Eye, Wifi, WifiOff, AlertTriangle, BookOpen, Search, X } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Save, Send, RotateCcw, Eye, Wifi, WifiOff, AlertTriangle, BookOpen, Search, X } from '@/components/ui/icons';
 import { SectionEditor } from '@/components/branding/SectionEditor';
 import { CharacterLimitedInput } from '@/components/branding/CharacterLimitedInput';
 import { ImageUploader } from '@/components/branding/ContentImageUploader';

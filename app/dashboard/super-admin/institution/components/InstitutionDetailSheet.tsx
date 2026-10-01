@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sheet"
 import { Institution } from "@/types/admin"
 import { StatPill } from "@/components/ui/stat-pill"
-import { Building2, Users, User, BookOpen, MapPin, Phone, Globe, ShieldCheck } from "lucide-react"
+import { Building2, Users, User, BookOpen, MapPin, Phone, Globe, ShieldCheck } from "@/components/ui/icons"
 import { Badge } from "@/components/ui/badge"
 
 interface InstitutionDetailSheetProps {

@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarClock, Activity, Highlighter, Sparkles, BookOpen } from 'lucide-react';
+import { CalendarClock, Activity, Highlighter, Sparkles, BookOpen } from '@/components/ui/icons';
 
 /* ───── Upcoming Panel ───── */
 export interface UpcomingItem {

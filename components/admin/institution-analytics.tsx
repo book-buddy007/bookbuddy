@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, Users } from "lucide-react"
+import { BookOpen, Users } from "@/components/ui/icons"
 
 export function InstitutionAnalytics() {
   return (

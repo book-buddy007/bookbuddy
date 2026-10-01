@@ -71,7 +71,7 @@ import {
   RotateCcw,
   Network,
   Trash,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 import { AddBookWizard } from './AddBookWizard';
 import { BookDetailDrawer } from './BookDetailDrawer';

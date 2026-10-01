@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { MapPicker } from "./map-picker"
-import { Building2, CircleDashed, Check, Plus, Trash, X } from "lucide-react"
+import { Building2, CircleDashed, Check, Plus, Trash, X } from "@/components/ui/icons"
 
 // Define validation schema for institution data
 const institutionFormSchema = z.object({

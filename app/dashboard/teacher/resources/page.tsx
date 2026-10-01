@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatCard } from '@/components/ui/stat-card';
 const ReadingListEditor = (props: any) => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Reading List Editor (Under Construction)</div>;
 const ReservationManager = (props: any) => <div className="p-8 text-center text-muted-foreground bg-white/50 dark:bg-slate-900/50 rounded-xl border border-dashed">Reservation Manager (Under Construction)</div>;
-import { BookOpen, ListChecks, Calendar, Library } from 'lucide-react';
+import { BookOpen, ListChecks, Calendar, Library } from '@/components/ui/icons';
 
 // Mock data for demo purposes
 const mockClasses = [

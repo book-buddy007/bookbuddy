@@ -3,7 +3,7 @@ import { useState } from "react";
 import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardDescription } from "@/components/ui/enhanced-card";
 import { Button } from "@/components/ui/button";
 import { formatBytes, formatLabel, formatColor } from "@/utils/storage.utils";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { purgeTrash } from "@/lib/api/adminApi";

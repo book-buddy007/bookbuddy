@@ -10,7 +10,7 @@ import { fetchWithRetry } from '@/lib/utils/fetch-with-retry';
 import { Button } from "@/components/ui/button"
 import { EnhancedButton } from "@/components/ui/enhanced-button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Bookmark, ChevronLeft, ChevronRight, List, Moon, FileSearch, Sun, BookOpenText, X, BookOpenCheck, ScrollText, Eye, ALargeSmall } from "lucide-react"
+import { ArrowLeft, Bookmark, ChevronLeft, ChevronRight, List, Moon, FileSearch, Sun, BookOpenText, X, BookOpenCheck, ScrollText, Eye, ALargeSmall } from "@/components/ui/icons"
 import { CircularProgress } from "@/components/ui/circular-progress"; // Pre-built circular progress component
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"

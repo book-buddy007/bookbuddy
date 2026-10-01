@@ -1,21 +1,36 @@
 import type React from "react"
-import { Plus_Jakarta_Sans, Yatra_One } from "next/font/google"
+import type { Viewport } from "next"
+import { Bricolage_Grotesque, Familjen_Grotesk, Newsreader } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { Toaster } from "@/components/ui/toaster"
 import "@/app/globals.css"
+// Must stay after globals.css: it re-points the shadcn variables, body and heading
+// rules at the design-system tokens (see the note in globals.css).
+import "@/styles/bb-tokens.css"
 
-const plusJakarta = Plus_Jakarta_Sans({
+// Design-system typefaces. Each sets a CSS variable that styles/bb-tokens.css
+// maps onto --bb-font-display / --bb-font-ui / --bb-font-reading.
+const bricolage = Bricolage_Grotesque({
+  weight: ["600", "700", "800"],
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-bricolage",
   display: "swap",
 })
 
-const yatraOne = Yatra_One({
-  weight: "400",
-  subsets: ["latin", "devanagari"],
-  variable: "--font-display",
+const familjen = Familjen_Grotesk({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-familjen",
+  display: "swap",
+})
+
+const newsreader = Newsreader({
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-newsreader",
   display: "swap",
 })
 
@@ -27,10 +42,17 @@ export const metadata = {
   // the one being shown to institutions during procurement. Removed
   // per the landing audit (finding 9).
   icons: {
-    // Mandala mark, generated from the Indic tokens
-    // (shared/design/indic/build-indic-css.mjs).
     icon: "/favicon.svg",
   },
+}
+
+// viewport-fit=cover lets the PWA draw under the notch; safe-area insets are
+// applied by the shells (see --bb-safe-* in styles/bb-tokens.css).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0A0F24",
 }
 
 export default function RootLayout({
@@ -39,19 +61,30 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${bricolage.variable} ${familjen.variable} ${newsreader.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className={`${plusJakarta.variable} ${yatraOne.variable} ${plusJakarta.className}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <AuthProvider>
           <QueryProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            {/* next-themes writes both data-theme="dark" (design tokens) and the
+                `dark` class (Tailwind dark: variants) on <html>. */}
+            <ThemeProvider
+              attribute={["class", "data-theme"]}
+              defaultTheme="system"
+              enableSystem
+              storageKey="bb-theme"
+              disableTransitionOnChange
+            >
               {children}
               <Toaster />
             </ThemeProvider>
@@ -59,7 +92,5 @@ export default function RootLayout({
         </AuthProvider>
       </body>
     </html>
-
   )
 }
-

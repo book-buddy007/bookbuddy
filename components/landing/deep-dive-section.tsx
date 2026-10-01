@@ -1,4 +1,4 @@
-import { Highlighter, Headphones, BarChart3, Users, AlertCircle, Bot, BookMarked, BookOpen, Play, Volume2, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { Highlighter, Headphones, BarChart3, Users, AlertCircle, Bot, BookMarked, BookOpen, Play, Volume2, AlertTriangle, CheckCircle2 } from "@/components/ui/icons"
 
 export function DeepDiveSection() {
   return (

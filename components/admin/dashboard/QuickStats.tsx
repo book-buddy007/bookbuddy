@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Users, Library, Clock } from "lucide-react";
+import { BookOpen, Users, Library, Clock } from "@/components/ui/icons";
 import { useAdminState, User } from "@/hooks/use-admin-state";
 import { useState, useEffect } from "react";
 

@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Institution } from '@/types/admin';
-import { UserCircle } from 'lucide-react';
+import { UserCircle } from '@/components/ui/icons';
 
 // The validation schema handles both Independent and Affiliated flows
 const baseUserSchema = z.object({

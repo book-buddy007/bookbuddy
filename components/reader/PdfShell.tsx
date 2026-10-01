@@ -25,7 +25,7 @@ import dynamic from 'next/dynamic';
 
 import { InkOverlay } from './pdf/InkOverlay';
 import { DrawingToolbar } from './pdf/DrawingToolbar';
-import { FileSearch, CirclePlus, CircleMinus, X, ChevronDown, ChevronUp, Highlighter, FileText, Palette, TriangleAlert, Volume2, BookA, WandSparkles, NotebookPen, Copy, CopyCheck, TextSelect } from 'lucide-react';
+import { FileSearch, CirclePlus, CircleMinus, X, ChevronDown, ChevronUp, Highlighter, FileText, Palette, TriangleAlert, Volume2, BookA, WandSparkles, NotebookPen, Copy, CopyCheck, TextSelect } from '@/components/ui/icons';
 
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/zoom/lib/styles/index.css';

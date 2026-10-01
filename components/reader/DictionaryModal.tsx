@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookA, BookmarkPlus, Loader2, Globe, Languages, ExternalLink } from 'lucide-react';
+import { BookA, BookmarkPlus, Loader2, Globe, Languages, ExternalLink } from '@/components/ui/icons';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDictionaryStore } from '@/store/useDictionaryStore';
 import { toast } from 'sonner';

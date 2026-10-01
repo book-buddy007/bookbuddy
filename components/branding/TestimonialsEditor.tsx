@@ -2,7 +2,7 @@ import { Control, Controller } from 'react-hook-form';
 import { SectionEditor } from './SectionEditor';
 import { CharacterLimitedInput } from './CharacterLimitedInput';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Star, GripVertical } from 'lucide-react';
+import { Trash2, Plus, Star, GripVertical } from '@/components/ui/icons';
 import { Reorder } from 'framer-motion';
 
 export function TestimonialsEditor({ control, formValues, setValue, errors }: any) {

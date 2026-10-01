@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { EnhancedButton } from "@/components/ui/enhanced-button"
 import { StatPill } from "@/components/ui/stat-pill"
-import { Building2, Plus, Search, RefreshCw, MoreVertical, Eye, Globe, Pencil, Trash2, Users } from "lucide-react"
+import { Building2, Plus, Search, RefreshCw, MoreVertical, Eye, Globe, Pencil, Trash2, Users } from "@/components/ui/icons"
 import { toast } from "@/hooks/use-toast"
 import { LoadingSpinner } from "@/components/ui/loading-state"
 import { getInstitutions, createInstitution, updateInstitution, deleteInstitution } from "@/lib/api/adminApi"

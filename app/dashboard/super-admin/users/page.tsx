@@ -60,7 +60,7 @@ import {
   Search,
   Filter,
   Building2
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 import { UserDetailSheet } from './components/UserDetailSheet';
 import { AddUserSheet } from './components/AddUserSheet';

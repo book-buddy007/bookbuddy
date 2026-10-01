@@ -1,4 +1,4 @@
-import { BookOpen, Bot, LayoutDashboard, ShieldCheck, PenTool, BookMarked } from "lucide-react"
+import { BookOpen, Bot, LayoutDashboard, ShieldCheck, PenTool, BookMarked } from "@/components/ui/icons"
 import styles from "@/app/home.module.css"
 
 export function FeaturesSection() {

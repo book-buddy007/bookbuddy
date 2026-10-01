@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   Headphones, Loader2, ChevronLeft, Play, Pause, Rewind, FastForward,
   List, FileText, Clock, User, UserRound, Volume2,
-} from 'lucide-react';
+} from '@/components/ui/icons';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';

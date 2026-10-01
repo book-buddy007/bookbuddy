@@ -26,7 +26,7 @@ import {
   Trash2,
   TrendingUp,
   Sparkles
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { useAuthStore } from "@/store/useAuthStore"
 import { toast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { GraduationCap, Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
+import { GraduationCap, Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from "@/components/ui/icons"
 
 export function HomeFooter() {
   return (

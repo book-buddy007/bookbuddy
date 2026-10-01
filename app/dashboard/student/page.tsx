@@ -14,7 +14,7 @@ import { ContinueLearningRow, type ContinueBook } from "@/components/dashboard/s
 import { StudyStreamsGrid, type StudyStreamsData } from "@/components/dashboard/student/study-streams-grid"
 import { UpcomingPanel, type UpcomingItem } from "@/components/dashboard/student/upcoming-and-activity"
 import { ActivityFeed, type ActivityItem } from "@/components/dashboard/student/upcoming-and-activity"
-import { BookOpen, Clock, TrendingUp, Rocket, Library, ArrowRight } from "lucide-react"
+import { BookOpen, Clock, TrendingUp, Rocket, Library, ArrowRight } from "@/components/ui/icons"
 
 export default function StudentDashboard() {
   const { userProfile, loading: profileLoading, error: profileError } = useUserProfile()

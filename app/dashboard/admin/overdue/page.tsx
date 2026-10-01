@@ -17,7 +17,7 @@ import {
 import {
   Clock, Mail, AlertCircle, DollarSign, Send,
   RefreshCw, UserRound, BookOpen, TrendingUp
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {

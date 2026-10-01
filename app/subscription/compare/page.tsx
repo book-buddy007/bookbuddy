@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, Check, Minus } from 'lucide-react';
+import { ArrowLeft, Check, Minus } from '@/components/ui/icons';
 import { TIER_ORDER, type AccessTier } from '@/types/catalog';
 
 export const metadata: Metadata = {

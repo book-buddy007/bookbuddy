@@ -7,7 +7,7 @@ import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCar
 import { StatCard } from "@/components/ui/stat-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import { Bell, BookOpen, GraduationCap, Plus, Search, Users, BookMarked, BookCheck, Clock, CalendarDays, FileText, ChevronRight, Headphones, TrendingUp } from "lucide-react"
+import { Bell, BookOpen, GraduationCap, Plus, Search, Users, BookMarked, BookCheck, Clock, CalendarDays, FileText, ChevronRight, Headphones, TrendingUp } from "@/components/ui/icons"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"

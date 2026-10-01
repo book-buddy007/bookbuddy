@@ -8,7 +8,7 @@ import { SectionHeader } from "@/components/admin/shared/SectionHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Button } from "@/components/ui/button";
-import { Check, X, Plus, Edit, Trash2, FolderTree, CheckSquare, BookOpen, TrendingUp } from "lucide-react";
+import { Check, X, Plus, Edit, Trash2, FolderTree, CheckSquare, BookOpen, TrendingUp } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
 import { catalogKeys } from "@/lib/query-keys";

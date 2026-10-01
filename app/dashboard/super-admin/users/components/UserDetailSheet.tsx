@@ -17,7 +17,7 @@ import {
   Building2, 
   UserCircle, 
   Clock 
-} from 'lucide-react';
+} from '@/components/ui/icons';
 
 interface UserDetailSheetProps {
   open: boolean;

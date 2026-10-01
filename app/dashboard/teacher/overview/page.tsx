@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Users, ListChecks, Clock, CalendarDays, GraduationCap, ArrowUpRight, TrendingUp, LayoutDashboard } from 'lucide-react';
+import { BookOpen, Users, ListChecks, Clock, CalendarDays, GraduationCap, ArrowUpRight, TrendingUp, LayoutDashboard } from '@/components/ui/icons';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 

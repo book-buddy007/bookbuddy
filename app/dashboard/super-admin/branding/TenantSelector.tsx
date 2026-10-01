@@ -1,7 +1,7 @@
 'use client';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Loader2 } from 'lucide-react';
+import { Building2, Loader2 } from '@/components/ui/icons';
 import { useBrandingTenant } from './BrandingProvider';
 
 export function TenantSelector() {

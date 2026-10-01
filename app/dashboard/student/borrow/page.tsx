@@ -5,7 +5,7 @@ import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { EnhancedCard, EnhancedCardContent, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardDescription } from "@/components/ui/enhanced-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Input } from "@/components/ui/input";
-import { Search, BookPlus, Clock, AlertTriangle, CheckCircle2, Sparkles, BookOpen } from "lucide-react";
+import { Search, BookPlus, Clock, AlertTriangle, CheckCircle2, Sparkles, BookOpen } from "@/components/ui/icons";
 import { Badge } from "@/components/ui/badge";
 import adminStyles from "@/app/admin.module.css";
 import {

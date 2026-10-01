@@ -10,7 +10,7 @@ import { LoadingSkeleton } from "@/components/admin/shared/Skeleton";
 import {
   Download, FileSpreadsheet, FileText, Calendar,
   BookOpen, UserCheck, Printer, BarChart3, TrendingUp
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { useToast } from "@/components/ui/use-toast";
 import { 
   Table, TableBody, TableCell, TableHead, 
