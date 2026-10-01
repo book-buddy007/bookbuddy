@@ -138,6 +138,11 @@ export function AppShellFrame({ children, user, onLogout, section, disableNotifi
             above={<MiniPlayerDock />}
             onMore={nav.tabs.length < 5 ? () => setMoreOpen(true) : undefined}
           />
+          {/* Tablet / desktop: the tab bar is hidden, so the mini player floats bottom-right.
+              Playback continues after leaving the player, so it needs a control at every width. */}
+          <div className="fixed bottom-5 right-5 z-40 hidden w-[380px] md:block">
+            <MiniPlayerDock skips />
+          </div>
           <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
             <SheetContent side="bottom" className="md:hidden">
               <SheetHeader className="sr-only">

@@ -8,6 +8,7 @@ import { AudioWaveform } from '@/components/player/AudioWaveform';
 import { useCoverColor } from '@/components/player/use-cover-color';
 import { Slider } from '@/components/ui/slider';
 import apiClient from '@/lib/apiClient';
+import { getSharedAudio, sectionKey } from '@/lib/audio-engine';
 import styles from './playerV2.module.css';
 
 // ─── Constants ─────────────────────────────────────────────
@@ -56,7 +57,9 @@ export default function AudiobookPlayerV2() {
   const bookId = searchParams.get('bookId') || searchParams.get('id');
 
   // ── Refs ──
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // The app-wide audio element (lib/audio-engine): playback outlives this page, so the
+  // player can be minimised into the mini player and keep going.
+  const audioRef = useRef<HTMLAudioElement | null>(getSharedAudio());
   const transcriptScrollerRef = useRef<HTMLDivElement | null>(null);
 
   // ── Theme ──
@@ -165,6 +168,16 @@ export default function AudiobookPlayerV2() {
       return;
     }
 
+    /* Re-entering from the mini player: this book is already loaded and may be
+       playing, so keep its section and position instead of reloading from the top. */
+    const loaded = useAudioPlayerStore.getState();
+    if (loaded.bookId === bookId && loaded.chapters.length > 0) {
+      const ch = loaded.getCurrentChapter() ?? loaded.chapters[0];
+      if (ch) setOpenChapterIds([ch.id]);
+      setIsInitialized(true);
+      return;
+    }
+
     const fetchStructure = async () => {
       store.setLoading(true);
       try {
@@ -234,6 +247,15 @@ export default function AudiobookPlayerV2() {
     const loadAudio = async () => {
       if (!audioRef.current) return;
 
+      // Already loaded (the player was minimised and reopened): don't restart it.
+      const key = sectionKey(currentSectionId, activeGender);
+      if (audioRef.current.dataset.sectionKey === key && audioRef.current.readyState > 0) {
+        setSectionDuration(audioRef.current.duration || 0);
+        store.setPlaying(!audioRef.current.paused);
+        store.setLoading(false);
+        return;
+      }
+
       const wasPlaying = isPlaying;
       store.setPlaying(false);
       store.setLoading(true);
@@ -245,6 +267,7 @@ export default function AudiobookPlayerV2() {
       }
 
       audioRef.current.src = url;
+      audioRef.current.dataset.sectionKey = key;
       audioRef.current.playbackRate = playbackRate;
       audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.load();
@@ -569,6 +592,7 @@ export default function AudiobookPlayerV2() {
     }
 
     audio.src = url;
+    audio.dataset.sectionKey = sectionKey(currentSectionId, activeGender);
     audio.load();
     const onReady = () => {
       audio.currentTime = resumeAt;
@@ -628,6 +652,43 @@ export default function AudiobookPlayerV2() {
   // PANEL (read-along / chapters), SENTENCES, AMBIENT COLOUR
   // ════════════════════════════════════════════════
   const ambient = useCoverColor(coverUrl);
+
+  /* ── Minimise (phone): chevron-down or swipe down ──
+     Leaves the full-screen Now Playing view; the shared audio element keeps playing
+     and the mini player above the tab bar takes over (components/player/audio-session-bridge).
+     With no history to return to (opened from a link), go to the dashboard instead. */
+  const minimise = useCallback(() => {
+    if (window.history.length > 1) router.back();
+    else router.push('/dashboard');
+  }, [router]);
+
+  /* Swipe down from the top half of the screen. The view follows the finger and
+     dismisses past ~140px (or a quick flick); anything less springs back. Sliders,
+     inputs, menus and anything marked data-no-swipe keep their own gestures. */
+  const swipe = useRef<{ y: number; t: number } | null>(null);
+  const [dragY, setDragY] = useState(0);
+  const onSwipeStart = (e: React.TouchEvent) => {
+    if (window.innerWidth >= 768 || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    if (t.clientY > window.innerHeight * 0.5) return;
+    if ((e.target as HTMLElement).closest('input, textarea, [role="slider"], [role="menu"], [data-no-swipe]')) return;
+    swipe.current = { y: t.clientY, t: Date.now() };
+  };
+  const onSwipeMove = (e: React.TouchEvent) => {
+    if (!swipe.current) return;
+    setDragY(Math.max(0, e.touches[0].clientY - swipe.current.y));
+  };
+  const onSwipeEnd = () => {
+    if (!swipe.current) return;
+    const velocity = dragY / Math.max(1, Date.now() - swipe.current.t);
+    swipe.current = null;
+    if (dragY > 140 || (dragY > 40 && velocity > 0.6)) minimise();
+    else setDragY(0);
+  };
+  const ease = 'transform 240ms cubic-bezier(.2,.8,.2,1)';
+  const swipeStyle: React.CSSProperties = dragY > 0
+    ? { transform: `translateY(${dragY}px)`, borderRadius: Math.min(28, dragY / 4), transition: swipe.current ? 'none' : ease }
+    : { transition: ease };
 
   /* The right-hand panel is a glass column from 1280px up and a bottom sheet below that.
      The transcript is fetched lazily while `showTranscript` is on (see the effect above),
@@ -840,16 +901,28 @@ export default function AudiobookPlayerV2() {
   );
 
   return (
-    <div className={styles.root} data-theme={theme}>
+    <div
+      className={styles.root}
+      data-theme={theme}
+      onTouchStart={onSwipeStart}
+      onTouchMove={onSwipeMove}
+      onTouchEnd={onSwipeEnd}
+      onTouchCancel={onSwipeEnd}
+      style={swipeStyle}
+    >
       <div className={`${styles.blob} ${styles.blobA}`} style={ambientStyle} />
       <div className={`${styles.blob} ${styles.blobB}`} />
+      {/* Grabber: on phones this view can be swiped down into the mini player */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-[calc(6px+var(--bb-safe-top))] z-10 h-1.5 w-10 -translate-x-1/2 rounded-full bg-white/30 md:hidden" />
 
       {/* ═══ HEADER ═══ */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <button className={styles.glassBtn} onClick={() => router.back()} aria-label="Go back">
-            <Icon name="chevron-down" size={22} fillLayer={false} className="md:hidden" />
-            <Icon name="chevron-left" size={22} fillLayer={false} className="hidden md:block" />
+          <button className={`${styles.glassBtn} md:!hidden`} onClick={minimise} aria-label="Minimise player">
+            <Icon name="chevron-down" size={22} fillLayer={false} />
+          </button>
+          <button className={`${styles.glassBtn} !hidden md:!inline-flex`} onClick={() => router.back()} aria-label="Go back">
+            <Icon name="chevron-left" size={22} fillLayer={false} />
           </button>
           <div className={styles.headerBook}>
             <div className={styles.headerTitle}>{bookTitle || 'Loading…'}</div>
@@ -1138,7 +1211,6 @@ export default function AudiobookPlayerV2() {
       )}
 
       {/* Hidden audio element */}
-      <audio ref={audioRef} preload="metadata" style={{ display: 'none' }} />
     </div>
   );
 }
