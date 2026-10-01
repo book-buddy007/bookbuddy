@@ -1,7 +1,7 @@
 'use client';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Loader2 } from '@/components/ui/icons';
+import { Icon } from '@/components/ui/icon';
 import { useBrandingTenant } from './BrandingProvider';
 
 export function TenantSelector() {
@@ -9,28 +9,24 @@ export function TenantSelector() {
 
   if (isLoadingTenants) {
     return (
-      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 py-2">
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <div role="status" className="flex items-center gap-2 py-2 text-sm text-bb-muted">
+        <Icon name="loader" size={16} className="animate-spin" />
         Loading institutions…
       </div>
     );
   }
 
   if (institutions.length === 0) {
-    return (
-      <div className="text-sm text-slate-500 dark:text-slate-400 py-2">
-        No institutions found. Create one first.
-      </div>
-    );
+    return <p className="py-2 text-sm text-bb-muted">No institutions found. Create one first.</p>;
   }
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-[var(--peacock-teal)]/10 dark:bg-[var(--peacock-teal)]/20">
-        <Building2 className="h-4 w-4 text-[var(--peacock-teal)]" />
-      </div>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-bb-accent-soft">
+        <Icon name="institution" size={18} />
+      </span>
       <Select value={selectedTenantId} onValueChange={setSelectedTenantId}>
-        <SelectTrigger className="w-[280px] border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md focus:ring-[var(--peacock-teal)] text-slate-700 dark:text-slate-300 rounded-xl">
+        <SelectTrigger className="w-[280px]" aria-label="Institution">
           <SelectValue placeholder="Select institution…" />
         </SelectTrigger>
         <SelectContent>

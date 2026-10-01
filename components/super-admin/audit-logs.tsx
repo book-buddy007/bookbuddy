@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { format, formatDistanceToNow } from 'date-fns';
+import { Chip } from '@/components/ui/chip';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatDistanceToNow } from 'date-fns';
 import { getAuditLogs } from '@/lib/api/adminApi';
 import { AuditLog } from '@/types/admin';
 
@@ -83,40 +85,47 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
   };
 
   if (isLoading) {
-    return <div className="py-6 text-center text-sm text-muted-foreground">Loading audit logs...</div>;
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-start gap-3">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-4/5" />
+              <Skeleton className="h-3 w-1/4" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="py-6 text-center text-sm text-red-500">{error}</div>;
+    return <p role="alert" className="py-6 text-center text-sm font-semibold text-bb-danger-ink">{error}</p>;
   }
 
   if (logs.length === 0) {
-    return <div className="py-6 text-center text-sm text-muted-foreground">No audit logs found</div>;
+    return <p className="py-6 text-center text-sm text-bb-muted">No audit logs found</p>;
   }
 
   return (
     <div className="space-y-4">
       {logs.map((log) => (
-        <div key={log.id} className="flex items-start space-x-4 pb-4 border-b border-border last:border-0 last:pb-0">
-          <Avatar className="h-8 w-8 mt-1 ring-2 ring-amber-100">
-            <AvatarFallback className="bg-amber-100 text-amber-700 font-bold">
+        <div key={log.id} className="flex items-start gap-3 border-b border-bb-border pb-4 last:border-0 last:pb-0">
+          <Avatar className="mt-0.5 h-9 w-9">
+            <AvatarFallback className="bg-bb-accent-soft text-xs font-bold text-bb-accent-ink">
               {log.user?.name?.substring(0, 2).toUpperCase() || log.userId?.substring(0, 2).toUpperCase() || '??'}
             </AvatarFallback>
           </Avatar>
-          <div className="space-y-1 flex-1">
-            <p className="text-sm text-slate-800">
-              <span className="font-bold text-bb-text">{log.user?.name || log.userId || 'System'}</span>
-              {' '}
-              <span className="text-bb-muted font-medium">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-sm">
+              <span className="font-semibold">{log.user?.name || log.userId || 'System'}</span>{' '}
+              <span className="text-bb-muted">
                 {getActionLabel(log.action)} a {getResourceTypeLabel(log.entityType)}
-                {log.entityId && (
-                  <span className="text-[10px] bg-amber-100 text-amber-800 rounded px-1.5 py-0.5 ml-1 font-bold">
-                    ID: {log.entityId}
-                  </span>
-                )}
               </span>
+              {log.entityId && <Chip className="ml-1.5 h-5 px-2 align-middle text-[11px]">ID: {log.entityId}</Chip>}
             </p>
-            <p className="text-xs text-bb-muted/70 font-medium italic">
+            <p className="text-xs text-bb-muted">
               {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
             </p>
           </div>
@@ -124,8 +133,8 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
       ))}
 
       {limit && logs.length >= limit && (
-        <div className="pt-2 text-center">
-          <Button variant="link" className="text-amber-700 hover:text-amber-900 font-bold" asChild>
+        <div className="pt-1 text-center">
+          <Button variant="link" asChild>
             <Link href="/dashboard/super-admin/audit">View all audit logs</Link>
           </Button>
         </div>

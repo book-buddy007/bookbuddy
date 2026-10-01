@@ -79,7 +79,10 @@ export const getInstitution = async (id: string): Promise<AdminApiResponse<Insti
   }
 };
 
-export const createInstitution = async (institution: Partial<Institution>): Promise<AdminApiResponse<Institution>> => {
+/** Creating an institution also provisions its first admin, so the payload carries the admin's identity. */
+export type CreateInstitutionInput = Partial<Institution> & { adminEmail?: string; adminName?: string };
+
+export const createInstitution = async (institution: CreateInstitutionInput): Promise<AdminApiResponse<Institution>> => {
   try {
     const response = await apiClient.post('/admin/institutions', institution);
     return { success: true, data: response.data };
@@ -940,4 +943,4 @@ export const saveAudioTracks = async (
   } catch (error: any) {
     return { success: false, error: extractErrorMessage(error.response?.data) };
   }
-};
+};

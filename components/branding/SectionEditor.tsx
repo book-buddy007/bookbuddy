@@ -30,14 +30,14 @@ export const SectionEditor = forwardRef<HTMLDivElement, SectionEditorProps>(
         <Collapsible
           open={isOpen}
           onOpenChange={setIsOpen}
-          className="border rounded-md"
+          className="rounded-[18px] border border-bb-border"
         >
-          <Card className="border-0 shadow-none">
+          <Card className="border-0 bg-transparent shadow-none">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
+              <CardHeader className="cursor-pointer rounded-t-[18px] transition-colors hover:bg-bb-surface-2">
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-lg">{title}</CardTitle>
+                    <CardTitle className="font-display text-lg font-extrabold tracking-[-0.02em]">{title}</CardTitle>
                     {description && (
                       <CardDescription>{description}</CardDescription>
                     )}

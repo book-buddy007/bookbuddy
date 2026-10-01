@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
+import { Segmented } from '@/components/ui/segmented';
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Home, ArrowLeft, Save, Send, RotateCcw, Eye, Wifi, WifiOff, AlertTriangle, BookOpen, Search, X } from '@/components/ui/icons';
 import { SectionEditor } from '@/components/branding/SectionEditor';
@@ -407,49 +411,31 @@ export default function HomepageEditorPage() {
   const isAnyActionLoading = pageAction !== 'idle' || isAutoSaving || isLoadingBranding;
 
   return (
-    <div className="space-y-6 animate-vg-fade-in-up">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl border border-white/10" style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}>
-        <div className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")'}} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+    <div className="space-y-8">
+      <Link href="/dashboard/super-admin/branding" className="inline-flex items-center gap-1.5 text-sm font-semibold text-bb-muted hover:text-bb-text">
+        <Icon name="arrow-left" size={16} /> Back to branding
+      </Link>
 
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <Link href="/dashboard/super-admin/branding" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors">
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to Branding
-            </Link>
-            <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-[var(--deep-saffron)] mr-2 animate-pulse"></span>
-              Content Management
-            </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm font-display">
-              Homepage Editor
-            </h1>
-            <p className="text-indigo-100/90 text-lg max-w-xl font-medium">
-              Manage the content displayed on the main public homepage.
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 shrink-0">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Content management"
+        title="Homepage editor"
+        description="Manage the content displayed on the main public homepage."
+        actions={
+          <>
             {/* Revert — AlertDialog instead of window.confirm() */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <EnhancedButton
-                  variant="outline"
-                  disabled={isAnyActionLoading || !selectedTenantId}
-                  className="border-white/20 text-white hover:bg-white/10 backdrop-blur-md"
-                  size="sm"
-                >
-                  {pageAction === 'reverting' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="mr-1.5 h-3.5 w-3.5" />}
+                <Button variant="outline" size="sm" disabled={isAnyActionLoading || !selectedTenantId}>
+                  {pageAction === 'reverting' ? <Icon name="loader" size={16} className="animate-spin" /> : <Icon name="rotate-ccw" size={16} />}
                   Revert
-                </EnhancedButton>
+                </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-500" />
-                    Revert to Published Version?
+                    <Icon name="alert" size={20} />
+                    Revert to published version?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     This will discard all draft changes and restore the last published homepage layout.
@@ -458,84 +444,73 @@ export default function HomepageEditorPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={onRevert}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Yes, Revert Changes
+                  <AlertDialogAction onClick={onRevert} className="bg-bb-danger text-white hover:brightness-95">
+                    Yes, revert changes
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
 
-            <EnhancedButton
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleSubmit(onSubmit)}
               disabled={isAnyActionLoading || !isDirty || !selectedTenantId}
-              className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border-white/20"
-              size="sm"
             >
-              {pageAction === 'saving' || isAutoSaving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
-              Save Draft
-            </EnhancedButton>
-            <EnhancedButton
-              onClick={onPublish}
-              disabled={isAnyActionLoading || !selectedTenantId}
-              className="bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
-              size="sm"
-            >
-              {pageAction === 'publishing' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
+              {pageAction === 'saving' || isAutoSaving ? <Icon name="loader" size={16} className="animate-spin" /> : <Icon name="save" size={16} />}
+              Save draft
+            </Button>
+            <Button size="sm" onClick={onPublish} disabled={isAnyActionLoading || !selectedTenantId}>
+              {pageAction === 'publishing' ? <Icon name="loader" size={16} className="animate-spin" /> : <Icon name="send" size={16} />}
               Publish
-            </EnhancedButton>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </>
+        }
+      />
 
-      {/* Tenant Selector + Status Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
+      {/* Tenant selector + status bar */}
+      <div className="flex flex-col items-start justify-between gap-3 rounded-[18px] bg-bb-surface p-4 shadow-e1 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">Configure for:</span>
+          <span className="shrink-0 text-sm font-semibold text-bb-muted">Configure for</span>
           <TenantSelector />
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-          {/* Online/Offline indicator */}
+        <div className="flex items-center gap-3 text-xs text-bb-muted">
           {!isOnline && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/30">
-              <WifiOff className="h-3 w-3" />
-              Offline — changes saved locally
+            <span role="status" className="inline-flex items-center gap-1.5 rounded-full bg-bb-warning-soft px-3 py-1 font-semibold text-bb-warning-ink">
+              <Icon name="wifi" size={14} />
+              Offline: changes saved locally
             </span>
           )}
           {isOnline && lastSaved && (
             <span className="inline-flex items-center gap-1.5">
-              <Wifi className="h-3 w-3 text-emerald-500" />
-              Last saved: {lastSaved.toLocaleTimeString()}
+              <Icon name="wifi" size={14} />
+              Last saved {lastSaved.toLocaleTimeString()}
             </span>
           )}
         </div>
       </div>
 
-      {/* Main Editor */}
-      <div className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--peacock-teal)]/10 dark:bg-[var(--peacock-teal)]/20">
-              <Home className="h-5 w-5 text-[var(--peacock-teal)]" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Homepage Sections</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Configure each section of the public homepage</p>
-            </div>
+      {/* Main editor */}
+      <section className="overflow-hidden rounded-[22px] bg-bb-surface shadow-e1">
+        <div className="flex items-center gap-3 border-b border-bb-border p-6">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-bb-accent-soft">
+            <Icon name="home" size={20} />
+          </span>
+          <div>
+            <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">Homepage sections</h2>
+            <p className="text-sm text-bb-muted">Configure each section of the public homepage</p>
           </div>
         </div>
 
         <div className="p-6">
           {isLoadingBranding ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-3">
-              <Loader2 className="animate-spin h-8 w-8 text-[var(--peacock-teal)]" />
-              <span className="text-sm text-slate-500 dark:text-slate-400">Loading homepage configuration…</span>
+            <div role="status" className="flex flex-col items-center justify-center gap-3 p-12">
+              <Icon name="loader" size={32} className="animate-spin" />
+              <span className="text-sm text-bb-muted">Loading homepage configuration…</span>
             </div>
           ) : !selectedTenantId ? (
-            <div className="flex flex-col items-center justify-center p-12 gap-3 text-slate-400">
-              <Home className="h-12 w-12 opacity-30" />
+            <div className="flex flex-col items-center justify-center gap-3 p-12 text-bb-muted">
+              <Icon name="home" size={48} className="opacity-40" />
               <span className="text-sm">Select an institution above to manage its homepage</span>
             </div>
           ) : (
@@ -676,7 +651,7 @@ export default function HomepageEditorPage() {
                             error={errors.announcements?.items?.[index]?.message}
                           />
 
-                          <EnhancedButton
+                          <Button
                             type="button"
                             variant="outline"
                             size="sm"
@@ -691,13 +666,13 @@ export default function HomepageEditorPage() {
                             className="shrink-0 border-red-200 dark:border-red-800/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             Remove
-                          </EnhancedButton>
+                          </Button>
                         </div>
                       )}
                     />
                   ))}
 
-                  <EnhancedButton
+                  <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
@@ -711,7 +686,7 @@ export default function HomepageEditorPage() {
                     className="border-slate-200 dark:border-slate-700/40 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   >
                     Add Announcement
-                  </EnhancedButton>
+                  </Button>
                 </div>
               </SectionEditor>
 
@@ -746,7 +721,7 @@ export default function HomepageEditorPage() {
                             value="grid"
                             checked={field.value === 'grid'}
                             onChange={() => field.onChange('grid')}
-                            className="mr-2 accent-[var(--peacock-teal)]"
+                            className="mr-2 accent-[var(--bb-accent)]"
                           />
                           <label htmlFor="layout-grid" className="text-sm text-slate-600 dark:text-slate-400">Grid</label>
                         </div>
@@ -757,7 +732,7 @@ export default function HomepageEditorPage() {
                             value="carousel"
                             checked={field.value === 'carousel'}
                             onChange={() => field.onChange('carousel')}
-                            className="mr-2 accent-[var(--peacock-teal)]"
+                            className="mr-2 accent-[var(--bb-accent)]"
                           />
                           <label htmlFor="layout-carousel" className="text-sm text-slate-600 dark:text-slate-400">Carousel</label>
                         </div>
@@ -793,87 +768,63 @@ export default function HomepageEditorPage() {
             </form>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* Live Preview Window */}
-      <div id="preview-anchor" className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-[var(--deep-saffron)]/10 dark:bg-[var(--deep-saffron)]/20">
-              <Eye className="h-4 w-4 text-[var(--deep-saffron)]" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Workspace Preview</h3>
-          </div>
-          
-          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 shrink-0">
-            <button
-              onClick={() => setPreviewMode('draft')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                previewMode === 'draft'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              Draft Preview
-            </button>
-            <button
-              onClick={() => setPreviewMode('live')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${
-                previewMode === 'live'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-            >
-              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Currently Live
-            </button>
-          </div>
+      {/* Live preview window */}
+      <section id="preview-anchor" className="overflow-hidden rounded-[22px] bg-bb-surface shadow-e1">
+        <div className="flex flex-col items-start justify-between gap-4 border-b border-bb-border p-4 sm:flex-row sm:items-center">
+          <h3 className="flex items-center gap-3 font-display text-base font-extrabold tracking-[-0.02em]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-bb-accent-soft">
+              <Icon name="eye" size={16} />
+            </span>
+            Workspace preview
+          </h3>
+
+          <Segmented
+            size="sm"
+            aria-label="Preview version"
+            value={previewMode}
+            onValueChange={setPreviewMode}
+            options={[
+              { value: 'draft', label: 'Draft preview' },
+              { value: 'live', label: 'Currently live' },
+            ]}
+          />
         </div>
-        
+
         <div className="relative">
           {previewMode === 'draft' ? (
             <LivePreviewWindow htmlContent={previewHtml} />
           ) : (
             <div className="relative">
-              <div className="absolute top-2 right-2 bg-slate-900/80 text-white text-[10px] uppercase font-bold py-1 px-2 rounded z-10 backdrop-blur-sm pointer-events-none">
-                Live Version
+              <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-bb-navy/90 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                Live version
               </div>
               <LivePreviewWindow htmlContent={liveHtml} />
             </div>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* Content Guidelines */}
-      <div className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm p-6">
-        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Content Guidelines</h3>
-        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2.5 ml-1">
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Use title case for all section headers (e.g., &quot;Library Resources&quot; not &quot;library resources&quot;)
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Keep hero titles under 60 characters for optimal display on all devices
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Use action verbs in CTA buttons to encourage engagement
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Maintain 16:9 aspect ratio for hero images for consistent display
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Limit announcements to 3–5 items for better readability
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Use high-contrast images that work well with overlay text
-          </li>
+      {/* Content guidelines */}
+      <section className="rounded-[22px] bg-bb-surface p-6 shadow-e1">
+        <h3 className="mb-4 font-display text-lg font-extrabold tracking-[-0.02em]">Content guidelines</h3>
+        <ul className="space-y-2.5 text-sm text-bb-muted">
+          {[
+            'Use title case for all section headers (e.g., "Library Resources" not "library resources")',
+            'Keep hero titles under 60 characters for optimal display on all devices',
+            'Use action verbs in CTA buttons to encourage engagement',
+            'Maintain 16:9 aspect ratio for hero images for consistent display',
+            'Limit announcements to 3–5 items for better readability',
+            'Use high-contrast images that work well with overlay text',
+          ].map((tip) => (
+            <li key={tip} className="flex items-start gap-2">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-bb-accent" />
+              <span>{tip}</span>
+            </li>
+          ))}
         </ul>
-      </div>
+      </section>
     </div>
   );
 }

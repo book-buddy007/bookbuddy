@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { Chip } from '@/components/ui/chip';
+import { Skeleton } from '@/components/ui/skeleton';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { useInstitutions } from '@/app/dashboard/super-admin/hooks/useSuperAdmin';
 
 interface InstitutionsListProps {
@@ -15,7 +16,7 @@ export function InstitutionsList({ limit }: InstitutionsListProps) {
   const { data: institutionsData, isLoading, error } = useInstitutions();
 
   let institutions = institutionsData || [];
-  
+
   // Sort by created date, newest first if available
   if (institutions.length > 0) {
     institutions = [...institutions].sort(
@@ -27,48 +28,60 @@ export function InstitutionsList({ limit }: InstitutionsListProps) {
   }
 
   if (isLoading) {
-    return <div className="py-6 text-center text-sm text-muted-foreground">Loading institutions...</div>;
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-3">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="py-6 text-center text-sm text-red-500">{(error as Error).message}</div>;
+    return <p role="alert" className="py-6 text-center text-sm font-semibold text-bb-danger-ink">{(error as Error).message}</p>;
   }
 
   if (institutions.length === 0) {
-    return <div className="py-6 text-center text-sm text-muted-foreground">No institutions found</div>;
+    return <p className="py-6 text-center text-sm text-bb-muted">No institutions found</p>;
   }
 
   return (
     <div className="space-y-4">
       {institutions.map((institution: any) => (
-        <div key={institution.id} className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-8 w-8 ring-2 ring-amber-100">
-              <AvatarFallback className="bg-gradient-to-br from-amber-600 to-amber-500 text-white font-bold">
+        <div key={institution.id} className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="bg-bb-navy text-xs font-bold text-white">
                 {institution.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <p className="text-sm font-bold text-bb-text leading-none">{institution.name}</p>
-              <p className="text-xs text-bb-muted font-medium">{institution.domain}</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold leading-none">{institution.name}</p>
+              <p className="mt-1 truncate text-xs text-bb-muted">{institution.domain}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant={institution.subscription?.active ? "success" : "destructive"}>
-              {institution.subscription?.tier || 'No Subscription'}
-            </Badge>
-            <Button size="sm" variant="outline" className="border-amber-200 hover:bg-amber-50 hover:text-amber-900 text-amber-800" asChild>
-              <Link href={`/dashboard/super-admin/institution/${institution.id}`}>
-                View
-              </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            {institution.subscription?.active ? (
+              <StatusBadge status="returned" label={institution.subscription?.tier || 'Active'} />
+            ) : (
+              <Chip>{institution.subscription?.tier || 'No subscription'}</Chip>
+            )}
+            <Button size="sm" variant="outline" asChild>
+              <Link href={`/dashboard/super-admin/institution/${institution.id}`}>View</Link>
             </Button>
           </div>
         </div>
       ))}
 
       {limit && institutions.length >= limit && (
-        <div className="pt-2 text-center">
-          <Button variant="link" className="text-amber-700 hover:text-amber-900 font-bold" asChild>
+        <div className="pt-1 text-center">
+          <Button variant="link" asChild>
             <Link href="/dashboard/super-admin/institution">View all institutions</Link>
           </Button>
         </div>

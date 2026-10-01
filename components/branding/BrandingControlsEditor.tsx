@@ -61,10 +61,10 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
       <div className="space-y-8">
 
         {/* 5 Preset Themes Selector */}
-        <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/40">
-          <label className="text-sm font-bold text-slate-900 dark:text-white flex items-center mb-4">
+        <div className="rounded-2xl bg-bb-surface-2 p-4">
+          <label className="mb-4 flex items-center text-sm font-bold">
             Quick Preset Themes
-            <span className="ml-2 px-2.5 py-0.5 rounded-full bg-[var(--peacock-teal)]/10 text-[var(--peacock-teal)] text-xs font-semibold">Recommended</span>
+            <span className="ml-2 rounded-full bg-bb-accent-soft px-2.5 py-0.5 text-xs font-semibold text-bb-accent-ink">Recommended</span>
           </label>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {PRESET_THEMES.map(theme => {
@@ -74,10 +74,10 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
                   key={theme.id}
                   type="button"
                   onClick={() => handleThemeSelect(theme)}
-                  className={`relative flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${isSelected ? 'border-[var(--peacock-teal)] bg-[var(--peacock-teal)]/5 scale-105 shadow-md' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                  className={`relative flex flex-col items-center justify-center rounded-xl border-2 p-3 transition-colors focus-visible:outline-none focus-visible:shadow-focus ${isSelected ? 'border-bb-accent bg-bb-accent-soft shadow-e1' : 'border-transparent bg-bb-surface shadow-e1 hover:border-bb-border'}`}
                 >
                   {isSelected && (
-                    <div className="absolute -top-2 -right-2 bg-[var(--peacock-teal)] text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                    <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-bb-primary text-white shadow-e1">
                       <Check className="w-3 h-3" />
                     </div>
                   )}
@@ -85,8 +85,8 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
                     className="w-full h-8 rounded-md mb-2 shadow-inner"
                     style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})` }}
                   />
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 text-center">{theme.name}</span>
-                  <span className="text-[10px] text-slate-500 line-clamp-1">{theme.description}</span>
+                  <span className="text-center text-xs font-bold">{theme.name}</span>
+                  <span className="line-clamp-1 text-[11px] text-bb-muted">{theme.description}</span>
                 </button>
               );
             })}
@@ -95,8 +95,8 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
 
         {/* Manual Colors — onChange-only, no API call */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/40">
-            <label className="text-sm font-medium mb-3 block">Primary Color</label>
+          <div className="rounded-2xl bg-bb-surface-2 p-4">
+            <label className="mb-3 block text-[13px] font-semibold">Primary Color</label>
             <div className="flex gap-3 items-center">
               <input
                 type="color"
@@ -105,13 +105,13 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
                   setPrimaryColor(e.target.value);
                   onChange({ ...branding, colors: { primary: e.target.value, secondary: secondaryColor } });
                 }}
-                className="h-10 w-16 cursor-pointer rounded-md border border-slate-200 dark:border-slate-700"
+                className="h-10 w-16 cursor-pointer rounded-md border border-bb-border bg-bb-surface"
               />
-              <span className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">{primaryColor}</span>
+              <span className="font-mono text-xs uppercase text-bb-muted">{primaryColor}</span>
             </div>
           </div>
-          <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/40">
-            <label className="text-sm font-medium mb-3 block">Secondary Color</label>
+          <div className="rounded-2xl bg-bb-surface-2 p-4">
+            <label className="mb-3 block text-[13px] font-semibold">Secondary Color</label>
             <div className="flex gap-3 items-center">
               <input
                 type="color"
@@ -120,21 +120,21 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
                   setSecondaryColor(e.target.value);
                   onChange({ ...branding, colors: { primary: primaryColor, secondary: e.target.value } });
                 }}
-                className="h-10 w-16 cursor-pointer rounded-md border border-slate-200 dark:border-slate-700"
+                className="h-10 w-16 cursor-pointer rounded-md border border-bb-border bg-bb-surface"
               />
-              <span className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">{secondaryColor}</span>
+              <span className="font-mono text-xs uppercase text-bb-muted">{secondaryColor}</span>
             </div>
           </div>
         </div>
 
         {/* Typography — onChange-only, no Save button needed */}
-        <div className="p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/40">
-          <label className="text-sm font-medium mb-3 block">Typography / Fonts</label>
+        <div className="rounded-2xl bg-bb-surface-2 p-4">
+          <label className="mb-3 block text-[13px] font-semibold">Typography / Fonts</label>
           <Select value={typography} onValueChange={(t) => {
             setTypography(t);
             onChange({ ...branding, typography: t });
           }}>
-            <SelectTrigger className="w-full bg-white dark:bg-slate-900">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a Google Font" />
             </SelectTrigger>
             <SelectContent>
@@ -143,7 +143,7 @@ export function BrandingControlsEditor({ tenantId, branding, onChange }: Brandin
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-slate-400 mt-2">Font selection auto-saves to your draft when changed.</p>
+          <p className="mt-2 text-xs text-bb-muted">Font selection auto-saves to your draft when changed.</p>
         </div>
       </div>
     </SectionEditor>

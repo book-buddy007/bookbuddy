@@ -1,16 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { EnhancedButton } from "@/components/ui/enhanced-button"
-import { StatPill } from "@/components/ui/stat-pill"
-import { Building2, Plus, Search, RefreshCw, MoreVertical, Eye, Globe, Pencil, Trash2, Users } from "@/components/ui/icons"
+import { Button } from "@/components/ui/button"
+import { StatCard } from "@/components/ui/stat-card"
+import { DataTable, type DataColumn } from "@/components/ui/data-table"
+import { Icon } from "@/components/ui/icon"
+import { PageHeader } from "@/components/ui/page-header"
+import { SearchInput } from "@/components/ui/search-input"
+import { StatusBadge } from "@/components/ui/status-badge"
 import { toast } from "@/hooks/use-toast"
-import { LoadingSpinner } from "@/components/ui/loading-state"
 import { getInstitutions, createInstitution, updateInstitution, deleteInstitution } from "@/lib/api/adminApi"
 import { Institution } from "@/types/admin"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { AddInstitutionSheet } from "./components/AddInstitutionSheet"
@@ -161,8 +161,9 @@ export default function InstitutionPage() {
 
   if (isLoading && institutions.length === 0) {
     return (
-      <div className="flex justify-center items-center h-[50vh]">
-        <LoadingSpinner size="large" text="Connecting to global databases..." />
+      <div role="status" className="flex h-[50vh] flex-col items-center justify-center gap-3 text-bb-muted">
+        <Icon name="loader" size={32} className="animate-spin" />
+        <span className="text-sm">Loading institutions…</span>
       </div>
     )
   }
@@ -201,168 +202,119 @@ export default function InstitutionPage() {
     };
   };
 
+  const columns: DataColumn<any>[] = [
+    {
+      key: 'name',
+      header: 'Name',
+      cell: (inst) => (
+        <button
+          type="button"
+          onClick={() => setSelectedInstitution(inst)}
+          className="flex items-center gap-3 text-left font-semibold hover:text-bb-accent-ink focus-visible:outline-none focus-visible:shadow-focus"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-bb-accent-soft text-sm font-bold text-bb-accent-ink">
+            {inst.name.charAt(0)}
+          </span>
+          {inst.name}
+        </button>
+      ),
+    },
+    { key: 'domain', header: 'Domain', cell: (inst) => inst.domain, className: 'text-bb-muted' },
+    {
+      key: 'joined',
+      header: 'Joined',
+      cell: (inst) => new Date(inst.createdAt).toLocaleDateString(),
+      className: 'whitespace-nowrap text-bb-muted',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      cell: (inst) =>
+        inst.isActive !== false ? <StatusBadge status="returned" label="Active" /> : <StatusBadge status="overdue" label="Suspended" />,
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      cell: (inst) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${inst.name}`}>
+              <Icon name="more-v" size={18} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[190px]">
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => setSelectedInstitution(inst), 100); }}>
+              <Icon name="eye" size={16} className="mr-2" /> View profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => setEditingInstitution(inst), 100); }}>
+              <Icon name="edit" size={16} className="mr-2" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-bb-danger-ink" onSelect={(e) => { e.preventDefault(); setTimeout(() => setDeleteTarget(inst), 100); }}>
+              <Icon name="trash" size={16} className="mr-2" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-6 animate-vg-fade-in-up">
-      {/* Header Section */}
-      <div className="relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl mb-8 border border-white/10" style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}>
-        <div className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")'}} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--deep-saffron)]/[0.15] rounded-full blur-3xl translate-y-1/2 -translate-x-1/3" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-[var(--deep-saffron)] mr-2 animate-pulse"></span>
-              Partner Network
-            </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm font-display">
-               Institution Directory
-            </h1>
-            <p className="text-indigo-100/90 text-lg max-w-xl font-medium">
-               Manage partner schools, libraries, and organizations.
-            </p>
-          </div>
-          
-          <EnhancedButton 
-            size="lg"
-            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
-            onClick={() => setIsAddOpen(true)}
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Add Institution
-          </EnhancedButton>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Partner network"
+        title="Institution directory"
+        description="Manage partner schools, libraries, and organizations."
+        actions={
+          <Button size="lg" onClick={() => setIsAddOpen(true)}>
+            <Icon name="plus" size={18} /> Add institution
+          </Button>
+        }
+      />
 
-      {/* Stat Pills */}
       <div className="grid gap-4 md:grid-cols-3">
-        <StatPill
-          label="Total Registered"
-          value={institutions.length.toString()}
-          icon={<Building2 className="h-5 w-5" />}
-          accent="teal"
-          isLoading={isLoading}
-        />
-        <StatPill
-          label="Active Instances"
-          value={activeCount.toString()}
-          icon={<Globe className="h-5 w-5" />}
-          accent="saffron"
-          isLoading={isLoading}
-          delayMs={100}
-        />
-        <StatPill
-          label="New (Last 30 days)"
-          value={recentCount.toString()}
-          icon={<Users className="h-5 w-5" />}
-          accent="gold"
-          isLoading={isLoading}
-          delayMs={200}
-        />
+        <StatCard variant="featured" title="Total registered" value={institutions.length} icon="institution" loading={isLoading} />
+        <StatCard title="Active instances" value={activeCount} icon="globe" loading={isLoading} />
+        <StatCard title="New (last 30 days)" value={recentCount} icon="user-plus" loading={isLoading} />
       </div>
 
-      {/* Search & Refresh Bar */}
-      <div className="flex flex-col md:flex-row gap-4 bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search institutions by name or domain..."
-            className="pl-10 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--deep-saffron)]/40 focus:border-[var(--deep-saffron)]/40"
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <SearchInput
+            wrapperClassName="flex-1"
+            placeholder="Search institutions by name or domain"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <Button variant="outline" size="icon-md" onClick={() => loadInstitutions()} title="Refresh data" aria-label="Refresh data" className="shrink-0">
+            <Icon name="rotate-cw" size={18} className={isLoading ? 'animate-spin' : ''} />
+          </Button>
         </div>
-        <EnhancedButton
-          variant="outline"
-          size="icon"
-          onClick={() => loadInstitutions()}
-          title="Refresh data"
-          className="rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 h-10 w-10"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-        </EnhancedButton>
-      </div>
 
-      {/* Table */}
-      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 shadow-sm overflow-hidden backdrop-blur-md">
-        <div className="overflow-x-auto">
-          <Table className="min-w-[640px]">
-            <TableHeader className="bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-700/40">
-              <TableRow>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">Name</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">Domain</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">Joined</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">Status</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInstitutions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-slate-400 dark:text-slate-500">
-                    {search ? "No institutions found matching your search." : "No institutions available. Add one to get started."}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredInstitutions.map((inst: any) => (
-                  <TableRow key={inst.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800/50 last:border-0">
-                    <TableCell className="font-medium cursor-pointer text-slate-900 dark:text-white" onClick={() => setSelectedInstitution(inst)}>
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[var(--deep-saffron)]/20 to-[var(--saffron)]/10 flex items-center justify-center text-[var(--deep-saffron)] font-bold text-sm ring-1 ring-[var(--deep-saffron)]/20">
-                          {inst.name.charAt(0)}
-                        </div>
-                        <span className="hover:text-[var(--deep-saffron)] transition-colors">{inst.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-500 dark:text-slate-400">{inst.domain}</TableCell>
-                    <TableCell className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {new Date(inst.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={inst.isActive !== false ? "default" : "secondary"} 
-                        className={inst.isActive !== false 
-                          ? "bg-[var(--peacock-teal)]/15 text-[var(--peacock-teal)] dark:bg-[var(--peacock-teal)]/20 dark:text-emerald-300 border border-[var(--peacock-teal)]/20 font-semibold" 
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-semibold"}
-                      >
-                        {inst.isActive !== false ? "Active" : "Suspended"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <EnhancedButton variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-600 dark:text-slate-400 hover:text-[var(--deep-saffron)] hover:border-[var(--deep-saffron)]/30">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </EnhancedButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[180px] p-2 rounded-xl shadow-lg border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
-                          <DropdownMenuItem className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2" onSelect={(e) => { e.preventDefault(); setTimeout(() => setSelectedInstitution(inst), 100); }}>
-                            <Eye className="h-4 w-4 text-[var(--peacock-teal)]" /> View Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2" onSelect={(e) => { e.preventDefault(); setTimeout(() => setEditingInstitution(inst), 100); }}>
-                            <Pencil className="h-4 w-4 text-[var(--deep-saffron)]" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
-                          <DropdownMenuItem className="cursor-pointer rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium py-2 px-3 flex items-center gap-2" onSelect={(e) => { e.preventDefault(); setTimeout(() => setDeleteTarget(inst), 100); }}>
-                            <Trash2 className="h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+        <DataTable
+          columns={columns}
+          rows={filteredInstitutions}
+          rowKey={(inst: any) => inst.id}
+          emptyIcon={search ? 'search' : 'institution'}
+          emptyTitle={search ? 'No institutions found' : 'No institutions yet'}
+          emptyDescription={search ? 'No institutions match your search.' : 'Add one to get started.'}
+          emptyAction={
+            search ? undefined : (
+              <Button onClick={() => setIsAddOpen(true)}>
+                <Icon name="plus" size={18} /> Add institution
+              </Button>
+            )
+          }
+        />
+      </section>
 
       {/* Add Institution Sheet */}
-      <AddInstitutionSheet 
-        open={isAddOpen} 
-        onOpenChange={setIsAddOpen} 
-        onSubmit={handleCreateInstitution} 
+      <AddInstitutionSheet
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        onSubmit={handleCreateInstitution}
       />
 
       {/* Edit Institution Sheet (re-uses AddInstitutionSheet) */}
@@ -376,30 +328,30 @@ export default function InstitutionPage() {
       />
 
       {/* View Institution Detail Sheet */}
-      <InstitutionDetailSheet 
-        open={selectedInstitution !== null} 
-        onOpenChange={(open) => !open && setSelectedInstitution(null)} 
-        institution={selectedInstitution} 
+      <InstitutionDetailSheet
+        open={selectedInstitution !== null}
+        onOpenChange={(open) => !open && setSelectedInstitution(null)}
+        institution={selectedInstitution}
       />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="rounded-2xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>Delete Institution?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
-              This will permanently remove <span className="font-semibold text-slate-700 dark:text-slate-300">{deleteTarget?.name}</span> and 
+            <AlertDialogTitle>Delete institution?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove <span className="font-semibold text-bb-text">{deleteTarget?.name}</span> and
               deactivate it. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl border-slate-200 dark:border-slate-700">Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteInstitution} 
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteInstitution}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+              className="bg-bb-danger text-white hover:brightness-95"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? "Deleting…" : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

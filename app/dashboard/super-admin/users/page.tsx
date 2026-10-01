@@ -11,16 +11,14 @@ import {
   getInstitutions 
 } from '@/lib/api/adminApi';
 import { Institution } from '@/types/admin';
-import { StatPill } from '@/components/ui/stat-pill';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { StatCard } from '@/components/ui/stat-card';
+import { Button } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
+import { DataTable, type DataColumn } from '@/components/ui/data-table';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
+import { SearchInput } from '@/components/ui/search-input';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -47,20 +43,6 @@ import {
 } from '@/components/ui/pagination';
 import { useToast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Users,
-  Shield,
-  UserCircle,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Eye,
-  Plus,
-  RefreshCw,
-  Search,
-  Filter,
-  Building2
-} from '@/components/ui/icons';
 
 import { UserDetailSheet } from './components/UserDetailSheet';
 import { AddUserSheet } from './components/AddUserSheet';
@@ -204,282 +186,211 @@ export default function UsersPage() {
     return name?.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
   };
 
-  return (
-    <div className="space-y-6 animate-vg-fade-in-up">
-      {/* Header Section */}
-      <div className="relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl mb-8 border border-white/10" style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}>
-        <div className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")'}} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--deep-saffron)]/[0.15] rounded-full blur-3xl translate-y-1/2 -translate-x-1/3" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-[var(--deep-saffron)] mr-2 animate-pulse"></span>
-              Access Control
-            </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm font-display">
-               User Management
-            </h1>
-            <p className="text-indigo-100/90 text-lg max-w-xl font-medium">
-               Manage global users, platform roles, and institution memberships.
-            </p>
+  const columns: DataColumn<any>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      cell: (user) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={`https://avatar.vercel.sh/${user.email}`} />
+            <AvatarFallback className="bg-bb-navy text-xs font-bold text-white">{getInitials(user.name)}</AvatarFallback>
+          </Avatar>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-semibold">{user.name}</span>
+            <span className="truncate text-xs text-bb-muted">{user.email}</span>
           </div>
-          
-          <EnhancedButton 
-            size="lg"
-            className="shrink-0 bg-gradient-to-r from-[var(--deep-saffron)] to-bb-accent hover:from-bb-accent hover:to-bb-accent text-black shadow-lg shadow-[var(--deep-saffron)]/20 border-transparent font-bold"
-            onClick={() => { setSelectedUser(null); setIsCreateOpen(true); }}
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Add User
-          </EnhancedButton>
         </div>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Global role',
+      cell: (user) => <Chip className="capitalize">{user.role?.replace('_', ' ') || 'User'}</Chip>,
+    },
+    {
+      key: 'memberships',
+      header: 'Memberships',
+      className: 'hidden md:table-cell',
+      cell: (user) => (
+        <div className="flex flex-col items-start gap-1">
+          {user.tenantMemberships && user.tenantMemberships.length > 0 ? (
+            user.tenantMemberships.slice(0, 2).map((m: any, i: number) => (
+              <Chip key={i} className="h-6 text-xs">
+                {m.tenant?.name} <span className="text-bb-accent-ink">({m.role.toLowerCase()})</span>
+              </Chip>
+            ))
+          ) : (
+            <span className="text-xs text-bb-muted">Independent</span>
+          )}
+          {user.tenantMemberships && user.tenantMemberships.length > 2 && (
+            <span className="text-xs font-semibold text-bb-accent-ink">+{user.tenantMemberships.length - 2} more</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      cell: (user) =>
+        user.isActive ? <StatusBadge status="returned" label="Active" /> : <StatusBadge status="overdue" label="Suspended" />,
+    },
+    {
+      key: 'actions',
+      header: <span className="sr-only">Actions</span>,
+      className: 'w-12 text-right',
+      cell: (user) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${user.name}`}>
+              <Icon name="more-v" size={18} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[210px]">
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsDetailOpen(true); }, 100); }}>
+              <Icon name="eye" size={16} className="mr-2" /> View details
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsAssignOpen(true); }, 100); }}>
+              <Icon name="institution" size={16} className="mr-2" /> Assign to institution
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsAssignCollectionsOpen(true); }, 100); }}>
+              <Icon name="shield-check" size={16} className="mr-2" /> Manage collections
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleToggleStatus(user)} className={user.isActive ? 'text-bb-danger-ink' : undefined}>
+              {user.isActive ? (
+                <><Icon name="lock" size={16} className="mr-2" /> Suspend user</>
+              ) : (
+                <><Icon name="user-check" size={16} className="mr-2" /> Activate user</>
+              )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        className="mb-0"
+        eyebrow="Access control"
+        title="User management"
+        description="Manage global users, platform roles, and institution memberships."
+        actions={
+          <Button size="lg" onClick={() => { setSelectedUser(null); setIsCreateOpen(true); }}>
+            <Icon name="plus" size={18} /> Add user
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard variant="featured" title="Total users" value={stats.totalUsers} icon="class" loading={isLoading} />
+        <StatCard title="Super admins" value={stats.superAdmins} icon="shield-check" loading={isLoading} />
+        <StatCard title="Active today" value={stats.activeToday} icon="profile" loading={isLoading} />
       </div>
 
-      {/* Stat Pills */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <StatPill
-          label="Total Users"
-          value={isLoading ? '...' : stats.totalUsers.toString()}
-          icon={<Users className="h-5 w-5" />}
-          accent="teal"
-          isLoading={isLoading}
-        />
-        <StatPill
-          label="Super Admins"
-          value={isLoading ? '...' : stats.superAdmins.toString()}
-          icon={<Shield className="h-5 w-5" />}
-          accent="saffron"
-          isLoading={isLoading}
-          delayMs={100}
-        />
-        <StatPill
-          label="Active Today"
-          value={isLoading ? '...' : stats.activeToday.toString()}
-          icon={<UserCircle className="h-5 w-5" />}
-          accent="gold"
-          isLoading={isLoading}
-          delayMs={200}
-        />
-      </div>
-
-      {/* Filters Bar */}
-      <div className="flex flex-col gap-3 bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
-        {/* Search row */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search users by name or email..."
-              className="pl-10 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--deep-saffron)]/40 focus:border-[var(--deep-saffron)]/40"
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <SearchInput
+              wrapperClassName="flex-1"
+              placeholder="Search users by name or email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <Button variant="outline" size="icon-md" onClick={() => loadData()} title="Refresh data" aria-label="Refresh data" className="shrink-0">
+              <Icon name="rotate-cw" size={18} className={isLoading ? 'animate-spin' : ''} />
+            </Button>
           </div>
-          <EnhancedButton
-            variant="outline"
-            size="icon"
-            onClick={() => loadData()}
-            title="Refresh data"
-            className="rounded-xl border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 h-10 w-10 shrink-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </EnhancedButton>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Select value={tenantFilter} onValueChange={(v) => { setTenantFilter(v); setPageClass(1); }}>
+              <SelectTrigger className="w-full sm:flex-1" aria-label="Institution">
+                <SelectValue placeholder="All institutions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Institutions">All institutions</SelectItem>
+                {institutions.map(inst => (
+                  <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPageClass(1); }}>
+              <SelectTrigger className="w-full sm:w-[170px]" aria-label="Role">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Roles">All roles</SelectItem>
+                <SelectItem value="super_admin">Super admin</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="librarian">Librarian</SelectItem>
+                <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="student">Student</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPageClass(1); }}>
+              <SelectTrigger className="w-full sm:w-[150px]" aria-label="Status">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All status</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Inactive">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        {/* Filter dropdowns row */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Select value={tenantFilter} onValueChange={(v) => { setTenantFilter(v); setPageClass(1); }}>
-            <SelectTrigger className="w-full sm:flex-1 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-700 dark:text-slate-300">
-              <SelectValue placeholder="All Institutions" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
-              <SelectItem value="All Institutions">All Institutions</SelectItem>
-              {institutions.map(inst => (
-                <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPageClass(1); }}>
-            <SelectTrigger className="w-full sm:w-[160px] bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-700 dark:text-slate-300">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
-              <SelectItem value="All Roles">All Roles</SelectItem>
-              <SelectItem value="super_admin">Super Admin</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="librarian">Librarian</SelectItem>
-              <SelectItem value="teacher">Teacher</SelectItem>
-              <SelectItem value="student">Student</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPageClass(1); }}>
-            <SelectTrigger className="w-full sm:w-[140px] bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 rounded-xl h-10 text-slate-700 dark:text-slate-300">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
-              <SelectItem value="All">All Status</SelectItem>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Inactive">Suspended</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {/* Table */}
-      <div className="rounded-2xl border border-slate-200/60 dark:border-slate-700/40 bg-white/70 dark:bg-bb-bg/70 shadow-sm overflow-hidden backdrop-blur-md">
-        <div className="overflow-x-auto">
-          <Table className="min-w-[640px]">
-            <TableHeader className="bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-200/60 dark:border-slate-700/40">
-              <TableRow>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">User</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">Global Role</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider hidden md:table-cell">Memberships</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">Status</TableHead>
-                <TableHead className="font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><div className="h-10 w-40 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" /></TableCell>
-                    <TableCell><div className="h-5 w-20 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg" /></TableCell>
-                    <TableCell className="hidden md:table-cell"><div className="h-5 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg" /></TableCell>
-                    <TableCell><div className="h-6 w-16 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-full" /></TableCell>
-                    <TableCell className="text-right"><div className="h-8 w-8 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg ml-auto" /></TableCell>
-                  </TableRow>
-                ))
-              ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-slate-400 dark:text-slate-500">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                        <Users className="h-8 w-8 text-slate-300 dark:text-slate-600" />
-                        <p>No users found matching your filters.</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800/50 last:border-0">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="ring-2 ring-[var(--deep-saffron)]/20 h-9 w-9">
-                          <AvatarImage src={`https://avatar.vercel.sh/${user.email}`} />
-                          <AvatarFallback className="bg-gradient-to-br from-[var(--deep-saffron)]/20 to-[var(--saffron)]/10 text-[var(--deep-saffron)] font-bold text-xs">{getInitials(user.name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{user.name}</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                        <Badge variant="outline" className="capitalize text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 font-medium rounded-lg text-xs">
-                           {user.role?.replace('_', ' ') || 'User'}
-                        </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="flex flex-col gap-1">
-                        {user.tenantMemberships && user.tenantMemberships.length > 0 ? (
-                          user.tenantMemberships.slice(0, 2).map((m: any, i: number) => (
-                            <Badge key={i} variant="secondary" className="w-fit text-[11px] bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg">
-                              {m.tenant?.name} <span className="text-[var(--deep-saffron)] ml-1">({m.role.toLowerCase()})</span>
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-slate-400 dark:text-slate-500 text-xs italic">Independent</span>
-                        )}
-                        {user.tenantMemberships && user.tenantMemberships.length > 2 && (
-                          <span className="text-xs text-[var(--deep-saffron)] font-medium">+{user.tenantMemberships.length - 2} more</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={user.isActive ? 'default' : 'secondary'}
-                        className={user.isActive 
-                          ? 'bg-[var(--peacock-teal)]/15 text-[var(--peacock-teal)] dark:bg-[var(--peacock-teal)]/20 dark:text-emerald-300 border border-[var(--peacock-teal)]/20 font-semibold' 
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-semibold'}
-                      >
-                        {user.isActive ? 'Active' : 'Suspended'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <EnhancedButton variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-600 dark:text-slate-400 hover:text-[var(--deep-saffron)] hover:border-[var(--deep-saffron)]/30">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </EnhancedButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[200px] p-2 rounded-xl shadow-lg border-slate-200/60 dark:border-slate-700/40 bg-white dark:bg-bb-bg">
-                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsDetailOpen(true); }, 100); }} className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2">
-                            <Eye className="h-4 w-4 text-[var(--peacock-teal)]" /> View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsAssignOpen(true); }, 100); }} className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-[var(--deep-saffron)]" /> Assign to Institution
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setTimeout(() => { setSelectedUser(user); setIsAssignCollectionsOpen(true); }, 100); }} className="cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 px-3 flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-[var(--gold)]" /> Manage Collections
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
-                          <DropdownMenuItem onClick={() => handleToggleStatus(user)} className="cursor-pointer rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 font-medium py-2 px-3 flex items-center gap-2">
-                            {user.isActive ? (
-                               <><UserCircle className="h-4 w-4" /> Suspend User</>
-                            ) : (
-                               <><Shield className="h-4 w-4 text-emerald-500" /> Activate User</>
-                            )}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-slate-200/60 dark:border-slate-700/40 bg-slate-50/50 dark:bg-slate-800/20">
-            <div className="flex items-center gap-3">
-                <span className="text-sm text-slate-500 dark:text-slate-400">Rows per page</span>
-                <Select value={limitClass.toString()} onValueChange={(v) => { setLimitClass(parseInt(v)); setPageClass(1); }}>
-                    <SelectTrigger className="h-8 w-[70px] bg-white dark:bg-slate-800 rounded-lg border-slate-200 dark:border-slate-700">
-                        <SelectValue placeholder="10" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl bg-white dark:bg-bb-bg">
-                        {[10, 25, 50, 100].map(v => (
-                            <SelectItem key={v} value={v.toString()}>{v}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <span className="text-sm text-slate-500 dark:text-slate-400 ml-4 hidden sm:inline-block">
-                    Showing {(pageClass - 1) * limitClass + 1} to {Math.min(pageClass * limitClass, paginationData.total)} of {paginationData.total} entries
-                </span>
-            </div>
-          <Pagination className="w-auto mx-0">
+        <DataTable
+          columns={columns}
+          rows={users}
+          rowKey={(u) => u.id}
+          loading={isLoading}
+          emptyIcon="search"
+          emptyTitle="No users found"
+          emptyDescription="No users match your filters."
+        />
+
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-bb-muted">Rows per page</span>
+            <Select value={limitClass.toString()} onValueChange={(v) => { setLimitClass(parseInt(v)); setPageClass(1); }}>
+              <SelectTrigger className="h-9 w-[80px]" aria-label="Rows per page">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 25, 50, 100].map(v => (
+                  <SelectItem key={v} value={v.toString()}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="ml-2 hidden text-sm text-bb-muted sm:inline-block">
+              {paginationData.total === 0
+                ? 'No entries'
+                : `Showing ${(pageClass - 1) * limitClass + 1} to ${Math.min(pageClass * limitClass, paginationData.total)} of ${paginationData.total}`}
+            </span>
+          </div>
+          <Pagination className="mx-0 w-auto">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setPageClass(p => Math.max(1, p - 1))}
-                  className={pageClass === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:text-[var(--deep-saffron)]'}
+                  className={pageClass === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                 />
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink className="bg-[var(--deep-saffron)]/10 text-[var(--deep-saffron)] border-[var(--deep-saffron)]/30 font-semibold rounded-lg">{pageClass}</PaginationLink>
+                <PaginationLink isActive>{pageClass}</PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationNext
                   onClick={() => setPageClass(p => Math.min(paginationData.totalPages, p + 1))}
-                  className={pageClass >= paginationData.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:text-[var(--deep-saffron)]'}
+                  className={pageClass >= paginationData.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
-      </div>
+      </section>
 
       <UserDetailSheet
         open={isDetailOpen}

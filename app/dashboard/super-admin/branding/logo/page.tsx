@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, ImageIcon, ArrowLeft, Info, Shield } from '@/components/ui/icons';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
 import { toast } from "@/components/ui/use-toast";
 import { LogoUploader } from '@/components/branding/ImageUploader';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useBrandingTenant } from '../BrandingProvider';
 import { TenantSelector } from '../TenantSelector';
 import { updateBranding, getBrandingUploadUrl, uploadFileToPresignedUrl } from '@/lib/api/adminApi';
@@ -114,97 +114,77 @@ export default function LogoManagementPage() {
   };
 
   return (
-    <div className="space-y-6 animate-vg-fade-in-up">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl p-6 md:p-10 shadow-2xl border border-white/10" style={{background: 'linear-gradient(135deg, var(--night-ink) 0%, var(--indigo-deep) 30%, var(--peacock-teal) 60%, var(--deep-saffron) 100%)'}}>
-        <div className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")'}} />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+    <div className="space-y-8">
+      <Link href="/dashboard/super-admin/branding" className="inline-flex items-center gap-1.5 text-sm font-semibold text-bb-muted hover:text-bb-text">
+        <Icon name="arrow-left" size={16} /> Back to branding
+      </Link>
 
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <Link href="/dashboard/super-admin/branding" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors">
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to Branding
-            </Link>
-            <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-[var(--deep-saffron)] mr-2 animate-pulse"></span>
-              Visual Identity
-            </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm font-display">
-              Logo Management
-            </h1>
-            <p className="text-indigo-100/90 text-lg max-w-xl font-medium">
-              Upload and manage the platform logo. SVG format recommended for optimal display.
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        className="mb-0"
+        eyebrow="Visual identity"
+        title="Logo management"
+        description="Upload and manage the platform logo. SVG format recommended for optimal display."
+      />
 
-      {/* Tenant Selector Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white/70 dark:bg-bb-bg/70 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/40 shadow-sm backdrop-blur-md">
-        <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 shrink-0">Configure for:</span>
+      <div className="flex flex-col items-start gap-3 rounded-[18px] bg-bb-surface p-4 shadow-e1 sm:flex-row sm:items-center">
+        <span className="shrink-0 text-sm font-semibold text-bb-muted">Configure for</span>
         <TenantSelector />
       </div>
 
-      {/* Content Split: Live vs Upload */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Left Column: Live Logo Display */}
-        <div className="lg:col-span-4 rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Live Logo
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <section className="flex flex-col overflow-hidden rounded-[22px] bg-bb-surface shadow-e1 lg:col-span-4">
+          <div className="flex items-center justify-between border-b border-bb-border p-5">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em]">
+              <span className="h-2 w-2 rounded-full bg-bb-success" />
+              Live logo
             </h2>
-            <div className="flex items-center justify-center h-6 w-6 rounded-md bg-emerald-500/10" title="SVG sanitized with DOMPurify">
-              <Shield className="h-3.5 w-3.5 text-emerald-500" />
-            </div>
+            <span title="SVG sanitized with DOMPurify" className="flex h-7 w-7 items-center justify-center rounded-lg bg-bb-success-soft text-bb-success-ink">
+              <Icon name="shield-check" size={16} />
+            </span>
           </div>
-          <div className="p-6 flex-1 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-slate-800/20">
+          <div className="flex flex-1 flex-col items-center justify-center bg-bb-bg p-6">
             {isLoadingBranding ? (
-              <Loader2 className="animate-spin h-6 w-6 text-slate-400" />
+              <Icon name="loader" size={24} className="animate-spin" />
             ) : !selectedTenantId ? (
-              <span className="text-sm text-slate-400 text-center">Select an institution</span>
+              <span className="text-center text-sm text-bb-muted">Select an institution</span>
             ) : logoUrl ? (
-              <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm w-full flex items-center justify-center">
+              <div className="flex w-full items-center justify-center rounded-2xl bg-bb-surface p-4 shadow-e1">
                 {renderLogo(logoUrl)}
               </div>
             ) : (
-              <div className="p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center">
-                <span className="text-sm text-slate-500">No logo configured</span>
+              <div className="rounded-2xl border-[1.5px] border-dashed border-bb-border p-8 text-center">
+                <span className="text-sm text-bb-muted">No logo configured</span>
               </div>
             )}
-            
+
             {logoUrl && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-6 text-center max-w-[200px]">
+              <p className="mt-6 max-w-[200px] text-center text-xs text-bb-muted">
                 This is the logo currently displayed to users on your platform.
               </p>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Right Column: Upload Tool */}
-        <div className="lg:col-span-8 rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--peacock-teal)]/10 dark:bg-[var(--peacock-teal)]/20">
-                <ImageIcon className="h-5 w-5 text-[var(--peacock-teal)]" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Upload New Logo</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Replace the current logo with a new file</p>
-              </div>
+        <section className="overflow-hidden rounded-[22px] bg-bb-surface shadow-e1 lg:col-span-8">
+          <div className="flex items-center gap-3 border-b border-bb-border p-6">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-bb-accent-soft">
+              <Icon name="image" size={20} />
+            </span>
+            <div>
+              <h2 className="font-display text-lg font-extrabold tracking-[-0.02em]">Upload new logo</h2>
+              <p className="text-sm text-bb-muted">Replace the current logo with a new file</p>
             </div>
           </div>
 
           <div className="p-6">
             {isLoadingBranding ? (
-              <div className="flex flex-col items-center justify-center p-12 gap-3">
-                <Loader2 className="animate-spin h-8 w-8 text-[var(--peacock-teal)]" />
-                <span className="text-sm text-slate-500 dark:text-slate-400">Loading branding configuration…</span>
+              <div role="status" className="flex flex-col items-center justify-center gap-3 p-12">
+                <Icon name="loader" size={32} className="animate-spin" />
+                <span className="text-sm text-bb-muted">Loading branding configuration…</span>
               </div>
             ) : !selectedTenantId ? (
-              <div className="flex flex-col items-center justify-center p-12 gap-3 text-slate-400">
-                <ImageIcon className="h-12 w-12 opacity-30" />
+              <div className="flex flex-col items-center justify-center gap-3 p-12 text-bb-muted">
+                <Icon name="image" size={48} className="opacity-40" />
                 <span className="text-sm">Select an institution above to manage its logo</span>
               </div>
             ) : (
@@ -219,46 +199,37 @@ export default function LogoManagementPage() {
             )}
 
             {isUploading && (
-              <div className="mt-4 p-3 rounded-lg bg-[var(--peacock-teal)]/5 border border-[var(--peacock-teal)]/20 flex items-center gap-3">
-                <Loader2 className="animate-spin h-4 w-4 text-[var(--peacock-teal)]" />
-                <span className="text-sm text-[var(--peacock-teal)] font-medium">Uploading to cloud storage…</span>
+              <div role="status" className="mt-4 flex items-center gap-3 rounded-xl bg-bb-accent-soft px-4 py-3">
+                <Icon name="loader" size={16} className="animate-spin" />
+                <span className="text-sm font-semibold text-bb-accent-ink">Uploading to cloud storage…</span>
               </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Best Practices Card */}
-      <div className="rounded-2xl bg-white/70 dark:bg-bb-bg/70 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/40 shadow-sm p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-[var(--deep-saffron)]/10 dark:bg-[var(--deep-saffron)]/20">
-            <Info className="h-4 w-4 text-[var(--deep-saffron)]" />
-          </div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Logo Best Practices</h3>
-        </div>
-        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-2.5 ml-1">
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            SVG format is recommended for crisp display at all sizes
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            If using SVG, include a <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">viewBox</code> attribute for responsive scaling
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Set stroke/fill to <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">currentColor</code> for theme compatibility
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Maintain a 3:1 or 4:1 width-to-height ratio
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--peacock-teal)] mt-1.5 shrink-0" />
-            Non-SVG images are auto-compressed to ~200KB for optimal performance
-          </li>
+      <section className="rounded-[22px] bg-bb-surface p-6 shadow-e1">
+        <h3 className="mb-4 flex items-center gap-3 font-display text-lg font-extrabold tracking-[-0.02em]">
+          <span className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-bb-accent-soft">
+            <Icon name="lightbulb" size={18} />
+          </span>
+          Logo best practices
+        </h3>
+        <ul className="space-y-2.5 text-sm text-bb-muted">
+          {[
+            'SVG format is recommended for crisp display at all sizes',
+            <>If using SVG, include a <code className="rounded bg-bb-surface-2 px-1 py-0.5 text-xs">viewBox</code> attribute for responsive scaling</>,
+            <>Set stroke/fill to <code className="rounded bg-bb-surface-2 px-1 py-0.5 text-xs">currentColor</code> for theme compatibility</>,
+            'Maintain a 3:1 or 4:1 width-to-height ratio',
+            'Non-SVG images are auto-compressed to ~200KB for optimal performance',
+          ].map((tip, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-bb-accent" />
+              <span>{tip}</span>
+            </li>
+          ))}
         </ul>
-      </div>
+      </section>
     </div>
   );
 }
