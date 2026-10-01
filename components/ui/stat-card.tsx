@@ -1,41 +1,43 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { LucideIcon } from "@/components/ui/icons"
-import { EnhancedCard } from "./enhanced-card"
+import { type LucideIcon } from "@/components/ui/icons"
+import { Icon, type BBIconName } from "@/components/ui/icon"
+import { Skeleton } from "@/components/ui/skeleton"
 
+/**
+ * Stat card: radius 18, padding 18, 13px muted label, Bricolage 34/800 value.
+ * `featured` (alias of the old `primary`) is the navy gradient variant; use at most one
+ * per row. The legacy semantic variants only tint the trend/accent now — the design
+ * system has no coloured left-border cards.
+ */
 const statCardVariants = cva(
-  "relative overflow-hidden group",
+  "relative overflow-hidden rounded-[18px] p-[18px] transition-[transform,box-shadow] duration-[240ms] ease-bb",
   {
     variants: {
       variant: {
-        default: "",
-        primary: "border-l-4 border-blue-600 dark:border-blue-500",
-        success: "border-l-4 border-vg-success-500",
-        warning: "border-l-4 border-vg-warning-500",
-        error: "border-l-4 border-vg-error-500",
-        cultural: "border-l-4 border-cyan-600 dark:border-cyan-500",
-      },
-      trend: {
-        up: "",
-        down: "",
-        neutral: "",
+        default: "bg-bb-surface text-bb-text shadow-e1",
+        featured: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
+        primary: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
+        success: "bg-bb-surface text-bb-text shadow-e1",
+        warning: "bg-bb-surface text-bb-text shadow-e1",
+        error: "bg-bb-surface text-bb-text shadow-e1",
+        cultural: "bg-bb-surface text-bb-text shadow-e1",
       },
     },
-    defaultVariants: {
-      variant: "default",
-      trend: "neutral",
-    },
+    defaultVariants: { variant: "default" },
   }
 )
 
 export interface StatCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof statCardVariants> {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title">,
+    VariantProps<typeof statCardVariants> {
   title: string
   value: string | number
   description?: string
-  icon?: LucideIcon
+  /** Either a duotone glyph name or a (compat) lucide icon component. */
+  icon?: LucideIcon | React.ElementType | BBIconName
+  /** Legacy props, accepted so existing call sites compile; the icon is always duotone. */
   iconColor?: string
   iconBgColor?: string
   trend?: "up" | "down" | "neutral"
@@ -47,9 +49,26 @@ export interface StatCardProps
 }
 
 const isBackendStarting = (error: any) =>
-  error?.code === 'BACKEND_STARTING' ||
-  error?.status === 503 ||
-  error?.status === 502;
+  error?.code === "BACKEND_STARTING" || error?.status === 503 || error?.status === 502
+
+function StatIcon({ icon, featured }: { icon: StatCardProps["icon"]; featured: boolean }) {
+  if (!icon) return null
+  const Glyph = icon
+  return (
+    <div
+      className={cn(
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px]",
+        featured ? "bg-white/10 text-white" : "bg-bb-accent-soft text-bb-text"
+      )}
+    >
+      {typeof Glyph === "string" ? (
+        <Icon name={Glyph as BBIconName} size={22} />
+      ) : (
+        <Glyph className="h-[22px] w-[22px]" />
+      )}
+    </div>
+  )
+}
 
 const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   (
@@ -59,233 +78,123 @@ const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
       title,
       value,
       description,
-      icon: Icon,
-      iconColor = "text-vg-primary-500",
-      iconBgColor = "bg-vg-primary-50 dark:bg-vg-primary-900/20",
+      icon,
+      iconColor: _iconColor,
+      iconBgColor: _iconBgColor,
       trend = "neutral",
       trendValue,
       loading = false,
-      animate = true,
+      animate: _animate,
       error,
       onRetry,
       ...props
     },
     ref
   ) => {
-    const getTrendColor = () => {
-      switch (trend) {
-        case "up":
-          return "text-vg-success-500"
-        case "down":
-          return "text-vg-error-500"
-        default:
-          return "text-muted-foreground"
-      }
-    }
-
-    const getTrendIcon = () => {
-      switch (trend) {
-        case "up":
-          return "↑"
-        case "down":
-          return "↓"
-        default:
-          return "→"
-      }
-    }
+    const featured = variant === "featured" || variant === "primary"
+    const muted = featured ? "text-white/70" : "text-bb-muted"
 
     if (loading) {
       return (
-        <EnhancedCard
-          ref={ref}
-          className={cn(statCardVariants({ variant }), className)}
-          hover={false}
-          animate={false}
-          {...props}
-        >
+        <div ref={ref} className={cn(statCardVariants({ variant }), className)} {...props}>
           <div className="space-y-3">
-            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-3 w-20" />
           </div>
-        </EnhancedCard>
+        </div>
       )
     }
 
     if (error) {
-      const starting = isBackendStarting(error);
+      const starting = isBackendStarting(error)
       return (
-        <EnhancedCard
-          ref={ref}
-          className={cn(statCardVariants({ variant: "error" }), className)}
-          hover={false}
-          animate={false}
-          {...props}
-        >
-          <div className="flex flex-col h-full justify-between space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">
-              {title}
-            </p>
-            <div className="mt-2 space-y-2">
-              <p className="text-sm font-medium text-amber-600 dark:text-amber-500 flex items-center gap-2">
-                {starting ? '⏳ Backend is starting up...' : '⚠️ Failed to load'}
-              </p>
-              {onRetry && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onRetry();
-                  }}
-                  className="text-xs text-primary underline hover:no-underline font-medium"
-                >
-                  ↻ Retry
-                </button>
-              )}
-            </div>
-          </div>
-        </EnhancedCard>
+        <div ref={ref} className={cn(statCardVariants({ variant: "default" }), className)} {...props}>
+          <p className="text-[13px] text-bb-muted">{title}</p>
+          <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-bb-warning-ink">
+            <Icon name="alert" size={18} />
+            {starting ? "Backend is starting up…" : "Failed to load"}
+          </p>
+          {onRetry && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                onRetry()
+              }}
+              className="mt-2 text-[13px] font-semibold text-bb-accent-ink hover:underline"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       )
     }
 
+    const trendColor =
+      trend === "up" ? "text-bb-success-ink" : trend === "down" ? "text-bb-danger-ink" : muted
+
     return (
-      <EnhancedCard
-        ref={ref}
-        className={cn(statCardVariants({ variant, trend }), className)}
-        animate={animate}
-        {...props}
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">
-              {title}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold tracking-tight">
+      <div ref={ref} className={cn(statCardVariants({ variant }), className)} {...props}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className={cn("text-[13px] font-medium", muted)}>{title}</p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
+              <span className="font-display text-[34px] font-extrabold leading-none tracking-[-0.03em]">
                 {value}
-              </h3>
+              </span>
               {trendValue && (
-                <span className={cn("text-sm font-medium flex items-center gap-1", getTrendColor())}>
-                  <span>{getTrendIcon()}</span>
-                  {trendValue}
+                <span className={cn("text-[13px] font-semibold", trendColor)}>
+                  {trend === "up" ? "↑" : trend === "down" ? "↓" : "→"} {trendValue}
                 </span>
               )}
             </div>
-            {description && (
-              <p className="text-xs text-muted-foreground">
-                {description}
-              </p>
-            )}
+            {description && <p className={cn("mt-2 text-xs", muted)}>{description}</p>}
           </div>
-
-          {Icon && (
-            <div className={cn(
-              "rounded-xl p-3 transition-all duration-300 relative overflow-hidden",
-              iconBgColor,
-              "group-hover:scale-110 shadow-sm"
-            )}>
-              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <Icon className={cn("h-6 w-6 relative z-10", iconColor)} />
-            </div>
-          )}
+          <StatIcon icon={icon} featured={featured} />
         </div>
-
-        {/* Premium glass shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
-
-        {/* Hover glow effect - Changed to Amber/Saffron */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-600/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none" />
-      </EnhancedCard>
+      </div>
     )
   }
 )
 StatCard.displayName = "StatCard"
 
 // Compact variant for smaller spaces
-export interface CompactStatCardProps extends Omit<StatCardProps, 'description'> {
+export interface CompactStatCardProps extends Omit<StatCardProps, "description"> {
   compact?: boolean
 }
 
 const CompactStatCard = React.forwardRef<HTMLDivElement, CompactStatCardProps>(
-  (
-    {
-      className,
-      variant,
-      title,
-      value,
-      icon: Icon,
-      iconColor = "text-vg-primary-500",
-      iconBgColor = "bg-vg-primary-50 dark:bg-vg-primary-900/20",
-      trend = "neutral",
-      trendValue,
-      loading = false,
-      ...props
-    },
-    ref
-  ) => {
-    if (loading) {
-      return (
-        <EnhancedCard
-          ref={ref}
-          className={cn(statCardVariants({ variant }), "p-4", className)}
-          hover={false}
-          animate={false}
-          padding="none"
-          {...props}
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-vg-lg animate-pulse" />
-            <div className="flex-1 space-y-2">
-              <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              <div className="h-5 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            </div>
-          </div>
-        </EnhancedCard>
-      )
-    }
-
+  ({ className, variant, title, value, icon, trend = "neutral", trendValue, loading = false, error: _e, onRetry: _r, iconColor: _c, iconBgColor: _b, animate: _a, compact: _cp, ...props }, ref) => {
+    const featured = variant === "featured" || variant === "primary"
     return (
-      <EnhancedCard
-        ref={ref}
-        className={cn(statCardVariants({ variant }), "p-4", className)}
-        padding="none"
-        {...props}
-      >
+      <div ref={ref} className={cn(statCardVariants({ variant }), "p-4", className)} {...props}>
         <div className="flex items-center gap-3">
-          {Icon && (
-            <div className={cn(
-              "rounded-vg-lg p-2.5 transition-all duration-300",
-              iconBgColor
-            )}>
-              <Icon className={cn("h-5 w-5", iconColor)} />
-            </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-muted-foreground truncate">
-              {title}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <h4 className="text-xl font-bold tracking-tight">
-                {value}
-              </h4>
-              {trendValue && (
-                <span className={cn(
-                  "text-xs font-medium",
-                  trend === "up" ? "text-vg-success-500" :
-                    trend === "down" ? "text-vg-error-500" :
-                      "text-muted-foreground"
-                )}>
-                  {trendValue}
-                </span>
-              )}
-            </div>
+          {loading ? <Skeleton className="h-11 w-11 rounded-[14px]" /> : <StatIcon icon={icon} featured={featured} />}
+          <div className="min-w-0 flex-1">
+            <p className={cn("truncate text-xs font-medium", featured ? "text-white/70" : "text-bb-muted")}>{title}</p>
+            {loading ? (
+              <Skeleton className="mt-1 h-5 w-16" />
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-2xl font-extrabold tracking-[-0.03em]">{value}</span>
+                {trendValue && (
+                  <span
+                    className={cn(
+                      "text-xs font-semibold",
+                      trend === "up" ? "text-bb-success-ink" : trend === "down" ? "text-bb-danger-ink" : "text-bb-muted"
+                    )}
+                  >
+                    {trendValue}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      </EnhancedCard>
+      </div>
     )
   }
 )
 CompactStatCard.displayName = "CompactStatCard"
 
 export { StatCard, CompactStatCard, statCardVariants }
-

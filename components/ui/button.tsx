@@ -4,26 +4,44 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Book Buddy button. Pill-shaped, three heights (lg 52 / md 44 / sm 36), motion per
+ * the design system: hover lifts 2px, press sinks 1px, 120ms micro transition.
+ * Hit area never drops under 44px on touch devices.
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold",
+    "transition-[transform,box-shadow,background-color,color,border-color] duration-[120ms] ease-out",
+    "motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-px",
+    "focus-visible:outline-none focus-visible:shadow-focus",
+    "disabled:pointer-events-none disabled:translate-y-0 disabled:bg-none disabled:bg-bb-surface-2 disabled:text-bb-faint disabled:shadow-none disabled:border-transparent",
+    "[&_svg]:pointer-events-none [&_svg]:size-[18px] [&_svg]:shrink-0",
+  ].join(" "),
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        // primary: glossy blaze
+        default: "bg-bb-primary text-white shadow-gloss",
+        primary: "bg-bb-primary text-white shadow-gloss",
+        // secondary: navy gradient
+        secondary: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
+        outline: "border-[1.5px] border-foreground bg-transparent text-foreground hover:bg-bb-surface-2",
+        ghost: "bg-transparent text-bb-cobalt hover:bg-bb-surface-2 dark:text-bb-text",
+        // solid danger for destructive confirmations
+        destructive: "bg-bb-danger text-white hover:brightness-95",
+        // soft orange-tinted action (design-system "danger-soft"), radius 10
+        "danger-soft": "rounded-bb-sm bg-bb-accent-soft text-bb-accent-ink hover:brightness-95",
+        link: "rounded-none px-0 text-bb-accent underline-offset-4 hover:underline motion-safe:hover:translate-y-0",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-11 px-5 text-[15px]",
+        md: "h-11 px-5 text-[15px]",
+        sm: "h-9 px-4 text-sm [@media(pointer:coarse)]:min-h-11",
+        lg: "h-[52px] px-[26px] text-base",
+        icon: "h-[52px] w-[52px] p-0",
+        "icon-md": "h-11 w-11 p-0",
+        "icon-sm": "h-9 w-9 p-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11",
       },
     },
     defaultVariants: {

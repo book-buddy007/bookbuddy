@@ -254,6 +254,7 @@ const config: Config = {
 				'vg-xl': 'var(--vg-blur-xl)',
 			},
 			keyframes: {
+				'bb-shimmer': { '100%': { transform: 'translateX(100%)' } },
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -308,6 +309,7 @@ const config: Config = {
 				},
 			},
 			animation: {
+				'bb-shimmer': 'bb-shimmer 1.4s infinite',
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'vg-fade-in': 'vg-fade-in 0.5s ease-out',
