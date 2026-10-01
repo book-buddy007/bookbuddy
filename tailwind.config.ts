@@ -300,34 +300,6 @@ const config: Config = {
 						height: '0'
 					}
 				},
-				'vg-fade-in': {
-					'0%': { opacity: '0', transform: 'translateY(20px)' },
-					'100%': { opacity: '1', transform: 'translateY(0)' },
-				},
-				'vg-scale-in': {
-					'0%': { opacity: '0', transform: 'scale(0.95)' },
-					'100%': { opacity: '1', transform: 'scale(1)' },
-				},
-				'vg-slide-in-right': {
-					'0%': { opacity: '0', transform: 'translateX(20px)' },
-					'100%': { opacity: '1', transform: 'translateX(0)' },
-				},
-				'vg-slide-in-left': {
-					'0%': { opacity: '0', transform: 'translateX(-20px)' },
-					'100%': { opacity: '1', transform: 'translateX(0)' },
-				},
-				'vg-educational-pulse': {
-					'0%, 100%': { opacity: '1' },
-					'50%': { opacity: '0.8' },
-				},
-				'vg-cultural-glow': {
-					'0%, 100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)' },
-					'50%': { boxShadow: '0 0 30px rgba(139, 92, 246, 0.5)' },
-				},
-				'vg-float': {
-					'0%, 100%': { transform: 'translateY(0px)' },
-					'50%': { transform: 'translateY(-10px)' },
-				},
 				'landing-pulse': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.5' },
@@ -341,13 +313,6 @@ const config: Config = {
 				'bb-shimmer': 'bb-shimmer 1.4s infinite',
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'vg-fade-in': 'vg-fade-in 0.5s ease-out',
-				'vg-scale-in': 'vg-scale-in 0.3s ease-out',
-				'vg-slide-in-right': 'vg-slide-in-right 0.5s ease-out',
-				'vg-slide-in-left': 'vg-slide-in-left 0.5s ease-out',
-				'vg-educational-pulse': 'vg-educational-pulse 2s infinite',
-				'vg-cultural-glow': 'vg-cultural-glow 3s ease-in-out infinite',
-				'vg-float': 'vg-float 3s ease-in-out infinite',
 				'landing-pulse': 'landing-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'landing-shimmer': 'landing-shimmer 2s linear infinite',
 			}

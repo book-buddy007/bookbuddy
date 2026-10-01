@@ -128,7 +128,7 @@ export function TrialExpirationBanner() {
   }, []);
 
   return (
-    <div className="w-full animate-vg-fade-in">
+    <div className="w-full animate-in fade-in-0 duration-bb-ui">
       <Alert className={`relative border-2 ${styles.containerClass} shadow-vg-md`}>
         {/* Dismiss button */}
         {trialStatus.urgencyLevel !== 'expired' && (

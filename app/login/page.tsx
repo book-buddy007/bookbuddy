@@ -148,7 +148,7 @@ export default function LoginPage() {
 
   return (
     <AuthBackdrop>
-      <EnhancedCard className={`animate-vg-fade-in border-0 ${authCardClassName}`}>
+      <EnhancedCard className={`animate-in fade-in-0 duration-bb-ui border-0 ${authCardClassName}`}>
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
@@ -169,7 +169,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Display login errors */}
             {(error || loginError) && (
-              <Alert variant="destructive" className="animate-vg-shake">
+              <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Login Failed</AlertTitle>
                 <AlertDescription>
@@ -180,7 +180,7 @@ export default function LoginPage() {
 
             {/* Resend Verification Email Section - Customized to aesthetic */}
             {showResendVerification && (
-              <div className="space-y-3 p-4 bg-bb-warning-soft rounded-2xl animate-vg-fade-in">
+              <div className="space-y-3 p-4 bg-bb-warning-soft rounded-2xl animate-in fade-in-0 duration-bb-ui">
                 <div className="flex items-start gap-2">
                   <Mail className="h-5 w-5 text-bb-warning-ink mt-0.5" />
                   <div className="flex-1">
@@ -244,7 +244,7 @@ export default function LoginPage() {
                 aria-invalid={errors.email ? "true" : "false"}
               />
               {errors.email && (
-                <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                   {errors.email.message}
                 </p>
               )}
@@ -282,7 +282,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                   {errors.password.message}
                 </p>
               )}

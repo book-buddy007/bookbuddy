@@ -435,7 +435,7 @@ export default function CatalogPage() {
       <div className="absolute top-0 right-0 -mr-40 w-[800px] h-[800px] bg-gradient-to-bl from-[var(--saffron)]/10 via-[var(--gold)]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-40 w-[600px] h-[600px] bg-gradient-to-tr from-[var(--peacock-teal)]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8 space-y-4 lg:space-y-8 animate-vg-fade-in">
+      <div className="relative z-10 max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-6 lg:py-8 space-y-4 lg:space-y-8 animate-in fade-in-0 duration-bb-ui">
         {/* Header */}
         <div className="pt-0 pb-0">
           <Link 
@@ -771,7 +771,7 @@ export default function CatalogPage() {
 
         {/* Advanced Search Panel */}
         {showAdvancedSearch && (
-          <EnhancedCard variant="glass" className="animate-vg-slide-down ring-1 ring-slate-200/50 dark:ring-slate-700/50 pt-4">
+          <EnhancedCard variant="glass" className="animate-in fade-in-0 slide-in-from-top-2 duration-bb-ui ring-1 ring-slate-200/50 dark:ring-slate-700/50 pt-4">
             <EnhancedCardContent className="space-y-6">
               <h3 
                 className="text-xl font-semibold text-slate-900 dark:text-white"
@@ -827,13 +827,13 @@ export default function CatalogPage() {
 
         {/* Success/Error Alerts */}
         {borrowSuccess && (
-          <Alert className="bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700 animate-vg-fade-in">
+          <Alert className="bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-700 animate-in fade-in-0 duration-bb-ui">
             <AlertTitle className="text-emerald-700 dark:text-emerald-400">Success</AlertTitle>
             <AlertDescription className="text-emerald-600 dark:text-emerald-300">{borrowSuccess}</AlertDescription>
           </Alert>
         )}
         {borrowError && (
-          <Alert variant="destructive" className="animate-vg-fade-in">
+          <Alert variant="destructive" className="animate-in fade-in-0 duration-bb-ui">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{borrowError}</AlertDescription>
@@ -842,7 +842,7 @@ export default function CatalogPage() {
 
         {/* Fetch Error Display */}
         {error && page === 1 && (
-          <EnhancedCard variant="elevated" className="text-center py-12 animate-vg-fade-in border-red-100 dark:border-red-900/30">
+          <EnhancedCard variant="elevated" className="text-center py-12 animate-in fade-in-0 duration-bb-ui border-red-100 dark:border-red-900/30">
             <EnhancedCardContent>
               <div className="flex flex-col items-center gap-4">
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-full">
@@ -869,7 +869,7 @@ export default function CatalogPage() {
           {books.map((book, index) => (
             <div
               key={book.id}
-              className="animate-vg-fade-in h-full"
+              className="animate-in fade-in-0 duration-bb-ui h-full"
               style={{ animationDelay: `${index * 60}ms` }}
             >
               <BookCard

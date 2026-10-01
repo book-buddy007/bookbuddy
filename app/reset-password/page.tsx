@@ -106,7 +106,7 @@ function ResetPasswordForm() {
 
   return (
     <AuthBackdrop>
-      <EnhancedCard className={`animate-vg-fade-in border-0 ${authCardClassName}`}>
+      <EnhancedCard className={`animate-in fade-in-0 duration-bb-ui border-0 ${authCardClassName}`}>
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
@@ -156,7 +156,7 @@ function ResetPasswordForm() {
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
-                <Alert variant="destructive" className="animate-vg-fade-in">
+                <Alert variant="destructive" className="animate-in fade-in-0 duration-bb-ui">
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
@@ -185,7 +185,7 @@ function ResetPasswordForm() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                  <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                     {errors.password.message}
                   </p>
                 )}
@@ -217,7 +217,7 @@ function ResetPasswordForm() {
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                  <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                     {errors.confirmPassword.message}
                   </p>
                 )}

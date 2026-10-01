@@ -60,7 +60,7 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
   return (
     <div
       ref={ref}
-      className={`${inView ? 'animate-vg-fade-in-up' : 'opacity-0'} ${className}`}
+      className={`${inView ? 'animate-in fade-in-0 slide-in-from-bottom-4 duration-500' : 'opacity-0'} ${className}`}
       style={inView ? { animationDelay: `${delay}ms`, animationFillMode: 'both' } : undefined}
     >
       {children}
@@ -286,7 +286,7 @@ function LiveFeatureDemo() {
         {selection && (
           <div
             style={{ position: 'absolute', left: selection.x, top: selection.y, transform: 'translate(-50%, -110%)' }}
-            className="animate-vg-scale-in z-30 flex items-center gap-1.5 rounded-xl bg-slate-900 text-white shadow-2xl px-2.5 py-2 whitespace-nowrap"
+            className="animate-in fade-in-0 zoom-in-95 duration-bb-ui z-30 flex items-center gap-1.5 rounded-xl bg-slate-900 text-white shadow-2xl px-2.5 py-2 whitespace-nowrap"
           >
             {HIGHLIGHT_COLORS.map(c => (
               <button
@@ -317,7 +317,7 @@ function LiveFeatureDemo() {
 
       {/* Toast */}
       {toast && (
-        <div className="animate-vg-fade-in-up absolute -bottom-2 left-1/2 -translate-x-1/2 translate-y-full bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg z-40">
+        <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 absolute -bottom-2 left-1/2 -translate-x-1/2 translate-y-full bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg z-40">
           {toast}
         </div>
       )}
@@ -327,10 +327,10 @@ function LiveFeatureDemo() {
         <>
           <div
             onClick={() => setActiveWord(null)}
-            className="animate-vg-fade-in fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="animate-in fade-in-0 duration-bb-ui fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           />
           <div
-            className="animate-vg-scale-in fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-md bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className="animate-in fade-in-0 zoom-in-95 duration-bb-ui fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-md bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <div className="flex items-center gap-2">
@@ -512,7 +512,7 @@ export function ReaderLanding() {
           </Link>
         </div>
 
-        <div className="animate-vg-fade-in-down relative z-10 flex justify-center mb-6">
+        <div className="animate-in fade-in-0 slide-in-from-top-2 duration-500 relative z-10 flex justify-center mb-6">
           <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,77,0,0.35)] relative">
             <BrandMark height={35} />
             <BookOpen className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
@@ -520,7 +520,7 @@ export function ReaderLanding() {
         </div>
 
         <h1
-          className="animate-vg-fade-in-up relative z-10 text-3xl sm:text-5xl font-extrabold text-white mb-4"
+          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 relative z-10 text-3xl sm:text-5xl font-extrabold text-white mb-4"
           style={{ fontFamily: 'var(--font-display)', animationDelay: '100ms', animationFillMode: 'both' }}
         >
           Your Reader,{' '}
@@ -529,7 +529,7 @@ export function ReaderLanding() {
           </span>
         </h1>
         <p
-          className="animate-vg-fade-in-up relative z-10 text-white/80 text-sm sm:text-base max-w-xl mx-auto"
+          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 relative z-10 text-white/80 text-sm sm:text-base max-w-xl mx-auto"
           style={{ animationDelay: '200ms', animationFillMode: 'both' }}
         >
           Pick a book by format, subject, or name — read it, listen to it, or ask Varta about it, all in one place.
@@ -539,7 +539,7 @@ export function ReaderLanding() {
       {/* ─── Filters ──────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 -mt-8 relative z-20 mb-4">
         <div
-          className="animate-vg-fade-in-up rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3"
+          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3"
           style={{ animationDelay: '300ms', animationFillMode: 'both' }}
         >
           <div className="flex-1">
@@ -592,21 +592,21 @@ export function ReaderLanding() {
       {/* ─── Book results — only after a filter is chosen ───────── */}
       <div className="max-w-6xl mx-auto px-6 mb-16 min-h-[120px]">
         {!hasActiveFilter ? (
-          <div key="prompt" className="animate-vg-fade-in flex flex-col items-center justify-center py-10 gap-2 text-center">
-            <ChevronRight className="h-5 w-5 text-[var(--deep-saffron)] rotate-[-90deg] animate-vg-bounce-subtle" />
+          <div key="prompt" className="animate-in fade-in-0 duration-bb-ui flex flex-col items-center justify-center py-10 gap-2 text-center">
+            <ChevronRight className="h-5 w-5 text-[var(--deep-saffron)] rotate-[-90deg] motion-safe:animate-pulse" />
             <p className="text-sm text-slate-500 font-medium">Choose a format, subject, or book name above to see matching books.</p>
           </div>
         ) : isLoading ? (
-          <div key="loading" className="animate-vg-fade-in flex flex-col items-center justify-center py-20 gap-3">
+          <div key="loading" className="animate-in fade-in-0 duration-bb-ui flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-[var(--deep-saffron)]" />
             <p className="text-sm text-slate-500">Loading books…</p>
           </div>
         ) : error ? (
-          <div key="error" className="animate-vg-fade-in text-center py-16">
+          <div key="error" className="animate-in fade-in-0 duration-bb-ui text-center py-16">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         ) : filteredBooks.length === 0 ? (
-          <div key="empty" className="animate-vg-fade-in text-center py-16">
+          <div key="empty" className="animate-in fade-in-0 duration-bb-ui text-center py-16">
             <Search className="h-10 w-10 text-[var(--deep-saffron)]/40 mx-auto mb-3" />
             <p className="text-sm text-slate-500 font-medium">No books match these filters yet.</p>
           </div>
@@ -615,7 +615,7 @@ export function ReaderLanding() {
             {filteredBooks.map((book, idx) => (
               <div
                 key={book.id}
-                className="animate-vg-fade-in-up h-full"
+                className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 h-full"
                 style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
               >
                 <BookCard

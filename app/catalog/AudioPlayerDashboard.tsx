@@ -52,7 +52,7 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
   return (
     <div
       ref={ref}
-      className={`${inView ? 'animate-vg-fade-in-up' : 'opacity-0'} ${className}`}
+      className={`${inView ? 'animate-in fade-in-0 slide-in-from-bottom-4 duration-500' : 'opacity-0'} ${className}`}
       style={inView ? { animationDelay: `${delay}ms`, animationFillMode: 'both' } : undefined}
     >
       {children}
@@ -134,11 +134,11 @@ function AudioPlayerPrototype() {
       {/* Ambient glow, matching the real player's bgAmbience */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute rounded-full animate-vg-float"
+          className="absolute rounded-full"
           style={{ width: 320, height: 320, top: -120, right: -80, background: 'radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%)', opacity: 0.5 }}
         />
         <div
-          className="absolute rounded-full animate-vg-float"
+          className="absolute rounded-full"
           style={{ width: 260, height: 260, bottom: -100, left: -60, background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)', opacity: 0.4, animationDelay: '1.5s' }}
         />
       </div>
@@ -151,7 +151,7 @@ function AudioPlayerPrototype() {
             <div className="text-xs" style={{ color: '#a0a0b0' }}>NCERT</div>
           </div>
           <div className="relative">
-            <div className={`flex rounded-full p-0.5 gap-0.5 ${isActive('voice') ? 'ring-2 ring-offset-2 ring-offset-[#0a0a0f] ring-amber-400 animate-vg-educational-pulse' : ''}`} style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className={`flex rounded-full p-0.5 gap-0.5 ${isActive('voice') ? 'ring-2 ring-offset-2 ring-offset-[#0a0a0f] ring-amber-400' : ''}`} style={{ background: 'rgba(255,255,255,0.06)' }}>
               <button
                 onClick={() => setGender('MALE')}
                 className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 rounded-full transition-colors"
@@ -174,7 +174,7 @@ function AudioPlayerPrototype() {
           {/* Cover */}
           <div className="relative shrink-0 mx-auto sm:mx-0">
             <div
-              className={`h-28 w-28 sm:h-32 sm:w-32 rounded-2xl flex items-center justify-center ${isPlaying ? 'animate-vg-cultural-glow' : ''}`}
+              className={`h-28 w-28 sm:h-32 sm:w-32 rounded-2xl flex items-center justify-center`}
               style={{ background: 'linear-gradient(135deg, #FFB547, #D93A00)' }}
             >
               <Headphones className="h-10 w-10 text-white/90" />
@@ -184,7 +184,7 @@ function AudioPlayerPrototype() {
                 {[0, 1, 2, 3].map(i => (
                   <span
                     key={i}
-                    className="w-1 rounded-full animate-vg-bounce-subtle"
+                    className="w-1 rounded-full motion-safe:animate-pulse"
                     style={{ background: '#FFB547', height: 6 + (i % 3) * 4, animationDelay: `${i * 120}ms` }}
                   />
                 ))}
@@ -197,7 +197,7 @@ function AudioPlayerPrototype() {
             <div className="text-base font-semibold mb-4">Force and Laws of Motion</div>
 
             {/* Waveform / seek */}
-            <div className={`relative rounded-xl p-2 -m-2 ${isActive('waveform') ? 'ring-2 ring-amber-400 animate-vg-educational-pulse' : ''}`}>
+            <div className={`relative rounded-xl p-2 -m-2 ${isActive('waveform') ? 'ring-2 ring-amber-400' : ''}`}>
               <div
                 className="flex items-end gap-[2px] h-10 cursor-pointer"
                 onClick={(e) => {
@@ -226,7 +226,7 @@ function AudioPlayerPrototype() {
         </div>
 
         {/* Main controls */}
-        <div className={`flex items-center justify-center gap-3 sm:gap-5 mb-5 rounded-xl p-2 -m-2 ${isActive('controls') ? 'ring-2 ring-amber-400 animate-vg-educational-pulse' : ''}`}>
+        <div className={`flex items-center justify-center gap-3 sm:gap-5 mb-5 rounded-xl p-2 -m-2 ${isActive('controls') ? 'ring-2 ring-amber-400' : ''}`}>
           <button className="p-2 rounded-full transition-colors hover:bg-white/5" style={{ color: '#a0a0b0' }} aria-label="Previous section">
             <Rewind size={20} />
           </button>
@@ -260,7 +260,7 @@ function AudioPlayerPrototype() {
         </div>
 
         {/* Speed pills */}
-        <div className={`flex justify-center gap-1.5 mb-5 rounded-xl p-2 -m-2 flex-wrap ${isActive('speed') ? 'ring-2 ring-amber-400 animate-vg-educational-pulse' : ''}`}>
+        <div className={`flex justify-center gap-1.5 mb-5 rounded-xl p-2 -m-2 flex-wrap ${isActive('speed') ? 'ring-2 ring-amber-400' : ''}`}>
           {SPEEDS.map(s => (
             <button
               key={s}
@@ -282,7 +282,7 @@ function AudioPlayerPrototype() {
           <div className="relative">
             <button
               onClick={() => setSleepOpen(o => !o)}
-              className={`p-1.5 rounded-full transition-colors hover:bg-white/5 ${isActive('sleep') ? 'ring-2 ring-amber-400 animate-vg-educational-pulse' : ''}`}
+              className={`p-1.5 rounded-full transition-colors hover:bg-white/5 ${isActive('sleep') ? 'ring-2 ring-amber-400' : ''}`}
               style={{ color: sleepMin ? '#FFB547' : '#a0a0b0' }}
               aria-label="Sleep timer"
             >
@@ -290,7 +290,7 @@ function AudioPlayerPrototype() {
             </button>
             {sleepOpen && (
               <div
-                className="animate-vg-scale-in absolute bottom-9 left-1/2 -translate-x-1/2 rounded-xl p-1.5 min-w-[110px] z-30 shadow-2xl border"
+                className="animate-in fade-in-0 zoom-in-95 duration-bb-ui absolute bottom-9 left-1/2 -translate-x-1/2 rounded-xl p-1.5 min-w-[110px] z-30 shadow-2xl border"
                 style={{ background: 'rgba(20,20,28,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.08)' }}
               >
                 {[15, 30, 45, 60].map(min => (
@@ -310,7 +310,7 @@ function AudioPlayerPrototype() {
           <div className="relative">
             <button
               onClick={() => setChaptersOpen(o => !o)}
-              className={`p-1.5 rounded-full transition-colors hover:bg-white/5 ${isActive('chapters') ? 'ring-2 ring-amber-400 animate-vg-educational-pulse' : ''}`}
+              className={`p-1.5 rounded-full transition-colors hover:bg-white/5 ${isActive('chapters') ? 'ring-2 ring-amber-400' : ''}`}
               style={{ color: '#a0a0b0' }}
               aria-label="Chapters"
             >
@@ -318,7 +318,7 @@ function AudioPlayerPrototype() {
             </button>
             {chaptersOpen && (
               <div
-                className="animate-vg-scale-in absolute bottom-9 right-0 rounded-xl p-1.5 min-w-[190px] z-30 shadow-2xl border"
+                className="animate-in fade-in-0 zoom-in-95 duration-bb-ui absolute bottom-9 right-0 rounded-xl p-1.5 min-w-[190px] z-30 shadow-2xl border"
                 style={{ background: 'rgba(20,20,28,0.95)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.08)' }}
               >
                 {['1. Introduction', '2. Force and Laws of Motion', '3. Gravitation'].map((ch, i) => (
@@ -350,7 +350,7 @@ function AudioPlayerPrototype() {
 
       {/* Guide caption bar */}
       <div className="relative z-10 border-t px-5 sm:px-7 py-3" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-        <p key={guideStep} className="animate-vg-fade-in text-xs sm:text-[13px] font-medium text-center" style={{ color: '#FFB547' }}>
+        <p key={guideStep} className="animate-in fade-in-0 duration-bb-ui text-xs sm:text-[13px] font-medium text-center" style={{ color: '#FFB547' }}>
           {GUIDE_STEPS[guideStep].label}
         </p>
         <div className="flex justify-center gap-1.5 mt-2">
@@ -445,7 +445,7 @@ function AudioPicker() {
           </Link>
         </div>
 
-        <div className="animate-vg-fade-in-down relative z-10 flex justify-center mb-6">
+        <div className="animate-in fade-in-0 slide-in-from-top-2 duration-500 relative z-10 flex justify-center mb-6">
           <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,77,0,0.35)] relative">
             <BrandMark height={35} />
             <Headphones className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
@@ -453,7 +453,7 @@ function AudioPicker() {
         </div>
 
         <h1
-          className="animate-vg-fade-in-up relative z-10 text-3xl sm:text-5xl font-extrabold text-white mb-4"
+          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 relative z-10 text-3xl sm:text-5xl font-extrabold text-white mb-4"
           style={{ fontFamily: 'var(--font-display)', animationDelay: '100ms', animationFillMode: 'both' }}
         >
           Press Play,{' '}
@@ -462,7 +462,7 @@ function AudioPicker() {
           </span>
         </h1>
         <p
-          className="animate-vg-fade-in-up relative z-10 text-white/80 text-sm sm:text-base max-w-xl mx-auto"
+          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 relative z-10 text-white/80 text-sm sm:text-base max-w-xl mx-auto"
           style={{ animationDelay: '200ms', animationFillMode: 'both' }}
         >
           Every audiobook in your library, narrated and ready — pick a subject, then a title, and it opens straight into the player.
@@ -471,7 +471,7 @@ function AudioPicker() {
 
       {/* ─── Filters (selection IS the navigation — no separate grid) ── */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 -mt-8 relative z-20 mb-16">
-        <div className="animate-vg-fade-in-up rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+        <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
           <div className="flex-1">
             <label className="text-xs font-bold text-[var(--indigo-deep)] mb-1.5 block">Subject</label>
             <Select value={genreFilter} onValueChange={setGenreFilter}>

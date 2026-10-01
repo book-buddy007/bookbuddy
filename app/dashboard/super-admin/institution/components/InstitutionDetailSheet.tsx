@@ -6,7 +6,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Institution } from "@/types/admin"
-import { StatPill } from "@/components/ui/stat-pill"
+import { StatCard } from "@/components/ui/stat-card"
 import { Building2, Users, User, BookOpen, MapPin, Phone, Globe, ShieldCheck } from "@/components/ui/icons"
 import { Badge } from "@/components/ui/badge"
 
@@ -72,25 +72,12 @@ export function InstitutionDetailSheet({
 
         <div className="space-y-6 pb-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatPill
-              label="Established"
-              value={establishedYear.toString()}
-              icon={<Building2 className="h-5 w-5" />}
-              accent="saffron"
-            />
-            <StatPill
-              label="Branches"
-              value={branches.length.toString()}
-              icon={<MapPin className="h-5 w-5" />}
-              accent="teal"
-              delayMs={100}
-            />
-            <StatPill
-              label="Total Students"
-              value={branches.reduce((sum: number, b: any) => sum + (Number(b.studentStrength) || 0), 0).toString() || "0"}
-              icon={<Users className="h-5 w-5" />}
-              accent="gold"
-              delayMs={200}
+            <StatCard variant="featured" title="Established" value={establishedYear.toString()} icon="institution" />
+            <StatCard title="Branches" value={branches.length} icon="map-pin" />
+            <StatCard
+              title="Total students"
+              value={branches.reduce((sum: number, b: any) => sum + (Number(b.studentStrength) || 0), 0)}
+              icon="profile"
             />
           </div>
 

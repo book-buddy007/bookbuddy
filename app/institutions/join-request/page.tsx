@@ -324,7 +324,7 @@ export default function JoinRequestPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8 animate-vg-fade-in">
+    <div className="p-6 max-w-4xl mx-auto space-y-8 animate-in fade-in-0 duration-bb-ui">
       {/* Header */}
       <div className="flex items-center gap-4">
         <EnhancedButton

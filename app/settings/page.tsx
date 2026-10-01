@@ -57,7 +57,7 @@ export default function SettingsPage() {
   }, [theme, setAppTheme]);
   
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8 animate-vg-fade-in">
+    <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in-0 duration-bb-ui">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="space-y-2">

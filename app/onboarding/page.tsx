@@ -299,7 +299,7 @@ export default function OnboardingPage() {
           <Progress value={progress} className="h-2" />
         </div>
 
-        <EnhancedCard variant="glass" className=" animate-vg-fade-in">
+        <EnhancedCard variant="glass" className="animate-in fade-in-0 duration-bb-ui">
           {/* STEP 1: VERIFICATION */}
           {currentStep === 1 && (
             <>
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
 
                 {/* Verification Section */}
                 {(activeOtpType || (!userProfile?.emailVerified ? 'email' : null)) && (
-                  <div className="p-4 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 animate-vg-fade-in">
+                  <div className="p-4 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 animate-in fade-in-0 duration-bb-ui">
                     <h4 className="font-semibold mb-2">Verify your {activeOtpType || 'email'}</h4>
                     
                     {activeOtpType === 'email' || (!userProfile?.emailVerified && !activeOtpType) ? (

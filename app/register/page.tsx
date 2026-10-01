@@ -89,7 +89,7 @@ export default function RegisterPage() {
 
   return (
     <AuthBackdrop>
-      <EnhancedCard className={`animate-vg-fade-in border-0 ${authCardClassName}`}>
+      <EnhancedCard className={`animate-in fade-in-0 duration-bb-ui border-0 ${authCardClassName}`}>
         <EnhancedCardHeader className="text-center space-y-4 relative z-10">
           {/* Logo */}
           <div className="flex justify-center">
@@ -110,7 +110,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Display registration success message */}
             {registrationSuccess && (
-              <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 animate-vg-fade-in">
+              <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 animate-in fade-in-0 duration-bb-ui">
                 <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                 <AlertTitle className="text-green-900 dark:text-green-100 font-semibold">
                   Registration Successful! 🎉
@@ -138,7 +138,7 @@ export default function RegisterPage() {
 
             {/* Display registration errors */}
             {(error || registerError) && !registrationSuccess && (
-              <Alert variant="destructive" className="animate-vg-shake">
+              <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Registration Failed</AlertTitle>
                 <AlertDescription>
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                 disabled={registrationSuccess}
               />
               {errors.name && (
-                <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                   {errors.name.message}
                 </p>
               )}
@@ -181,7 +181,7 @@ export default function RegisterPage() {
                 disabled={registrationSuccess}
               />
               {errors.email && (
-                <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                   {errors.email.message}
                 </p>
               )}
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                 disabled={registrationSuccess}
               />
               {errors.password && (
-                <p className="text-sm text-vg-error-500 animate-vg-fade-in">
+                <p className="text-sm text-danger-ink animate-in fade-in-0 duration-bb-ui">
                   {errors.password.message}
                 </p>
               )}
