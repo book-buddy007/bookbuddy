@@ -3,136 +3,42 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  BookOpen, Headphones, Sparkles, Highlighter, Bookmark, Moon,
-  Search, Library, Loader2, MousePointerClick, NotebookPen, WandSparkles,
-  Layers, BookA, Languages, Globe, X, BookmarkPlus, ChevronRight, ChevronLeft,
-} from '@/components/ui/icons';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FormField } from '@/components/ui/form-field';
+import { Button } from '@/components/ui/button';
+import { Icon, type BBIconName } from '@/components/ui/icon';
+import { Modal } from '@/components/ui/modal';
+import { Segmented } from '@/components/ui/segmented';
+import { EmptyState } from '@/components/ui/empty-state';
 import { BookCard } from '@/components/BookCard';
-import { BrandMark } from '@/components/ui/brand-mark';
+import { EpubSelectionPopover, type SelectionPopoverState } from '@/components/reader/EpubSelectionPopover';
+import { FeatureHero, FeatureSectionTitle, Reveal } from '@/components/landing/feature-landing';
+import { toast } from '@/hooks/use-toast';
 import type { CatalogBook, BookFormatType } from '@/types/catalog';
 import { getReaderRoute, getPrimaryReadFormat } from '@/types/catalog';
 
 const ALL = '__ALL__';
 
-// MandalaMark's gradient reads var(--accent-primary) / var(--accent-strong),
-// which only exist in the not-yet-deployed design system — without them the
-// SVG's stop-color falls back to black. --gold IS live (styles/indic-design-
-// system.css), so only the other two need a local scope override.
-const mandalaVars = {
-  '--gold': 'var(--gold, #FFB547)',
-  '--accent-primary': 'var(--deep-saffron, #FF4D00)',
-  '--accent-strong': 'var(--saffron, #FF8A3D)',
-} as React.CSSProperties;
-
-// Entrance animations use the deployed vg-animations.css keyframes (pure
-// CSS, plays on mount) rather than framer-motion — framer-motion's
-// animate prop reproducibly never fired in this environment (elements
-// stayed frozen at their `initial` style with no console error), while
-// these CSS keyframes are proven already-live elsewhere in the app.
-function useInView<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  return { ref, inView };
-}
-
-function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const { ref, inView } = useInView<HTMLDivElement>();
-  return (
-    <div
-      ref={ref}
-      className={`${inView ? 'animate-in fade-in-0 slide-in-from-bottom-4 duration-500' : 'opacity-0'} ${className}`}
-      style={inView ? { animationDelay: `${delay}ms`, animationFillMode: 'both' } : undefined}
-    >
-      {children}
-    </div>
-  );
-}
-
 const FORMAT_LABELS: Record<BookFormatType, string> = {
   PDF: 'PDF',
-  EPUB: 'E-Book',
+  EPUB: 'eBook',
   AUDIOBOOK: 'Audiobook',
-  AI_EMBED: 'Varta Enabled',
+  AI_EMBED: 'Varta enabled',
 };
 
-const BENEFITS = [
-  {
-    icon: BookOpen,
-    title: 'Distraction-Free Reading',
-    description: 'A clean PDF & EPUB reader with adjustable fonts, themes, and margins — built for focus.',
-    accent: 'saffron' as const,
-  },
-  {
-    icon: Sparkles,
-    title: 'Ask Varta',
-    description: 'Get instant, page-accurate answers to your questions right inside the book you’re reading.',
-    accent: 'teal' as const,
-  },
-  {
-    icon: Highlighter,
-    title: 'Sanchika Smart Notes',
-    description: 'Capture highlights, notes, and flashcards that stay linked to the exact page they came from.',
-    accent: 'gold' as const,
-  },
-  {
-    icon: Headphones,
-    title: 'Audio Narration',
-    description: 'Switch to audio and keep learning on the move, with your place synced across formats.',
-    accent: 'indigo' as const,
-  },
-  {
-    icon: Bookmark,
-    title: 'Bookmarks & Sync',
-    description: 'Pick up exactly where you left off — your progress follows you to any device.',
-    accent: 'saffron' as const,
-  },
-  {
-    icon: Moon,
-    title: 'Day & Night Themes',
-    description: 'Reading comfort at any hour, with adjustable brightness and color temperature.',
-    accent: 'teal' as const,
-  },
+const BENEFITS: { icon: BBIconName; title: string; description: string }[] = [
+  { icon: 'read', title: 'Distraction-free reading', description: 'A clean PDF and EPUB reader with adjustable text, themes and spacing, built for focus.' },
+  { icon: 'varta', title: 'Ask Varta', description: 'Page-accurate answers to your questions, right inside the book you are reading.' },
+  { icon: 'sanchika', title: 'Sanchika notes', description: 'Highlights, notes and flashcards that stay linked to the exact page they came from.' },
+  { icon: 'audiobook', title: 'Listen along', description: 'Switch to audio and keep learning on the move, with your place kept across formats.' },
+  { icon: 'bookmark', title: 'Bookmarks and sync', description: 'Pick up where you left off. Your progress follows you to any device.' },
+  { icon: 'theme', title: 'Paper, Sepia, Night', description: 'Comfortable reading at any hour, with warmth and contrast you can tune.' },
 ];
 
-const ACCENT_MAP = {
-  saffron: 'from-[var(--deep-saffron)]/10 border-[var(--deep-saffron)]/20',
-  teal: 'from-[var(--peacock-teal)]/10 border-[var(--peacock-teal)]/20',
-  gold: 'from-[var(--gold)]/10 border-[var(--gold)]/25',
-  indigo: 'from-[var(--indigo-deep)]/10 border-[var(--indigo-deep)]/20',
-};
-const ACCENT_ICON_BG = {
-  saffron: 'bg-[var(--deep-saffron)]/15 text-[var(--deep-saffron)]',
-  teal: 'bg-[var(--peacock-teal)]/15 text-[var(--peacock-teal)]',
-  gold: 'bg-[var(--gold)]/20 text-[var(--temple-stone)]',
-  indigo: 'bg-[var(--indigo-deep)]/15 text-[var(--indigo-deep)]',
-};
-
 // ═══════════════════════════════════════════════════════════════════════
-// LIVE DEMO — annotation + vocabulary/wiki lookup
-// Self-contained mock (no network calls): mirrors the real reader's
-// interaction model (HighlightedText.tsx's char-offset selection +
-// AnnotationToolbar.tsx's colors, DictionaryModal.tsx's tabs) so it
-// behaves like the actual feature, not just a static screenshot.
+// LIVE DEMO — highlighting and word lookup. Self-contained (no network): it
+// uses the reader's real selection popover and highlight colours, and a
+// mock dictionary for three words. Nothing here is saved.
 // ═══════════════════════════════════════════════════════════════════════
 
 const DEMO_TEXT =
@@ -162,80 +68,68 @@ const VOCAB_WORDS: Record<string, { pronunciation: string; definition: string; e
   },
 };
 
-const HIGHLIGHT_COLORS: { value: string; class: string }[] = [
-  { value: '#FFB547', class: 'bg-bb-accent' },
-  { value: '#00B8A9', class: 'bg-bb-cobalt' },
-  { value: '#42A5F5', class: 'bg-bb-info' },
-  { value: '#FF6EB4', class: 'bg-bb-danger' },
-  { value: '#AB47BC', class: 'bg-bb-cobalt' },
-];
-
-interface DemoHighlight { start: number; end: number; color: string; }
-interface DemoSelection { start: number; end: number; x: number; y: number; }
+interface DemoHighlight { start: number; end: number; color: string }
+interface DemoSelection extends SelectionPopoverState { start: number; end: number }
 
 function LiveFeatureDemo() {
   const textRef = useRef<HTMLDivElement>(null);
   const [highlights, setHighlights] = useState<DemoHighlight[]>([]);
   const [selection, setSelection] = useState<DemoSelection | null>(null);
   const [activeWord, setActiveWord] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [dictTab, setDictTab] = useState<'dictionary' | 'translation' | 'wikipedia'>('dictionary');
 
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 1800);
+  const say = useCallback((msg: string) => {
+    setNote(msg);
+    setTimeout(() => setNote(null), 2200);
   }, []);
 
-  const handleMouseUp = useCallback(() => {
+  const handleSelect = useCallback(() => {
     setTimeout(() => {
       const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0 || sel.toString().trim() === '') return;
-      const range = sel.getRangeAt(0);
       const node = textRef.current;
-      if (!node) return;
+      if (!sel || sel.rangeCount === 0 || sel.toString().trim() === '' || !node) return;
+      const range = sel.getRangeAt(0);
+      if (!node.contains(range.commonAncestorContainer)) return;
 
-      let container: Node | null = range.commonAncestorContainer;
-      while (container && container !== node && container.parentNode) container = container.parentNode;
-      if (container !== node) return;
-
-      const preRange = range.cloneRange();
-      preRange.selectNodeContents(node);
-      preRange.setEnd(range.startContainer, range.startOffset);
-      const startIndex = preRange.toString().length;
-      const endIndex = startIndex + sel.toString().length;
+      const pre = range.cloneRange();
+      pre.selectNodeContents(node);
+      pre.setEnd(range.startContainer, range.startOffset);
+      const start = pre.toString().length;
+      const end = start + sel.toString().length;
 
       const rect = range.getBoundingClientRect();
-      const parentRect = node.getBoundingClientRect();
+      const host = node.getBoundingClientRect();
       setSelection({
-        start: startIndex,
-        end: endIndex,
-        x: rect.left - parentRect.left + rect.width / 2,
-        y: rect.top - parentRect.top,
+        text: sel.toString(),
+        cfiRange: '',
+        start,
+        end,
+        x: rect.left - host.left + rect.width / 2,
+        y: rect.top - host.top,
+        bottom: rect.bottom - host.top,
       });
     }, 10);
   }, []);
 
-  const applyHighlight = (color: string) => {
+  const clearSelection = () => {
+    setSelection(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const applyHighlight = (_value: string, hex: string) => {
     if (!selection) return;
-    setHighlights(prev => [...prev.filter(h => h.end <= selection.start || h.start >= selection.end), { ...selection, color }]);
-    setSelection(null);
-    window.getSelection()?.removeAllRanges();
-    showToast('Highlighted — saved to Sanchika');
+    setHighlights((prev) => [...prev.filter((h) => h.end <= selection.start || h.start >= selection.end), { start: selection.start, end: selection.end, color: hex }]);
+    clearSelection();
+    say('Highlighted. In a real book it goes to your notes.');
   };
 
-  const runAction = (label: string) => {
-    setSelection(null);
-    window.getSelection()?.removeAllRanges();
-    showToast(label);
-  };
-
-  // Build render segments: cut the text at every highlight boundary AND
-  // every vocab-word boundary, so each leaf span gets exactly one style.
+  // Cut the text at every highlight and vocabulary boundary so each span has one style.
   const segments = useMemo(() => {
     const cuts = new Set([0, DEMO_TEXT.length]);
-    highlights.forEach(h => { cuts.add(h.start); cuts.add(h.end); });
+    highlights.forEach((h) => { cuts.add(h.start); cuts.add(h.end); });
     const vocabRanges: { start: number; end: number; word: string }[] = [];
-    Object.keys(VOCAB_WORDS).forEach(word => {
+    Object.keys(VOCAB_WORDS).forEach((word) => {
       const idx = DEMO_TEXT.toLowerCase().indexOf(word);
       if (idx !== -1) {
         vocabRanges.push({ start: idx, end: idx + word.length, word });
@@ -244,158 +138,133 @@ function LiveFeatureDemo() {
       }
     });
     const points = Array.from(cuts).sort((a, b) => a - b);
-    const result: { text: string; start: number; end: number; highlight?: string; vocab?: string }[] = [];
+    const out: { text: string; highlight?: string; vocab?: string }[] = [];
     for (let i = 0; i < points.length - 1; i++) {
       const start = points[i];
       const end = points[i + 1];
       if (start === end) continue;
-      const highlight = highlights.find(h => h.start <= start && h.end >= end)?.color;
-      const vocab = vocabRanges.find(v => v.start === start && v.end === end)?.word;
-      result.push({ text: DEMO_TEXT.slice(start, end), start, end, highlight, vocab });
+      out.push({
+        text: DEMO_TEXT.slice(start, end),
+        highlight: highlights.find((h) => h.start <= start && h.end >= end)?.color,
+        vocab: vocabRanges.find((v) => v.start === start && v.end === end)?.word,
+      });
     }
-    return result;
+    return out;
   }, [highlights]);
 
   const activeVocab = activeWord ? VOCAB_WORDS[activeWord] : null;
 
   return (
     <div className="relative">
-      <div
-        ref={textRef}
-        onMouseUp={handleMouseUp}
-        className="relative select-text text-[17px] sm:text-[19px] leading-relaxed text-slate-700 font-display p-6 sm:p-8 rounded-2xl bg-white border-2 border-dashed border-[var(--deep-saffron)]/25"
-      >
-        {segments.map((seg, i) =>
-          seg.vocab ? (
-            <span
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setActiveWord(seg.vocab!); setDictTab('dictionary'); }}
-              className="cursor-pointer font-semibold text-[var(--peacock-teal)] underline decoration-dotted decoration-2 underline-offset-4 hover:text-[var(--deep-saffron)] transition-colors"
-              style={seg.highlight ? { backgroundColor: seg.highlight + '80' } : undefined}
-            >
-              {seg.text}
-            </span>
-          ) : (
-            <span key={i} style={seg.highlight ? { backgroundColor: seg.highlight + '80' } : undefined}>
-              {seg.text}
-            </span>
-          )
-        )}
-
-        {/* Floating annotation toolbar */}
-        {selection && (
-          <div
-            style={{ position: 'absolute', left: selection.x, top: selection.y, transform: 'translate(-50%, -110%)' }}
-            className="animate-in fade-in-0 zoom-in-95 duration-bb-ui z-30 flex items-center gap-1.5 rounded-xl bg-slate-900 text-white shadow-2xl px-2.5 py-2 whitespace-nowrap"
-          >
-            {HIGHLIGHT_COLORS.map(c => (
+      <div data-reader="paper" className="rounded-bb-xl border border-dashed border-[color:var(--rd-border)] bg-[color:var(--rd-bg)] px-6 py-7 shadow-e1 sm:px-9">
+        {/* Outside the selectable box: selection offsets are measured from its first character. */}
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.1em] text-bb-accent-ink">Chapter 5 · The fundamental unit of life</p>
+        <div
+          ref={textRef}
+          onMouseUp={handleSelect}
+          onTouchEnd={handleSelect}
+          className="relative select-text font-reading text-[18px] leading-[1.75] text-[color:var(--rd-ink)] sm:text-[20px]"
+        >
+          {segments.map((seg, i) =>
+            seg.vocab ? (
               <button
-                key={c.value}
-                onClick={() => applyHighlight(c.value)}
-                className={`h-5 w-5 rounded-full ${c.class} ring-2 ring-white/30 hover:ring-white/80 hover:scale-110 transition-all`}
-                aria-label={`Highlight ${c.value}`}
-              />
-            ))}
-            <div className="w-px h-5 bg-white/20 mx-1" />
-            <button onClick={() => runAction('Note added')} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" aria-label="Add note">
-              <NotebookPen className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => runAction('Asked Varta')} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" aria-label="Ask Varta">
-              <WandSparkles className="h-3.5 w-3.5 text-[var(--deep-saffron)]" />
-            </button>
-            <button onClick={() => runAction('Flashcard created')} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" aria-label="Create flashcard">
-              <Layers className="h-3.5 w-3.5" />
-            </button>
-          </div>
+                key={i}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setActiveWord(seg.vocab!); setDictTab('dictionary'); }}
+                className="cursor-pointer select-text rounded-sm font-semibold text-bb-cobalt underline decoration-dotted decoration-2 underline-offset-4 hover:text-bb-accent-ink focus-visible:outline-none focus-visible:shadow-focus"
+                style={seg.highlight ? { backgroundColor: seg.highlight } : undefined}
+              >
+                {seg.text}
+              </button>
+            ) : (
+              <span key={i} style={seg.highlight ? { backgroundColor: seg.highlight } : undefined}>{seg.text}</span>
+            ),
+          )}
+
+          {selection && (
+            <EpubSelectionPopover
+              state={selection}
+              container={textRef.current}
+              onHighlight={applyHighlight}
+              onNote={() => { clearSelection(); say('In a real book this opens a note on that passage.'); }}
+              onListen={() => { clearSelection(); say('In a real book this reads aloud from here.'); }}
+              onAskVarta={() => { clearSelection(); say('In a real book Varta answers from this page.'); }}
+              onClose={clearSelection}
+            />
+          )}
+        </div>
+      </div>
+
+      <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-bb-muted">
+        <Icon name="highlight" size={14} />
+        Select any text to highlight it, or tap an underlined word to look it up.
+      </p>
+
+      <div aria-live="polite" className="pointer-events-none absolute inset-x-0 -bottom-12 flex justify-center">
+        {note && (
+          <span className="rounded-full bg-bb-navy px-4 py-2 text-xs font-semibold text-white shadow-e2 animate-in fade-in-0 slide-in-from-bottom-2 duration-bb-ui">
+            {note}
+          </span>
         )}
       </div>
 
-      <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-slate-400">
-        <MousePointerClick className="h-3.5 w-3.5" />
-        Try it: select any text for highlights & notes, or tap an underlined word to look it up.
-      </p>
-
-      {/* Toast */}
-      {toast && (
-        <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 absolute -bottom-2 left-1/2 -translate-x-1/2 translate-y-full bg-slate-900 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg z-40">
-          {toast}
-        </div>
-      )}
-
-      {/* Dictionary / Wiki popup */}
-      {activeVocab && (
-        <>
-          <div
-            onClick={() => setActiveWord(null)}
-            className="animate-in fade-in-0 duration-bb-ui fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-          />
-          <div
-            className="animate-in fade-in-0 zoom-in-95 duration-bb-ui fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] max-w-md bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
-          >
-            <div className="flex items-center justify-between px-5 pt-5 pb-3">
-              <div className="flex items-center gap-2">
-                <h4 className="text-xl font-bold text-slate-900 capitalize font-display">{activeWord}</h4>
-                <span className="text-sm text-slate-400">{activeVocab.pronunciation}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => { setActiveWord(null); showToast('Saved to your vocabulary'); }}
-                  className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-[var(--deep-saffron)] hover:text-[var(--deep-saffron)] transition-colors"
-                >
-                  <BookmarkPlus className="h-3.5 w-3.5" /> Save
-                </button>
-                <button onClick={() => setActiveWord(null)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                  <X className="h-4 w-4 text-slate-400" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex border-b border-slate-100 px-5 gap-1">
-              {[
-                { key: 'dictionary' as const, label: 'English', icon: BookA },
-                { key: 'translation' as const, label: 'Hindi', icon: Languages },
-                { key: 'wikipedia' as const, label: 'Wikipedia', icon: Globe },
-              ].map(t => (
-                <button
-                  key={t.key}
-                  onClick={() => setDictTab(t.key)}
-                  className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
-                    dictTab === t.key
-                      ? 'border-[var(--deep-saffron)] text-[var(--deep-saffron)]'
-                      : 'border-transparent text-slate-400 hover:text-slate-600'
-                  }`}
-                >
-                  <t.icon className="h-3.5 w-3.5" /> {t.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="p-5 max-h-[45vh] overflow-y-auto">
+      <Modal
+        open={!!activeVocab}
+        onOpenChange={(o) => !o && setActiveWord(null)}
+        title={<span className="capitalize">{activeWord}</span>}
+        description={activeVocab?.pronunciation}
+      >
+        {activeVocab && (
+          <div className="space-y-4">
+            <Segmented
+              fullWidth
+              size="sm"
+              value={dictTab}
+              onValueChange={setDictTab}
+              options={[
+                { value: 'dictionary', label: 'English' },
+                { value: 'translation', label: 'Hindi' },
+                { value: 'wikipedia', label: 'Wikipedia' },
+              ]}
+            />
+            <div className="min-h-[120px]">
               {dictTab === 'dictionary' && (
-                <div className="space-y-3">
-                  <p className="text-sm text-slate-700 leading-relaxed">{activeVocab.definition}</p>
-                  <p className="text-sm text-slate-400 italic">“{activeVocab.example}”</p>
+                <div className="space-y-2">
+                  <p className="text-[15px] leading-relaxed text-bb-text">{activeVocab.definition}</p>
+                  <p className="font-reading text-[15px] italic text-bb-muted">“{activeVocab.example}”</p>
                 </div>
               )}
               {dictTab === 'translation' && (
-                <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <p className="text-3xl font-semibold text-[var(--indigo-deep)] font-display">{activeVocab.hindi}</p>
-                  <p className="text-xs text-slate-400">Hindi translation</p>
+                <div className="flex flex-col items-center gap-1 py-4">
+                  <p className="font-display text-3xl font-bold text-bb-text">{activeVocab.hindi}</p>
+                  <p className="text-xs text-bb-muted">Hindi</p>
                 </div>
               )}
-              {dictTab === 'wikipedia' && (
-                <p className="text-sm text-slate-600 leading-relaxed">{activeVocab.wiki}</p>
-              )}
+              {dictTab === 'wikipedia' && <p className="text-sm leading-relaxed text-bb-muted">{activeVocab.wiki}</p>}
             </div>
+            <p className="text-xs text-bb-faint">Sample entry. In the reader, words you look up can be saved to your vocabulary.</p>
           </div>
-        </>
-      )}
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+function GridSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4" aria-busy="true" aria-label="Loading books">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="animate-pulse rounded-bb-lg bg-bb-surface p-3 shadow-e1">
+          <div className="aspect-[84/124] rounded-[4px_12px_12px_4px] bg-bb-surface-2" />
+          <div className="mt-3 h-4 w-3/4 rounded-full bg-bb-surface-2" />
+        </div>
+      ))}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// PAGE
+// PAGE — /reader with no book: pick one, try the tools.
 // ═══════════════════════════════════════════════════════════════════════
 
 export function ReaderLanding() {
@@ -433,11 +302,13 @@ export function ReaderLanding() {
                 publishYear: b.publishYear ?? null,
                 pages: b.pages ?? null,
                 language: b.language ?? null,
-                genre: Array.isArray(b.categories) ? b.categories.map((c: any) => c.name ?? c) : [],
+                // The list endpoint nests categories as { category: { name } }; reading
+                // `c.name` gave objects, so the Subject filter never matched anything.
+                genre: Array.isArray(b.categories) ? b.categories.map((c: any) => c.category?.name ?? c.name ?? c).filter((g: any) => typeof g === 'string') : [],
                 accessTier: (b.accessTier ?? 'FREE').toUpperCase(),
                 formats: Array.isArray(b.bookFormats) ? [...new Set<BookFormatType>(b.bookFormats.map((f: any) => f.type))] : [],
                 bookFormats: Array.isArray(b.bookFormats) ? b.bookFormats : [],
-                available: b.available ?? true,
+                available: (b.availableCopies ?? 1) > 0,
                 rating: b.rating ?? null,
               }))
             : [];
@@ -448,8 +319,7 @@ export function ReaderLanding() {
 
         if (categoriesRes.ok) {
           const data = await categoriesRes.json();
-          const names = Array.isArray(data) ? data.map((c: any) => c.name).filter(Boolean).sort() : [];
-          setGenres(names);
+          setGenres(Array.isArray(data) ? data.map((c: any) => c.name).filter(Boolean).sort() : []);
         }
       } catch (e) {
         console.error('[ReaderLanding] Failed to load books:', e);
@@ -462,7 +332,7 @@ export function ReaderLanding() {
 
   const availableFormats = useMemo(() => {
     const set = new Set<BookFormatType>();
-    books.forEach(b => b.formats.forEach(f => set.add(f)));
+    books.forEach((b) => b.formats.forEach((f) => set.add(f)));
     return Array.from(set);
   }, [books]);
 
@@ -470,7 +340,7 @@ export function ReaderLanding() {
 
   const filteredBooks = useMemo(() => {
     if (!hasActiveFilter) return [];
-    return books.filter(b => {
+    return books.filter((b) => {
       if (formatFilter !== ALL && !b.formats.includes(formatFilter as BookFormatType)) return false;
       if (genreFilter !== ALL && !b.genre.includes(genreFilter)) return false;
       if (titleFilter !== ALL && b.id !== titleFilter) return false;
@@ -486,207 +356,128 @@ export function ReaderLanding() {
   const handleView = (book: CatalogBook) => router.push(`/catalog/${book.id}`);
   const handleBorrow = async (book: CatalogBook) => {
     try {
-      await fetch(`/api/v1/books/${book.id}/borrow`, {
+      const res = await fetch(`/api/v1/books/${book.id}/borrow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ borrowedAt: new Date().toISOString() }),
       });
-      setBooks(prev => prev.map(b => (b.id === book.id ? { ...b, available: false } : b)));
+      // It used to mark the book borrowed whatever the server said.
+      if (!res.ok) throw new Error(`borrow ${res.status}`);
+      setBooks((prev) => prev.map((b) => (b.id === book.id ? { ...b, available: false } : b)));
+      toast({ title: 'Borrowed', description: `“${book.title}” is in your library.` });
     } catch (e) {
       console.error('[ReaderLanding] Failed to borrow:', e);
+      toast({ title: 'Couldn’t borrow', description: 'Please try again.', variant: 'destructive' });
     }
   };
 
+  const clearFilters = () => { setFormatFilter(ALL); setGenreFilter(ALL); setTitleFilter(ALL); };
+
   return (
-    <div className="min-h-screen w-full bg-[var(--ivory-cream)]">
-      {/* ─── Hero ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden mesh-bg-indic px-4 sm:px-6 pt-6 sm:pt-16 pb-16 sm:pb-20 text-center">
-        
-        <div className="relative z-10 flex justify-start mb-8 sm:mb-2 sm:absolute sm:top-6 sm:left-6">
-          <Link
-            href="/dashboard/student"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-white/70 hover:text-white transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Dashboard
-          </Link>
-        </div>
+    <div className="min-h-dvh w-full bg-bb-bg pb-20 text-bb-text">
+      <FeatureHero
+        eyebrow="Reader"
+        icon="read"
+        title={<>Your reader, <span className="text-bb-blaze-light">ready when you are</span></>}
+        description="Pick a book by format, subject or name. Read it, listen to it, or ask Varta about it, all in one place."
+        back={{ href: '/dashboard', label: 'Dashboard' }}
+      />
 
-        <div className="animate-in fade-in-0 slide-in-from-top-2 duration-500 relative z-10 flex justify-center mb-6">
-          <div style={mandalaVars} className="drop-shadow-[0_0_24px_rgba(255,77,0,0.35)] relative">
-            <BrandMark height={35} />
-            <BookOpen className="absolute -bottom-1 -right-1 h-6 w-6 text-white bg-[var(--peacock-teal)] rounded-full p-1 shadow-lg" />
-          </div>
-        </div>
-
-        <h1
-          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 relative z-10 text-3xl sm:text-5xl font-extrabold text-white mb-4"
-          style={{ fontFamily: 'var(--font-display)', animationDelay: '100ms', animationFillMode: 'both' }}
-        >
-          Your Reader,{' '}
-          <span className="text-bb-accent">
-            Ready When You Are
-          </span>
-        </h1>
-        <p
-          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 relative z-10 text-white/80 text-sm sm:text-base max-w-xl mx-auto"
-          style={{ animationDelay: '200ms', animationFillMode: 'both' }}
-        >
-          Pick a book by format, subject, or name — read it, listen to it, or ask Varta about it, all in one place.
-        </p>
-      </section>
-
-      {/* ─── Filters ──────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-6 -mt-8 relative z-20 mb-4">
-        <div
-          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 rounded-bb-lg bg-bb-surface shadow-e1 p-4 sm:p-5 flex flex-col sm:flex-row gap-3"
-          style={{ animationDelay: '300ms', animationFillMode: 'both' }}
-        >
-          <div className="flex-1">
-            <label className="text-xs font-bold text-[var(--indigo-deep)] mb-1.5 block">Format</label>
+      <div className="relative z-10 mx-auto -mt-14 mb-6 max-w-5xl px-4 sm:px-6">
+        <div className="grid gap-4 rounded-bb-lg bg-bb-surface p-5 shadow-e2 sm:grid-cols-3">
+          <FormField label="Format" htmlFor="rl-format">
             <Select value={formatFilter} onValueChange={setFormatFilter}>
-              <SelectTrigger className="bg-white border-[var(--deep-saffron)]/25">
-                <SelectValue placeholder="All Formats" />
-              </SelectTrigger>
+              <SelectTrigger id="rl-format"><SelectValue placeholder="All formats" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All Formats</SelectItem>
-                {availableFormats.map(f => (
-                  <SelectItem key={f} value={f}>{FORMAT_LABELS[f] ?? f}</SelectItem>
-                ))}
+                <SelectItem value={ALL}>All formats</SelectItem>
+                {availableFormats.map((f) => <SelectItem key={f} value={f}>{FORMAT_LABELS[f] ?? f}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex-1">
-            <label className="text-xs font-bold text-[var(--indigo-deep)] mb-1.5 block">Subject</label>
+          </FormField>
+          <FormField label="Subject" htmlFor="rl-subject">
             <Select value={genreFilter} onValueChange={setGenreFilter}>
-              <SelectTrigger className="bg-white border-[var(--deep-saffron)]/25">
-                <SelectValue placeholder="All Subjects" />
-              </SelectTrigger>
+              <SelectTrigger id="rl-subject"><SelectValue placeholder="All subjects" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All Subjects</SelectItem>
-                {genres.map(g => (
-                  <SelectItem key={g} value={g}>{g}</SelectItem>
-                ))}
+                <SelectItem value={ALL}>All subjects</SelectItem>
+                {genres.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex-1">
-            <label className="text-xs font-bold text-[var(--indigo-deep)] mb-1.5 block">Book Name</label>
+          </FormField>
+          <FormField label="Book" htmlFor="rl-book">
             <Select value={titleFilter} onValueChange={setTitleFilter}>
-              <SelectTrigger className="bg-white border-[var(--deep-saffron)]/25">
-                <SelectValue placeholder="All Books" />
-              </SelectTrigger>
+              <SelectTrigger id="rl-book"><SelectValue placeholder="All books" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All Books</SelectItem>
-                {books.map(b => (
-                  <SelectItem key={b.id} value={b.id}>{b.title}</SelectItem>
-                ))}
+                <SelectItem value={ALL}>All books</SelectItem>
+                {books.map((b) => <SelectItem key={b.id} value={b.id}>{b.title}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
         </div>
       </div>
 
-      {/* ─── Book results — only after a filter is chosen ───────── */}
-      <div className="max-w-6xl mx-auto px-6 mb-16 min-h-[120px]">
+      {/* Results appear once a filter is chosen */}
+      <div className="mx-auto mb-16 min-h-[120px] max-w-6xl px-4 sm:px-6">
         {!hasActiveFilter ? (
-          <div key="prompt" className="animate-in fade-in-0 duration-bb-ui flex flex-col items-center justify-center py-10 gap-2 text-center">
-            <ChevronRight className="h-5 w-5 text-[var(--deep-saffron)] rotate-[-90deg] motion-safe:animate-pulse" />
-            <p className="text-sm text-slate-500 font-medium">Choose a format, subject, or book name above to see matching books.</p>
-          </div>
+          <p className="flex items-center justify-center gap-2 py-8 text-center text-sm font-medium text-bb-muted">
+            <Icon name="arrow-up-right" size={16} fillLayer={false} className="-rotate-45 text-bb-accent" />
+            Choose a format, subject or book above to see matching titles.
+          </p>
         ) : isLoading ? (
-          <div key="loading" className="animate-in fade-in-0 duration-bb-ui flex flex-col items-center justify-center py-20 gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--deep-saffron)]" />
-            <p className="text-sm text-slate-500">Loading books…</p>
-          </div>
+          <GridSkeleton />
         ) : error ? (
-          <div key="error" className="animate-in fade-in-0 duration-bb-ui text-center py-16">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
+          <EmptyState icon="alert-circle" title="Couldn’t load books" description={error}
+            action={<Button variant="outline" onClick={() => window.location.reload()}><Icon name="rotate-cw" fillLayer={false} />Try again</Button>} />
         ) : filteredBooks.length === 0 ? (
-          <div key="empty" className="animate-in fade-in-0 duration-bb-ui text-center py-16">
-            <Search className="h-10 w-10 text-[var(--deep-saffron)]/40 mx-auto mb-3" />
-            <p className="text-sm text-slate-500 font-medium">No books match these filters yet.</p>
-          </div>
+          <EmptyState icon="search" title="No books match" description="Try a different format or subject."
+            action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>} />
         ) : (
-          <div key="results" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
             {filteredBooks.map((book, idx) => (
-              <div
-                key={book.id}
-                className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 h-full"
-                style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
-              >
-                <BookCard
-                  book={book}
-                  onRead={handleRead}
-                  onListen={handleListen}
-                  onBorrow={handleBorrow}
-                  onView={handleView}
-                  priority={idx < 4}
-                />
-              </div>
+              <li key={book.id} className="h-full animate-in fade-in-0 slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${Math.min(idx, 8) * 60}ms`, animationFillMode: 'both' }}>
+                <BookCard book={book} onRead={handleRead} onListen={handleListen} onBorrow={handleBorrow} onView={handleView} priority={idx < 4} />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
 
-      
-      {/* ─── Live feature demo ────────────────────────────────── */}
-      <div className="max-w-3xl mx-auto px-6 py-14">
-        <Reveal className="text-center mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--indigo-deep)] mb-2" style={{ fontFamily: 'var(--font-display)' }}>
-            See the reader in action
-          </h2>
-          <p className="text-sm text-slate-500">
-            This is a live, working sample — the exact tools you get inside every book.
-          </p>
+      <section className="mx-auto mb-24 max-w-3xl px-4 sm:px-6">
+        <Reveal>
+          <FeatureSectionTitle title="Try the reader" description="A working sample of the tools inside every book. Nothing here is saved." />
         </Reveal>
         <Reveal delay={100}>
           <LiveFeatureDemo />
         </Reveal>
-      </div>
+      </section>
 
-      
-      {/* ─── Benefits ─────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-6 py-16">
-        <Reveal className="text-center mb-10">
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--indigo-deep)] mb-2" style={{ fontFamily: 'var(--font-display)' }}>
-            Everything you need to study smarter
-          </h2>
-          <p className="text-sm text-slate-500">
-            The reader is built around how students actually study — not just how they read.
-          </p>
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+        <Reveal>
+          <FeatureSectionTitle title="Everything you need to study smarter" description="Built around how students actually study, not just how they read." />
         </Reveal>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {BENEFITS.map(({ icon: Icon, title, description, accent }, idx) => (
-            <Reveal key={title} delay={idx * 80}>
-              <div
-                className={`group relative rounded-2xl border bg-gradient-to-br ${ACCENT_MAP[accent]} to-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden h-full`}
-              >
-                <div className={`h-11 w-11 rounded-xl flex items-center justify-center mb-4 ${ACCENT_ICON_BG[accent]}`}>
-                  <Icon className="h-5 w-5" />
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {BENEFITS.map(({ icon, title, description }, idx) => (
+            <li key={title}>
+              <Reveal delay={idx * 70} className="h-full">
+                <div className="bb-lift h-full rounded-bb-lg bg-bb-surface p-6 shadow-e1">
+                  <span className="mb-4 grid h-12 w-12 place-items-center rounded-bb-md bg-bb-accent-soft text-bb-accent-ink">
+                    <Icon name={icon} size={24} />
+                  </span>
+                  <h3 className="font-display text-lg font-bold">{title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-bb-muted">{description}</p>
                 </div>
-                <h3 className="font-bold text-sm text-slate-800 mb-1.5">{title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
-              </div>
-            </Reveal>
+              </Reveal>
+            </li>
           ))}
+        </ul>
+        <div className="mt-10 flex justify-center">
+          <Button asChild variant="outline" size="lg">
+            <Link href="/catalog">
+              <Icon name="library" />
+              Browse the full library
+            </Link>
+          </Button>
         </div>
-
-        <div className="flex justify-center mt-10">
-          <EnhancedButton
-            variant="ghost"
-            className="text-[var(--indigo-deep)]"
-            icon={<Library className="h-4 w-4" />}
-            iconPosition="left"
-            onClick={() => router.push('/catalog')}
-          >
-            Browse the full library
-          </EnhancedButton>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
