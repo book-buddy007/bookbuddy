@@ -79,7 +79,7 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;600;700&family=Tiro+Devanagari+Hindi&display=swap"
           rel="stylesheet"
         />
       </head>

@@ -1,6 +1,6 @@
 import { TestimonialCarousel } from "@/components/landing/testimonial-carousel"
 import { FAQAccordion } from "@/components/landing/faq-accordion"
-import styles from "@/app/home.module.css"
+import { Container, SectionHeading, Accent } from "@/components/landing/section"
 
 export function TestimonialAndFAQSection() {
   // Pre-launch: these are the value propositions our design-partner interviews
@@ -46,48 +46,31 @@ export function TestimonialAndFAQSection() {
 
   return (
     <>
-      {/* ===== TESTIMONIALS SECTION ===== */}
-      <section id="testimonials" className="py-24 bg-white relative">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="text-center mb-16 gateway-header animate-landing-fade-in-up">
-            {/* Section label — #B45309 on white = 5.2:1 ✓ */}
-            <span className="text-[#B45309] font-bold text-lg uppercase tracking-wide" style={{ fontFamily: "var(--font-display)" }}>Built With Educators</span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-4 text-slate-900 font-serif">
-              Designed with our <span className="text-[#B45309]">founding cohort</span>
-            </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              We&apos;re building Book Buddy alongside deans, faculty, and students. These are the
-              needs they voiced — the product is built to meet them.
-            </p>
-          </div>
-
-          <div className="max-w-5xl mx-auto">
+      <section id="testimonials" className="bg-bb-surface py-24 lg:py-28">
+        <Container className="flex flex-col gap-12">
+          <SectionHeading
+            center
+            eyebrow="Built With Educators"
+            title={<>Designed with our <Accent>founding cohort</Accent></>}
+            description="We're building Book Buddy alongside deans, faculty, and students. These are the needs they voiced — the product is built to meet them."
+          />
+          <div>
             <TestimonialCarousel testimonials={testimonials} />
-            <p className="text-center text-xs text-slate-400 mt-6 italic">
-              Illustrative voices from design-partner interviews · launching 2026
-            </p>
+            <p className="mt-6 text-center text-xs italic text-bb-faint">Illustrative voices from design-partner interviews · launching 2026</p>
           </div>
-        </div>
+        </Container>
       </section>
 
-      {/* ===== FAQ SECTION ===== */}
-      <section className={`py-24 ${styles.featuresGridBackground}`}>
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <div className="text-center mb-16 animate-landing-fade-in-up">
-            {/* Section label — #006A6E on cream bg ≈ 5.4:1 ✓ */}
-            <span className="text-[#006A6E] font-bold text-lg uppercase tracking-wide">FAQ</span>
-            <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-4 text-[#0D1B6E] font-serif">
-              Frequently Asked <span className="gradient-text-indic-soft">Questions</span>
-            </h2>
-            <p className="text-xl text-[#3E2723] max-w-2xl mx-auto font-medium">
-              Everything you need to know about deploying Book Buddy for your institution.
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <FAQAccordion faqs={faqs} categories={faqCategories} />
-          </div>
-        </div>
+      <section id="faq" className="bg-bb-bg py-24 lg:py-28">
+        <Container className="flex flex-col gap-12">
+          <SectionHeading
+            center
+            eyebrow="FAQ"
+            title={<>Frequently Asked <Accent>Questions</Accent></>}
+            description="Everything you need to know about deploying Book Buddy for your institution."
+          />
+          <FAQAccordion faqs={faqs} categories={faqCategories} />
+        </Container>
       </section>
     </>
   )

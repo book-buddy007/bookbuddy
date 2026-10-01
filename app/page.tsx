@@ -1,7 +1,3 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { HomeNavbar } from "@/components/home-navbar"
 import { HeroSection } from "@/components/landing/hero-section"
 import { FeaturesSection } from "@/components/landing/features-section"
 import { ReadingModesSection } from "@/components/landing/reading-modes-section"
@@ -12,37 +8,25 @@ import { PdfStudioSection } from "@/components/landing/pdf-studio-section"
 import { SecureBharatSection } from "@/components/landing/secure-bharat-section"
 import { TestimonialAndFAQSection } from "@/components/landing/testimonial-and-faq"
 import { CTAFooterSection } from "@/components/landing/cta-footer-section"
-import { ChakraDivider } from "@/components/landing/chakra-divider"
-import styles from "./home.module.css"
 
+// Landing page. Server-rendered shell; only the hero scene, nav menu, counters,
+// testimonial carousel and FAQ accordion are client components.
 export default function Home() {
-  const [scrolled, setScrolled] = useState(0)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY)
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
   return (
-    <div className={`flex flex-col min-h-screen ${styles.homepageWrapper}`}>
-      <HomeNavbar />
+    <main className="flex min-h-screen flex-col overflow-x-hidden bg-bb-bg">
+      {/* 1. Hero: headline + CTAs + 3D book → headphones scene */}
+      <HeroSection />
 
-      {/* 1. Hero (Left Copy + Right Reader Mockup) */}
-      <HeroSection scrolled={scrolled} />
-
-      {/* 2. Core Pillars (6 capabilities) */}
+      {/* 2. Platform capabilities (6) */}
       <FeaturesSection />
 
-      {/* 3. Four Reading Modes — interactive format switcher */}
+      {/* 3. Four reading modes */}
       <ReadingModesSection />
-
-      <ChakraDivider />
 
       {/* 4. Capability stats + founding-cohort banner */}
       <StatsBand />
 
-      {/* 5. Deep Dives (Student Experience + Admin Experience) */}
+      {/* 5. Student and teacher/admin experience */}
       <DeepDiveSection />
 
       {/* 6. Varta — the grounded, citation-backed differentiator */}
@@ -54,11 +38,11 @@ export default function Home() {
       {/* 8. Secure for Bharat — multi-tenant enterprise architecture */}
       <SecureBharatSection />
 
-      {/* 9. Validation (Testimonials + FAQ) */}
+      {/* 9. Testimonials + FAQ */}
       <TestimonialAndFAQSection />
 
-      {/* 10. Footer & Registration (+ ecosystem badge) */}
+      {/* 10. Closing CTA + footer */}
       <CTAFooterSection />
-    </div>
+    </main>
   )
 }

@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "@/components/ui/icons"
+import { Icon } from "@/components/ui/icon"
+import { Chip } from "@/components/ui/chip"
 import { cn } from "@/lib/utils"
-import styles from "@/app/home.module.css"
 
 interface FAQItem {
   question: string
@@ -16,91 +16,47 @@ interface FAQAccordionProps {
   categories?: string[]
 }
 
+/** Category chips + a single-open accordion (native button semantics, aria-expanded). */
 export function FAQAccordion({ faqs, categories = [] }: FAQAccordionProps) {
-  const [openQuestion, setOpenQuestion] = useState<string | null>(null)
-  const [activeCategory, setActiveCategory] = useState<string>(categories[0] || "All")
+  const [open, setOpen] = useState<string | null>(null)
+  const [category, setCategory] = useState<string>(categories[0] || "All")
 
-  const toggleFAQ = (question: string) => {
-    setOpenQuestion(openQuestion === question ? null : question)
-  }
-
-  const filteredFAQs =
-    activeCategory === "All" || !activeCategory
-      ? faqs
-      : faqs.filter((faq) => faq.category === activeCategory)
+  const visible = category === "All" || !category ? faqs : faqs.filter((f) => f.category === category)
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Category Tabs */}
+    <div className="mx-auto max-w-4xl">
       {categories.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              onClick={() => setActiveCategory(category)}
-              className={cn(
-                "px-6 py-2 rounded-full font-semibold transition-all duration-300 relative overflow-hidden",
-                activeCategory === category
-                  ? "bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-[0_4px_16px_rgba(217,119,6,0.3)] shadow-[0_2px_8px_rgba(0,0,0,0.1)] [text-shadow:_0_1px_2px_rgb(0_0_0_/_20%)]"
-                  : "bg-white/80 border border-amber-200/50 text-amber-700/80 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300"
-              )}
-            >
-              {activeCategory === category && (
-                <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent pointer-events-none" />
-              )}
-              <span className="relative z-10">{category}</span>
-            </button>
+        <div className="mb-8 flex flex-wrap justify-center gap-2" role="group" aria-label="FAQ categories">
+          {categories.map((c) => (
+            <Chip key={c} selected={category === c} onClick={() => setCategory(c)} className="h-9 px-5 text-sm">
+              {c}
+            </Chip>
           ))}
         </div>
       )}
-
-      {/* FAQ Items */}
-      <div className="space-y-4">
-        {filteredFAQs.map((faq) => (
-          <div
-            key={faq.question}
-            className={`group relative rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${styles.parchmentCard}`}
-          >
-            {/* Subtle Mandala Watermark */}
-            <div className={`${styles["mandala-bg"]} ${styles["mandala-kolam"]} opacity-5`} />
-
-            <button
-              type="button"
-              onClick={() => toggleFAQ(faq.question)}
-              className="relative z-10 w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-inset"
-            >
-              <span className="font-bold text-[#1A237E] text-lg pr-4">
-                {faq.question}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "h-5 w-5 text-amber-600 transition-transform duration-300 flex-shrink-0",
-                  openQuestion === faq.question && "transform rotate-180"
-                )}
-              />
-            </button>
-
-            <div
-              className={cn(
-                "overflow-hidden transition-all duration-300 relative z-10",
-                openQuestion === faq.question ? "max-h-96" : "max-h-0"
-              )}
-            >
-              <div className="px-6 pb-5 text-[#5D4037] leading-relaxed font-medium">
-                {/* Thin Golden Diamond Divider before answer */}
-                <div className="flex items-center gap-2 mb-4 opacity-50">
-                  <div className="h-[1px] w-6 bg-gradient-to-r from-transparent to-[#FFD700]"></div>
-                  <div className="w-1.5 h-1.5 rotate-45 bg-[#FF9933]"></div>
-                  <div className="h-[1px] w-full bg-gradient-to-r from-[#FFD700] to-transparent"></div>
-                </div>
-                {faq.answer}
+      <div className="space-y-3">
+        {visible.map((f) => {
+          const isOpen = open === f.question
+          const id = `faq-${f.question.replace(/\W+/g, "-").toLowerCase()}`
+          return (
+            <div key={f.question} className="overflow-hidden rounded-[18px] bg-bb-surface shadow-e1">
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? null : f.question)}
+                aria-expanded={isOpen}
+                aria-controls={id}
+                className="flex min-h-14 w-full items-center justify-between gap-4 px-6 py-4 text-left focus-visible:outline-none focus-visible:shadow-focus"
+              >
+                <span className="text-lg font-semibold">{f.question}</span>
+                <Icon name="chevron-down" size={22} fillLayer={false} className={cn("shrink-0 transition-transform duration-bb-ui", isOpen && "rotate-180")} />
+              </button>
+              <div id={id} role="region" hidden={!isOpen} className="px-6 pb-5 text-base leading-relaxed text-bb-muted">
+                {f.answer}
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
 }
-

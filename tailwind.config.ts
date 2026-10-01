@@ -46,6 +46,9 @@ const config: Config = {
 				danger: 'var(--bb-danger)', 'danger-soft': 'var(--bb-danger-soft)', 'danger-ink': 'var(--bb-danger-ink)',
 				info: 'var(--bb-info)', 'info-soft': 'var(--bb-info-soft)', 'info-ink': 'var(--bb-info-ink)',
 				hover: 'var(--bb-hover)',
+				// text/lines for content sitting on the always-navy bands (hero, CTA, footer)
+				dim: '#A9B4D0', 'dim-2': '#B8C4E6', 'night-line': '#2A3556', 'night-line-2': '#3A4668', 'night-panel': '#18213C',
+				peach: '#FFB37A',
 				},
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
