@@ -1,6 +1,9 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { IEmbeddingProvider, EMBEDDING_PROVIDER } from '../rag/interfaces/embedding.provider.interface';
+import {
+  IEmbeddingProvider,
+  EMBEDDING_PROVIDER,
+} from '../rag/interfaces/embedding.provider.interface';
 
 export interface SemanticHit {
   nodeId: string;
@@ -44,7 +47,11 @@ export class GraphEmbeddingService {
     @Inject(EMBEDDING_PROVIDER) private readonly provider: IEmbeddingProvider,
   ) {}
 
-  private nodeText(n: { label: string; type: string; description: string }): string {
+  private nodeText(n: {
+    label: string;
+    type: string;
+    description: string;
+  }): string {
     return `${n.label} (${n.type}): ${n.description}`;
   }
 
@@ -74,7 +81,9 @@ export class GraphEmbeddingService {
       select: { id: true, label: true, type: true, description: true },
     });
     if (missing.length === 0) return;
-    this.logger.log(`Backfilling ${missing.length} node embedding(s) for book ${bookId}`);
+    this.logger.log(
+      `Backfilling ${missing.length} node embedding(s) for book ${bookId}`,
+    );
     await this.embedNodes(bookId, missing);
   }
 
@@ -85,7 +94,9 @@ export class GraphEmbeddingService {
     if (nodes.length === 0) return 0;
     // The provider batches internally (see cloudflare.embedding.provider), so
     // one call is fine even for hundreds of nodes.
-    const vectors = await this.provider.embedBatch(nodes.map((n) => this.nodeText(n)));
+    const vectors = await this.provider.embedBatch(
+      nodes.map((n) => this.nodeText(n)),
+    );
     const model = this.provider.modelId;
     const dims = this.provider.dimensions;
 
@@ -101,7 +112,11 @@ export class GraphEmbeddingService {
     return nodes.length;
   }
 
-  async search(bookId: string, query: string, limit = 20): Promise<SemanticHit[]> {
+  async search(
+    bookId: string,
+    query: string,
+    limit = 20,
+  ): Promise<SemanticHit[]> {
     await this.ensureEmbedded(bookId);
 
     // Only compare within the current model's vectors — a model change makes
@@ -118,15 +133,28 @@ export class GraphEmbeddingService {
     if (qNorm === 0) return [];
 
     const scored = rows
-      .map((r) => ({ nodeId: r.nodeId, score: cosine(queryVec, r.vector, qNorm) }))
-      .filter((s) => Number.isFinite(s.score) && s.score >= GraphEmbeddingService.SCORE_FLOOR)
+      .map((r) => ({
+        nodeId: r.nodeId,
+        score: cosine(queryVec, r.vector, qNorm),
+      }))
+      .filter(
+        (s) =>
+          Number.isFinite(s.score) &&
+          s.score >= GraphEmbeddingService.SCORE_FLOOR,
+      )
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
     if (scored.length === 0) return [];
 
     const nodes = await this.prisma.graphNode.findMany({
       where: { id: { in: scored.map((s) => s.nodeId) } },
-      select: { id: true, label: true, type: true, description: true, firstPage: true },
+      select: {
+        id: true,
+        label: true,
+        type: true,
+        description: true,
+        firstPage: true,
+      },
     });
     const byId = new Map(nodes.map((n) => [n.id, n]));
 

@@ -13,7 +13,7 @@ export class SubscriptionCronService {
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
-  async handleExpiredSubscriptions() {
+  handleExpiredSubscriptions() {
     // TenantSubscription model removed from schema — cron is a no-op
     this.logger.log(
       'Subscription expiration check skipped (model removed from schema).',

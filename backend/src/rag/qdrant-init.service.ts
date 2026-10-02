@@ -142,7 +142,11 @@ export class QdrantInitService implements OnModuleInit {
         err.status === 404 ||
         err.response?.status === 404
       ) {
-        return { exists: false, matches: false, detail: 'collection not found' };
+        return {
+          exists: false,
+          matches: false,
+          detail: 'collection not found',
+        };
       }
       throw err;
     }
@@ -161,7 +165,7 @@ export class QdrantInitService implements OnModuleInit {
     }
 
     // Unnamed shape: { size, distance }. Named shape: { <name>: { size, distance }, ... }
-    const isUnnamed = typeof (vectorsConfig as any).size === 'number';
+    const isUnnamed = typeof vectorsConfig.size === 'number';
     const configuredName = this.configService.get('QDRANT_VECTOR_NAME');
     let vectorName: string | null = null;
     let entry: any;
@@ -181,7 +185,7 @@ export class QdrantInitService implements OnModuleInit {
           detail: `named vectors [${names.join(', ')}] — set QDRANT_VECTOR_NAME to pick one`,
         };
       }
-      entry = (vectorsConfig as any)[vectorName];
+      entry = vectorsConfig[vectorName];
     }
 
     const size = entry?.size;

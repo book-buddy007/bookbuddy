@@ -7,7 +7,12 @@ import {
 } from '../common/language/answer-language';
 
 export type DialogueMode = 'explain' | 'quiz_me' | 'socratic' | 'debate';
-export const DIALOGUE_MODES: DialogueMode[] = ['explain', 'quiz_me', 'socratic', 'debate'];
+export const DIALOGUE_MODES: DialogueMode[] = [
+  'explain',
+  'quiz_me',
+  'socratic',
+  'debate',
+];
 
 const SOCRATIC_MAX_TURNS = 3;
 
@@ -123,13 +128,22 @@ export class DialoguePolicyService {
    * attempt and reveals the answer on the following turn — derived from
    * chat history, not a new state table.
    */
-  private async buildQuizMePrompt(base: string, userId: string, bookId: string): Promise<string> {
+  private async buildQuizMePrompt(
+    base: string,
+    userId: string,
+    bookId: string,
+  ): Promise<string> {
     // take: 2, not 1 — saveMessages() writes the USER and ASSISTANT rows for
     // one turn in a single createMany, so they share an identical createdAt
     // (down to the millisecond, confirmed against real Postgres); take: 1
     // with no secondary sort key can non-deterministically return either
     // row, sometimes missing the pending ASSISTANT question entirely.
-    const recent = await this.chatService.getRecentModeMessages(userId, bookId, 'quiz_me', 2);
+    const recent = await this.chatService.getRecentModeMessages(
+      userId,
+      bookId,
+      'quiz_me',
+      2,
+    );
     const pendingQuestion = recent.find((m) => m.role === 'ASSISTANT');
 
     if (pendingQuestion) {
@@ -160,14 +174,19 @@ export class DialoguePolicyService {
    * permanently and silently. Fetches beyond the budget so the session
    * boundary is visible rather than truncated at exactly the limit.
    */
-  private async buildSocraticPrompt(base: string, userId: string, bookId: string): Promise<string> {
+  private async buildSocraticPrompt(
+    base: string,
+    userId: string,
+    bookId: string,
+  ): Promise<string> {
     const recent = await this.chatService.getRecentModeMessages(
       userId,
       bookId,
       'socratic',
       SOCRATIC_MAX_TURNS * 4,
     );
-    const turnNumber = countSessionTurns(recent as { role: string; createdAt: Date }[]) + 1;
+    const turnNumber =
+      countSessionTurns(recent as { role: string; createdAt: Date }[]) + 1;
 
     if (turnNumber > SOCRATIC_MAX_TURNS) {
       return (
@@ -193,11 +212,20 @@ export class DialoguePolicyService {
    * turns like quiz_me/socratic; only the student's response to it needs
    * turn-aware framing.
    */
-  private async buildDebatePrompt(base: string, userId: string, bookId: string): Promise<string> {
+  private async buildDebatePrompt(
+    base: string,
+    userId: string,
+    bookId: string,
+  ): Promise<string> {
     // take: 2 — see buildQuizMePrompt's comment: the USER/ASSISTANT pair for
     // one turn shares an identical createdAt, so take: 1 can miss the prior
     // debate-opening ASSISTANT message depending on tie order.
-    const recent = await this.chatService.getRecentModeMessages(userId, bookId, 'debate', 2);
+    const recent = await this.chatService.getRecentModeMessages(
+      userId,
+      bookId,
+      'debate',
+      2,
+    );
     const hasOpenedDebate = recent.some((m) => m.role === 'ASSISTANT');
 
     if (!hasOpenedDebate) {

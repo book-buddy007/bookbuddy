@@ -18,7 +18,10 @@ export interface TaxonomyNodeDTO {
 export interface BookTaxonomyLinkDTO {
   nodeId: string;
   isPrimary: boolean;
-  node: Pick<TaxonomyNodeDTO, 'id' | 'name' | 'slug' | 'nodeType' | 'domain' | 'ancestorIds'>;
+  node: Pick<
+    TaxonomyNodeDTO,
+    'id' | 'name' | 'slug' | 'nodeType' | 'domain' | 'ancestorIds'
+  >;
 }
 
 /**
@@ -35,7 +38,13 @@ function describeRemoteError(error: unknown, status: number): string {
   if (typeof error === 'string') return error || fallback;
   if (typeof error === 'object') {
     const e = error as Record<string, unknown>;
-    for (const k of ['message', 'error', 'detail', 'details', 'code'] as const) {
+    for (const k of [
+      'message',
+      'error',
+      'detail',
+      'details',
+      'code',
+    ] as const) {
       const v = e[k];
       if (typeof v === 'string' && v.trim()) return v;
     }
@@ -73,12 +82,18 @@ export class TaxonomyClientService {
   private readonly appKey = 'bookbuddy';
 
   constructor(private config: ConfigService) {
-    const issuer = this.config.get<string>('VIDYAVERSE_ISSUER') ?? this.config.get<string>('TAXONOMY_SERVICE_URL');
-    this.baseUrl = issuer ? `${issuer.replace(/\/$/, '')}/api/v1/taxonomy` : null;
+    const issuer =
+      this.config.get<string>('VIDYAVERSE_ISSUER') ??
+      this.config.get<string>('TAXONOMY_SERVICE_URL');
+    this.baseUrl = issuer
+      ? `${issuer.replace(/\/$/, '')}/api/v1/taxonomy`
+      : null;
     this.apiKey = this.config.get<string>('TAXONOMY_SERVICE_API_KEY') ?? null;
 
     if (!this.baseUrl || !this.apiKey) {
-      this.logger.warn('Taxonomy service is not configured (VIDYAVERSE_ISSUER/TAXONOMY_SERVICE_API_KEY unset) — taxonomy features disabled.');
+      this.logger.warn(
+        'Taxonomy service is not configured (VIDYAVERSE_ISSUER/TAXONOMY_SERVICE_API_KEY unset) — taxonomy features disabled.',
+      );
     }
   }
 
@@ -88,7 +103,9 @@ export class TaxonomyClientService {
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     if (!this.baseUrl || !this.apiKey) {
-      throw new Error('Taxonomy service is not configured in this environment.');
+      throw new Error(
+        'Taxonomy service is not configured in this environment.',
+      );
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
@@ -102,7 +119,11 @@ export class TaxonomyClientService {
         },
         signal: controller.signal,
       });
-      const body = (await res.json()) as { success: boolean; data?: T; error?: unknown };
+      const body = (await res.json()) as {
+        success: boolean;
+        data?: T;
+        error?: unknown;
+      };
       if (!res.ok || !body.success) {
         // `error` is TYPED as a string and is not always one — the taxonomy
         // service returns a serialized error object for a Prisma failure, and
@@ -125,9 +146,13 @@ export class TaxonomyClientService {
   async getTree(domain: string): Promise<TaxonomyNodeDTO[]> {
     if (!this.isConfigured()) return [];
     try {
-      return await this.request<TaxonomyNodeDTO[]>(`/tree?domain=${encodeURIComponent(domain)}`);
+      return await this.request<TaxonomyNodeDTO[]>(
+        `/tree?domain=${encodeURIComponent(domain)}`,
+      );
     } catch (err) {
-      this.logger.warn(`getTree(${domain}) failed, returning empty: ${(err as Error).message}`);
+      this.logger.warn(
+        `getTree(${domain}) failed, returning empty: ${(err as Error).message}`,
+      );
       return [];
     }
   }
@@ -136,9 +161,13 @@ export class TaxonomyClientService {
   async getBookLinks(bookId: string): Promise<BookTaxonomyLinkDTO[]> {
     if (!this.isConfigured()) return [];
     try {
-      return await this.request<BookTaxonomyLinkDTO[]>(`/books/${this.appKey}/${encodeURIComponent(bookId)}/links`);
+      return await this.request<BookTaxonomyLinkDTO[]>(
+        `/books/${this.appKey}/${encodeURIComponent(bookId)}/links`,
+      );
     } catch (err) {
-      this.logger.warn(`getBookLinks(${bookId}) failed, returning empty: ${(err as Error).message}`);
+      this.logger.warn(
+        `getBookLinks(${bookId}) failed, returning empty: ${(err as Error).message}`,
+      );
       return [];
     }
   }
@@ -148,9 +177,12 @@ export class TaxonomyClientService {
     bookId: string,
     links: Array<{ nodeId: string; isPrimary?: boolean }>,
   ): Promise<BookTaxonomyLinkDTO[]> {
-    return this.request<BookTaxonomyLinkDTO[]>(`/books/${this.appKey}/${encodeURIComponent(bookId)}/links`, {
-      method: 'PUT',
-      body: JSON.stringify({ links }),
-    });
+    return this.request<BookTaxonomyLinkDTO[]>(
+      `/books/${this.appKey}/${encodeURIComponent(bookId)}/links`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ links }),
+      },
+    );
   }
 }

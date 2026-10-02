@@ -184,7 +184,9 @@ export class SuperAdminCatalogService {
             orderBy: [{ type: 'asc' }, { partIndex: 'asc' }],
           },
           categories: {
-            include: { category: { select: { id: true, name: true, type: true } } },
+            include: {
+              category: { select: { id: true, name: true, type: true } },
+            },
           },
         },
       }),
@@ -391,7 +393,10 @@ export class SuperAdminCatalogService {
   // explicit purge (purgeBook). Idempotent: re-binning an already-binned book is
   // a no-op that refreshes who/when.
   async deleteBook(id: string, deletedBy?: string) {
-    const book = await this.prisma.book.findUnique({ where: { id }, select: { id: true } });
+    const book = await this.prisma.book.findUnique({
+      where: { id },
+      select: { id: true },
+    });
     if (!book) throw new NotFoundException('Book not found');
 
     return this.prisma.book.update({
@@ -407,7 +412,8 @@ export class SuperAdminCatalogService {
       select: { id: true, deletedAt: true },
     });
     if (!book) throw new NotFoundException('Book not found');
-    if (!book.deletedAt) throw new BadRequestException('This book is not in the Bin.');
+    if (!book.deletedAt)
+      throw new BadRequestException('This book is not in the Bin.');
 
     return this.prisma.book.update({
       where: { id },
@@ -455,7 +461,8 @@ export class SuperAdminCatalogService {
     if (book.backCoverKey) keys.add(book.backCoverKey);
     if (book.sampleFileKey) keys.add(book.sampleFileKey);
     for (const fmt of book.bookFormats) {
-      const key = (fmt.metadata as any)?.s3Key ?? this.storageKeyFromUrl(fmt.fileUrl);
+      const key =
+        (fmt.metadata as any)?.s3Key ?? this.storageKeyFromUrl(fmt.fileUrl);
       if (key) keys.add(key);
     }
     const storage = await this.flushStorage([...keys]);
@@ -481,9 +488,15 @@ export class SuperAdminCatalogService {
     deleted: number;
     failed: string[];
   }> {
-    const results = await Promise.allSettled(keys.map((k) => this.s3Service.deleteFileOrThrow(k)));
+    const results = await Promise.allSettled(
+      keys.map((k) => this.s3Service.deleteFileOrThrow(k)),
+    );
     const failed = keys.filter((_, i) => results[i].status === 'rejected');
-    return { attempted: keys.length, deleted: keys.length - failed.length, failed };
+    return {
+      attempted: keys.length,
+      deleted: keys.length - failed.length,
+      failed,
+    };
   }
 
   /**
@@ -504,7 +517,8 @@ export class SuperAdminCatalogService {
         method: 'none',
         contentItemId: null,
         ok: true,
-        detail: 'Book was never ingested into the shared spine — no embeddings to remove.',
+        detail:
+          'Book was never ingested into the shared spine — no embeddings to remove.',
       };
     }
 
@@ -517,18 +531,28 @@ export class SuperAdminCatalogService {
       try {
         const res = await fetch(purgeUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Service-Secret': secret },
-          body: JSON.stringify({ app: 'bookbuddy', localId: bookId, contentItemId }),
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Service-Secret': secret,
+          },
+          body: JSON.stringify({
+            app: 'bookbuddy',
+            localId: bookId,
+            contentItemId,
+          }),
         });
         if (!res.ok) {
           const body = await res.text().catch(() => '');
-          throw new Error(`DCP purge returned ${res.status}: ${body.slice(0, 200)}`);
+          throw new Error(
+            `DCP purge returned ${res.status}: ${body.slice(0, 200)}`,
+          );
         }
         return {
           method: 'dcp',
           contentItemId,
           ok: true,
-          detail: 'Requested full purge from DCP (vectors + spine rows removed).',
+          detail:
+            'Requested full purge from DCP (vectors + spine rows removed).',
         };
       } catch (err: any) {
         return {
@@ -545,10 +569,13 @@ export class SuperAdminCatalogService {
     // spine's Postgres rows (content_item/content_chunk) remain — only DCP can
     // remove those — so this is reported as partial.
     try {
-      const collection = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+      const collection =
+        process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
       const client = this.qdrantInit.getClient();
       await client.delete(collection, {
-        filter: { must: [{ key: 'content_item_id', match: { value: contentItemId } }] },
+        filter: {
+          must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+        },
         wait: true,
       });
       return {
@@ -556,7 +583,7 @@ export class SuperAdminCatalogService {
         contentItemId,
         ok: true,
         detail:
-          'Deleted this book\'s vectors directly from the shared collection. ' +
+          "Deleted this book's vectors directly from the shared collection. " +
           'Spine metadata rows (owned by DCP) were left intact; set TRIO_PURGE_URL for a full flush.',
       };
     } catch (err: any) {
@@ -588,7 +615,8 @@ export class SuperAdminCatalogService {
     });
     return books
       .filter((b) => {
-        const ingested = b.embeddingStatus === 'READY' || b._count.bookChunkMappings > 0;
+        const ingested =
+          b.embeddingStatus === 'READY' || b._count.bookChunkMappings > 0;
         return ingested && (force || b._count.graphNodes === 0);
       })
       .map((b) => b.id);
@@ -739,14 +767,30 @@ export class SuperAdminCatalogService {
       // Counts describe the LIVE catalogue only — binned books are excluded
       // everywhere they are excluded from listings.
       this.prisma.book.count({ where: { deletedAt: null } }),
-      this.prisma.book.count({ where: { deletedAt: null, catalogScope: 'GLOBAL' } }),
-      this.prisma.book.count({ where: { deletedAt: null, catalogScope: 'INSTITUTIONAL' } }),
-      this.prisma.book.count({ where: { deletedAt: null, accessTier: 'FREE' } }),
-      this.prisma.book.count({ where: { deletedAt: null, accessTier: 'BRONZE' } }),
-      this.prisma.book.count({ where: { deletedAt: null, accessTier: 'SILVER' } }),
-      this.prisma.book.count({ where: { deletedAt: null, accessTier: 'GOLD' } }),
-      this.prisma.book.count({ where: { deletedAt: null, accessTier: 'DIAMOND' } }),
-      this.prisma.book.count({ where: { deletedAt: null, globalPublishStatus: 'PENDING' } }),
+      this.prisma.book.count({
+        where: { deletedAt: null, catalogScope: 'GLOBAL' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, catalogScope: 'INSTITUTIONAL' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, accessTier: 'FREE' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, accessTier: 'BRONZE' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, accessTier: 'SILVER' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, accessTier: 'GOLD' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, accessTier: 'DIAMOND' },
+      }),
+      this.prisma.book.count({
+        where: { deletedAt: null, globalPublishStatus: 'PENDING' },
+      }),
       this.prisma.tenant.count({
         where: { isGlobalPublisher: true, id: { not: SYSTEM_TENANT_ID } },
       }),
@@ -909,7 +953,10 @@ export class SuperAdminCatalogService {
     const partIndex =
       formatType === 'AI_EMBED' ? Math.trunc(Number(data.partIndex ?? 0)) : 0;
 
-    if (formatType === 'AI_EMBED' && (!Number.isFinite(partIndex) || partIndex < 1)) {
+    if (
+      formatType === 'AI_EMBED' &&
+      (!Number.isFinite(partIndex) || partIndex < 1)
+    ) {
       throw new BadRequestException(
         'Enriched markdown needs the chapter number it belongs to. It is read from the ' +
           "file's own chapter_number frontmatter, and part 0 is reserved for whole-book " +
@@ -1039,7 +1086,11 @@ export class SuperAdminCatalogService {
     }
 
     return {
-      deleted: { id: format.id, type: format.type, partIndex: format.partIndex },
+      deleted: {
+        id: format.id,
+        type: format.type,
+        partIndex: format.partIndex,
+      },
       storageKey: key,
       spineResidue,
     };

@@ -60,7 +60,11 @@ describe('BB-004 — client IP resolution', () => {
 
     it('supports an explicit CIDR list for the behind-Cloudflare mode', () => {
       process.env.TRUST_PROXY = 'loopback,uniquelocal,173.245.48.0/20';
-      expect(resolveTrustProxySetting()).toEqual(['loopback', 'uniquelocal', '173.245.48.0/20']);
+      expect(resolveTrustProxySetting()).toEqual([
+        'loopback',
+        'uniquelocal',
+        '173.245.48.0/20',
+      ]);
     });
 
     it('can be disabled for direct-to-app deployments', () => {
@@ -75,8 +79,12 @@ describe('BB-004 — client IP resolution', () => {
 
       // supertest connects over loopback, which IS in the trusted set, so the
       // forwarded address is honoured — exactly as Traefik's hop would be.
-      const a = await request(app).get('/probe').set('X-Forwarded-For', '203.0.113.10');
-      const b = await request(app).get('/probe').set('X-Forwarded-For', '198.51.100.20');
+      const a = await request(app)
+        .get('/probe')
+        .set('X-Forwarded-For', '203.0.113.10');
+      const b = await request(app)
+        .get('/probe')
+        .set('X-Forwarded-For', '198.51.100.20');
 
       expect(a.body.resolved).toBe('203.0.113.10');
       expect(b.body.resolved).toBe('198.51.100.20');
@@ -95,8 +103,12 @@ describe('BB-004 — client IP resolution', () => {
         res.json({ resolved: getClientIp(req) });
       });
 
-      const a = await request(brokenApp).get('/probe').set('X-Forwarded-For', '203.0.113.10');
-      const b = await request(brokenApp).get('/probe').set('X-Forwarded-For', '198.51.100.20');
+      const a = await request(brokenApp)
+        .get('/probe')
+        .set('X-Forwarded-For', '203.0.113.10');
+      const b = await request(brokenApp)
+        .get('/probe')
+        .set('X-Forwarded-For', '198.51.100.20');
 
       expect(a.body.resolved).toBe(b.body.resolved); // one shared bucket — the defect
     });
@@ -177,11 +189,18 @@ describe('BB-004 — client IP resolution', () => {
 
   describe('account keying', () => {
     it('prefers the authenticated user id', () => {
-      expect(getTargetAccountKey({ user: { id: 'u_1' }, body: { email: 'a@b.com' } })).toBe('uid:u_1');
+      expect(
+        getTargetAccountKey({
+          user: { id: 'u_1' },
+          body: { email: 'a@b.com' },
+        }),
+      ).toBe('uid:u_1');
     });
 
     it('falls back to the target email for unauthenticated recovery routes', () => {
-      expect(getTargetAccountKey({ body: { email: 'Someone@Example.COM' } })).toBe('acct:someone@example.com');
+      expect(
+        getTargetAccountKey({ body: { email: 'Someone@Example.COM' } }),
+      ).toBe('acct:someone@example.com');
     });
 
     it('lowercases, so one account cannot be split into two budgets by casing', () => {

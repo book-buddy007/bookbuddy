@@ -69,23 +69,35 @@ export class CurriculumScopeClientService {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
       try {
-        const res = await fetch(`${issuer.replace(/\/$/, '')}/api/v1/academic/my-curriculum-scope`, {
-          headers: { authorization: `Bearer ${token}` },
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `${issuer.replace(/\/$/, '')}/api/v1/academic/my-curriculum-scope`,
+          {
+            headers: { authorization: `Bearer ${token}` },
+            signal: controller.signal,
+          },
+        );
         if (!res.ok) {
-          this.logger.warn(`hub returned ${res.status} for ${userId}, failing open (no filter)`);
+          this.logger.warn(
+            `hub returned ${res.status} for ${userId}, failing open (no filter)`,
+          );
           return cached?.scopeNodeIds ?? [];
         }
-        const body = (await res.json()) as { success: boolean; data?: { scopeNodeIds: string[] } };
-        const scopeNodeIds = body.success ? (body.data?.scopeNodeIds ?? []) : [];
+        const body = (await res.json()) as {
+          success: boolean;
+          data?: { scopeNodeIds: string[] };
+        };
+        const scopeNodeIds = body.success
+          ? (body.data?.scopeNodeIds ?? [])
+          : [];
         this.cache.set(userId, { fetchedAt: Date.now(), scopeNodeIds });
         return scopeNodeIds;
       } finally {
         clearTimeout(timer);
       }
     } catch (err) {
-      this.logger.warn(`hub unreachable for ${userId}, failing open (no filter): ${(err as Error).message}`);
+      this.logger.warn(
+        `hub unreachable for ${userId}, failing open (no filter): ${(err as Error).message}`,
+      );
       return cached?.scopeNodeIds ?? [];
     }
   }

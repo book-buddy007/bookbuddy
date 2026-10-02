@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from '../logger/logger.service';
 import {
@@ -9,7 +9,6 @@ import {
   DeleteObjectsCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { v4 as uuidv4 } from 'uuid';
 
 // Allowed MIME types per format
@@ -42,15 +41,6 @@ const FORMAT_MIME_ALLOWLIST: Record<string, string[]> = {
     'text/plain',
     'application/octet-stream',
   ],
-};
-
-const FORMAT_MAX_BYTES: Record<string, number> = {
-  pdf: 200 * 1024 * 1024,
-  epub: 100 * 1024 * 1024,
-  audiobook: 500 * 1024 * 1024,
-  cover: 5 * 1024 * 1024,
-  sample: 50 * 1024 * 1024,
-  personal: 100 * 1024 * 1024, // 100 MB per personal upload
 };
 
 @Injectable()

@@ -9,16 +9,21 @@ export class AnalyticsService {
     // Everything the student dashboard needs, computed from real rows.
     // Counts are user-scoped (annotations/flashcards/chat carry the tenant
     // denormalised, but userId alone is the correct owner key here).
-    const [streakRecord, progressRecords, highlights, flashcards, explanations] =
-      await Promise.all([
-        this.prisma.userStreak.findUnique({ where: { userId } }),
-        this.prisma.readingProgress.findMany({ where: { tenantId, userId } }),
-        this.prisma.annotation.count({ where: { userId, type: 'highlight' } }),
-        this.prisma.flashcardDeck.count({ where: { userId } }),
-        this.prisma.bookChatMessage.count({
-          where: { userId, role: 'ASSISTANT', mode: 'explain' },
-        }),
-      ]);
+    const [
+      streakRecord,
+      progressRecords,
+      highlights,
+      flashcards,
+      explanations,
+    ] = await Promise.all([
+      this.prisma.userStreak.findUnique({ where: { userId } }),
+      this.prisma.readingProgress.findMany({ where: { tenantId, userId } }),
+      this.prisma.annotation.count({ where: { userId, type: 'highlight' } }),
+      this.prisma.flashcardDeck.count({ where: { userId } }),
+      this.prisma.bookChatMessage.count({
+        where: { userId, role: 'ASSISTANT', mode: 'explain' },
+      }),
+    ]);
 
     const totalBooksRead = progressRecords.filter(
       (p) => p.percentComplete >= 100,
@@ -33,7 +38,8 @@ export class AnalyticsService {
     // Minutes read today — sum the per-book dailyProgress entry for today's date.
     const todayKey = new Date().toISOString().split('T')[0];
     const secondsToday = progressRecords.reduce((sum, p) => {
-      const dp = (p.dailyProgress as Record<string, { seconds?: number }>) || {};
+      const dp =
+        (p.dailyProgress as Record<string, { seconds?: number }>) || {};
       return sum + (dp[todayKey]?.seconds || 0);
     }, 0);
 
@@ -49,7 +55,11 @@ export class AnalyticsService {
     };
   }
 
-  async getHistory(tenantId: string | undefined, userId: string, days: number = 7) {
+  async getHistory(
+    tenantId: string | undefined,
+    userId: string,
+    days: number = 7,
+  ) {
     // 1. Aggregates reading progress JSON data from multiple books
     const progressRecords = await this.prisma.readingProgress.findMany({
       where: { tenantId, userId },

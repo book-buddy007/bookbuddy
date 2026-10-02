@@ -36,7 +36,8 @@ import { buildSparseVector } from './sparse-tokenizer';
  *   textbook's own discussion prompt almost perfectly, and without the
  *   exclusion the tutor answers the question by quoting the question back.
  */
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 const VECTOR_NAME = process.env.QDRANT_VECTOR_NAME || 'dense';
 // The collection declares this sparse vector with `modifier: idf`; DCP writes it
 // on every point at ingest. Named, not positional, because the collection uses
@@ -117,7 +118,10 @@ export class RagSearchService {
     ];
 
     if (contentItemId) {
-      filterMust.push({ key: 'content_item_id', match: { value: contentItemId } });
+      filterMust.push({
+        key: 'content_item_id',
+        match: { value: contentItemId },
+      });
     }
 
     // Institute curriculum scope. A nested `should`, so it narrows within the
@@ -204,7 +208,9 @@ export class RagSearchService {
         return this.mapQdrantResults(res.points ?? [], options);
       } catch (e: any) {
         const detail = e?.response?.data?.status?.error || e.message;
-        this.logger.error(`${mode}-only search failed on "${COLLECTION}": ${detail}`);
+        this.logger.error(
+          `${mode}-only search failed on "${COLLECTION}": ${detail}`,
+        );
         throw new Error(`Retrieval is unavailable: ${detail}`);
       }
     }
@@ -237,7 +243,12 @@ export class RagSearchService {
       // sending an empty sparse vector would ask Qdrant to match nothing and
       // waste half the fusion budget on it.
       if (sparse.indices.length > 0) {
-        prefetch.push({ query: sparse, using: SPARSE_VECTOR_NAME, filter, limit: overFetch });
+        prefetch.push({
+          query: sparse,
+          using: SPARSE_VECTOR_NAME,
+          filter,
+          limit: overFetch,
+        });
       }
 
       const res = await qdrant.query(COLLECTION, {
@@ -321,7 +332,10 @@ export class RagSearchService {
    * gamble, and it runs only when a reference is present, so normal questions
    * pay nothing.
    */
-  async findByReference(query: string, options: RagSearchOptions): Promise<any[]> {
+  async findByReference(
+    query: string,
+    options: RagSearchOptions,
+  ): Promise<any[]> {
     const { contentItemId } = options;
     const refs = parseReferences(query);
     if (refs.length === 0) return [];
@@ -364,7 +378,7 @@ export class RagSearchService {
         });
         for (const pt of page.points ?? []) {
           scanned += 1;
-          const text: string = (pt.payload as any)?.text ?? '';
+          const text: string = pt.payload?.text ?? '';
           if (text && refs.some((r) => r.matcher.test(text))) {
             matched.push(pt);
             if (matched.length >= MAX_MATCHES) break;
@@ -372,9 +386,15 @@ export class RagSearchService {
         }
         offset = page.next_page_offset ?? undefined;
         pagesScanned += 1;
-      } while (offset && matched.length < MAX_MATCHES && pagesScanned < MAX_PAGES);
+      } while (
+        offset &&
+        matched.length < MAX_MATCHES &&
+        pagesScanned < MAX_PAGES
+      );
     } catch (e: any) {
-      this.logger.warn(`Figure/table reference lookup failed (non-fatal): ${e?.message}`);
+      this.logger.warn(
+        `Figure/table reference lookup failed (non-fatal): ${e?.message}`,
+      );
       return [];
     }
 
@@ -424,7 +444,8 @@ const REFERENCE_TYPES: Record<string, string> = {
 };
 
 export function parseReferences(query: string): LabelRef[] {
-  const detect = /\b(figures?|figs?|tables?|diagrams?|charts?|graphs?|exhibits?|plates?|illustrations?|box(?:es)?|maps?)\.?\s*(\d+(?:[.\-]\d+)*)/gi;
+  const detect =
+    /\b(figures?|figs?|tables?|diagrams?|charts?|graphs?|exhibits?|plates?|illustrations?|box(?:es)?|maps?)\.?\s*(\d+(?:[.-]\d+)*)/gi;
   const refs: LabelRef[] = [];
   const seen = new Set<string>();
   let m: RegExpExecArray | null;
@@ -435,13 +456,16 @@ export function parseReferences(query: string): LabelRef[] {
     const typePattern = REFERENCE_TYPES[key] ?? REFERENCE_TYPES[rawType];
     if (!typePattern) continue;
     const num = m[2];
-    const numPattern = num.replace(/[.\-]/g, '[.\\-]');
+    const numPattern = num.replace(/[.-]/g, '[.\\-]');
     const label = `${m[1]} ${num}`;
     if (seen.has(label.toLowerCase())) continue;
     seen.add(label.toLowerCase());
     refs.push({
       label,
-      matcher: new RegExp(`\\b${typePattern}\\s*\\.?\\s*0*${numPattern}\\b`, 'i'),
+      matcher: new RegExp(
+        `\\b${typePattern}\\s*\\.?\\s*0*${numPattern}\\b`,
+        'i',
+      ),
     });
   }
   return refs;

@@ -141,7 +141,13 @@ export class EmbeddingController {
     const existingJob = await this.ingestionQueue.getJob(`embed-${bookId}`);
     if (existingJob) {
       const state = await existingJob.getState();
-      const inFlight = ['active', 'waiting', 'delayed', 'prioritized', 'waiting-children'];
+      const inFlight = [
+        'active',
+        'waiting',
+        'delayed',
+        'prioritized',
+        'waiting-children',
+      ];
       if (inFlight.includes(state)) {
         throw new ConflictException(
           `Embedding is already queued or running for this book (state: ${state}). ` +

@@ -1,7 +1,10 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { QdrantInitService } from '../rag/qdrant-init.service';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
 import {
   AnswerLanguage,
   bookAnswerLanguage,
@@ -13,7 +16,8 @@ import { detectScript } from '../common/language/script-detect';
 // Shared trio collection — same as Varta (rag-search.service.ts). Quiz retrieves
 // chunk text by the trio point ids stored in BookChunkMapping (see below), so it
 // must read from this collection; `book_buddy_books_v1` was deleted in the reset.
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 /**
  * Chunks per generation window. A chapter is split into windows and each one
  * is asked for its own questions, which is what spreads them across the
@@ -119,7 +123,10 @@ export class QuizSynthesisService {
 
     /* Cold start: nothing to show at all, so one window is generated inline —
        a few calls, seconds not minutes — and the rest follow behind. */
-    const firstWindow = await this.generate(bookId, chapterTitle, { fromWindow: 0, maxWindows: 1 });
+    const firstWindow = await this.generate(bookId, chapterTitle, {
+      fromWindow: 0,
+      maxWindows: 1,
+    });
     this.scheduleTopUp(bookId, chapterTitle, 1);
     return firstWindow.filter((i: any) => this.isUsableItem(i));
   }
@@ -136,19 +143,27 @@ export class QuizSynthesisService {
    * yielding nothing is attempted once per process rather than on every
    * request, which would turn a quality problem into a spend problem.
    */
-  private scheduleTopUp(bookId: string, chapterTitle: string, fromWindow: number): void {
+  private scheduleTopUp(
+    bookId: string,
+    chapterTitle: string,
+    fromWindow: number,
+  ): void {
     const key = `${bookId}::${chapterTitle}`;
     if (this.topUpAttempted.has(key)) return;
     this.topUpAttempted.add(key);
 
     void this.generate(bookId, chapterTitle, { fromWindow })
       .then((items) =>
-        this.logger.log(`Background top-up added ${items.length} item(s) to "${chapterTitle}"`),
+        this.logger.log(
+          `Background top-up added ${items.length} item(s) to "${chapterTitle}"`,
+        ),
       )
       .catch((err) => {
         // Must not reject unhandled: this runs detached from any request, and
         // an unhandled rejection takes the process down with it.
-        this.logger.error(`Background top-up failed for "${chapterTitle}": ${err.message}`);
+        this.logger.error(
+          `Background top-up failed for "${chapterTitle}": ${err.message}`,
+        );
       });
   }
 
@@ -194,7 +209,9 @@ export class QuizSynthesisService {
 
     const chunks = await this.fetchChapterChunks(bookId, chapterTitle);
     if (chunks.length === 0) {
-      this.logger.warn(`No chunks found for "${chapterTitle}" in book ${bookId} — nothing to generate from.`);
+      this.logger.warn(
+        `No chunks found for "${chapterTitle}" in book ${bookId} — nothing to generate from.`,
+      );
       return [];
     }
 
@@ -203,7 +220,9 @@ export class QuizSynthesisService {
       select: { id: true, label: true },
     });
 
-    const conceptByLabel = new Map(concepts.map((c) => [c.label.toLowerCase(), c.id]));
+    const conceptByLabel = new Map(
+      concepts.map((c) => [c.label.toLowerCase(), c.id]),
+    );
     const persisted: any[] = [];
 
     /* Generated per WINDOW, not per chapter.
@@ -251,7 +270,9 @@ export class QuizSynthesisService {
       );
     }
 
-    const pagesCovered = new Set(persisted.map((i) => i.citedPage).filter((p) => p != null));
+    const pagesCovered = new Set(
+      persisted.map((i) => i.citedPage).filter((p) => p != null),
+    );
     this.logger.log(
       `Generated ${persisted.length} items for "${chapterTitle}" (book ${bookId}) across ` +
         `${windows.length} window(s) from #${from}, covering ${pagesCovered.size} page(s)`,
@@ -297,7 +318,9 @@ export class QuizSynthesisService {
       }))
       .filter((g) => {
         if (!g.provenance.quoteFound) {
-          this.logger.debug(`Dropped item (quote not verbatim): "${g.draft.prompt.slice(0, 60)}..."`);
+          this.logger.debug(
+            `Dropped item (quote not verbatim): "${g.draft.prompt.slice(0, 60)}..."`,
+          );
         }
         return g.provenance.quoteFound;
       });
@@ -307,26 +330,34 @@ export class QuizSynthesisService {
     // script too — which is what the gate's language question is for.)
     const onLanguage = grounded.filter((g) => {
       if (this.matchesScript(g.draft, language)) return true;
-      this.logger.debug(`Dropped item (wrong script for ${language}): "${g.draft.prompt.slice(0, 60)}..."`);
+      this.logger.debug(
+        `Dropped item (wrong script for ${language}): "${g.draft.prompt.slice(0, 60)}..."`,
+      );
       return false;
     });
 
     // Gates run concurrently — independent judgements on separate drafts.
-    const gates = await Promise.all(onLanguage.map((g) => this.qualityGate(g.draft, windowText, language)));
+    const gates = await Promise.all(
+      onLanguage.map((g) => this.qualityGate(g.draft, windowText, language)),
+    );
 
     const out: any[] = [];
     for (let k = 0; k < onLanguage.length; k++) {
       const { draft, provenance } = onLanguage[k];
       const gate = gates[k];
       if (!gate.pass) {
-        this.logger.debug(`Dropped item (quality gate ${gate.score.toFixed(2)}): "${draft.prompt.slice(0, 60)}..."`);
+        this.logger.debug(
+          `Dropped item (quality gate ${gate.score.toFixed(2)}): "${draft.prompt.slice(0, 60)}..."`,
+        );
         continue;
       }
       const item = await this.prisma.quizItem.create({
         data: {
           bookId,
           chapterTitle,
-          conceptId: draft.concept ? conceptByLabel.get(draft.concept.toLowerCase()) ?? null : null,
+          conceptId: draft.concept
+            ? (conceptByLabel.get(draft.concept.toLowerCase()) ?? null)
+            : null,
           type: draft.type,
           prompt: draft.prompt,
           choices: draft.choices ?? undefined,
@@ -376,13 +407,19 @@ export class QuizSynthesisService {
     return this.sample(combined, targetCount);
   }
 
-  private async generateForPages(bookId: string, pages: number[], need: number): Promise<any[]> {
+  private async generateForPages(
+    bookId: string,
+    pages: number[],
+    need: number,
+  ): Promise<any[]> {
     const book = await this.prisma.book.findUnique({ where: { id: bookId } });
     if (!book) return [];
 
     const { chunks, chapterTitle } = await this.fetchPageChunks(bookId, pages);
     if (chunks.length === 0) {
-      this.logger.warn(`No chunks on pages [${pages.join(', ')}] for book ${bookId} — nothing to generate.`);
+      this.logger.warn(
+        `No chunks on pages [${pages.join(', ')}] for book ${bookId} — nothing to generate.`,
+      );
       return [];
     }
 
@@ -400,7 +437,8 @@ export class QuizSynthesisService {
     // Keep the page's own chapter so items group with the rest of that chapter;
     // fall back to a range label when the pages carry no chapter metadata.
     const groupChapter =
-      chapterTitle ?? `Pages ${pages[0]}${pages.length > 1 ? `–${pages[pages.length - 1]}` : ''}`;
+      chapterTitle ??
+      `Pages ${pages[0]}${pages.length > 1 ? `–${pages[pages.length - 1]}` : ''}`;
 
     const concepts = groupChapter
       ? await this.prisma.graphNode.findMany({
@@ -408,7 +446,9 @@ export class QuizSynthesisService {
           select: { id: true, label: true },
         })
       : [];
-    const conceptByLabel = new Map(concepts.map((c) => [c.label.toLowerCase(), c.id]));
+    const conceptByLabel = new Map(
+      concepts.map((c) => [c.label.toLowerCase(), c.id]),
+    );
 
     // Over-request a little: some drafts fail the verbatim-quote or quality gate,
     // and a single page has less material to recover from than a whole chapter.
@@ -436,7 +476,12 @@ export class QuizSynthesisService {
     const mappings = await this.prisma.bookChunkMapping.findMany({
       where: { bookId, pageNumber: { in: pages } },
       orderBy: { chunkIndex: 'asc' },
-      select: { qdrantPointId: true, chunkIndex: true, pageNumber: true, chapterTitle: true },
+      select: {
+        qdrantPointId: true,
+        chunkIndex: true,
+        pageNumber: true,
+        chapterTitle: true,
+      },
     });
     if (mappings.length === 0) return { chunks: [], chapterTitle: null };
 
@@ -445,7 +490,12 @@ export class QuizSynthesisService {
       ids: mappings.map((m) => m.qdrantPointId),
       with_payload: true,
     });
-    const textById = new Map(points.map((p) => [String(p.id), ((p.payload as any)?.text as string) ?? '']));
+    const textById = new Map(
+      points.map((p) => [
+        String(p.id),
+        ((p.payload as any)?.text as string) ?? '',
+      ]),
+    );
 
     const chunks = mappings
       .map((m) => ({
@@ -456,7 +506,10 @@ export class QuizSynthesisService {
       }))
       .filter((c) => c.text.length > 0);
 
-    return { chunks, chapterTitle: mappings.find((m) => m.chapterTitle)?.chapterTitle ?? null };
+    return {
+      chunks,
+      chapterTitle: mappings.find((m) => m.chapterTitle)?.chapterTitle ?? null,
+    };
   }
 
   /** A random subset of at most `n`, so a quiz run is short and varies between
@@ -472,7 +525,9 @@ export class QuizSynthesisService {
 
   // ── LLM generation ──────────────────────────────────────────────────
 
-  private async chatComplete(messages: { role: string; content: string }[]): Promise<string> {
+  private async chatComplete(
+    messages: { role: string; content: string }[],
+  ): Promise<string> {
     let full = '';
     await this.llmProvider.chatStream(messages, (token) => {
       full += token;
@@ -554,9 +609,15 @@ export class QuizSynthesisService {
    * student looking like a real question.
    */
   private isWellFormedMcq(d: any): boolean {
-    if (!d || d.type !== 'mcq' || !d.prompt || !d.answer || !d.quote) return false;
+    if (!d || d.type !== 'mcq' || !d.prompt || !d.answer || !d.quote)
+      return false;
     if (!Array.isArray(d.choices) || d.choices.length !== 4) return false;
-    if (!d.choices.every((c: unknown) => typeof c === 'string' && c.trim().length > 0)) return false;
+    if (
+      !d.choices.every(
+        (c: unknown) => typeof c === 'string' && c.trim().length > 0,
+      )
+    )
+      return false;
 
     const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     const normalized = d.choices.map(norm);
@@ -581,7 +642,9 @@ export class QuizSynthesisService {
    * it is legitimately in the source's script whatever the target language is.
    */
   private matchesScript(draft: DraftItem, language: AnswerLanguage): boolean {
-    const text = [draft.prompt, ...(draft.choices ?? []), draft.answer].join(' ');
+    const text = [draft.prompt, ...(draft.choices ?? []), draft.answer].join(
+      ' ',
+    );
     const script = detectScript(text);
     // 'unknown' means no alphabetic characters at all (a purely numeric or
     // symbolic item) — nothing to judge, so don't drop it on a guess.
@@ -590,7 +653,10 @@ export class QuizSynthesisService {
   }
 
   private parseDrafts(raw: string): DraftItem[] {
-    const cleaned = raw.trim().replace(/^```json?\s*/i, '').replace(/```\s*$/, '');
+    const cleaned = raw
+      .trim()
+      .replace(/^```json?\s*/i, '')
+      .replace(/```\s*$/, '');
     try {
       const parsed = JSON.parse(cleaned);
       if (!Array.isArray(parsed)) return [];
@@ -630,17 +696,30 @@ export class QuizSynthesisService {
 
     try {
       const raw = await this.chatComplete([{ role: 'user', content: prompt }]);
-      const cleaned = raw.trim().replace(/^```json?\s*/i, '').replace(/```\s*$/, '');
+      const cleaned = raw
+        .trim()
+        .replace(/^```json?\s*/i, '')
+        .replace(/```\s*$/, '');
       const parsed = JSON.parse(cleaned);
-      const score = typeof parsed.confidence === 'number' ? parsed.confidence : parsed.supported ? 0.7 : 0;
+      const score =
+        typeof parsed.confidence === 'number'
+          ? parsed.confidence
+          : parsed.supported
+            ? 0.7
+            : 0;
       // `inLanguage` is treated as true when the field is missing, so a model
       // that ignores the new key doesn't empty the bank; an explicit false is
       // what drops the item.
       const inLanguage = parsed.inLanguage !== false;
       if (!inLanguage) {
-        this.logger.debug(`Dropped item (gate: not ${language}): "${draft.prompt.slice(0, 60)}..."`);
+        this.logger.debug(
+          `Dropped item (gate: not ${language}): "${draft.prompt.slice(0, 60)}..."`,
+        );
       }
-      return { pass: Boolean(parsed.supported) && score >= 0.5 && inLanguage, score };
+      return {
+        pass: Boolean(parsed.supported) && score >= 0.5 && inLanguage,
+        score,
+      };
     } catch {
       // Fail closed — an unparseable gate response means we couldn't verify
       // the item, so it doesn't enter the live bank.
@@ -672,7 +751,10 @@ export class QuizSynthesisService {
    * It is also the same access pattern digest.service.ts already uses
    * successfully against this collection, so the three siblings now agree.
    */
-  private async fetchChapterChunks(bookId: string, chapterTitle: string): Promise<RawChunk[]> {
+  private async fetchChapterChunks(
+    bookId: string,
+    chapterTitle: string,
+  ): Promise<RawChunk[]> {
     const mappings = await this.prisma.bookChunkMapping.findMany({
       where: { bookId, chapterTitle },
       orderBy: { chunkIndex: 'asc' },
@@ -686,7 +768,10 @@ export class QuizSynthesisService {
       with_payload: true,
     });
     const textById = new Map(
-      points.map((p) => [String(p.id), ((p.payload as any)?.text as string) ?? '']),
+      points.map((p) => [
+        String(p.id),
+        ((p.payload as any)?.text as string) ?? '',
+      ]),
     );
 
     // Ordered by chunkIndex from the Postgres side — `retrieve` gives no

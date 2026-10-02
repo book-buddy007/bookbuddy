@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TIER_RANK } from '../auth/tier.decorator';
 import { AiFeature } from './ai-feature.decorator';
@@ -67,7 +63,12 @@ export class AiEntitlementService {
     });
 
     if (!user) {
-      return { hasAccess: false, isTrial: false, isPaid: false, trialEndsAt: null };
+      return {
+        hasAccess: false,
+        isTrial: false,
+        isPaid: false,
+        trialEndsAt: null,
+      };
     }
 
     const tier = (user.subscriptionTier ?? '').toLowerCase();
@@ -76,13 +77,16 @@ export class AiEntitlementService {
     // An active trial: the tier says 'trial' AND the clock hasn't run out.
     // An expired trialEndsAt is treated as no access, not paid access.
     const trialActive =
-      tier === 'trial' && !!user.trialEndsAt && user.trialEndsAt.getTime() > now.getTime();
+      tier === 'trial' &&
+      !!user.trialEndsAt &&
+      user.trialEndsAt.getTime() > now.getTime();
 
     // Paid path preserved byte-for-byte from the old @RequiresTier('DIAMOND'):
     // only a tier ranking at or above DIAMOND qualifies. 'trial' is not in the
     // rank table, so it can never satisfy this branch — the two paths are disjoint.
     const paid =
-      (TIER_RANK[(user.subscriptionTier ?? '').toUpperCase()] ?? 0) >= PAID_TIER_FLOOR;
+      (TIER_RANK[(user.subscriptionTier ?? '').toUpperCase()] ?? 0) >=
+      PAID_TIER_FLOOR;
 
     return {
       hasAccess: trialActive || paid,
@@ -101,7 +105,10 @@ export class AiEntitlementService {
    * Only trial calls are metered — callers pass paid/entitled users straight
    * through without touching this, so no counter row is ever written for them.
    */
-  async consumeFeatureQuota(userId: string, feature: AiFeature): Promise<FeatureUsage> {
+  async consumeFeatureQuota(
+    userId: string,
+    feature: AiFeature,
+  ): Promise<FeatureUsage> {
     const date = this.today();
     const row = await this.prisma.aiFeatureUsage.upsert({
       where: { userId_feature_date: { userId, feature, date } },
@@ -119,6 +126,10 @@ export class AiEntitlementService {
       );
     }
 
-    return { used: row.count, limit, remaining: Math.max(0, limit - row.count) };
+    return {
+      used: row.count,
+      limit,
+      remaining: Math.max(0, limit - row.count),
+    };
   }
 }

@@ -16,7 +16,11 @@ export class GraphService {
 
   async listEntities(bookId: string, type?: string, chapter?: string) {
     return this.prisma.graphNode.findMany({
-      where: { bookId, ...(type ? { type } : {}), ...(chapter ? { firstChapter: chapter } : {}) },
+      where: {
+        bookId,
+        ...(type ? { type } : {}),
+        ...(chapter ? { firstChapter: chapter } : {}),
+      },
       select: {
         id: true,
         type: true,
@@ -63,10 +67,14 @@ export class GraphService {
       where: { id: entityId },
       include: {
         outgoingEdges: {
-          include: { target: { select: { id: true, label: true, type: true } } },
+          include: {
+            target: { select: { id: true, label: true, type: true } },
+          },
         },
         incomingEdges: {
-          include: { source: { select: { id: true, label: true, type: true } } },
+          include: {
+            source: { select: { id: true, label: true, type: true } },
+          },
         },
       },
     });
@@ -122,7 +130,11 @@ export class GraphService {
   async getNetwork(bookId: string, type?: string, chapter?: string) {
     const [nodes, edges] = await Promise.all([
       this.prisma.graphNode.findMany({
-        where: { bookId, ...(type ? { type } : {}), ...(chapter ? { firstChapter: chapter } : {}) },
+        where: {
+          bookId,
+          ...(type ? { type } : {}),
+          ...(chapter ? { firstChapter: chapter } : {}),
+        },
         select: { id: true, type: true, label: true, firstPage: true },
       }),
       this.prisma.graphEdge.findMany({
@@ -138,7 +150,9 @@ export class GraphService {
     const nodeIds = new Set(nodes.map((n) => n.id));
     const visibleEdges =
       type || chapter
-        ? edges.filter((e) => nodeIds.has(e.sourceId) && nodeIds.has(e.targetId))
+        ? edges.filter(
+            (e) => nodeIds.has(e.sourceId) && nodeIds.has(e.targetId),
+          )
         : edges;
 
     const degree = new Map<string, number>();

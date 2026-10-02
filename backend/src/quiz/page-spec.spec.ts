@@ -15,7 +15,9 @@ describe('page spec', () => {
     });
 
     it('parses a mix of ranges and singles', () => {
-      expect(parsePageSpec('183-185, 190, 195-196').pages).toEqual([183, 184, 185, 190, 195, 196]);
+      expect(parsePageSpec('183-185, 190, 195-196').pages).toEqual([
+        183, 184, 185, 190, 195, 196,
+      ]);
     });
 
     it('tolerates whitespace and trailing commas', () => {

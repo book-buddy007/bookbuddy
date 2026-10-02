@@ -31,7 +31,9 @@ export const ANSWER_LANGUAGES: readonly AnswerLanguage[] = ['en', 'hi'];
 export const DEFAULT_ANSWER_LANGUAGE: AnswerLanguage = 'en';
 
 export function isAnswerLanguage(x: unknown): x is AnswerLanguage {
-  return typeof x === 'string' && (ANSWER_LANGUAGES as readonly string[]).includes(x);
+  return (
+    typeof x === 'string' && (ANSWER_LANGUAGES as readonly string[]).includes(x)
+  );
 }
 
 /**
@@ -55,8 +57,7 @@ export const LANGUAGE_LABEL: Record<AnswerLanguage, string> = {
  * The carve-out every language directive shares: forcing a language must never
  * mangle a citation, a chemical formula, or a proper noun.
  */
-const PRESERVE_CLAUSE =
-  `Keep quoted excerpts, technical terms, formulae, and proper nouns in their original form.`;
+const PRESERVE_CLAUSE = `Keep quoted excerpts, technical terms, formulae, and proper nouns in their original form.`;
 
 /**
  * The system-prompt clause that fixes the answer language for a CONVERSATION
@@ -102,9 +103,17 @@ export function contentLanguageDirective(lang: AnswerLanguage): string {
  * silent-wrong-language bug this whole change exists to remove. Both spellings
  * are matched, plus a Devanagari-named language ("हिन्दी").
  */
-export function bookAnswerLanguage(bookLanguage?: string | null): AnswerLanguage {
+export function bookAnswerLanguage(
+  bookLanguage?: string | null,
+): AnswerLanguage {
   const raw = (bookLanguage ?? '').trim().toLowerCase();
-  if (raw.startsWith('hind') || raw === 'hi' || raw.startsWith('hi-') || raw === 'hin') return 'hi';
+  if (
+    raw.startsWith('hind') ||
+    raw === 'hi' ||
+    raw.startsWith('hi-') ||
+    raw === 'hin'
+  )
+    return 'hi';
   return /[ऀ-ॿ]/.test(raw) ? 'hi' : 'en';
 }
 
@@ -120,7 +129,10 @@ export function notFoundMessage(lang: AnswerLanguage): string {
 }
 
 /** The same floor for an explicit figure/table reference that resolved to nothing. */
-export function referenceNotFoundMessage(lang: AnswerLanguage, labels: string): string {
+export function referenceNotFoundMessage(
+  lang: AnswerLanguage,
+  labels: string,
+): string {
   return lang === 'hi'
     ? `मुझे इस पुस्तक के पाठ में ${labels} का वर्णन नहीं मिला। यदि यह बिना कैप्शन वाला चित्र या आरेख है, तो पढ़ने के लिए कुछ अनुक्रमित नहीं हो सकता।`
     : `I couldn't find ${labels} described in this book's text. If it's a diagram or image without a caption, there may be nothing indexed to read from.`;

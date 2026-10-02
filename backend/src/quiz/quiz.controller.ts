@@ -24,10 +24,19 @@ import { bookAnswerLanguage } from '../common/language/answer-language';
 import { QuizAssistService } from './quiz-assist.service';
 import { parsePageSpec } from './page-spec';
 import { MasteryService } from './mastery.service';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
 
 const SYSTEM_TENANT = '__SYSTEM__';
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 // A quiz run is short and randomised: every scope serves at most this many
 // questions, sampled from the relevant saved pool, so a repeat attempt varies
@@ -54,7 +63,11 @@ export class QuizController {
 
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: req.user.id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
       if (!membership) {
@@ -73,11 +86,16 @@ export class QuizController {
     @Req() req: any,
   ) {
     await this.authorizeBookAccess(bookId, req);
-    const items = await this.synthesis.getOrGenerate(bookId, decodeURIComponent(chapterTitle));
+    const items = await this.synthesis.getOrGenerate(
+      bookId,
+      decodeURIComponent(chapterTitle),
+    );
     // A random RUN_SIZE slice of the chapter's bank — a short quiz that varies
     // between attempts, not the whole bank at once. Never ship the answer key
     // with the question set; grading happens server-side on submission.
-    return this.synthesis.sample(items, QUIZ_RUN_SIZE).map(({ answer, ...rest }) => rest);
+    return this.synthesis
+      .sample(items, QUIZ_RUN_SIZE)
+      .map(({ answer, ...rest }) => rest);
   }
 
   /**
@@ -98,7 +116,9 @@ export class QuizController {
     // slice of the book's bank (generated/cached per chapter underneath).
     if (!pagesSpec?.trim()) {
       const items = await this.synthesis.getOrGenerateForBook(bookId);
-      return this.synthesis.sample(items, QUIZ_RUN_SIZE).map(({ answer, ...rest }) => rest);
+      return this.synthesis
+        .sample(items, QUIZ_RUN_SIZE)
+        .map(({ answer, ...rest }) => rest);
     }
 
     // PRINTED page numbers. The client converts from reader pages using the
@@ -159,11 +179,18 @@ export class QuizController {
     const correct = this.normalize(submitted) === this.normalize(item.answer);
 
     await this.prisma.quizAttempt.create({
-      data: { userId: req.user.id, itemId: item.id, answer: submitted, correct },
+      data: {
+        userId: req.user.id,
+        itemId: item.id,
+        answer: submitted,
+        correct,
+      },
     });
 
     if (item.conceptId) {
-      const numChoices = Array.isArray(item.choices) ? (item.choices as unknown[]).length : null;
+      const numChoices = Array.isArray(item.choices)
+        ? (item.choices as unknown[]).length
+        : null;
       await this.mastery.recordAttempt({
         userId: req.user.id,
         bookId,
@@ -189,7 +216,12 @@ export class QuizController {
     const item = await this.loadItem(bookId, itemId);
     // Same language the item bank was generated in — the explanation sits
     // directly under the question, so it must not arrive in another language.
-    return { explanation: await this.assist.explain(item, bookAnswerLanguage((book as any).language)) };
+    return {
+      explanation: await this.assist.explain(
+        item,
+        bookAnswerLanguage((book as any).language),
+      ),
+    };
   }
 
   /**
@@ -212,7 +244,10 @@ export class QuizController {
 
     const text = body?.text?.trim()
       ? body.text.trim()
-      : [item.prompt, ...(Array.isArray(item.choices) ? (item.choices as string[]) : [])].join('\n');
+      : [
+          item.prompt,
+          ...(Array.isArray(item.choices) ? (item.choices as string[]) : []),
+        ].join('\n');
 
     // Keyed by content, not just item id: the same item translated with an
     // explanation attached is different text from the bare question.
@@ -221,7 +256,9 @@ export class QuizController {
   }
 
   private async loadItem(bookId: string, itemId: string) {
-    const item = await this.prisma.quizItem.findUnique({ where: { id: itemId } });
+    const item = await this.prisma.quizItem.findUnique({
+      where: { id: itemId },
+    });
     if (!item || item.bookId !== bookId) {
       throw new NotFoundException('Question not found for this book');
     }
@@ -242,22 +279,39 @@ export class QuizController {
       throw new BadRequestException('"answers" must be a non-empty array.');
     }
 
-    const results: Array<{ itemId: string; correct: boolean; correctAnswer: string }> = [];
+    const results: Array<{
+      itemId: string;
+      correct: boolean;
+      correctAnswer: string;
+    }> = [];
 
     for (const submitted of answers) {
-      const item = await this.prisma.quizItem.findUnique({ where: { id: submitted.itemId } });
-      if (!item || item.bookId !== bookId || item.chapterTitle !== decodeURIComponent(chapterTitle)) {
+      const item = await this.prisma.quizItem.findUnique({
+        where: { id: submitted.itemId },
+      });
+      if (
+        !item ||
+        item.bookId !== bookId ||
+        item.chapterTitle !== decodeURIComponent(chapterTitle)
+      ) {
         continue; // silently skip items that don't belong here rather than fail the whole batch
       }
 
       const correct = await this.grade(item, submitted.answer ?? '');
 
       await this.prisma.quizAttempt.create({
-        data: { userId: req.user.id, itemId: item.id, answer: submitted.answer ?? '', correct },
+        data: {
+          userId: req.user.id,
+          itemId: item.id,
+          answer: submitted.answer ?? '',
+          correct,
+        },
       });
 
       if (item.conceptId) {
-        const numChoices = Array.isArray(item.choices) ? (item.choices as unknown[]).length : null;
+        const numChoices = Array.isArray(item.choices)
+          ? (item.choices as unknown[]).length
+          : null;
         await this.mastery.recordAttempt({
           userId: req.user.id,
           bookId,
@@ -276,7 +330,8 @@ export class QuizController {
   @Get('students/me/mastery')
   @Roles(...READER_ROLES)
   async getMyMastery(@Query('bookId') bookId: string, @Req() req: any) {
-    if (!bookId) throw new BadRequestException('"bookId" query parameter is required.');
+    if (!bookId)
+      throw new BadRequestException('"bookId" query parameter is required.');
     await this.authorizeBookAccess(bookId, req);
     return this.mastery.getMasteryVector(req.user.id, bookId);
   }
@@ -299,10 +354,13 @@ export class QuizController {
     @Query('bookId') bookId: string,
     @Req() req: any,
   ) {
-    if (!bookId) throw new BadRequestException('"bookId" query parameter is required.');
+    if (!bookId)
+      throw new BadRequestException('"bookId" query parameter is required.');
     const gradeLevel = parseInt(gradeLevelParam, 10);
     if (!gradeLevelParam || Number.isNaN(gradeLevel)) {
-      throw new BadRequestException('"gradeLevel" query parameter is required and must be a number.');
+      throw new BadRequestException(
+        '"gradeLevel" query parameter is required and must be a number.',
+      );
     }
     await this.authorizeTeacherAccess(tenantId, req);
     return this.mastery.getClassMasteryReport(tenantId, gradeLevel, bookId);
@@ -319,8 +377,13 @@ export class QuizController {
       where: { userId: req.user.id, tenantId, status: 'ACTIVE' },
       select: { role: true },
     });
-    if (!membership || !['admin', 'librarian', 'teacher'].includes(membership.role)) {
-      throw new ForbiddenException('You do not have teacher-level access to this institution.');
+    if (
+      !membership ||
+      !['admin', 'librarian', 'teacher'].includes(membership.role)
+    ) {
+      throw new ForbiddenException(
+        'You do not have teacher-level access to this institution.',
+      );
     }
   }
 
@@ -344,7 +407,11 @@ export class QuizController {
     return s.trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
-  private async gradeShortAnswer(prompt: string, reference: string, submitted: string): Promise<boolean> {
+  private async gradeShortAnswer(
+    prompt: string,
+    reference: string,
+    submitted: string,
+  ): Promise<boolean> {
     if (!submitted.trim()) return false;
 
     const gradingPrompt =
@@ -356,10 +423,16 @@ export class QuizController {
 
     try {
       let full = '';
-      await this.llmProvider.chatStream([{ role: 'user', content: gradingPrompt }], (t) => {
-        full += t;
-      });
-      const cleaned = full.trim().replace(/^```json?\s*/i, '').replace(/```\s*$/, '');
+      await this.llmProvider.chatStream(
+        [{ role: 'user', content: gradingPrompt }],
+        (t) => {
+          full += t;
+        },
+      );
+      const cleaned = full
+        .trim()
+        .replace(/^```json?\s*/i, '')
+        .replace(/```\s*$/, '');
       const parsed = JSON.parse(cleaned);
       return Boolean(parsed.correct);
     } catch {

@@ -111,7 +111,7 @@ export function normalizeClassLevel(classLevel: string): string {
  */
 export function validateAndNormalizeMetadata(
   rawMetadata: any,
-  pdfPath: string,
+  _pdfPath: string,
 ): ChunkMetadata {
   // Parse raw metadata (allows flexible input)
   const raw = RawChunkMetadataSchema.parse(rawMetadata);

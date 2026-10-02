@@ -14,7 +14,12 @@ import { TenantRole, UserRole } from '@prisma/client';
  * directly.
  */
 
-export const RESOURCES = ['catalog', 'borrowing', 'joinRequest', 'reports'] as const;
+export const RESOURCES = [
+  'catalog',
+  'borrowing',
+  'joinRequest',
+  'reports',
+] as const;
 export type Resource = (typeof RESOURCES)[number];
 
 export type Action =
@@ -95,7 +100,7 @@ export function tenantRoleCan(
 
 /** Convenience wrapper that also lets platform super-admins through. */
 export function can(
-  platformRole: UserRole | string | null | undefined,
+  platformRole: string | null | undefined, // a UserRole, or a raw role string
   tenantRole: TenantRole | null | undefined,
   resource: Resource,
   action: Action,

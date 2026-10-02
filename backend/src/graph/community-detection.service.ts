@@ -1,9 +1,11 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import Graph from 'graphology';
-// @ts-ignore — graphology-communities-louvain ships no type declarations.
 import louvain from 'graphology-communities-louvain';
 import { PrismaService } from '../prisma/prisma.service';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
 
 interface NodeRow {
   id: string;
@@ -31,7 +33,13 @@ export class CommunityDetectionService {
     const [nodes, edges] = await Promise.all([
       this.prisma.graphNode.findMany({
         where: { bookId },
-        select: { id: true, label: true, type: true, description: true, firstChapter: true },
+        select: {
+          id: true,
+          label: true,
+          type: true,
+          description: true,
+          firstChapter: true,
+        },
       }),
       this.prisma.graphEdge.findMany({
         where: { bookId },
@@ -53,8 +61,16 @@ export class CommunityDetectionService {
   // not tied to any vendor. GraphCommunity.algorithm records which one ran,
   // so a future Leiden port is a drop-in replacement, not a silent swap.
 
-  private async buildBookLevel(bookId: string, nodes: NodeRow[], edges: EdgeRow[]) {
-    const graph = new Graph({ type: 'undirected', multi: false, allowSelfLoops: false });
+  private async buildBookLevel(
+    bookId: string,
+    nodes: NodeRow[],
+    edges: EdgeRow[],
+  ) {
+    const graph = new Graph({
+      type: 'undirected',
+      multi: false,
+      allowSelfLoops: false,
+    });
     for (const n of nodes) graph.addNode(n.id);
     for (const e of edges) {
       if (e.sourceId === e.targetId) continue;
@@ -101,7 +117,13 @@ export class CommunityDetectionService {
 
     for (const [chapterTitle, members] of byChapter) {
       if (members.length < 2) continue;
-      await this.summarizeAndPersist(bookId, 'chapter', members, 'none', chapterTitle);
+      await this.summarizeAndPersist(
+        bookId,
+        'chapter',
+        members,
+        'none',
+        chapterTitle,
+      );
     }
   }
 
@@ -136,7 +158,8 @@ export class CommunityDetectionService {
       .map((m) => `- ${m.label} (${m.type}): ${m.description}`)
       .join('\n');
 
-    const scope = level === 'chapter' ? `the chapter "${chapterTitle}"` : 'the whole book';
+    const scope =
+      level === 'chapter' ? `the chapter "${chapterTitle}"` : 'the whole book';
     const prompt =
       `These entities were grouped together by ${level === 'book' ? 'graph community detection' : 'appearing together in'} ${scope}:\n\n` +
       `${listing}\n\n` +
@@ -153,7 +176,9 @@ export class CommunityDetectionService {
       );
       return full.trim() || this.fallbackSummary(members);
     } catch (err: any) {
-      this.logger.warn(`Community summarization failed, using fallback: ${err.message}`);
+      this.logger.warn(
+        `Community summarization failed, using fallback: ${err.message}`,
+      );
       return this.fallbackSummary(members);
     }
   }

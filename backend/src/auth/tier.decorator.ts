@@ -25,4 +25,5 @@ export type SubscriptionTier = keyof typeof TIER_RANK;
  * would incorrectly downgrade paying direct subscribers to free tier.
  * Revisit once that backfill happens.
  */
-export const RequiresTier = (tier: SubscriptionTier) => SetMetadata(TIER_KEY, tier);
+export const RequiresTier = (tier: SubscriptionTier) =>
+  SetMetadata(TIER_KEY, tier);

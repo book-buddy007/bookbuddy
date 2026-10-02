@@ -1,13 +1,11 @@
 import {
   IsString,
-  IsNotEmpty,
   IsEnum,
   IsNumber,
   Min,
   IsOptional,
   IsBoolean,
 } from 'class-validator';
-import { PartialType } from '@nestjs/mapped-types';
 import { SubscriptionStatus } from '@prisma/client';
 
 export class UpdateTenantSubscriptionDto {

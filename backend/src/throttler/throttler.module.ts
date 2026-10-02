@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { CustomThrottlerGuard, ACCOUNT_THROTTLER } from '../guards/throttler.guard';
+import {
+  CustomThrottlerGuard,
+  ACCOUNT_THROTTLER,
+} from '../guards/throttler.guard';
 
 /**
  * Two throttlers, deliberately.

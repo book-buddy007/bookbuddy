@@ -4,7 +4,13 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { VartaActivityService } from './varta-activity.service';
 
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 @UseGuards(BetterAuthGuard, RolesGuard)
 @Controller('students/me')
@@ -18,7 +24,10 @@ export class VartaActivityController {
    */
   @Get('varta-activity')
   @Roles(...READER_ROLES)
-  async getVartaActivity(@Query('bookId') bookId: string | undefined, @Req() req: any) {
+  async getVartaActivity(
+    @Query('bookId') bookId: string | undefined,
+    @Req() req: any,
+  ) {
     return this.activity.getActivity(req.user.id, bookId?.trim() || undefined);
   }
 }

@@ -15,7 +15,6 @@ import { BetterAuthGuard } from '../guards/better-auth.guard';
 import {
   NotificationsService,
   RegisterDeviceTokenDto,
-  SendPushDto,
 } from './notifications.service';
 
 @Controller('notifications')
@@ -59,7 +58,10 @@ export class NotificationsController {
 
   @Post('push-test')
   @HttpCode(HttpStatus.OK)
-  sendTestPush(@Req() req: any, @Body() body: { title?: string; body?: string }) {
+  sendTestPush(
+    @Req() req: any,
+    @Body() body: { title?: string; body?: string },
+  ) {
     return this.notificationsService.sendPushToUser({
       userId: req.user.id,
       title: body.title || 'Book Buddy by VPD Notification',

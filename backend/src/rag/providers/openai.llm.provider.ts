@@ -23,7 +23,9 @@ export class OpenAiLlmProvider implements ILlmProvider {
     signal?: AbortSignal,
   ): Promise<void> {
     if (!this.apiKey) {
-      throw new Error('OpenAI fallback is not configured — set OPENAI_API_KEY.');
+      throw new Error(
+        'OpenAI fallback is not configured — set OPENAI_API_KEY.',
+      );
     }
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {

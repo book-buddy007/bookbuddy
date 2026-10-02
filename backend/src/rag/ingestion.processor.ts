@@ -6,7 +6,8 @@ import { FileService } from './file.service';
 import { ContentSpineService } from './content-spine.service';
 import { QdrantInitService } from './qdrant-init.service';
 
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 
 /**
  * Trio interim path: DCP's enhanced-rag-pipeline is the sole ingestion writer
@@ -63,13 +64,20 @@ export class IngestionProcessor extends WorkerHost {
    * construction: delete then insert, inside one transaction, so a failure
    * leaves the previous mapping rather than a half-built one.
    */
-  private async rebuildChunkMapping(bookId: string, contentItemId: string): Promise<number> {
+  private async rebuildChunkMapping(
+    bookId: string,
+    contentItemId: string,
+  ): Promise<number> {
     const qdrant = this.qdrantInit.getClient();
 
     type Row = {
-      bookId: string; chunkIndex: number; qdrantPointId: string;
-      pageNumber: number | null; chapterTitle: string | null;
-      textPreview: string; runId: string | null;
+      bookId: string;
+      chunkIndex: number;
+      qdrantPointId: string;
+      pageNumber: number | null;
+      chapterTitle: string | null;
+      textPreview: string;
+      runId: string | null;
     };
     const rows: Row[] = [];
 
@@ -80,7 +88,9 @@ export class IngestionProcessor extends WorkerHost {
     let offset: any = undefined;
     do {
       const page = await qdrant.scroll(COLLECTION, {
-        filter: { must: [{ key: 'content_item_id', match: { value: contentItemId } }] },
+        filter: {
+          must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+        },
         with_payload: true,
         with_vector: false,
         limit: 256,
@@ -119,7 +129,10 @@ export class IngestionProcessor extends WorkerHost {
 
     await this.prisma.$transaction([
       this.prisma.bookChunkMapping.deleteMany({ where: { bookId } }),
-      this.prisma.bookChunkMapping.createMany({ data: rows, skipDuplicates: true }),
+      this.prisma.bookChunkMapping.createMany({
+        data: rows,
+        skipDuplicates: true,
+      }),
     ]);
 
     return rows.length;
@@ -211,18 +224,29 @@ export class IngestionProcessor extends WorkerHost {
         );
       }
 
-      const outcomes: Array<{ part: number; ok: boolean; chunks: number; detail?: string }> = [];
+      const outcomes: Array<{
+        part: number;
+        ok: boolean;
+        chunks: number;
+        detail?: string;
+      }> = [];
       let contentItemId: string | undefined;
 
       for (const [i, fmt] of chapters.entries()) {
         const part = fmt.partIndex;
-        const filename = fmt.fileUrl!.split('/').pop() ?? `${bookId}-${part}.md`;
+        const filename =
+          fmt.fileUrl!.split('/').pop() ?? `${bookId}-${part}.md`;
 
         let mdBuffer: Buffer;
         try {
           mdBuffer = await this.fileService.getFileBuffer(fmt.fileUrl!);
         } catch (fetchErr: any) {
-          outcomes.push({ part, ok: false, chunks: 0, detail: `fetch failed: ${fetchErr.message}` });
+          outcomes.push({
+            part,
+            ok: false,
+            chunks: 0,
+            detail: `fetch failed: ${fetchErr.message}`,
+          });
           continue;
         }
         this.logger.log(
@@ -251,7 +275,10 @@ export class IngestionProcessor extends WorkerHost {
         // explicit operator re-embed, never from the ordinary ingest path.
         if (force) {
           form.append('force', 'true');
-          form.append('forceReason', 'Book Buddy re-embed: re-index under the current chunker');
+          form.append(
+            'forceReason',
+            'Book Buddy re-embed: re-index under the current chunker',
+          );
         }
         form.append('bookTitle', book.title);
         form.append('sourceApp', 'bookbuddy');
@@ -284,13 +311,22 @@ export class IngestionProcessor extends WorkerHost {
             signal: AbortSignal.timeout(10 * 60 * 1000), // embedding a long chapter
           });
         } catch (netErr: any) {
-          outcomes.push({ part, ok: false, chunks: 0, detail: `request failed: ${netErr.message}` });
+          outcomes.push({
+            part,
+            ok: false,
+            chunks: 0,
+            detail: `request failed: ${netErr.message}`,
+          });
           continue;
         }
 
         const bodyText = await response.text().catch(() => '');
         let parsed: any = {};
-        try { parsed = bodyText ? JSON.parse(bodyText) : {}; } catch { /* keep raw */ }
+        try {
+          parsed = bodyText ? JSON.parse(bodyText) : {};
+        } catch {
+          /* keep raw */
+        }
 
         if (!response.ok || !parsed.success) {
           // The message is the useful part — DCP refuses with a reason a human
@@ -298,15 +334,21 @@ export class IngestionProcessor extends WorkerHost {
           // collapsing that into "ingest failed" is what makes an operator
           // re-upload a file that was never the problem.
           outcomes.push({
-            part, ok: false, chunks: 0,
-            detail: parsed.error || `HTTP ${response.status} ${bodyText.slice(0, 200)}`,
+            part,
+            ok: false,
+            chunks: 0,
+            detail:
+              parsed.error ||
+              `HTTP ${response.status} ${bodyText.slice(0, 200)}`,
           });
           continue;
         }
 
         contentItemId = parsed.contentItemId ?? contentItemId;
         outcomes.push({ part, ok: true, chunks: parsed.chunksIndexed ?? 0 });
-        await job.updateProgress(20 + Math.round(((i + 1) / chapters.length) * 65));
+        await job.updateProgress(
+          20 + Math.round(((i + 1) / chapters.length) * 65),
+        );
       }
 
       const failed = outcomes.filter((o) => !o.ok);
@@ -330,7 +372,12 @@ export class IngestionProcessor extends WorkerHost {
         this.logger.error(`⚠️ Partial ingest for book ${bookId}: ${detail}`);
         await this.prisma.bookEmbeddingStatus.update({
           where: { bookId },
-          data: { status: 'FAILED', errorMessage: detail, totalChunks, embeddedChunks: totalChunks },
+          data: {
+            status: 'FAILED',
+            errorMessage: detail,
+            totalChunks,
+            embeddedChunks: totalChunks,
+          },
         });
         await this.prisma.book.update({
           where: { id: bookId },
@@ -366,8 +413,13 @@ export class IngestionProcessor extends WorkerHost {
       let mappedChunks = 0;
       if (result.contentItemId) {
         try {
-          mappedChunks = await this.rebuildChunkMapping(bookId, result.contentItemId);
-          this.logger.log(`🔗 Chunk mapping rebuilt for book ${bookId}: ${mappedChunks} row(s)`);
+          mappedChunks = await this.rebuildChunkMapping(
+            bookId,
+            result.contentItemId,
+          );
+          this.logger.log(
+            `🔗 Chunk mapping rebuilt for book ${bookId}: ${mappedChunks} row(s)`,
+          );
         } catch (mapErr: any) {
           this.logger.error(
             `Chunk mapping rebuild FAILED for book ${bookId}: ${mapErr.message}. The chapter is ` +
@@ -408,9 +460,15 @@ export class IngestionProcessor extends WorkerHost {
       await this.graphQueue.add(
         'extract-graph',
         { bookId },
-        { jobId: `graph-ingest-${bookId}`, removeOnComplete: true, removeOnFail: true },
+        {
+          jobId: `graph-ingest-${bookId}`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
       );
-      this.logger.log(`Enqueued chapter-wise graph pre-generation for "${book.title}" (${bookId})`);
+      this.logger.log(
+        `Enqueued chapter-wise graph pre-generation for "${book.title}" (${bookId})`,
+      );
 
       const elapsedMs = Date.now() - startTime;
       this.logger.log(

@@ -14,7 +14,11 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { S3Service } from '../aws/s3.service';
 import { CreateJoinRequestDto } from './dto/create-join-request.dto';
-import { PROOF_MAX_BYTES, PROOF_MIME_TYPES, ProofUploadDto } from './dto/proof-upload.dto';
+import {
+  PROOF_MAX_BYTES,
+  PROOF_MIME_TYPES,
+  ProofUploadDto,
+} from './dto/proof-upload.dto';
 
 /**
  * Proof documents live under `join-proofs/<userId>/` in the media bucket, the same
@@ -73,12 +77,19 @@ export class JoinRequestsService {
       select: { userId: true, tenantId: true, proofDocument: true },
     });
     if (!request) throw new NotFoundException('Join request not found');
-    if (request.userId !== viewer.id) await this.assertCanReview(viewer, request.tenantId);
+    if (request.userId !== viewer.id)
+      await this.assertCanReview(viewer, request.tenantId);
 
-    if (!request.proofDocument || !proofKeyPattern(request.userId).test(request.proofDocument)) {
+    if (
+      !request.proofDocument ||
+      !proofKeyPattern(request.userId).test(request.proofDocument)
+    ) {
       throw new NotFoundException('This request has no document attached');
     }
-    const url = await this.s3.getPresignedDownloadUrl({ key: request.proofDocument, expiresInSeconds: 300 });
+    const url = await this.s3.getPresignedDownloadUrl({
+      key: request.proofDocument,
+      expiresInSeconds: 300,
+    });
     return { url };
   }
 
@@ -105,12 +116,15 @@ export class JoinRequestsService {
       );
     }
 
-    const existingMembership = await this.prisma.userTenantMembership.findUnique(
-      { where: { userId_tenantId: { userId, tenantId: dto.tenantId } } },
-    );
+    const existingMembership =
+      await this.prisma.userTenantMembership.findUnique({
+        where: { userId_tenantId: { userId, tenantId: dto.tenantId } },
+      });
 
     if (existingMembership?.status === MembershipStatus.ACTIVE) {
-      throw new BadRequestException(`You are already a member of ${tenant.name}`);
+      throw new BadRequestException(
+        `You are already a member of ${tenant.name}`,
+      );
     }
 
     const pending = await this.prisma.joinRequest.findFirst({
@@ -128,7 +142,9 @@ export class JoinRequestsService {
     }
 
     if (dto.proofDocument && !proofKeyPattern(userId).test(dto.proofDocument)) {
-      throw new BadRequestException('The attached document could not be verified. Upload it again.');
+      throw new BadRequestException(
+        'The attached document could not be verified. Upload it again.',
+      );
     }
 
     return this.prisma.joinRequest.create({
@@ -201,7 +217,10 @@ export class JoinRequestsService {
     await this.prisma.joinRequest.delete({ where: { id } });
 
     // The withdrawn request's ID document has no further use; best-effort removal.
-    if (request.proofDocument && proofKeyPattern(userId).test(request.proofDocument)) {
+    if (
+      request.proofDocument &&
+      proofKeyPattern(userId).test(request.proofDocument)
+    ) {
       await this.s3.deleteFile(request.proofDocument).catch(() => undefined);
     }
     return { success: true, message: 'Join request withdrawn' };
@@ -252,7 +271,10 @@ export class JoinRequestsService {
     const [, updated] = await this.prisma.$transaction([
       this.prisma.userTenantMembership.upsert({
         where: {
-          userId_tenantId: { userId: request.userId, tenantId: request.tenantId },
+          userId_tenantId: {
+            userId: request.userId,
+            tenantId: request.tenantId,
+          },
         },
         create: {
           userId: request.userId,

@@ -19,7 +19,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TextAdaptationService } from './text-adaptation.service';
 
 const SYSTEM_TENANT = '__SYSTEM__';
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 @UseGuards(BetterAuthGuard, RolesGuard, AiFeatureGuard)
 @Controller('books')
@@ -38,7 +44,11 @@ export class TextAdaptationController {
 
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: req.user.id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
       if (!membership) {
@@ -60,7 +70,11 @@ export class TextAdaptationController {
     @Req() req: any,
   ) {
     await this.authorizeBookAccess(bookId, req);
-    return this.textAdaptation.getAdaptiveFlags(bookId, decodeURIComponent(chapterTitle), req.user.id);
+    return this.textAdaptation.getAdaptiveFlags(
+      bookId,
+      decodeURIComponent(chapterTitle),
+      req.user.id,
+    );
   }
 
   @Post(':bookId/paragraphs/:paragraphId/simplify')
@@ -76,6 +90,10 @@ export class TextAdaptationController {
     if (!body?.targetLevel?.trim()) {
       throw new BadRequestException('"targetLevel" is required.');
     }
-    return this.textAdaptation.simplify(bookId, paragraphId, body.targetLevel.trim());
+    return this.textAdaptation.simplify(
+      bookId,
+      paragraphId,
+      body.targetLevel.trim(),
+    );
   }
 }

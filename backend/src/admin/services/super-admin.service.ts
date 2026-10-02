@@ -11,6 +11,8 @@ import { S3Service } from '../../aws/s3.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -483,46 +485,84 @@ export class SuperAdminService {
     const accountType =
       data.accountType === 'INDEPENDENT' ? 'INDEPENDENT' : 'INSTITUTIONAL';
 
-    // Parse metadata to split between User and TenantMembership
-    let userMetadata: any = undefined;
-    let membershipMetadata: any = undefined;
+    // Parse metadata to split between User and TenantMembership. Blank form
+    // fields are dropped rather than stored as empty strings.
+    const compact = (o: Record<string, unknown>) => {
+      const out = Object.fromEntries(
+        Object.entries(o).filter(([, v]) => v !== undefined && v !== ''),
+      );
+      return Object.keys(out).length ? out : undefined;
+    };
+    let userMetadata: Record<string, unknown> | undefined = undefined;
+    let membershipMetadata: Record<string, unknown> | undefined = undefined;
 
     if (accountType === 'INDEPENDENT') {
       userMetadata = {
         subscriptionTier: data.subscriptionTier || 'basic',
       };
     } else if (data.metadata) {
-      userMetadata = {
+      userMetadata = compact({
         bloodGroup: data.metadata.bloodGroup,
         aadharNumber: data.metadata.aadharNumber,
         fatherName: data.metadata.fatherName,
         motherName: data.metadata.motherName,
         address: data.metadata.address,
-      };
-      membershipMetadata = {
+      });
+      membershipMetadata = compact({
         rollNo: data.metadata.rollNo,
         admissionNumber: data.metadata.admissionNumber,
-      };
+      });
     }
+
+    // The form sends a plain-text password (optional). Hash it, and write it to
+    // both credential stores: User.password for the backend/mobile login and a
+    // better-auth credential Account for the web login. Without the Account row
+    // the new user could never sign in on the web.
+    const userId = randomUUID();
+    const hashedPassword = data.password
+      ? await bcrypt.hash(String(data.password), 12)
+      : undefined;
 
     return this.prisma.user.create({
       data: {
+        id: userId,
         email: data.email,
         name: data.name,
-        password: data.password, // Assume password is already hashed
+        password: hashedPassword,
         role: userRole,
         accountType: accountType,
         isActive: true,
         emailVerified: false,
+        metadata: userMetadata as any,
+        accounts: hashedPassword
+          ? {
+              create: {
+                id: randomUUID(),
+                accountId: userId,
+                providerId: 'credential',
+                password: hashedPassword,
+              },
+            }
+          : undefined,
         tenantMemberships: data.tenantId
           ? {
               create: {
                 tenantId: data.tenantId,
                 role: tenantRole,
                 status: 'ACTIVE',
+                metadata: membershipMetadata as any,
               },
             }
           : undefined,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        accountType: true,
+        isActive: true,
+        createdAt: true,
       },
     });
   }
@@ -636,7 +676,7 @@ export class SuperAdminService {
   }
 
   // Audit log methods
-  async getAuditLogs(filters: {
+  getAuditLogs(_filters: {
     tenantId?: string;
     userId?: string;
     startDate?: Date;
@@ -644,7 +684,7 @@ export class SuperAdminService {
     action?: string;
   }) {
     // AuditLog model removed from schema — return empty array
-    return [];
+    return Promise.resolve([]);
   }
 
   // ============================================

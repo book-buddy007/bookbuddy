@@ -5,10 +5,7 @@ import {
   IsIn,
   IsBoolean,
   IsArray,
-  ArrayNotEmpty,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class PresignUploadDto {
   @IsString()

@@ -6,7 +6,6 @@ import {
   Param,
   UseGuards,
   Req,
-  UnauthorizedException,
   Query,
   ForbiddenException,
 } from '@nestjs/common';

@@ -4,7 +4,13 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { ResurfacingService } from './resurfacing.service';
 
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 // Self-authenticating (`students/me/...`, not `students/:id/...`) — same
 // pattern as quiz.controller.ts's `students/me/mastery`. An arbitrary `:id`

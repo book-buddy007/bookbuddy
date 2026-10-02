@@ -35,8 +35,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
    * `trust proxy` setting applied in main.ts fix that together; neither works
    * alone.
    */
-  protected async getTracker(req: Record<string, any>): Promise<string> {
-    return getClientIp(req);
+  protected getTracker(req: Record<string, any>): Promise<string> {
+    return Promise.resolve(getClientIp(req));
   }
 
   /**
@@ -51,7 +51,11 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
    * constant — a constant would recreate the shared-bucket defect this class was
    * changed to fix.
    */
-  protected generateKey(context: ExecutionContext, suffix: string, name: string): string {
+  protected generateKey(
+    context: ExecutionContext,
+    suffix: string,
+    name: string,
+  ): string {
     if (name === ACCOUNT_THROTTLER) {
       const { req } = this.getRequestResponse(context);
       const accountKey = getTargetAccountKey(req) ?? suffix;

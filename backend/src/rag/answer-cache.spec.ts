@@ -33,21 +33,33 @@ describe('answer cache', () => {
     });
 
     it('keeps questions that differ by a real word apart', () => {
-      expect(normalizeQuery('what is demand')).not.toBe(normalizeQuery('what is supply'));
+      expect(normalizeQuery('what is demand')).not.toBe(
+        normalizeQuery('what is supply'),
+      );
       // No stemming, deliberately — conflating these would answer the wrong one.
-      expect(normalizeQuery('what is a market')).not.toBe(normalizeQuery('what are markets'));
+      expect(normalizeQuery('what is a market')).not.toBe(
+        normalizeQuery('what are markets'),
+      );
     });
   });
 
   describe('buildAnswerKey', () => {
-    const base = { bookId: 'b1', mode: 'explain' as const, query: 'what is demand' };
+    const base = {
+      bookId: 'b1',
+      mode: 'explain' as const,
+      query: 'what is demand',
+    };
 
     it('matches across trivial phrasing differences', () => {
-      expect(buildAnswerKey(base)).toBe(buildAnswerKey({ ...base, query: 'What is demand?' }));
+      expect(buildAnswerKey(base)).toBe(
+        buildAnswerKey({ ...base, query: 'What is demand?' }),
+      );
     });
 
     it('separates books', () => {
-      expect(buildAnswerKey(base)).not.toBe(buildAnswerKey({ ...base, bookId: 'b2' }));
+      expect(buildAnswerKey(base)).not.toBe(
+        buildAnswerKey({ ...base, bookId: 'b2' }),
+      );
     });
 
     it('separates curriculum scopes', () => {
@@ -68,7 +80,10 @@ describe('answer cache', () => {
 
   describe('AnswerCacheService', () => {
     let cache: AnswerCacheService;
-    const answer = { content: 'Demand rises [1].', citations: [{ index: 1, pageNumber: 199 }] };
+    const answer = {
+      content: 'Demand rises [1].',
+      citations: [{ index: 1, pageNumber: 199 }],
+    };
 
     beforeEach(() => {
       cache = new AnswerCacheService();
@@ -84,7 +99,10 @@ describe('answer cache', () => {
       /* An uncited answer is a refusal or an upstream failure. Caching it
          would pin that outcome for everyone asking the same question — including
          after the underlying problem is fixed. */
-      cache.set('k', { content: "I couldn't find this in the book.", citations: [] });
+      cache.set('k', {
+        content: "I couldn't find this in the book.",
+        citations: [],
+      });
       expect(cache.get('k')).toBeNull();
     });
 

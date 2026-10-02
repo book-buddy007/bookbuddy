@@ -21,7 +21,13 @@ import { GraphService } from './graph.service';
 import { GraphEmbeddingService } from './graph-embedding.service';
 
 const SYSTEM_TENANT = '__SYSTEM__';
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 @Controller('books/:bookId/graph')
 @UseGuards(BetterAuthGuard, RolesGuard)
@@ -46,7 +52,11 @@ export class GraphController {
 
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: req.user.id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
       if (!membership) {
@@ -123,7 +133,11 @@ export class GraphController {
     if (!body?.query?.trim()) {
       throw new BadRequestException('"query" is required.');
     }
-    return this.graphService.queryGraph(bookId, body.query.trim(), body.maxHops);
+    return this.graphService.queryGraph(
+      bookId,
+      body.query.trim(),
+      body.maxHops,
+    );
   }
 
   /**
@@ -151,7 +165,9 @@ export class GraphController {
     // are read. A scoped build always runs — it replaces the current map with
     // the chosen range — so there is no "already exists" short-circuit.
     const rawStart = Number(body?.pageStart);
-    const pageStart = Number.isFinite(rawStart) ? Math.max(1, Math.floor(rawStart)) : undefined;
+    const pageStart = Number.isFinite(rawStart)
+      ? Math.max(1, Math.floor(rawStart))
+      : undefined;
     const rawEnd = Number(body?.pageEnd);
     const pageEnd =
       pageStart != null
@@ -160,13 +176,20 @@ export class GraphController {
           : pageStart // no end given ⇒ a single page
         : undefined;
 
-    const jobId = pageStart != null ? `graph-${bookId}-p${pageStart}-${pageEnd}` : `graph-ondemand-${bookId}`;
+    const jobId =
+      pageStart != null
+        ? `graph-${bookId}-p${pageStart}-${pageEnd}`
+        : `graph-ondemand-${bookId}`;
     await this.graphQueue.add(
       'extract-graph',
       { bookId, pageStart, pageEnd },
       { jobId, removeOnComplete: true, removeOnFail: true },
     );
-    return { status: 'queued' as const, pageStart: pageStart ?? null, pageEnd: pageEnd ?? null };
+    return {
+      status: 'queued' as const,
+      pageStart: pageStart ?? null,
+      pageEnd: pageEnd ?? null,
+    };
   }
 
   // Semantic sibling of /query: ranks entities by what they're ABOUT (vector

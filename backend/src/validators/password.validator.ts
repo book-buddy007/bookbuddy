@@ -14,7 +14,7 @@ import {
 export class IsStrongPasswordConstraint
   implements ValidatorConstraintInterface
 {
-  validate(password: string, args: ValidationArguments) {
+  validate(password: string, _args: ValidationArguments) {
     if (!password || typeof password !== 'string') {
       return false;
     }
@@ -40,14 +40,14 @@ export class IsStrongPasswordConstraint
     }
 
     // At least one special character
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       return false;
     }
 
     return true;
   }
 
-  defaultMessage(args: ValidationArguments) {
+  defaultMessage(_args: ValidationArguments) {
     return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
   }
 }
@@ -85,7 +85,7 @@ export class IsDifferentFromOldConstraint
     return newPassword !== oldPassword;
   }
 
-  defaultMessage(args: ValidationArguments) {
+  defaultMessage(_args: ValidationArguments) {
     return 'New password must be different from current password';
   }
 }

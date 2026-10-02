@@ -34,7 +34,10 @@ export class ContentSpineService implements OnModuleDestroy {
    * would put a Postgres round-trip in front of every question for a value that
    * is stable for the life of the book.
    */
-  private readonly cache = new Map<string, { contentItemId: string | null; at: number }>();
+  private readonly cache = new Map<
+    string,
+    { contentItemId: string | null; at: number }
+  >();
   private static readonly TTL_MS = 5 * 60 * 1000;
 
   private getPool(): Pool | null {
@@ -52,8 +55,14 @@ export class ContentSpineService implements OnModuleDestroy {
     }
     // Small: this pool serves one lookup, and Book Buddy should not hold a large
     // share of the shared cluster's connections for it.
-    this.pool = new Pool({ connectionString, max: 3, idleTimeoutMillis: 30_000 });
-    this.pool.on('error', (err) => this.logger.error(`content spine pool error: ${err.message}`));
+    this.pool = new Pool({
+      connectionString,
+      max: 3,
+      idleTimeoutMillis: 30_000,
+    });
+    this.pool.on('error', (err) =>
+      this.logger.error(`content spine pool error: ${err.message}`),
+    );
     return this.pool;
   }
 
@@ -90,14 +99,18 @@ export class ContentSpineService implements OnModuleDestroy {
     if (!pool) return null;
 
     try {
-      const res = await pool.query<{ min_printed: number; max_printed: number }>(
+      const res = await pool.query<{
+        min_printed: number;
+        max_printed: number;
+      }>(
         `SELECT MIN(page_start)::int AS min_printed, MAX(page_end)::int AS max_printed
            FROM content.content_chunk
           WHERE content_item_id = $1`,
         [contentItemId],
       );
       const row = res.rows[0];
-      if (!row || row.min_printed == null || row.max_printed == null) return null;
+      if (!row || row.min_printed == null || row.max_printed == null)
+        return null;
       return {
         minPrinted: row.min_printed,
         maxPrinted: row.max_printed,
@@ -106,14 +119,17 @@ export class ContentSpineService implements OnModuleDestroy {
     } catch (err: any) {
       // Same fail-closed posture as resolveContentItemId: a null here makes the
       // caller refuse to map pages rather than map them wrongly.
-      this.logger.error(`Could not read printed page span for book ${bookId}: ${err.message}`);
+      this.logger.error(
+        `Could not read printed page span for book ${bookId}: ${err.message}`,
+      );
       return null;
     }
   }
 
   async resolveContentItemId(bookId: string): Promise<string | null> {
     const hit = this.cache.get(bookId);
-    if (hit && Date.now() - hit.at < ContentSpineService.TTL_MS) return hit.contentItemId;
+    if (hit && Date.now() - hit.at < ContentSpineService.TTL_MS)
+      return hit.contentItemId;
 
     const pool = this.getPool();
     if (!pool) return null;
@@ -134,7 +150,9 @@ export class ContentSpineService implements OnModuleDestroy {
       // it cannot scope. Returning "no filter" on a database hiccup would answer
       // from the whole library and cite the wrong book, which is worse than an
       // error because nothing about it looks wrong.
-      this.logger.error(`Could not resolve content_item for book ${bookId}: ${err.message}`);
+      this.logger.error(
+        `Could not resolve content_item for book ${bookId}: ${err.message}`,
+      );
       return null;
     }
   }

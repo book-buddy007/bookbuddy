@@ -26,10 +26,9 @@ export class AuditInterceptor implements NestInterceptor {
     if (!meta) return next.handle(); // Not decorated → skip
 
     const req = context.switchToHttp().getRequest();
-    const startTime = Date.now();
 
     return next.handle().pipe(
-      tap(async (responseData) => {
+      tap((responseData) => {
         try {
           // AuditLog model removed from schema — no-op
           // Original code wrote audit log entries here

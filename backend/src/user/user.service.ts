@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -18,7 +22,6 @@ export class UserService {
       where: { id: userId },
     });
     if (!userPre) {
-      const { NotFoundException } = require('@nestjs/common');
       throw new NotFoundException('User not found');
     }
 
@@ -27,13 +30,11 @@ export class UserService {
 
     // Cannot advance to step 2 unless email is verified at DB level
     if (targetStep === 2 && !userPre.emailVerified) {
-      const { BadRequestException } = require('@nestjs/common');
       throw new BadRequestException('Email must be verified before proceeding');
     }
 
     // Cannot complete onboarding without accountType
     if (targetStep >= 3 && !data.accountType && !userPre.accountType) {
-      const { BadRequestException } = require('@nestjs/common');
       throw new BadRequestException(
         'accountType is required to complete onboarding',
       );
@@ -41,7 +42,6 @@ export class UserService {
 
     // Prevent step regression
     if (targetStep < userPre.onboardingStep) {
-      const { BadRequestException } = require('@nestjs/common');
       throw new BadRequestException(
         'Cannot go back to a previous onboarding step',
       );
@@ -72,8 +72,9 @@ export class UserService {
         data.gradeLevel < 1 ||
         data.gradeLevel > 12
       ) {
-        const { BadRequestException } = require('@nestjs/common');
-        throw new BadRequestException('gradeLevel must be an integer between 1 and 12');
+        throw new BadRequestException(
+          'gradeLevel must be an integer between 1 and 12',
+        );
       }
       const resolvedAccountType = data.accountType ?? userPre.accountType;
       if (resolvedAccountType === 'INDEPENDENT') {
@@ -251,7 +252,6 @@ export class UserService {
       where: { id: userId },
     });
     if (!user) {
-      const { NotFoundException } = require('@nestjs/common');
       throw new NotFoundException('User not found');
     }
 

@@ -1,4 +1,12 @@
-import { IsIn, IsInt, IsNotEmpty, IsString, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 /** Types a proof document may be: a scan or photo of an ID, or a PDF letter. */
 export const PROOF_MIME_TYPES = {

@@ -17,10 +17,19 @@ import { TierGuard } from '../auth/tier.guard';
 import { AiFeatureGuard } from '../ai-entitlement/ai-feature.guard';
 import { AiFeatureGate } from '../ai-entitlement/ai-feature.decorator';
 import { PrismaService } from '../prisma/prisma.service';
-import { VisualGroundingService, BoundingBox } from './visual-grounding.service';
+import {
+  VisualGroundingService,
+  BoundingBox,
+} from './visual-grounding.service';
 
 const SYSTEM_TENANT = '__SYSTEM__';
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 @Controller('books')
 @UseGuards(BetterAuthGuard, RolesGuard, TierGuard, AiFeatureGuard)
@@ -39,7 +48,11 @@ export class VisualGroundingController {
 
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: req.user.id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
       if (!membership) {
@@ -60,13 +73,20 @@ export class VisualGroundingController {
   async visualQuery(
     @Param('bookId') bookId: string,
     @Param('pageNum') pageNum: string,
-    @Body() body: { image?: string; question?: string; boundingBox?: BoundingBox },
+    @Body()
+    body: { image?: string; question?: string; boundingBox?: BoundingBox },
     @Req() req: any,
   ) {
     await this.authorizeBookAccess(bookId, req);
     if (!body?.image) {
-      throw new BadRequestException('"image" is required — this endpoint has no server-side page image to resolve.');
+      throw new BadRequestException(
+        '"image" is required — this endpoint has no server-side page image to resolve.',
+      );
     }
-    return this.visualGrounding.query(body.image, body.question ?? '', body.boundingBox);
+    return this.visualGrounding.query(
+      body.image,
+      body.question ?? '',
+      body.boundingBox,
+    );
   }
 }

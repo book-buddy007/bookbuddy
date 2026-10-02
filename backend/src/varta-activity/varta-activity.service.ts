@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AiEntitlementService, TRIAL_FEATURE_DAILY_LIMIT } from '../ai-entitlement/ai-entitlement.service';
+import {
+  AiEntitlementService,
+  TRIAL_FEATURE_DAILY_LIMIT,
+} from '../ai-entitlement/ai-entitlement.service';
 
 // The Varta surfaces a student's activity spans: the chat (BookChatMessage) and
 // the quiz (QuizAttempt / ConceptMastery). Graph, Digest, Simplify live under
@@ -27,7 +30,11 @@ export class VartaActivityService {
    * and is labelled as overall usage on the client.
    */
   async getActivity(userId: string, bookId?: string) {
-    const chatWhere = { userId, role: 'USER' as const, ...(bookId ? { bookId } : {}) };
+    const chatWhere = {
+      userId,
+      role: 'USER' as const,
+      ...(bookId ? { bookId } : {}),
+    };
     const quizWhere = { userId, ...(bookId ? { item: { bookId } } : {}) };
     const masteryWhere = { userId, ...(bookId ? { bookId } : {}) };
 
@@ -44,15 +51,26 @@ export class VartaActivityService {
       recentQuizzesRaw,
     ] = await Promise.all([
       bookId
-        ? this.prisma.book.findUnique({ where: { id: bookId }, select: { id: true, title: true, author: true } })
+        ? this.prisma.book.findUnique({
+            where: { id: bookId },
+            select: { id: true, title: true, author: true },
+          })
         : Promise.resolve(null),
       this.prisma.bookChatMessage.count({ where: chatWhere }),
-      this.prisma.bookChatMessage.groupBy({ by: ['mode'], where: chatWhere, _count: { _all: true } }),
+      this.prisma.bookChatMessage.groupBy({
+        by: ['mode'],
+        where: chatWhere,
+        _count: { _all: true },
+      }),
       this.prisma.quizAttempt.count({ where: quizWhere }),
       this.prisma.quizAttempt.count({ where: { ...quizWhere, correct: true } }),
       this.prisma.conceptMastery.findMany({
         where: masteryWhere,
-        select: { mastery: true, attempts: true, concept: { select: { label: true } } },
+        select: {
+          mastery: true,
+          attempts: true,
+          concept: { select: { label: true } },
+        },
         orderBy: { mastery: 'desc' },
       }),
       this.prisma.aiFeatureUsage.findMany({
@@ -68,7 +86,13 @@ export class VartaActivityService {
         where: chatWhere,
         orderBy: { createdAt: 'desc' },
         take: 8,
-        select: { bookId: true, mode: true, content: true, createdAt: true, book: { select: { title: true } } },
+        select: {
+          bookId: true,
+          mode: true,
+          content: true,
+          createdAt: true,
+          book: { select: { title: true } },
+        },
       }),
       this.prisma.quizAttempt.findMany({
         where: quizWhere,
@@ -78,7 +102,13 @@ export class VartaActivityService {
           correct: true,
           answeredAt: true,
           item: {
-            select: { bookId: true, chapterTitle: true, citedPage: true, prompt: true, book: { select: { title: true } } },
+            select: {
+              bookId: true,
+              chapterTitle: true,
+              citedPage: true,
+              prompt: true,
+              book: { select: { title: true } },
+            },
           },
         },
       }),
@@ -90,8 +120,12 @@ export class VartaActivityService {
 
     // ── Mastery summary ──
     const tracked = masteryRows.length;
-    const averageMastery = tracked ? masteryRows.reduce((s, r) => s + r.mastery, 0) / tracked : null;
-    const strongest = masteryRows.slice(0, 5).map((r) => ({ label: r.concept.label, mastery: r.mastery }));
+    const averageMastery = tracked
+      ? masteryRows.reduce((s, r) => s + r.mastery, 0) / tracked
+      : null;
+    const strongest = masteryRows
+      .slice(0, 5)
+      .map((r) => ({ label: r.concept.label, mastery: r.mastery }));
     const weakest = masteryRows
       .slice(-5)
       .reverse()
@@ -114,7 +148,7 @@ export class VartaActivityService {
     }
 
     // ── Trial allowance (only meaningful while on a trial) ──
-    let trial: {
+    const trial: {
       isTrial: boolean;
       isPaid: boolean;
       trialEndsAt: Date | null;
@@ -131,7 +165,8 @@ export class VartaActivityService {
         where: { userId, date: today, feature: { in: ['varta', 'quiz'] } },
         select: { feature: true, count: true },
       });
-      const usedVarta = todayUsage.find((u) => u.feature === 'varta')?.count ?? 0;
+      const usedVarta =
+        todayUsage.find((u) => u.feature === 'varta')?.count ?? 0;
       const usedQuiz = todayUsage.find((u) => u.feature === 'quiz')?.count ?? 0;
       trial.remaining = {
         varta: Math.max(0, TRIAL_FEATURE_DAILY_LIMIT - usedVarta),

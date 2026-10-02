@@ -36,7 +36,7 @@ export class SanchikaService implements OnModuleDestroy {
       if (!this.warnedUnconfigured) {
         this.warnedUnconfigured = true;
         this.logger.warn(
-          'TRIO_SANCHIKA_DATABASE_URL is not set — the reader\'s Sanchika panel will ' +
+          "TRIO_SANCHIKA_DATABASE_URL is not set — the reader's Sanchika panel will " +
             'report itself unconfigured instead of showing DigiClassroom notes.',
         );
       }
@@ -44,8 +44,14 @@ export class SanchikaService implements OnModuleDestroy {
     }
     // Small: this pool serves one panel's polling, and Book Buddy should not hold a
     // large share of DCP's connections for it.
-    this.pool = new Pool({ connectionString, max: 3, idleTimeoutMillis: 30_000 });
-    this.pool.on('error', (err) => this.logger.error(`sanchika pool error: ${err.message}`));
+    this.pool = new Pool({
+      connectionString,
+      max: 3,
+      idleTimeoutMillis: 30_000,
+    });
+    this.pool.on('error', (err) =>
+      this.logger.error(`sanchika pool error: ${err.message}`),
+    );
     return this.pool;
   }
 
@@ -86,7 +92,9 @@ export class SanchikaService implements OnModuleDestroy {
     return {
       subjectId: account?.accountId ?? null,
       emailKey:
-        user?.emailVerified && user.email ? user.email.trim().toLowerCase() : null,
+        user?.emailVerified && user.email
+          ? user.email.trim().toLowerCase()
+          : null,
     };
   }
 
@@ -154,7 +162,9 @@ export class SanchikaService implements OnModuleDestroy {
     } catch (err: any) {
       // Fail CLOSED and loudly. Returning a partial or unfiltered list would be
       // returning someone else's notes.
-      this.logger.error(`Could not list Sanchika notes for user ${userId}: ${err.message}`);
+      this.logger.error(
+        `Could not list Sanchika notes for user ${userId}: ${err.message}`,
+      );
       throw err;
     }
   }
@@ -207,7 +217,9 @@ function toNote(r: RawNoteRow): SanchikaNoteRow {
     subject: r.subject,
     chapter: r.chapter,
     // `tags` is a json column in DCP and has held both an array and a string.
-    tags: Array.isArray(r.tags) ? (r.tags as string[]).filter((t) => typeof t === 'string') : [],
+    tags: Array.isArray(r.tags)
+      ? (r.tags as string[]).filter((t) => typeof t === 'string')
+      : [],
     sourceType: r.source_type,
     sourceQuery: r.source_query,
     isFavorite: r.is_favorite ?? false,

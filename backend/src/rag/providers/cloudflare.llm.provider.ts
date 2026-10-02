@@ -14,7 +14,10 @@ export class CloudflareLlmProvider implements ILlmProvider {
     // OpenAI primary carry the load), never crash app bootstrap for everyone.
     this.accountId = this.config.get<string>('CLOUDFLARE_ACCOUNT_ID', '');
     this.token = this.config.get<string>('CLOUDFLARE_AI_TOKEN', '');
-    this.model = this.config.get<string>('CF_CHAT_MODEL', '@cf/google/gemma-4-26b-a4b-it');
+    this.model = this.config.get<string>(
+      'CF_CHAT_MODEL',
+      '@cf/google/gemma-4-26b-a4b-it',
+    );
   }
 
   async chatStream(
@@ -31,7 +34,7 @@ export class CloudflareLlmProvider implements ILlmProvider {
     const res = await fetch(chatUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ messages, stream: true }),

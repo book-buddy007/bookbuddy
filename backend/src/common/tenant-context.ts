@@ -38,7 +38,9 @@ const TENANT_HEADERS = ['x-tenant-id', 'x-active-tenant-id'] as const;
 
 const CONTEXT_KEY = '__tenantContext';
 
-export function readTenantHeader(headers: Record<string, unknown>): string | null {
+export function readTenantHeader(
+  headers: Record<string, unknown>,
+): string | null {
   for (const name of TENANT_HEADERS) {
     const value = headers?.[name];
     if (typeof value === 'string' && value.trim()) return value.trim();

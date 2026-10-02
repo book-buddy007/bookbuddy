@@ -65,7 +65,9 @@ export function filterCitedOnly<T extends { index: number; chunkId?: string }>(
 ): T[] {
   const cited = parseCitedIndexes(answer);
   const citedIds = parseCitedChunkIds(answer);
-  return served.filter((c) => cited.has(c.index) || (c.chunkId != null && citedIds.has(c.chunkId)));
+  return served.filter(
+    (c) => cited.has(c.index) || (c.chunkId != null && citedIds.has(c.chunkId)),
+  );
 }
 
 /**
@@ -82,5 +84,7 @@ export function filterCitedOnly<T extends { index: number; chunkId?: string }>(
  */
 export function parseCitedChunkIds(answer: string): Set<string> {
   if (!answer) return new Set();
-  return new Set(Array.from(answer.matchAll(/\[cite:([^\]]+)\]/g), (m) => m[1].trim()));
+  return new Set(
+    Array.from(answer.matchAll(/\[cite:([^\]]+)\]/g), (m) => m[1].trim()),
+  );
 }

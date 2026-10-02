@@ -1,4 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, UserRole } from '@prisma/client';
 import { createHash, createHmac, timingSafeEqual } from 'crypto';
@@ -20,9 +24,7 @@ interface DeletionTokenPayload {
   p: typeof PURPOSE;
 }
 
-export type ConfirmResult =
-  | { status: 'deleted' }
-  | { status: 'invalid' };
+export type ConfirmResult = { status: 'deleted' } | { status: 'invalid' };
 
 /**
  * Public account-deletion flow (the Play Store "delete your account" URL):
@@ -50,7 +52,9 @@ export class AccountDeletionService {
   private key(): Buffer {
     const secret = this.config.get<string>('JWT_SECRET');
     if (!secret || secret.startsWith('__')) {
-      throw new ServiceUnavailableException('Account deletion is not configured on this server');
+      throw new ServiceUnavailableException(
+        'Account deletion is not configured on this server',
+      );
     }
     // Purpose-bound key, so this token can never be mistaken for any other signed value.
     return createHash('sha256').update(`${PURPOSE}:${secret}`).digest();
@@ -58,7 +62,9 @@ export class AccountDeletionService {
 
   private sign(payload: DeletionTokenPayload): string {
     const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-    const mac = createHmac('sha256', this.key()).update(body).digest('base64url');
+    const mac = createHmac('sha256', this.key())
+      .update(body)
+      .digest('base64url');
     return `${body}.${mac}`;
   }
 
@@ -67,10 +73,18 @@ export class AccountDeletionService {
     if (!body || !mac) return null;
     const expected = createHmac('sha256', this.key()).update(body).digest();
     const given = Buffer.from(mac, 'base64url');
-    if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+    if (given.length !== expected.length || !timingSafeEqual(given, expected))
+      return null;
     try {
-      const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as DeletionTokenPayload;
-      if (payload.p !== PURPOSE || typeof payload.uid !== 'string' || payload.exp < Date.now()) return null;
+      const payload = JSON.parse(
+        Buffer.from(body, 'base64url').toString('utf8'),
+      ) as DeletionTokenPayload;
+      if (
+        payload.p !== PURPOSE ||
+        typeof payload.uid !== 'string' ||
+        payload.exp < Date.now()
+      )
+        return null;
       return payload;
     } catch {
       return null;
@@ -86,7 +100,9 @@ export class AccountDeletionService {
     });
     if (!user) return;
     if (user.role === UserRole.SUPER_ADMIN) {
-      this.logger.warn(`Deletion requested for super-admin ${user.id}; ignored (must be done by another super-admin)`);
+      this.logger.warn(
+        `Deletion requested for super-admin ${user.id}; ignored (must be done by another super-admin)`,
+      );
       return;
     }
 
@@ -100,10 +116,21 @@ export class AccountDeletionService {
       },
     });
 
-    const token = this.sign({ uid: user.id, em: user.email, exp: Date.now() + TOKEN_TTL_MS, p: PURPOSE });
-    const sent = await this.email.sendAccountDeletionEmail(user.email, token, user.name || 'there');
+    const token = this.sign({
+      uid: user.id,
+      em: user.email,
+      exp: Date.now() + TOKEN_TTL_MS,
+      p: PURPOSE,
+    });
+    const sent = await this.email.sendAccountDeletionEmail(
+      user.email,
+      token,
+      user.name || 'there',
+    );
     if (!sent && process.env.NODE_ENV !== 'production') {
-      this.logger.warn(`[dev] Email not sent. Deletion link: ${this.email.accountDeletionLink(token)}`);
+      this.logger.warn(
+        `[dev] Email not sent. Deletion link: ${this.email.accountDeletionLink(token)}`,
+      );
     }
   }
 
@@ -115,22 +142,43 @@ export class AccountDeletionService {
       where: { id: payload.uid },
       select: { id: true, email: true, role: true, deletedAt: true },
     });
-    if (!user || user.deletedAt || user.email.toLowerCase() !== payload.em.toLowerCase() || user.role === UserRole.SUPER_ADMIN) {
+    if (
+      !user ||
+      user.deletedAt ||
+      user.email.toLowerCase() !== payload.em.toLowerCase() ||
+      user.role === UserRole.SUPER_ADMIN
+    ) {
       return { status: 'invalid' };
     }
 
     // Storage objects are not covered by database cascades; collect them first.
     const [files, requests] = await Promise.all([
-      this.prisma.personalFile.findMany({ where: { userId: user.id }, select: { storageKey: true } }),
-      this.prisma.joinRequest.findMany({ where: { userId: user.id }, select: { proofDocument: true } }),
+      this.prisma.personalFile.findMany({
+        where: { userId: user.id },
+        select: { storageKey: true },
+      }),
+      this.prisma.joinRequest.findMany({
+        where: { userId: user.id },
+        select: { proofDocument: true },
+      }),
     ]);
     const objectKeys = [
       ...files.map((f) => f.storageKey),
-      ...requests.map((r) => r.proofDocument).filter((k): k is string => !!k && k.startsWith(`join-proofs/${user.id}/`)),
+      ...requests
+        .map((r) => r.proofDocument)
+        .filter(
+          (k): k is string => !!k && k.startsWith(`join-proofs/${user.id}/`),
+        ),
     ];
 
     await this.prisma.auditLog.create({
-      data: { userId: user.id, action: 'account_deleted_by_request', entityType: 'user', entityId: user.id, metadata: { at: new Date().toISOString() } },
+      data: {
+        userId: user.id,
+        action: 'account_deleted_by_request',
+        entityType: 'user',
+        entityId: user.id,
+        metadata: { at: new Date().toISOString() },
+      },
     });
 
     try {
@@ -139,14 +187,26 @@ export class AccountDeletionService {
     } catch (err) {
       // Something outside the user's own data still points at them (e.g. assignments they
       // set as a teacher). Fall back to anonymising the account and removing their content.
-      if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== 'P2003') throw err;
-      this.logger.warn(`Hard delete of ${user.id} blocked by a reference; anonymising instead`);
+      if (
+        !(err instanceof Prisma.PrismaClientKnownRequestError) ||
+        err.code !== 'P2003'
+      )
+        throw err;
+      this.logger.warn(
+        `Hard delete of ${user.id} blocked by a reference; anonymising instead`,
+      );
       await this.purgeContent(user.id);
       await this.users.deleteAccount(user.id);
     }
 
     if (objectKeys.length > 0) {
-      await this.s3.deleteMany(objectKeys).catch((e) => this.logger.error(`Storage cleanup for ${user.id} failed: ${e?.message}`));
+      await this.s3
+        .deleteMany(objectKeys)
+        .catch((e) =>
+          this.logger.error(
+            `Storage cleanup for ${user.id} failed: ${e?.message}`,
+          ),
+        );
     }
     return { status: 'deleted' };
   }

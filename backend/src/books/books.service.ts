@@ -184,7 +184,10 @@ export class BooksService {
 
     const books = await this.prisma.book.findMany({
       where: { id: { in: rows.map((r) => r.bookId) }, ...this.publicBookWhere },
-      include: { categories: { include: { category: true } }, bookFormats: true },
+      include: {
+        categories: { include: { category: true } },
+        bookFormats: true,
+      },
     });
 
     // Re-apply the borrow ranking: findMany does not preserve `in` order, and
@@ -226,7 +229,10 @@ export class BooksService {
         id: { notIn: readIds }, // don't recommend what they've already borrowed
         categories: { some: { categoryId: { in: categoryIds } } },
       },
-      include: { categories: { include: { category: true } }, bookFormats: true },
+      include: {
+        categories: { include: { category: true } },
+        bookFormats: true,
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
@@ -305,11 +311,17 @@ export class BooksService {
       key,
       expiresInSeconds,
     });
-    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
+    const expiresAt = new Date(
+      Date.now() + expiresInSeconds * 1000,
+    ).toISOString();
 
     if (book.drmProtected) {
       return {
-        encryptedUrl: this.secureLinks.encryptPayload({ url, expiresAt, format }),
+        encryptedUrl: this.secureLinks.encryptPayload({
+          url,
+          expiresAt,
+          format,
+        }),
         format,
       };
     }

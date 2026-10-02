@@ -27,8 +27,13 @@ export class AlignmentService {
     private config: ConfigService,
   ) {}
 
-  async getOrGenerate(sectionId: string, gender: 'MALE' | 'FEMALE'): Promise<AlignedWord[]> {
-    const track = await this.prisma.audioTrack.findFirst({ where: { sectionId, gender } });
+  async getOrGenerate(
+    sectionId: string,
+    gender: 'MALE' | 'FEMALE',
+  ): Promise<AlignedWord[]> {
+    const track = await this.prisma.audioTrack.findFirst({
+      where: { sectionId, gender },
+    });
     if (!track) {
       throw new NotFoundException(`No ${gender} audio track for this section.`);
     }
@@ -52,7 +57,9 @@ export class AlignmentService {
 
     try {
       if (!track.section.transcriptUrl) {
-        throw new Error('This section has no reference transcript to align against.');
+        throw new Error(
+          'This section has no reference transcript to align against.',
+        );
       }
 
       const [audioBuffer, referenceText] = await Promise.all([
@@ -76,7 +83,9 @@ export class AlignmentService {
       this.logger.log(`Aligned ${aligned.length} words for track ${trackId}`);
       return aligned;
     } catch (err: any) {
-      this.logger.error(`Alignment failed for track ${trackId}: ${err.message}`);
+      this.logger.error(
+        `Alignment failed for track ${trackId}: ${err.message}`,
+      );
       await this.prisma.audioTrack.update({
         where: { id: trackId },
         data: { alignmentStatus: 'failed', alignmentError: err.message },
@@ -88,14 +97,18 @@ export class AlignmentService {
   private async fetchAudio(fileUrl: string): Promise<Buffer> {
     const url = await this.s3.getPresignedDownloadUrl({ key: fileUrl });
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch audio file: HTTP ${res.status}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch audio file: HTTP ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
   }
 
   private async fetchTranscript(transcriptUrl: string): Promise<string> {
     const url = await this.s3.getPresignedDownloadUrl({ key: transcriptUrl });
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch reference transcript: HTTP ${res.status}`);
+    if (!res.ok)
+      throw new Error(
+        `Failed to fetch reference transcript: HTTP ${res.status}`,
+      );
     return res.text();
   }
 
@@ -106,10 +119,14 @@ export class AlignmentService {
    * Cloudflare Workers AI's hosted Whisper models document segment-level
    * timing only, not per-word.
    */
-  private async transcribeWithTimestamps(audio: Buffer): Promise<{ word: string; startMs: number; endMs: number }[]> {
+  private async transcribeWithTimestamps(
+    audio: Buffer,
+  ): Promise<{ word: string; startMs: number; endMs: number }[]> {
     const apiKey = this.config.get<string>('OPENAI_API_KEY', '');
     if (!apiKey) {
-      throw new Error('Word-level alignment requires OPENAI_API_KEY to be configured — none is set.');
+      throw new Error(
+        'Word-level alignment requires OPENAI_API_KEY to be configured — none is set.',
+      );
     }
 
     const form = new FormData();

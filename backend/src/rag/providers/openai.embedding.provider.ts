@@ -12,16 +12,24 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
   private readonly headers: Record<string, string>;
 
   constructor(private config: ConfigService) {
-    this.modelId = this.config.get<string>('OPENAI_EMBED_MODEL', 'text-embedding-3-large');
-    this.dimensions = parseInt(this.config.get<string>('EMBEDDING_DIMENSIONS', '3072'), 10);
+    this.modelId = this.config.get<string>(
+      'OPENAI_EMBED_MODEL',
+      'text-embedding-3-large',
+    );
+    this.dimensions = parseInt(
+      this.config.get<string>('EMBEDDING_DIMENSIONS', '3072'),
+      10,
+    );
     // .get, not .getOrThrow — without a key, embedding requests fail with a
     // clear message instead of the whole API refusing to boot.
     this.apiKey = this.config.get<string>('OPENAI_API_KEY') ?? '';
     if (!this.apiKey) {
-      this.logger.warn('OPENAI_API_KEY not set — book embedding / AI search disabled.');
+      this.logger.warn(
+        'OPENAI_API_KEY not set — book embedding / AI search disabled.',
+      );
     }
     this.headers = {
-      'Authorization': `Bearer ${this.apiKey}`,
+      Authorization: `Bearer ${this.apiKey}`,
       'Content-Type': 'application/json',
     };
   }
@@ -41,7 +49,10 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
     return results;
   }
 
-  private async embedWithRetry(texts: string[], attempt = 0): Promise<number[][]> {
+  private async embedWithRetry(
+    texts: string[],
+    attempt = 0,
+  ): Promise<number[][]> {
     try {
       const res = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
@@ -55,9 +66,12 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
       });
 
       if (res.status === 429) {
-        if (attempt >= 3) throw new Error('OpenAI embedding rate limit exceeded after 3 retries');
+        if (attempt >= 3)
+          throw new Error(
+            'OpenAI embedding rate limit exceeded after 3 retries',
+          );
         const delay = Math.pow(2, attempt) * 1000; // exponential backoff: 1s, 2s, 4s
-        await new Promise(r => setTimeout(r, delay));
+        await new Promise((r) => setTimeout(r, delay));
         return this.embedWithRetry(texts, attempt + 1);
       }
 
@@ -72,8 +86,11 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
       const sorted = [...json.data].sort((a, b) => a.index - b.index);
       return sorted.map((d) => d.embedding as number[]);
     } catch (err) {
-      if (attempt < 3 && !(err instanceof Error && err.message.includes('rate limit'))) {
-        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      if (
+        attempt < 3 &&
+        !(err instanceof Error && err.message.includes('rate limit'))
+      ) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
         return this.embedWithRetry(texts, attempt + 1);
       }
       throw err;

@@ -34,7 +34,8 @@ export class MasteryService {
     numChoices?: number | null;
   }) {
     const { userId, bookId, conceptId, correct, numChoices } = params;
-    const pGuess = numChoices && numChoices > 1 ? 1 / numChoices : DEFAULT_GUESS;
+    const pGuess =
+      numChoices && numChoices > 1 ? 1 / numChoices : DEFAULT_GUESS;
 
     const existing = await this.prisma.conceptMastery.findUnique({
       where: { userId_bookId_conceptId: { userId, bookId, conceptId } },
@@ -51,7 +52,13 @@ export class MasteryService {
   }
 
   /** The standard BKT posterior + learning-transit update, as a pure function. */
-  private update(priorL: number, correct: boolean, pSlip: number, pGuess: number, pTransit: number): number {
+  private update(
+    priorL: number,
+    correct: boolean,
+    pSlip: number,
+    pGuess: number,
+    pTransit: number,
+  ): number {
     let posteriorL: number;
     if (correct) {
       const numerator = priorL * (1 - pSlip);
@@ -92,7 +99,11 @@ export class MasteryService {
    * (mastery < WEAK_THRESHOLD, same bar §2/§7/§10 use) — sorted weakest
    * first, since that's what a teacher acts on.
    */
-  async getClassMasteryReport(tenantId: string, gradeLevel: number, bookId: string) {
+  async getClassMasteryReport(
+    tenantId: string,
+    gradeLevel: number,
+    bookId: string,
+  ) {
     const WEAK_THRESHOLD = 0.6;
 
     const rows = await this.prisma.conceptMastery.findMany({
@@ -108,7 +119,13 @@ export class MasteryService {
 
     const byConcept = new Map<
       string,
-      { label: string; type: string; masterySum: number; studentCount: number; weakCount: number }
+      {
+        label: string;
+        type: string;
+        masterySum: number;
+        studentCount: number;
+        weakCount: number;
+      }
     >();
     for (const row of rows) {
       const entry = byConcept.get(row.conceptId) ?? {

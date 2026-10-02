@@ -94,9 +94,15 @@ export class EmailService {
    * Account-deletion confirmation (public /delete-account flow). The link opens a page
    * with a button; nothing is deleted by following the link alone.
    */
-  async sendAccountDeletionEmail(email: string, token: string, userName: string): Promise<boolean> {
+  async sendAccountDeletionEmail(
+    email: string,
+    token: string,
+    userName: string,
+  ): Promise<boolean> {
     if (!this.isConfigured) {
-      this.logger.warn(`Email not configured. Skipping account deletion email to ${email}`);
+      this.logger.warn(
+        `Email not configured. Skipping account deletion email to ${email}`,
+      );
       return false;
     }
     try {
@@ -108,13 +114,20 @@ export class EmailService {
         html: this.getAccountDeletionTemplate(userName, link),
       });
       if (error) {
-        this.logger.error(`Failed to send account deletion email to ${email}: ${error.message}`);
+        this.logger.error(
+          `Failed to send account deletion email to ${email}: ${error.message}`,
+        );
         return false;
       }
-      this.logger.log(`Account deletion email sent to ${email}. Email ID: ${data?.id}`);
+      this.logger.log(
+        `Account deletion email sent to ${email}. Email ID: ${data?.id}`,
+      );
       return true;
     } catch (error) {
-      this.logger.error(`Error sending account deletion email: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error sending account deletion email: ${error.message}`,
+        error.stack,
+      );
       return false;
     }
   }

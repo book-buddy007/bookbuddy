@@ -5,13 +5,20 @@ import {
   contentLanguageDirective,
 } from '../common/language/answer-language';
 import { QdrantInitService } from '../rag/qdrant-init.service';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
-import { ITtsProvider, TTS_PROVIDER } from '../rag/interfaces/tts.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
+import {
+  ITtsProvider,
+  TTS_PROVIDER,
+} from '../rag/interfaces/tts.provider.interface';
 
 // The shared trio collection — same as graph extraction and Varta retrieval.
 // The point ids in BookChunkMapping are this collection's ids, so the recap
 // fallback must retrieve from here; `book_buddy_books_v1` was deleted in the reset.
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 const FALLBACK_CHUNK_SAMPLE = 6; // when there's no §3 community summary to ground on
 
 export interface DigestLine {
@@ -42,9 +49,15 @@ export class DigestService {
   ) {}
 
   /** Idempotent — returns the cached digest if one already exists for this (book, chapter, voicePair). */
-  async generateDigest(bookId: string, chapterTitle: string, voicePair = 'default') {
+  async generateDigest(
+    bookId: string,
+    chapterTitle: string,
+    voicePair = 'default',
+  ) {
     const existing = await this.prisma.chapterDigest.findUnique({
-      where: { bookId_chapterTitle_voicePair: { bookId, chapterTitle, voicePair } },
+      where: {
+        bookId_chapterTitle_voicePair: { bookId, chapterTitle, voicePair },
+      },
     });
     if (existing) return existing;
 
@@ -56,7 +69,9 @@ export class DigestService {
 
     const grounding = await this.buildGroundingContext(bookId, chapterTitle);
     if (!grounding) {
-      throw new NotFoundException(`No content found for chapter "${chapterTitle}" of this book.`);
+      throw new NotFoundException(
+        `No content found for chapter "${chapterTitle}" of this book.`,
+      );
     }
 
     const script = await this.generateScript(book, chapterTitle, grounding);
@@ -82,7 +97,9 @@ export class DigestService {
       // under concurrency, not just on sequential repeats.
       if (e?.code === 'P2002') {
         const raced = await this.prisma.chapterDigest.findUnique({
-          where: { bookId_chapterTitle_voicePair: { bookId, chapterTitle, voicePair } },
+          where: {
+            bookId_chapterTitle_voicePair: { bookId, chapterTitle, voicePair },
+          },
         });
         if (raced) return raced;
       }
@@ -101,8 +118,13 @@ export class DigestService {
         });
       }
     } catch (e: any) {
-      this.logger.warn(`TTS rendering failed for digest ${digest.id}, leaving script-only: ${e.message}`);
-      return this.prisma.chapterDigest.update({ where: { id: digest.id }, data: { status: 'AUDIO_FAILED' } });
+      this.logger.warn(
+        `TTS rendering failed for digest ${digest.id}, leaving script-only: ${e.message}`,
+      );
+      return this.prisma.chapterDigest.update({
+        where: { id: digest.id },
+        data: { status: 'AUDIO_FAILED' },
+      });
     }
 
     return digest;
@@ -110,7 +132,9 @@ export class DigestService {
 
   async getStatus(bookId: string, chapterTitle: string, voicePair = 'default') {
     const digest = await this.prisma.chapterDigest.findUnique({
-      where: { bookId_chapterTitle_voicePair: { bookId, chapterTitle, voicePair } },
+      where: {
+        bookId_chapterTitle_voicePair: { bookId, chapterTitle, voicePair },
+      },
       select: { status: true, audioUri: true, generatedAt: true },
     });
     if (!digest) return { status: 'NOT_GENERATED' as const };
@@ -140,29 +164,49 @@ export class DigestService {
       contentLanguageDirective(bookAnswerLanguage(book.language));
 
     let full = '';
-    await this.llmProvider.chatStream([{ role: 'user', content: prompt }], (t) => {
-      full += t;
-    });
+    await this.llmProvider.chatStream(
+      [{ role: 'user', content: prompt }],
+      (t) => {
+        full += t;
+      },
+    );
 
-    const cleaned = full.trim().replace(/^```json?\s*/i, '').replace(/```\s*$/, '');
+    const cleaned = full
+      .trim()
+      .replace(/^```json?\s*/i, '')
+      .replace(/```\s*$/, '');
     let parsed: unknown;
     try {
       parsed = JSON.parse(cleaned);
     } catch {
-      throw new Error('Digest script generation returned non-JSON output from the LLM.');
+      throw new Error(
+        'Digest script generation returned non-JSON output from the LLM.',
+      );
     }
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('Digest script generation returned an empty or malformed script.');
+      throw new Error(
+        'Digest script generation returned an empty or malformed script.',
+      );
     }
     return parsed
-      .filter((l: any) => l && typeof l.speaker === 'string' && typeof l.line === 'string')
+      .filter(
+        (l: any) =>
+          l && typeof l.speaker === 'string' && typeof l.line === 'string',
+      )
       .map((l: any) => ({ speaker: l.speaker, line: l.line }));
   }
 
   /** §3 community summary if one exists for this chapter, else a sample of the chapter's raw chunk text. */
-  private async buildGroundingContext(bookId: string, chapterTitle: string): Promise<string | null> {
+  private async buildGroundingContext(
+    bookId: string,
+    chapterTitle: string,
+  ): Promise<string | null> {
     const community = await this.prisma.graphCommunity.findFirst({
-      where: { bookId, level: 'chapter', members: { some: { node: { firstChapter: chapterTitle } } } },
+      where: {
+        bookId,
+        level: 'chapter',
+        members: { some: { node: { firstChapter: chapterTitle } } },
+      },
       select: { summary: true },
     });
     if (community) return community.summary;

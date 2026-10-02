@@ -60,7 +60,10 @@ export function resolveTrustProxySetting(): boolean | number | string[] {
   // whoever happens to be at that position, an address list trusts a specific peer.
   if (/^\d+$/.test(raw)) return Number(raw);
 
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /**
@@ -88,7 +91,8 @@ export function getClientIp(req: any): string {
   if (typeof req.ip === 'string' && req.ip) return normalise(req.ip);
 
   const socketAddr = req.socket?.remoteAddress ?? req.connection?.remoteAddress;
-  if (typeof socketAddr === 'string' && socketAddr) return normalise(socketAddr);
+  if (typeof socketAddr === 'string' && socketAddr)
+    return normalise(socketAddr);
 
   // Deliberately unique-ish rather than a shared constant. If we cannot identify
   // the caller we would rather over-limit one request than under-limit everyone.

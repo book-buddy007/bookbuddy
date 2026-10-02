@@ -7,7 +7,6 @@ import {
   IsOptional,
   IsBoolean,
   IsArray,
-  ValidateNested,
 } from 'class-validator';
 import { AccessTier } from '@prisma/client';
 

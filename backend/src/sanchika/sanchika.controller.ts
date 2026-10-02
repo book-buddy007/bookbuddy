@@ -41,7 +41,9 @@ export class SanchikaController {
       // The service already logged the cause. The panel needs to distinguish
       // "the bridge is down" from "you have no notes", and 503 is the
       // difference — an empty 200 would quietly look like an empty notebook.
-      throw new ServiceUnavailableException('Sanchika notes are temporarily unavailable');
+      throw new ServiceUnavailableException(
+        'Sanchika notes are temporarily unavailable',
+      );
     }
   }
 }

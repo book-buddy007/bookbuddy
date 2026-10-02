@@ -1,12 +1,15 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { IEmbeddingProvider, EMBEDDING_PROVIDER } from './interfaces/embedding.provider.interface';
+import {
+  IEmbeddingProvider,
+  EMBEDDING_PROVIDER,
+} from './interfaces/embedding.provider.interface';
 
 @Injectable()
 export class EmbeddingService {
   private readonly logger = new Logger(EmbeddingService.name);
 
   constructor(
-    @Inject(EMBEDDING_PROVIDER) private readonly provider: IEmbeddingProvider
+    @Inject(EMBEDDING_PROVIDER) private readonly provider: IEmbeddingProvider,
   ) {}
 
   /**
@@ -16,7 +19,7 @@ export class EmbeddingService {
     try {
       const embeddings = await this.provider.embedBatch(texts);
       this.logger.log(
-        `✅ Embedded ${texts.length} texts with ${this.provider.modelId} (${this.provider.dimensions}d)`
+        `✅ Embedded ${texts.length} texts with ${this.provider.modelId} (${this.provider.dimensions}d)`,
       );
       return embeddings;
     } catch (err) {

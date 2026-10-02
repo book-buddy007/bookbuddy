@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TaxonomyClientService, TaxonomyNodeDTO } from './taxonomy-client.service';
+import {
+  TaxonomyClientService,
+  TaxonomyNodeDTO,
+} from './taxonomy-client.service';
 
 /**
  * Book tagging against the shared cross-repo taxonomy — the curriculum
@@ -47,8 +50,14 @@ export class BookTaxonomyService {
     return { bookId, links };
   }
 
-  async setBookTaxonomy(bookId: string, links: Array<{ nodeId: string; isPrimary?: boolean }>) {
-    const book = await this.prisma.book.findUnique({ where: { id: bookId }, select: { id: true } });
+  async setBookTaxonomy(
+    bookId: string,
+    links: Array<{ nodeId: string; isPrimary?: boolean }>,
+  ) {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true },
+    });
     if (!book) throw new NotFoundException('Book not found');
 
     // Write LOCALLY, and treat the hub as a best-effort mirror.
@@ -84,7 +93,10 @@ export class BookTaxonomyService {
 
     return {
       bookId,
-      links: links.map((l) => ({ nodeId: l.nodeId, isPrimary: l.nodeId === (primary?.nodeId ?? null) })),
+      links: links.map((l) => ({
+        nodeId: l.nodeId,
+        isPrimary: l.nodeId === (primary?.nodeId ?? null),
+      })),
     };
   }
 }

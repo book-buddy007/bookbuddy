@@ -11,13 +11,16 @@ export class CloudflareEmbeddingProvider implements IEmbeddingProvider {
   private readonly headers: Record<string, string>;
 
   constructor(private config: ConfigService) {
-    this.modelId = this.config.get<string>('CF_EMBED_MODEL', '@cf/google/embeddinggemma-300m');
+    this.modelId = this.config.get<string>(
+      'CF_EMBED_MODEL',
+      '@cf/google/embeddinggemma-300m',
+    );
     // .get, not .getOrThrow — never stop the API from booting over an optional provider.
     const accountId = this.config.get<string>('CLOUDFLARE_ACCOUNT_ID') ?? '';
     const token = this.config.get<string>('CLOUDFLARE_AI_TOKEN') ?? '';
     this.baseUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run`;
     this.headers = {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     };
   }
@@ -34,7 +37,10 @@ export class CloudflareEmbeddingProvider implements IEmbeddingProvider {
     return results;
   }
 
-  private async embedWithRetry(texts: string[], attempt = 0): Promise<number[][]> {
+  private async embedWithRetry(
+    texts: string[],
+    attempt = 0,
+  ): Promise<number[][]> {
     try {
       const res = await fetch(`${this.baseUrl}/${this.modelId}`, {
         method: 'POST',
@@ -44,9 +50,10 @@ export class CloudflareEmbeddingProvider implements IEmbeddingProvider {
       });
 
       if (res.status === 429) {
-        if (attempt >= 3) throw new Error('Cloudflare rate limit exceeded after 3 retries');
+        if (attempt >= 3)
+          throw new Error('Cloudflare rate limit exceeded after 3 retries');
         const delay = Math.pow(2, attempt) * 1000; // exponential backoff: 1s, 2s, 4s
-        await new Promise(r => setTimeout(r, delay));
+        await new Promise((r) => setTimeout(r, delay));
         return this.embedWithRetry(texts, attempt + 1);
       }
 
@@ -58,8 +65,11 @@ export class CloudflareEmbeddingProvider implements IEmbeddingProvider {
       const json = await res.json();
       return json.result.data as number[][];
     } catch (err) {
-      if (attempt < 3 && !(err instanceof Error && err.message.includes('rate limit'))) {
-        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      if (
+        attempt < 3 &&
+        !(err instanceof Error && err.message.includes('rate limit'))
+      ) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
         return this.embedWithRetry(texts, attempt + 1);
       }
       throw err;

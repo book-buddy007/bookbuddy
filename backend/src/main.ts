@@ -50,7 +50,10 @@ async function bootstrap() {
   // would trust the whole forwarded chain and let any caller spoof X-Forwarded-For
   // into a private unlimited bucket, which is a worse bug than the one being fixed.
   // See src/common/client-ip.ts for both deployment modes and the reasoning.
-  app.getHttpAdapter().getInstance().set('trust proxy', resolveTrustProxySetting());
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .set('trust proxy', resolveTrustProxySetting());
 
   // Harden HTTP responses (dependency-free; the key helmet defaults for a JSON
   // API). Kept here rather than adding the helmet package to avoid touching the

@@ -17,4 +17,7 @@ export interface RequiredPermission {
  *   @RequirePermission('joinRequest', 'approve')
  */
 export const RequirePermission = (resource: Resource, action: Action) =>
-  SetMetadata(PERMISSION_KEY, { resource, action } satisfies RequiredPermission);
+  SetMetadata(PERMISSION_KEY, {
+    resource,
+    action,
+  } satisfies RequiredPermission);

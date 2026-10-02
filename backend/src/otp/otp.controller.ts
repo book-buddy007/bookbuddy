@@ -7,7 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { OtpService } from './otp.service';
-import { SendOtpDto } from './dto/send-otp.dto';
+import { OtpTypeDto, SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { BetterAuthGuard } from '../guards/better-auth.guard';
 import { Request } from 'express';
@@ -25,13 +25,14 @@ export class OtpController {
   // the WHOLE PLATFORM. Now per-IP and per-account, independently.
   @Throttle({
     default: { limit: 15, ttl: 600000 }, // per client IP (a school NAT is one IP)
-    account: { limit: 3, ttl: 600000 },  // per user: the real anti-mail-bomb limit
+    account: { limit: 3, ttl: 600000 }, // per user: the real anti-mail-bomb limit
   })
   async sendOtp(@Req() req: Request, @Body() sendOtpDto: SendOtpDto) {
     const user = req.user as { id: string };
 
     // Map DTO enum to Prisma enum
-    const type = sendOtpDto.type === 'EMAIL' ? OtpType.EMAIL : OtpType.PHONE;
+    const type =
+      sendOtpDto.type === OtpTypeDto.EMAIL ? OtpType.EMAIL : OtpType.PHONE;
 
     return this.otpService.sendOtp(user.id, type);
   }
@@ -49,7 +50,8 @@ export class OtpController {
     const user = req.user as { id: string };
 
     // Map DTO enum to Prisma enum
-    const type = verifyOtpDto.type === 'EMAIL' ? OtpType.EMAIL : OtpType.PHONE;
+    const type =
+      verifyOtpDto.type === OtpTypeDto.EMAIL ? OtpType.EMAIL : OtpType.PHONE;
 
     return this.otpService.verifyOtp(user.id, type, verifyOtpDto.otp);
   }

@@ -1,6 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { IRerankerProvider, RankedChunk } from './interfaces/reranker.provider.interface';
-import { ILlmProvider, LLM_PROVIDER } from './interfaces/llm.provider.interface';
+import {
+  IRerankerProvider,
+  RankedChunk,
+} from './interfaces/reranker.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from './interfaces/llm.provider.interface';
 
 /**
  * A REAL reranker: the model reads each candidate and judges whether it
@@ -63,7 +69,11 @@ export class LlmRerankService implements IRerankerProvider {
 
   constructor(@Inject(LLM_PROVIDER) private llm: ILlmProvider) {}
 
-  async rerank(query: string, chunks: RankedChunk[], topK = 8): Promise<RankedChunk[]> {
+  async rerank(
+    query: string,
+    chunks: RankedChunk[],
+    topK = 8,
+  ): Promise<RankedChunk[]> {
     if (!chunks?.length) return [];
     const byScore = [...chunks].sort((a, b) => (b.score || 0) - (a.score || 0));
     // Nothing to decide: the model would only re-order what we already keep.
@@ -91,16 +101,24 @@ export class LlmRerankService implements IRerankerProvider {
       );
       return chosen;
     } catch (e: any) {
-      this.logger.warn(`LLM rerank failed (${e.message}) — falling back to score order`);
+      this.logger.warn(
+        `LLM rerank failed (${e.message}) — falling back to score order`,
+      );
       return byScore.slice(0, topK);
     }
   }
 
   /** Ask for the best `topK` candidate indices, best first. */
-  private async pick(query: string, candidates: RankedChunk[], topK: number): Promise<number[]> {
+  private async pick(
+    query: string,
+    candidates: RankedChunk[],
+    topK: number,
+  ): Promise<number[]> {
     const list = candidates
       .map((c, i) => {
-        const body = (c.text || c.textPreview || '').replace(/\s+/g, ' ').trim();
+        const body = (c.text || c.textPreview || '')
+          .replace(/\s+/g, ' ')
+          .trim();
         return `[${i}] (p.${c.pageNumber ?? '?'}) ${body.slice(0, this.SNIPPET_CHARS)}`;
       })
       .join('\n');
@@ -143,7 +161,13 @@ export class LlmRerankService implements IRerankerProvider {
       const i = typeof v === 'number' ? v : parseInt(String(v), 10);
       // Out-of-range indices are dropped rather than clamped: clamping would
       // silently invent a citation the model never chose.
-      if (!Number.isInteger(i) || i < 0 || i >= candidates.length || seen.has(i)) continue;
+      if (
+        !Number.isInteger(i) ||
+        i < 0 ||
+        i >= candidates.length ||
+        seen.has(i)
+      )
+        continue;
       seen.add(i);
       out.push(i);
       if (out.length >= topK) break;
@@ -155,7 +179,10 @@ export class LlmRerankService implements IRerankerProvider {
     return Promise.race([
       p,
       new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`rerank timed out after ${ms}ms`)), ms),
+        setTimeout(
+          () => reject(new Error(`rerank timed out after ${ms}ms`)),
+          ms,
+        ),
       ),
     ]);
   }

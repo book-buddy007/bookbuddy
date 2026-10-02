@@ -452,7 +452,7 @@ export class PersonalLibraryService {
   }
 
   async syncProgress(userId: string, fileId: string, dto: SyncProgressDto) {
-    const file = await this.getFile(userId, fileId);
+    await this.getFile(userId, fileId); // ownership check
 
     const progress = await this.prisma.personalReadingProgress.upsert({
       where: { personalFileId: fileId },
@@ -563,7 +563,7 @@ export class PersonalLibraryService {
           });
         break;
 
-      case 'delete':
+      case 'delete': {
         const now = new Date();
         if (fileIds.length > 0)
           await this.prisma.personalFile.updateMany({
@@ -576,6 +576,7 @@ export class PersonalLibraryService {
           await this.deleteFolder(userId, fid).catch(() => null);
         }
         break;
+      }
 
       case 'update-tags':
         // Prisma updateMany cannot append JSON natively easily. We would have to update individually

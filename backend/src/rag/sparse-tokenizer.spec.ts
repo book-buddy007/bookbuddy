@@ -1,6 +1,11 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { tokenizeForSparse, hashTerm, buildSparseVector, MIN_TOKEN_LENGTH } from './sparse-tokenizer';
+import {
+  tokenizeForSparse,
+  hashTerm,
+  buildSparseVector,
+  MIN_TOKEN_LENGTH,
+} from './sparse-tokenizer';
 
 /**
  * CROSS-REPO PARITY TEST.

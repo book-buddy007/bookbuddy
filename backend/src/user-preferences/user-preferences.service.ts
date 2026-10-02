@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AnswerLanguage, coerceAnswerLanguage } from '../common/language/answer-language';
+import {
+  AnswerLanguage,
+  coerceAnswerLanguage,
+} from '../common/language/answer-language';
 
 /**
  * Self-scoped learner preferences. Currently just the answer language;
@@ -27,11 +30,22 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   push: true,
 };
 
-export function coerceNotificationPreferences(raw: unknown): NotificationPreferences {
-  const obj = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+export function coerceNotificationPreferences(
+  raw: unknown,
+): NotificationPreferences {
+  const obj =
+    raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {};
   return {
-    studyReminders: typeof obj.studyReminders === 'boolean' ? obj.studyReminders : DEFAULT_NOTIFICATION_PREFERENCES.studyReminders,
-    push: typeof obj.push === 'boolean' ? obj.push : DEFAULT_NOTIFICATION_PREFERENCES.push,
+    studyReminders:
+      typeof obj.studyReminders === 'boolean'
+        ? obj.studyReminders
+        : DEFAULT_NOTIFICATION_PREFERENCES.studyReminders,
+    push:
+      typeof obj.push === 'boolean'
+        ? obj.push
+        : DEFAULT_NOTIFICATION_PREFERENCES.push,
   };
 }
 
@@ -58,7 +72,10 @@ export class UserPreferencesService {
     return coerceAnswerLanguage(meta.answerLanguage);
   }
 
-  async setAnswerLanguage(userId: string, lang: AnswerLanguage): Promise<AnswerLanguage> {
+  async setAnswerLanguage(
+    userId: string,
+    lang: AnswerLanguage,
+  ): Promise<AnswerLanguage> {
     const meta = await this.readMetadata(userId);
     // Both values are now real choices, so both are stored. (The retired 'auto'
     // used to be written as null to mean "no override"; a null still reads back
@@ -72,7 +89,9 @@ export class UserPreferencesService {
     return lang;
   }
 
-  async getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
+  async getNotificationPreferences(
+    userId: string,
+  ): Promise<NotificationPreferences> {
     const meta = await this.readMetadata(userId);
     return coerceNotificationPreferences(meta.notificationPreferences);
   }
@@ -82,7 +101,10 @@ export class UserPreferencesService {
     patch: Partial<NotificationPreferences>,
   ): Promise<NotificationPreferences> {
     const meta = await this.readMetadata(userId);
-    const next = { ...coerceNotificationPreferences(meta.notificationPreferences), ...patch };
+    const next = {
+      ...coerceNotificationPreferences(meta.notificationPreferences),
+      ...patch,
+    };
     await this.prisma.user.update({
       where: { id: userId },
       data: { metadata: { ...meta, notificationPreferences: next } as any },
@@ -91,7 +113,10 @@ export class UserPreferencesService {
   }
 
   /** Batch read for senders: which of these users have a given switch turned off. */
-  async usersWithNotificationOff(userIds: string[], key: keyof NotificationPreferences): Promise<Set<string>> {
+  async usersWithNotificationOff(
+    userIds: string[],
+    key: keyof NotificationPreferences,
+  ): Promise<Set<string>> {
     if (userIds.length === 0) return new Set();
     const rows = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
@@ -99,10 +124,14 @@ export class UserPreferencesService {
     });
     const off = new Set<string>();
     for (const r of rows) {
-      const meta = r.metadata && typeof r.metadata === 'object' && !Array.isArray(r.metadata)
-        ? (r.metadata as Record<string, unknown>)
-        : {};
-      if (!coerceNotificationPreferences(meta.notificationPreferences)[key]) off.add(r.id);
+      const meta =
+        r.metadata &&
+        typeof r.metadata === 'object' &&
+        !Array.isArray(r.metadata)
+          ? (r.metadata as Record<string, unknown>)
+          : {};
+      if (!coerceNotificationPreferences(meta.notificationPreferences)[key])
+        off.add(r.id);
     }
     return off;
   }

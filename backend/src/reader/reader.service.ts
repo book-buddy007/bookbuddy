@@ -29,8 +29,6 @@ export class ReaderService {
     // We can merge the dailyProgress rather than overwriting
     // For simplicity, we just take the client's payload or merge logic if needed.
 
-    const todayString = new Date().toISOString().split('T')[0];
-
     const existingProgress = await this.prisma.readingProgress.findUnique({
       where: {
         userId_bookId: {

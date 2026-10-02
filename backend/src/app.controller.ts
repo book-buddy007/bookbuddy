@@ -19,6 +19,8 @@ export class AppController {
   // remove once GlitchTip wiring is confirmed.
   @Get('debug-sentry')
   triggerTestError() {
-    throw new Error('GlitchTip test error — book-buddy-backend (safe to ignore)');
+    throw new Error(
+      'GlitchTip test error — book-buddy-backend (safe to ignore)',
+    );
   }
 }

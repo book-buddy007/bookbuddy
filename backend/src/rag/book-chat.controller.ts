@@ -20,19 +20,36 @@ import { TierGuard } from '../auth/tier.guard';
 import { AiFeatureGuard } from '../ai-entitlement/ai-feature.guard';
 import { AiFeatureGate } from '../ai-entitlement/ai-feature.decorator';
 import { RagSearchService, parseReferences } from './rag-search.service';
-import { notFoundMessage, referenceNotFoundMessage } from '../common/language/answer-language';
+import {
+  notFoundMessage,
+  referenceNotFoundMessage,
+} from '../common/language/answer-language';
 import { ContentSpineService } from './content-spine.service';
 import { CurriculumScopeClientService } from './curriculum-scope-client.service';
-import { IRerankerProvider, RERANKER_PROVIDER } from './interfaces/reranker.provider.interface';
+import {
+  IRerankerProvider,
+  RERANKER_PROVIDER,
+} from './interfaces/reranker.provider.interface';
 import { BookChatService } from './book-chat.service';
-import { DialoguePolicyService, DIALOGUE_MODES, DialogueMode } from './dialogue-policy.service';
+import {
+  DialoguePolicyService,
+  DIALOGUE_MODES,
+  DialogueMode,
+} from './dialogue-policy.service';
 import { filterCitedOnly } from './citation-markers';
-import { AnswerCacheService, buildAnswerKey, isCacheableMode } from './answer-cache.service';
+import {
+  AnswerCacheService,
+  buildAnswerKey,
+  isCacheableMode,
+} from './answer-cache.service';
 import { MasteryAwareRetrievalService } from './mastery-retrieval.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserPreferencesService } from '../user-preferences/user-preferences.service';
 import { Inject } from '@nestjs/common';
-import { ILlmProvider, LLM_PROVIDER } from './interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from './interfaces/llm.provider.interface';
 
 /**
  * How many retrieved excerpts the model actually reasons over.
@@ -107,7 +124,9 @@ export class BookChatController {
     }
     const mode: DialogueMode = (modeParam as DialogueMode) ?? 'explain';
     if (!DIALOGUE_MODES.includes(mode)) {
-      throw new ForbiddenException(`"mode" must be one of: ${DIALOGUE_MODES.join(', ')}`);
+      throw new ForbiddenException(
+        `"mode" must be one of: ${DIALOGUE_MODES.join(', ')}`,
+      );
     }
 
     // Book exists + is embedded
@@ -125,7 +144,11 @@ export class BookChatController {
     const SYSTEM_TENANT = '__SYSTEM__';
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: req.user.id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
       if (!membership) {
@@ -167,12 +190,16 @@ export class BookChatController {
       // against the student's daily message allowance, because from their side
       // it is a question asked and answered. What it skips is the embedding
       // call, the retrieval, and the completion — the parts that cost money.
-      const scopeNodeIds = await this.curriculumScope.getScopeForUser(req.user.id);
+      const scopeNodeIds = await this.curriculumScope.getScopeForUser(
+        req.user.id,
+      );
       // The saved answer-language preference (English or Hindi; default English).
       // Read here, before the cache key, because the shared answer cache MUST be
       // keyed by it — see buildAnswerKey — or a forced-language answer would leak
       // to a student who never asked for it.
-      const answerLanguage = await this.userPreferences.getAnswerLanguage(req.user.id);
+      const answerLanguage = await this.userPreferences.getAnswerLanguage(
+        req.user.id,
+      );
       const cacheKey = isCacheableMode(mode)
         ? buildAnswerKey({ bookId, mode, query, scopeNodeIds, answerLanguage })
         : null;
@@ -184,15 +211,27 @@ export class BookChatController {
           // client needs no knowledge that a cache exists. Sent whole rather
           // than re-chunked: the content is already complete, and faking a
           // typing delay to disguise a fast answer would be theatre.
-          res.write(`data: ${JSON.stringify({ content: cached.content, done: false })}\n\n`);
+          res.write(
+            `data: ${JSON.stringify({ content: cached.content, done: false })}\n\n`,
+          );
           res.write(
             `data: ${JSON.stringify({ content: '', done: true, citations: cached.citations, weakConceptLabels: [] })}\n\n`,
           );
           res.end();
 
           this.chatService
-            .saveMessages(req.user.id, bookId, book.tenantId, query, cached.content, cached.citations, mode)
-            .catch((err) => console.error('Failed to save cached chat message:', err));
+            .saveMessages(
+              req.user.id,
+              bookId,
+              book.tenantId,
+              query,
+              cached.content,
+              cached.citations,
+              mode,
+            )
+            .catch((err) =>
+              console.error('Failed to save cached chat message:', err),
+            );
           return;
         }
       }
@@ -206,7 +245,8 @@ export class BookChatController {
       // shared collection, so without this the search cannot be scoped to the
       // book the student is actually reading — and rag-search refuses rather
       // than answer from the whole library and cite something else.
-      const contentItemId = await this.contentSpine.resolveContentItemId(bookId);
+      const contentItemId =
+        await this.contentSpine.resolveContentItemId(bookId);
       const chunks = await this.ragSearch.search(query, {
         tenantId: book.tenantId,
         bookId,
@@ -216,14 +256,24 @@ export class BookChatController {
       });
 
       // ── Rerank ──
-      const reranked = await this.reranker.rerank(query, chunks as any, ANSWER_EXCERPTS);
+      const reranked = await this.reranker.rerank(
+        query,
+        chunks as any,
+        ANSWER_EXCERPTS,
+      );
 
       // ── §2 mastery-aware retrieval: splice in passages anchored to
       // concepts the student is weak on, even if they didn't rank highly on
       // pure similarity. Feature-flagged and best-effort — a miss or an
       // error here silently falls back to plain retrieval. ──
-      const { chunks: augmented, weakConceptLabels } = this.masteryAwareRetrieval.enabled
-        ? await this.masteryAwareRetrieval.augment(bookId, req.user.id, query, reranked as any)
+      const { chunks: augmented, weakConceptLabels } = this
+        .masteryAwareRetrieval.enabled
+        ? await this.masteryAwareRetrieval.augment(
+            bookId,
+            req.user.id,
+            query,
+            reranked as any,
+          )
         : { chunks: reranked, weakConceptLabels: [] as string[] };
 
       // ── Figure/table lookup ──
@@ -243,13 +293,18 @@ export class BookChatController {
         });
         if (refChunks.length > 0) {
           const seen = new Set(augmented.map((c: any) => c.qdrantPointId));
-          const extra = refChunks.filter((c: any) => !seen.has(c.qdrantPointId));
+          const extra = refChunks.filter(
+            (c: any) => !seen.has(c.qdrantPointId),
+          );
           // Referenced figure first, then the ranked excerpts. The cap has to
           // sit ABOVE ANSWER_EXCERPTS, not below it: at a flat 6 against a cut
           // of 8 this branch would silently hand the model FEWER excerpts than
           // the ordinary path, so naming a figure would make every other part
           // of the question harder to answer.
-          contextChunks = [...extra, ...augmented].slice(0, ANSWER_EXCERPTS_WITH_REFERENCE);
+          contextChunks = [...extra, ...augmented].slice(
+            0,
+            ANSWER_EXCERPTS_WITH_REFERENCE,
+          );
         }
       } catch {
         /* best-effort — normal retrieval already stands on its own */
@@ -297,7 +352,10 @@ export class BookChatController {
 
       const messages = [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Book excerpts:\n${contextBlock}\n\nQuestion: ${query}` }
+        {
+          role: 'user',
+          content: `Book excerpts:\n${contextBlock}\n\nQuestion: ${query}`,
+        },
       ];
 
       // The client hanging up must STOP the generation, not merely stop us
@@ -321,7 +379,9 @@ export class BookChatController {
           messages,
           (token) => {
             fullContent += token;
-            res.write(`data: ${JSON.stringify({ content: token, done: false })}\n\n`);
+            res.write(
+              `data: ${JSON.stringify({ content: token, done: false })}\n\n`,
+            );
           },
           abort.signal,
         );
@@ -337,8 +397,18 @@ export class BookChatController {
       if (res.writableEnded || res.destroyed) {
         if (fullContent) {
           this.chatService
-            .saveMessages(req.user.id, bookId, book.tenantId, query, fullContent, [], mode)
-            .catch((err) => console.error('Failed to save aborted chat message:', err));
+            .saveMessages(
+              req.user.id,
+              bookId,
+              book.tenantId,
+              query,
+              fullContent,
+              [],
+              mode,
+            )
+            .catch((err) =>
+              console.error('Failed to save aborted chat message:', err),
+            );
         }
         return;
       }
@@ -351,10 +421,16 @@ export class BookChatController {
         const refs = parseReferences(query);
         // Keyed by the learner's saved language, not by detecting the question's
         // script — the answer language no longer follows the question.
-        const fallback = refs.length > 0
-          ? referenceNotFoundMessage(answerLanguage, refs.map((r) => r.label).join(' or '))
-          : notFoundMessage(answerLanguage);
-        res.write(`data: ${JSON.stringify({ content: fallback, done: false })}\n\n`);
+        const fallback =
+          refs.length > 0
+            ? referenceNotFoundMessage(
+                answerLanguage,
+                refs.map((r) => r.label).join(' or '),
+              )
+            : notFoundMessage(answerLanguage);
+        res.write(
+          `data: ${JSON.stringify({ content: fallback, done: false })}\n\n`,
+        );
         fullContent = fallback;
       }
 

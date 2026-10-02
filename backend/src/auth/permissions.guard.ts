@@ -5,7 +5,10 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSION_KEY, type RequiredPermission } from './require-permission.decorator';
+import {
+  PERMISSION_KEY,
+  type RequiredPermission,
+} from './require-permission.decorator';
 import { can } from './permissions';
 import { getTenantContext } from '../common/tenant-context';
 

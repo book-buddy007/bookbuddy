@@ -23,23 +23,35 @@ export class CloudflareVisionProvider implements IVisionProvider {
     const accountId = this.config.get<string>('CLOUDFLARE_ACCOUNT_ID');
     const token = this.config.get<string>('CLOUDFLARE_AI_TOKEN');
     const model = this.config.get<string>('CF_VISION_MODEL', DEFAULT_MODEL);
-    this.url = accountId && token
-      ? `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`
-      : null;
-    this.headers = { Authorization: `Bearer ${token ?? ''}`, 'Content-Type': 'application/json' };
+    this.url =
+      accountId && token
+        ? `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`
+        : null;
+    this.headers = {
+      Authorization: `Bearer ${token ?? ''}`,
+      'Content-Type': 'application/json',
+    };
     if (!this.url) {
-      this.logger.warn('Cloudflare vision not configured (CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_AI_TOKEN unset) — image description disabled.');
+      this.logger.warn(
+        'Cloudflare vision not configured (CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_AI_TOKEN unset) — image description disabled.',
+      );
     }
   }
 
   async describe(imageBytes: Buffer, prompt: string): Promise<string> {
     if (!this.url) {
-      throw new Error('Vision model is not configured: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_AI_TOKEN.');
+      throw new Error(
+        'Vision model is not configured: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_AI_TOKEN.',
+      );
     }
     const res = await fetch(this.url, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({ image: Array.from(imageBytes), prompt, max_tokens: 512 }),
+      body: JSON.stringify({
+        image: Array.from(imageBytes),
+        prompt,
+        max_tokens: 512,
+      }),
     });
 
     if (!res.ok) {

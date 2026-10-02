@@ -1,5 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
 import {
   AnswerLanguage,
   bookAnswerLanguage,
@@ -55,9 +58,12 @@ export class QuizAssistService {
 
   private async complete(prompt: string): Promise<string> {
     let full = '';
-    await this.llmProvider.chatStream([{ role: 'user', content: prompt }], (t) => {
-      full += t;
-    });
+    await this.llmProvider.chatStream(
+      [{ role: 'user', content: prompt }],
+      (t) => {
+        full += t;
+      },
+    );
     return full.trim();
   }
 
@@ -95,7 +101,9 @@ export class QuizAssistService {
     const cached = this.explanations.get(cacheKey);
     if (cached) return cached;
 
-    const options = Array.isArray(item.choices) ? (item.choices as string[]) : [];
+    const options = Array.isArray(item.choices)
+      ? (item.choices as string[])
+      : [];
     const prompt =
       `A student just answered this multiple-choice question from their textbook.\n\n` +
       `Question: ${item.prompt}\n` +
@@ -126,7 +134,11 @@ export class QuizAssistService {
    * Hindi is treated as English, since the alternative — guessing wrongly and
    * translating Hindi into Hindi — produces a button that appears broken.
    */
-  async translate(cacheKey: string, text: string, sourceLanguage?: string | null): Promise<TranslationResult> {
+  async translate(
+    cacheKey: string,
+    text: string,
+    sourceLanguage?: string | null,
+  ): Promise<TranslationResult> {
     // Was an inline `startsWith('hind')`, which every production row fails:
     // Book.language holds ISO codes ('en'), so a Hindi book catalogued as 'hi'
     // read as an English source and this button "translated" Hindi into Hindi —
@@ -153,8 +165,14 @@ export class QuizAssistService {
 
     const translated = await this.complete(prompt);
     const label =
-      targetLanguage === 'Hindi' ? 'Translation (Hindi — हिंदी)' : 'Translation (English — अंग्रेज़ी)';
+      targetLanguage === 'Hindi'
+        ? 'Translation (Hindi — हिंदी)'
+        : 'Translation (English — अंग्रेज़ी)';
 
-    return this.remember(this.translations, key, { text: translated, targetLanguage, label });
+    return this.remember(this.translations, key, {
+      text: translated,
+      targetLanguage,
+      label,
+    });
   }
 }

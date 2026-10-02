@@ -56,7 +56,7 @@ export class SmsService {
 
     try {
       // Normalize phone: remove +, spaces, dashes
-      const normalizedPhone = phone.replace(/[\s\-\+]/g, '');
+      const normalizedPhone = phone.replace(/[\s\-+]/g, '');
 
       // Standard Meta WhatsApp Cloud API Auth Template Payload
       // This assumes an Authentication template with an OTP button and a body variable

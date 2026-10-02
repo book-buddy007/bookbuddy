@@ -33,7 +33,9 @@ function grantsOwner(data: unknown): boolean {
   const role = (data as Record<string, unknown>).role;
   // Prisma also accepts { role: { set: 'X' } }
   const value =
-    role && typeof role === 'object' && 'set' in (role as Record<string, unknown>)
+    role &&
+    typeof role === 'object' &&
+    'set' in (role as Record<string, unknown>)
       ? (role as Record<string, unknown>).set
       : role;
   return value === OWNER_ROLE;
@@ -66,7 +68,10 @@ export function superAdminGuard(): Prisma.Middleware {
       const payload = args.data;
       const rows = Array.isArray(payload) ? payload : [payload];
       for (const row of rows) {
-        if (grantsOwner(row) && !isOwnerEmail((row as Record<string, unknown>)?.email)) {
+        if (
+          grantsOwner(row) &&
+          !isOwnerEmail((row as Record<string, unknown>)?.email)
+        ) {
           throw new SuperAdminProtectionError(
             'The super-admin role is reserved for the platform owner and cannot be assigned.',
           );
@@ -133,11 +138,15 @@ async function currentOwnersMatching(
   next: (params: Prisma.MiddlewareParams) => Promise<unknown>,
   params: Prisma.MiddlewareParams,
 ): Promise<number> {
-  const where = (params.args as Record<string, unknown> | undefined)?.where ?? {};
+  const where =
+    (params.args as Record<string, unknown> | undefined)?.where ?? {};
   const rows = (await next({
     ...params,
     action: 'findMany',
-    args: { where: { AND: [where, { role: OWNER_ROLE }] }, select: { id: true } },
+    args: {
+      where: { AND: [where, { role: OWNER_ROLE }] },
+      select: { id: true },
+    },
   })) as unknown[];
   return Array.isArray(rows) ? rows.length : 0;
 }
@@ -147,7 +156,8 @@ async function findOneUser(
   next: (params: Prisma.MiddlewareParams) => Promise<unknown>,
   params: Prisma.MiddlewareParams,
 ): Promise<{ email: string } | null> {
-  const where = (params.args as Record<string, unknown> | undefined)?.where ?? {};
+  const where =
+    (params.args as Record<string, unknown> | undefined)?.where ?? {};
   const rows = (await next({
     ...params,
     action: 'findMany',

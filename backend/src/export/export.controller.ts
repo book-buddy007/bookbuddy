@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Res, Header } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  Req,
+  Res,
+  Header,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { ExportService } from './export.service';
@@ -30,7 +39,10 @@ export class ExportController {
     const data = await this.exportService.exportUserData(req.user.id);
     const date = new Date().toISOString().slice(0, 10);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="book-buddy-data-${date}.json"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="book-buddy-data-${date}.json"`,
+    );
     res.send(JSON.stringify(data, null, 2));
   }
 }

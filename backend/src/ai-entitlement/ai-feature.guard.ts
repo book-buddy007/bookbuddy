@@ -29,10 +29,10 @@ export class AiFeatureGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const feature = this.reflector.getAllAndOverride<AiFeature>(AI_FEATURE_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const feature = this.reflector.getAllAndOverride<AiFeature>(
+      AI_FEATURE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // Not a metered route — nothing to enforce.
     if (!feature) return true;

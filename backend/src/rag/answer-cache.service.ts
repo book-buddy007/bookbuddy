@@ -49,7 +49,10 @@ interface Entry {
   expiresAt: number;
 }
 
-const TTL_MS = parseInt(process.env.VARTA_ANSWER_CACHE_TTL_MS ?? `${30 * 60_000}`, 10);
+const TTL_MS = parseInt(
+  process.env.VARTA_ANSWER_CACHE_TTL_MS ?? `${30 * 60_000}`,
+  10,
+);
 const MAX_ENTRIES = parseInt(process.env.VARTA_ANSWER_CACHE_MAX ?? '500', 10);
 
 /**

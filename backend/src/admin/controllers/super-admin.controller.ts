@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Put,
-  Patch,
   Delete,
   Body,
   Param,
@@ -17,13 +16,6 @@ import { RolesGuard } from '../../auth/roles.guard';
 import { Roles } from '../../auth/roles.decorator';
 import { AuditAction } from '../../common/decorators/audit-action.decorator';
 import { CreateInstitutionDto } from '../dto/create-institution.dto';
-import { CreateSubscriptionPlanDto } from '../dto/create-subscription-plan.dto';
-import { UpdateSubscriptionPlanDto } from '../dto/update-subscription-plan.dto';
-import {
-  CreatePaymentGatewayDto,
-  UpdatePaymentGatewayDto,
-} from '../dto/payment-gateway.dto';
-import { UpdateTenantSubscriptionDto } from '../dto/tenant-subscription.dto';
 import { InstitutionEntity } from '../entities/institution.entity';
 
 @Controller('api/super-admin')

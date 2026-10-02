@@ -6,10 +6,9 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
-  Req,
   BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { SuperAdminService } from '../services/super-admin.service';
 import { BetterAuthGuard } from '../../guards/better-auth.guard';
 import { RolesGuard } from '../../auth/roles.guard';

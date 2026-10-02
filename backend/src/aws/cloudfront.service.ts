@@ -5,8 +5,6 @@ import {
   CloudFrontClient,
   CreateInvalidationCommand,
   GetDistributionCommand,
-  GetDistributionConfigCommand,
-  UpdateDistributionCommand,
 } from '@aws-sdk/client-cloudfront';
 // TODO: Update to use getSignedUrl from @aws-sdk/cloudfront-signer
 // import { createSigner } from '@aws-sdk/cloudfront-signer';
@@ -52,7 +50,8 @@ export class CloudFrontService {
   /**
    * Generate a signed URL for accessing content through CloudFront
    */
-  generateSignedUrl(resourceKey: string, expiresIn = 3600): string {
+  // `_expiresIn` is unused until signing is implemented (see the TODO below).
+  generateSignedUrl(resourceKey: string, _expiresIn = 3600): string {
     try {
       if (!this.privateKey || !this.keyPairId || !this.cdnDomain) {
         this.logger.warn(
@@ -62,8 +61,6 @@ export class CloudFrontService {
       }
 
       const url = `https://${this.cdnDomain}/${resourceKey}`;
-      const expires = Math.floor(Date.now() / 1000) + expiresIn;
-
       // TODO: Implement CloudFront signed URL generation
       // For now, return the unsigned URL
       this.logger.warn(

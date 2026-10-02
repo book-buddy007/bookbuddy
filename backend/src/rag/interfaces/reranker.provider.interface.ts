@@ -25,7 +25,11 @@ export interface IRerankerProvider {
    * @param topK   Maximum number of chunks to return.
    * @returns Reranked (and trimmed) chunk list, best-first.
    */
-  rerank(query: string, chunks: RankedChunk[], topK?: number): Promise<RankedChunk[]>;
+  rerank(
+    query: string,
+    chunks: RankedChunk[],
+    topK?: number,
+  ): Promise<RankedChunk[]>;
 }
 
 export const RERANKER_PROVIDER = Symbol('RERANKER_PROVIDER');

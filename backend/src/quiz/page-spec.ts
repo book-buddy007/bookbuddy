@@ -58,7 +58,9 @@ export function parsePageSpec(spec: string): PageSpecResult {
   }
 
   return {
-    pages: Array.from(pages).sort((a, b) => a - b).slice(0, MAX_PAGES),
+    pages: Array.from(pages)
+      .sort((a, b) => a - b)
+      .slice(0, MAX_PAGES),
     invalid,
   };
 }

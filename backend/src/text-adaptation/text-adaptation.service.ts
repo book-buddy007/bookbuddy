@@ -2,7 +2,10 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MasteryService } from '../quiz/mastery.service';
 import { QdrantInitService } from '../rag/qdrant-init.service';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
 import {
   bookAnswerLanguage,
   contentLanguageDirective,
@@ -11,7 +14,8 @@ import {
 // Shared trio collection — same as Varta (rag-search.service.ts). Adaptation
 // retrieves a paragraph's text by its trio point id (from BookChunkMapping), so
 // it must read from this collection; `book_buddy_books_v1` was deleted in the reset.
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 
 // Same bar §2/§7 use for "not yet mastered" — kept as one constant per
 // service rather than importing across modules, since each already documents
@@ -84,9 +88,15 @@ export class TextAdaptationService {
     const chunks = await this.prisma.bookChunkMapping.findMany({
       where: { bookId, chapterTitle },
       orderBy: { chunkIndex: 'asc' },
-      select: { qdrantPointId: true, pageNumber: true, chunkIndex: true, textPreview: true },
+      select: {
+        qdrantPointId: true,
+        pageNumber: true,
+        chunkIndex: true,
+        textPreview: true,
+      },
     });
-    if (chunks.length === 0) return { coverage: 'chapter_not_ingested', flags: [] };
+    if (chunks.length === 0)
+      return { coverage: 'chapter_not_ingested', flags: [] };
 
     const pointIds = chunks.map((c) => c.qdrantPointId);
 
@@ -119,7 +129,10 @@ export class TextAdaptationService {
       return { coverage: 'no_concept_graph', flags: [] };
     }
 
-    const masteryVector = await this.masteryService.getMasteryVector(userId, bookId);
+    const masteryVector = await this.masteryService.getMasteryVector(
+      userId,
+      bookId,
+    );
 
     // A reader with no ConceptMastery rows has never been assessed on this
     // book. Every concept is unproven rather than mastered — but BKT has no
@@ -130,7 +143,9 @@ export class TextAdaptationService {
     }
 
     const weakConceptIds = new Set(
-      masteryVector.filter((m) => m.mastery < WEAK_MASTERY_THRESHOLD).map((m) => m.conceptId),
+      masteryVector
+        .filter((m) => m.mastery < WEAK_MASTERY_THRESHOLD)
+        .map((m) => m.conceptId),
     );
 
     const flags = chunks.map((c) => {
@@ -160,7 +175,11 @@ export class TextAdaptationService {
    * requested it, so a second student hitting the same paragraph/level pair
    * gets the cached version instead of a second LLM call.
    */
-  async simplify(bookId: string, paragraphId: string, targetLevel: string): Promise<{ content: string; cached: boolean }> {
+  async simplify(
+    bookId: string,
+    paragraphId: string,
+    targetLevel: string,
+  ): Promise<{ content: string; cached: boolean }> {
     // Ownership check MUST happen before the cache lookup, not after — the
     // cache is keyed on (paragraphId, targetLevel) alone (deliberately, so
     // every student sharing a paragraph+level reuses one rewrite), so a
@@ -169,7 +188,9 @@ export class TextAdaptationService {
     // book's id than the one the paragraph actually belongs to. The
     // controller has already verified the caller has access to `bookId`
     // itself — this verifies `paragraphId` actually belongs to it.
-    const mapping = await this.prisma.bookChunkMapping.findUnique({ where: { qdrantPointId: paragraphId } });
+    const mapping = await this.prisma.bookChunkMapping.findUnique({
+      where: { qdrantPointId: paragraphId },
+    });
     if (!mapping || mapping.bookId !== bookId) {
       throw new NotFoundException('Paragraph not found for this book');
     }
@@ -182,10 +203,17 @@ export class TextAdaptationService {
     }
 
     const qdrant = this.qdrantInit.getClient();
-    const points = await qdrant.retrieve(COLLECTION, { ids: [paragraphId], with_payload: true });
-    const originalText = (points[0]?.payload as any)?.text as string | undefined;
+    const points = await qdrant.retrieve(COLLECTION, {
+      ids: [paragraphId],
+      with_payload: true,
+    });
+    const originalText = (points[0]?.payload as any)?.text as
+      | string
+      | undefined;
     if (!originalText) {
-      throw new NotFoundException('Original passage text not found in the vector store');
+      throw new NotFoundException(
+        'Original passage text not found in the vector store',
+      );
     }
 
     // The rewrite is cached per (paragraph, level) and served to every reader,
@@ -207,9 +235,12 @@ export class TextAdaptationService {
       `Passage:\n${originalText}`;
 
     let rewritten = '';
-    await this.llmProvider.chatStream([{ role: 'user', content: prompt }], (token) => {
-      rewritten += token;
-    });
+    await this.llmProvider.chatStream(
+      [{ role: 'user', content: prompt }],
+      (token) => {
+        rewritten += token;
+      },
+    );
     rewritten = rewritten.trim();
 
     await this.prisma.simplifiedParagraph.upsert({

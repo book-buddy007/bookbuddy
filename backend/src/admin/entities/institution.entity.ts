@@ -1,4 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 import { Tenant, TenantType } from '@prisma/client';
 
 export class InstitutionEntity implements Tenant {

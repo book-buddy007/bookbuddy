@@ -181,13 +181,19 @@ export class SuperAdminCatalogController {
   // every ingested book's graph.
   @Post('books/backfill-graphs')
   async backfillGraphs(@Query('force') force?: string) {
-    const ids = await this.catalogService.listBookIdsNeedingGraph(force === 'true');
+    const ids = await this.catalogService.listBookIdsNeedingGraph(
+      force === 'true',
+    );
     await Promise.all(
       ids.map((bookId) =>
         this.graphQueue.add(
           'extract-graph',
           { bookId },
-          { jobId: `graph-backfill-${bookId}`, removeOnComplete: true, removeOnFail: true },
+          {
+            jobId: `graph-backfill-${bookId}`,
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
         ),
       ),
     );

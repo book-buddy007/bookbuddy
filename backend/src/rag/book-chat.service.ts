@@ -3,7 +3,10 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const SOFT_LIMIT = parseInt(process.env.VARTA_SOFT_LIMIT_TOKENS ?? '40000', 10);
 const HARD_LIMIT = parseInt(process.env.VARTA_HARD_LIMIT_TOKENS ?? '60000', 10);
-const MAX_QUERY_TOKENS = parseInt(process.env.VARTA_MAX_QUERY_TOKENS ?? '4000', 10);
+const MAX_QUERY_TOKENS = parseInt(
+  process.env.VARTA_MAX_QUERY_TOKENS ?? '4000',
+  10,
+);
 
 @Injectable()
 export class BookChatService {
@@ -43,7 +46,12 @@ export class BookChatService {
    * number is this?") without a dedicated state table, since chat history
    * already records everything needed.
    */
-  async getRecentModeMessages(userId: string, bookId: string, mode: string, limit: number) {
+  async getRecentModeMessages(
+    userId: string,
+    bookId: string,
+    mode: string,
+    limit: number,
+  ) {
     return this.prisma.bookChatMessage.findMany({
       where: { userId, bookId, mode },
       orderBy: { createdAt: 'desc' },
@@ -132,7 +140,7 @@ export class BookChatService {
       );
       throw new HttpException(
         `Your institution has reached today's AI usage limit (${HARD_LIMIT.toLocaleString()} tokens). ` +
-        `Please try again tomorrow or contact your administrator.`,
+          `Please try again tomorrow or contact your administrator.`,
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }

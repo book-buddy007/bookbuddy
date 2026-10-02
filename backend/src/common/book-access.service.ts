@@ -43,10 +43,7 @@ export class BookAccessService {
    * doesn't re-query — in particular `accessTier`, which the tier check needs,
    * and `drmProtected`, which the read-url path needs.
    */
-  async assertCanRead(
-    userId: string,
-    bookId: string,
-  ): Promise<AuthorizedBook> {
+  async assertCanRead(userId: string, bookId: string): Promise<AuthorizedBook> {
     const book = await this.prisma.book.findFirst({
       // findFirst, not findUnique: `deletedAt` is part of the predicate, and a
       // binned book must read as "not found" rather than "forbidden" — the
@@ -107,7 +104,8 @@ export class BookAccessService {
       where: { id: userId },
       select: { subscriptionTier: true, trialEndsAt: true },
     });
-    if (!user) throw new ForbiddenException('You do not have access to this book.');
+    if (!user)
+      throw new ForbiddenException('You do not have access to this book.');
 
     // An active trial is full access, matching AiEntitlementService.
     if (user.trialEndsAt && user.trialEndsAt > new Date()) return;

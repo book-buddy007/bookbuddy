@@ -1,64 +1,62 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { GoneException, Injectable, NotFoundException } from '@nestjs/common';
 
+/**
+ * Legacy category/tag endpoints. Categories and tags were removed in schema v2
+ * (catalog taxonomy now lives in BookTaxonomyService). Reads return empty lists
+ * so older clients keep rendering; writes answer 410 Gone instead of pretending
+ * to succeed.
+ */
 @Injectable()
 export class TaxonomyService {
-  constructor(private prisma: PrismaService) {}
+  // ── CATEGORIES ──────────────────────────────────────────────────────────
 
-  // ── SLUG HELPER ──────────────────────────────────────────────────────────
-
-  private slugify(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+  listCategories(_type?: string, _parentId?: string): Promise<never[]> {
+    return Promise.resolve([]);
   }
 
-  // ── CATEGORIES (Legacy Stubs) ───────────────────────────────────────────
-
-  async listCategories(type?: string, parentId?: string) {
-    return [];
+  getCategory(_id: string): Promise<never> {
+    return Promise.reject(
+      new NotFoundException('Categories are no longer supported'),
+    );
   }
 
-  async getCategory(id: string) {
-    throw new NotFoundException('Categories are no longer supported');
+  createCategory(_dto: unknown): Promise<never> {
+    return Promise.reject(removed('Categories'));
   }
 
-  async createCategory(dto: any) {
-    throw new Error('Not implemented: Categories were removed in schema v2');
+  updateCategory(_id: string, _dto: unknown): Promise<never> {
+    return Promise.reject(removed('Categories'));
   }
 
-  async updateCategory(id: string, dto: any) {
-    throw new Error('Not implemented: Categories were removed in schema v2');
+  deleteCategory(_id: string): Promise<never> {
+    return Promise.reject(removed('Categories'));
   }
 
-  async deleteCategory(id: string) {
-    return { success: true };
+  // ── TAGS ────────────────────────────────────────────────────────────────
+
+  listTags(_search?: string): Promise<never[]> {
+    return Promise.resolve([]);
   }
 
-  // ── TAGS (Legacy Stubs) ─────────────────────────────────────────────────
-
-  async listTags(search?: string) {
-    return [];
+  getTag(_id: string): Promise<never> {
+    return Promise.reject(
+      new NotFoundException('Tags are no longer supported'),
+    );
   }
 
-  async getTag(id: string) {
-    throw new NotFoundException('Tags are no longer supported');
+  createTag(_dto: unknown): Promise<never> {
+    return Promise.reject(removed('Tags'));
   }
 
-  async createTag(dto: any) {
-    throw new Error('Not implemented: Tags were removed in schema v2');
+  updateTag(_id: string, _dto: unknown): Promise<never> {
+    return Promise.reject(removed('Tags'));
   }
 
-  async updateTag(id: string, dto: any) {
-    throw new Error('Not implemented: Tags were removed in schema v2');
+  deleteTag(_id: string): Promise<never> {
+    return Promise.reject(removed('Tags'));
   }
+}
 
-  async deleteTag(id: string) {
-    return { success: true };
-  }
+function removed(what: string) {
+  return new GoneException(`${what} were removed from the catalog`);
 }

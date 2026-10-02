@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LoggerService } from '../logger/logger.service';
 import { ConfigService } from '@nestjs/config';
 import { S3Service } from '../aws/s3.service';
-import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -40,11 +39,7 @@ export class MediaProcessingService {
 
       // Download file from S3 to temp directory
       const tempFilePath = path.join(tempDir, path.basename(s3Key));
-      const downloadUrl = await this.s3Service.generatePresignedDownloadUrl(
-        bucket,
-        s3Key,
-        3600,
-      );
+      await this.s3Service.generatePresignedDownloadUrl(bucket, s3Key, 3600);
 
       // TODO: Download file implementation
       // For now, we'll just simulate this since we can't actually download the file in this environment
@@ -55,7 +50,6 @@ export class MediaProcessingService {
       // Get audio file duration and metadata
       // In a real implementation, use ffmpeg to get duration and metadata
       const duration = 3600; // Simulated 1-hour duration
-      const bitrate = 128; // Simulated 128kbps
 
       // Update media file with actual size and metadata
       await this.prisma.mediaFile.update({
@@ -140,7 +134,7 @@ export class MediaProcessingService {
     mediaFileId: string,
     bucket: string,
     s3Key: string,
-    mediaSettings: any,
+    _mediaSettings: any,
   ) {
     this.logger.log(`Processing ebook: ${mediaFileId}, key: ${s3Key}`);
 

@@ -1,5 +1,8 @@
 import { Inject, Injectable, BadRequestException } from '@nestjs/common';
-import { IVisionProvider, VISION_PROVIDER } from '../rag/interfaces/vision.provider.interface';
+import {
+  IVisionProvider,
+  VISION_PROVIDER,
+} from '../rag/interfaces/vision.provider.interface';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB decoded — leaves headroom under the 10MB JSON body limit (main.ts) for base64 overhead + the rest of the request
 
@@ -54,7 +57,11 @@ export interface VisualQueryResult {
 export class VisualGroundingService {
   constructor(@Inject(VISION_PROVIDER) private vision: IVisionProvider) {}
 
-  async query(imageBase64: string, question: string, boundingBox?: BoundingBox): Promise<VisualQueryResult> {
+  async query(
+    imageBase64: string,
+    question: string,
+    boundingBox?: BoundingBox,
+  ): Promise<VisualQueryResult> {
     if (!question?.trim()) {
       throw new BadRequestException('"question" is required.');
     }
@@ -69,7 +76,9 @@ export class VisualGroundingService {
       throw new BadRequestException('"image" must be valid base64.');
     }
     if (imageBytes.length > MAX_IMAGE_BYTES) {
-      throw new BadRequestException(`Image too large (max ${MAX_IMAGE_BYTES / 1024 / 1024}MB decoded).`);
+      throw new BadRequestException(
+        `Image too large (max ${MAX_IMAGE_BYTES / 1024 / 1024}MB decoded).`,
+      );
     }
 
     let prompt = question.trim();
@@ -97,9 +106,12 @@ export class VisualGroundingService {
 
   private validateBoundingBox(box: BoundingBox) {
     const { x, y, w, h } = box;
-    const inUnitRange = (n: number) => typeof n === 'number' && n >= 0 && n <= 1;
+    const inUnitRange = (n: number) =>
+      typeof n === 'number' && n >= 0 && n <= 1;
     if (![x, y, w, h].every(inUnitRange) || x + w > 1 || y + h > 1) {
-      throw new BadRequestException('"boundingBox" fields must be fractions in [0,1] and must not extend past the image edges.');
+      throw new BadRequestException(
+        '"boundingBox" fields must be fractions in [0,1] and must not extend past the image edges.',
+      );
     }
   }
 }

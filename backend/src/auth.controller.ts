@@ -45,7 +45,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request) {
     const user = req.user as { id: string };
-    const sessionToken = (req as Request & { sessionToken?: string }).sessionToken;
+    const sessionToken = (req as Request & { sessionToken?: string })
+      .sessionToken;
 
     await this.authService.logout(user.id, { sessionToken });
     return { message: 'Logged out successfully' };

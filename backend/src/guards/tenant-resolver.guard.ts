@@ -33,7 +33,11 @@ export class TenantResolverGuard implements CanActivate {
     }
 
     const requested = readTenantHeader(request.headers ?? {});
-    const resolved = await resolveTenantContext(this.prisma, user.id, requested);
+    const resolved = await resolveTenantContext(
+      this.prisma,
+      user.id,
+      requested,
+    );
 
     setTenantContext(request, resolved);
     return true;

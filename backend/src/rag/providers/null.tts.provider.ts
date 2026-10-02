@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ITtsProvider, TtsLine, TtsResult } from '../interfaces/tts.provider.interface';
+import {
+  ITtsProvider,
+  TtsLine,
+  TtsResult,
+} from '../interfaces/tts.provider.interface';
 
 /**
  * Default TTS_PROVIDER binding — this codebase has no TTS vendor wired up
@@ -14,11 +18,14 @@ import { ITtsProvider, TtsLine, TtsResult } from '../interfaces/tts.provider.int
 export class NullTtsProvider implements ITtsProvider {
   private readonly logger = new Logger(NullTtsProvider.name);
 
-  async synthesize(_script: TtsLine[], _voicePair: string): Promise<TtsResult | null> {
+  synthesize(
+    _script: TtsLine[],
+    _voicePair: string,
+  ): Promise<TtsResult | null> {
     this.logger.warn(
       'No TTS provider is configured — chapter digest will be script-only (no audio). ' +
         'Wire a real ITtsProvider implementation (ElevenLabs/Polly/Azure Speech/etc.) to enable audio rendering.',
     );
-    return null;
+    return Promise.resolve(null);
   }
 }

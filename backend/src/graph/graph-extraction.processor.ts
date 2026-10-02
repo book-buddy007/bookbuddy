@@ -17,7 +17,9 @@ export class GraphExtractionProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<{ bookId: string; pageStart?: number; pageEnd?: number }>): Promise<void> {
+  async process(
+    job: Job<{ bookId: string; pageStart?: number; pageEnd?: number }>,
+  ): Promise<void> {
     switch (job.name) {
       case 'extract-graph':
         // No page scope ⇒ the whole book, built CHAPTER BY CHAPTER and

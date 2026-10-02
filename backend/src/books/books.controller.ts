@@ -57,9 +57,15 @@ export class BooksController {
 
   @UseGuards(BetterAuthGuard)
   @Get('recommendations')
-  async getRecommendations(@Req() req: Request, @Query('limit') limit?: string) {
+  async getRecommendations(
+    @Req() req: Request,
+    @Query('limit') limit?: string,
+  ) {
     const user = req.user as { id: string };
-    return this.booksService.getRecommendations(user.id, this.parseLimit(limit));
+    return this.booksService.getRecommendations(
+      user.id,
+      this.parseLimit(limit),
+    );
   }
 
   /** Clamp a client-supplied limit into a sane range. */
@@ -87,10 +93,15 @@ export class BooksController {
     if (!book) throw new NotFoundException('Book not found');
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: (req.user as any).id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
-      if (!membership) throw new ForbiddenException('You do not have access to this book.');
+      if (!membership)
+        throw new ForbiddenException('You do not have access to this book.');
     }
 
     const rows = await this.prisma.bookChunkMapping.findMany({
@@ -127,7 +138,10 @@ export class BooksController {
    */
   @UseGuards(BetterAuthGuard)
   @Get(':id/page-map')
-  async getPageMap(@Param('id') id: string, @Query('pdfPages') pdfPagesParam?: string) {
+  async getPageMap(
+    @Param('id') id: string,
+    @Query('pdfPages') pdfPagesParam?: string,
+  ) {
     // The spine's extent, NOT BookChunkMapping's. The local table holds only
     // vectorised reference chunks, so its range stops short of the practice
     // pages the PDF still contains — 183-209 locally against 183-213 in the
@@ -142,7 +156,13 @@ export class BooksController {
     const { minPrinted, maxPrinted, span: printedSpan } = spine;
     const pdfPages = Number.parseInt(pdfPagesParam ?? '', 10);
     if (!Number.isFinite(pdfPages) || pdfPages <= 0) {
-      return { resolved: false as const, reason: 'pdf_page_count_missing', minPrinted, maxPrinted, printedSpan };
+      return {
+        resolved: false as const,
+        reason: 'pdf_page_count_missing',
+        minPrinted,
+        maxPrinted,
+        printedSpan,
+      };
     }
 
     if (pdfPages !== printedSpan) {

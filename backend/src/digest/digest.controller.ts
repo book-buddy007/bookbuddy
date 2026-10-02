@@ -18,7 +18,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DigestService } from './digest.service';
 
 const SYSTEM_TENANT = '__SYSTEM__';
-const READER_ROLES = ['super-admin', 'admin', 'librarian', 'teacher', 'student'];
+const READER_ROLES = [
+  'super-admin',
+  'admin',
+  'librarian',
+  'teacher',
+  'student',
+];
 
 @Controller('books')
 @UseGuards(BetterAuthGuard, RolesGuard, AiFeatureGuard)
@@ -38,7 +44,11 @@ export class DigestController {
 
     if (book.tenantId && book.tenantId !== SYSTEM_TENANT) {
       const membership = await this.prisma.userTenantMembership.findFirst({
-        where: { userId: req.user.id, tenantId: book.tenantId, status: 'ACTIVE' },
+        where: {
+          userId: req.user.id,
+          tenantId: book.tenantId,
+          status: 'ACTIVE',
+        },
         select: { id: true },
       });
       if (!membership) {
@@ -58,7 +68,11 @@ export class DigestController {
     @Req() req: any,
   ) {
     await this.authorizeBookAccess(bookId, req);
-    return this.digest.generateDigest(bookId, decodeURIComponent(chapterTitle), voicePair || 'default');
+    return this.digest.generateDigest(
+      bookId,
+      decodeURIComponent(chapterTitle),
+      voicePair || 'default',
+    );
   }
 
   @Get(':bookId/chapters/:chapterTitle/digest/status')
@@ -70,6 +84,10 @@ export class DigestController {
     @Req() req: any,
   ) {
     await this.authorizeBookAccess(bookId, req);
-    return this.digest.getStatus(bookId, decodeURIComponent(chapterTitle), voicePair || 'default');
+    return this.digest.getStatus(
+      bookId,
+      decodeURIComponent(chapterTitle),
+      voicePair || 'default',
+    );
   }
 }

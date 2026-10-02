@@ -62,8 +62,13 @@ export class ResurfacingService {
   ) {}
 
   /** Pure function, exported via the instance for direct unit testing. */
-  estimateRecall(mastery: number, attempts: number, daysSinceUpdate: number): number {
-    const stability = BASE_STABILITY_DAYS + attempts * STABILITY_PER_ATTEMPT_DAYS;
+  estimateRecall(
+    mastery: number,
+    attempts: number,
+    daysSinceUpdate: number,
+  ): number {
+    const stability =
+      BASE_STABILITY_DAYS + attempts * STABILITY_PER_ATTEMPT_DAYS;
     return mastery * Math.exp(-daysSinceUpdate / stability);
   }
 
@@ -73,7 +78,6 @@ export class ResurfacingService {
     let cursor: string | undefined;
     let scheduled = 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const batch = await this.prisma.conceptMastery.findMany({
         where: { mastery: { gte: DEMONSTRATED_MASTERY_THRESHOLD } },
@@ -81,7 +85,9 @@ export class ResurfacingService {
         ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
         orderBy: { id: 'asc' },
         include: {
-          concept: { select: { label: true, firstPage: true, firstChapter: true } },
+          concept: {
+            select: { label: true, firstPage: true, firstChapter: true },
+          },
           book: { select: { title: true } },
         },
       });
@@ -91,7 +97,11 @@ export class ResurfacingService {
       const now = Date.now();
       const candidates = batch.filter((row) => {
         const daysSinceUpdate = (now - row.lastUpdated.getTime()) / 86_400_000;
-        const recall = this.estimateRecall(row.mastery, row.attempts, daysSinceUpdate);
+        const recall = this.estimateRecall(
+          row.mastery,
+          row.attempts,
+          daysSinceUpdate,
+        );
         return recall < RECALL_TRIGGER_THRESHOLD;
       });
 
@@ -102,7 +112,9 @@ export class ResurfacingService {
       if (batch.length < BATCH_SIZE) break;
     }
 
-    this.logger.log(`Nightly resurfacing check complete — ${scheduled} event(s) scheduled.`);
+    this.logger.log(
+      `Nightly resurfacing check complete — ${scheduled} event(s) scheduled.`,
+    );
     return { scheduled };
   }
 
@@ -111,7 +123,11 @@ export class ResurfacingService {
       userId: string;
       bookId: string;
       conceptId: string;
-      concept: { label: string; firstPage: number | null; firstChapter: string | null };
+      concept: {
+        label: string;
+        firstPage: number | null;
+        firstChapter: string | null;
+      };
       book: { title: string };
     }>,
   ): Promise<number> {
@@ -122,12 +138,17 @@ export class ResurfacingService {
     // same (user, concept) means don't re-notify yet.
     const existing = await this.prisma.resurfacingEvent.findMany({
       where: {
-        OR: candidates.map((c) => ({ userId: c.userId, conceptId: c.conceptId })),
+        OR: candidates.map((c) => ({
+          userId: c.userId,
+          conceptId: c.conceptId,
+        })),
         AND: { OR: [{ sentAt: null }, { sentAt: { gte: cooldownCutoff } }] },
       },
       select: { userId: true, conceptId: true },
     });
-    const onCooldown = new Set(existing.map((e) => `${e.userId}:${e.conceptId}`));
+    const onCooldown = new Set(
+      existing.map((e) => `${e.userId}:${e.conceptId}`),
+    );
 
     // Settings → Notifications → Study reminders.
     const remindersOff = await this.preferences.usersWithNotificationOff(
@@ -168,7 +189,9 @@ export class ResurfacingService {
           data: { actionUrl, conceptId: c.conceptId, bookId: c.bookId },
         });
       } catch (e: any) {
-        this.logger.warn(`Push failed for resurfacing event ${event.id}: ${e.message}`);
+        this.logger.warn(
+          `Push failed for resurfacing event ${event.id}: ${e.message}`,
+        );
       }
 
       await this.prisma.resurfacingEvent.update({
@@ -188,7 +211,9 @@ export class ResurfacingService {
       orderBy: { scheduledAt: 'desc' },
       include: {
         book: { select: { title: true } },
-        concept: { select: { label: true, firstPage: true, firstChapter: true } },
+        concept: {
+          select: { label: true, firstPage: true, firstChapter: true },
+        },
       },
       take: 50,
     });
@@ -207,7 +232,10 @@ export class ResurfacingService {
     }));
   }
 
-  async markActioned(userId: string, eventId: string): Promise<{ actioned: boolean }> {
+  async markActioned(
+    userId: string,
+    eventId: string,
+  ): Promise<{ actioned: boolean }> {
     const { count } = await this.prisma.resurfacingEvent.updateMany({
       where: { id: eventId, userId },
       data: { actioned: true },

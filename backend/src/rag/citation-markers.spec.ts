@@ -20,15 +20,21 @@ describe('citation markers', () => {
 
   describe('parseCitedIndexes', () => {
     it('collects every distinct marker', () => {
-      expect(parseCitedIndexes('Photosynthesis [1] needs light [3].')).toEqual(new Set([1, 3]));
+      expect(parseCitedIndexes('Photosynthesis [1] needs light [3].')).toEqual(
+        new Set([1, 3]),
+      );
     });
 
     it('deduplicates a repeated marker', () => {
-      expect(parseCitedIndexes('First [2]. Also [2]. Again [2].')).toEqual(new Set([2]));
+      expect(parseCitedIndexes('First [2]. Also [2]. Again [2].')).toEqual(
+        new Set([2]),
+      );
     });
 
     it('returns empty for an answer with no markers', () => {
-      expect(parseCitedIndexes('I could not find this in the book.')).toEqual(new Set());
+      expect(parseCitedIndexes('I could not find this in the book.')).toEqual(
+        new Set(),
+      );
     });
 
     it('returns empty for empty input', () => {
@@ -36,7 +42,9 @@ describe('citation markers', () => {
     });
 
     it('ignores the retired [cite:ID] format', () => {
-      expect(parseCitedIndexes('Old style [cite:abc123] marker.')).toEqual(new Set());
+      expect(parseCitedIndexes('Old style [cite:abc123] marker.')).toEqual(
+        new Set(),
+      );
     });
 
     it('is not order-dependent across calls', () => {
@@ -58,7 +66,9 @@ describe('citation markers', () => {
     it('returns nothing when the answer cites nothing', () => {
       // The regression this whole change exists to prevent: retrieval found
       // three passages, the answer used none of them, so nothing is cited.
-      expect(filterCitedOnly(served, 'A confident but unsourced answer.')).toEqual([]);
+      expect(
+        filterCitedOnly(served, 'A confident but unsourced answer.'),
+      ).toEqual([]);
     });
 
     it('drops a hallucinated index outside the served set', () => {
@@ -67,7 +77,9 @@ describe('citation markers', () => {
     });
 
     it('handles an empty served set', () => {
-      expect(filterCitedOnly([], 'Cites [1] that was never served.')).toEqual([]);
+      expect(filterCitedOnly([], 'Cites [1] that was never served.')).toEqual(
+        [],
+      );
     });
 
     /* Observed in production: answers written under the previous prompt cite
@@ -80,7 +92,10 @@ describe('citation markers', () => {
     });
 
     it('matches a mix of both forms without duplicating', () => {
-      const result = filterCitedOnly(served, 'One [1], two [cite:b], one again [cite:a].');
+      const result = filterCitedOnly(
+        served,
+        'One [1], two [cite:b], one again [cite:a].',
+      );
       expect(result.map((c) => c.index)).toEqual([1, 2]);
     });
 
@@ -91,9 +106,9 @@ describe('citation markers', () => {
 
   describe('parseCitedChunkIds', () => {
     it('extracts and trims ids', () => {
-      expect(parseCitedChunkIds('a [cite:item:asset:38] b [cite: spaced ]')).toEqual(
-        new Set(['item:asset:38', 'spaced']),
-      );
+      expect(
+        parseCitedChunkIds('a [cite:item:asset:38] b [cite: spaced ]'),
+      ).toEqual(new Set(['item:asset:38', 'spaced']));
     });
 
     it('returns empty when only numeric markers are present', () => {

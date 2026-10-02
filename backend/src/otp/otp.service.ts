@@ -17,8 +17,7 @@ import * as crypto from 'crypto';
 const OTP_LENGTH = 6;
 const OTP_EXPIRY_MINUTES = 5;
 const MAX_ATTEMPTS = 5;
-const MAX_SENDS_PER_WINDOW = 3;
-const SEND_WINDOW_MINUTES = 10;
+// Send rate limits are enforced by @Throttle on OtpController.sendOtp.
 
 @Injectable()
 export class OtpService {

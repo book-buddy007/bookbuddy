@@ -55,7 +55,10 @@ function normalize(w: string): string {
  * O(n*m) — fine at the scale of one audiobook section (typically hundreds
  * to a couple thousand words), not designed for whole-book-at-once inputs.
  */
-export function alignWords(refWords: RefWord[], asrWords: AsrWord[]): AlignedWord[] {
+export function alignWords(
+  refWords: RefWord[],
+  asrWords: AsrWord[],
+): AlignedWord[] {
   const n = refWords.length;
   const m = asrWords.length;
 
@@ -64,13 +67,21 @@ export function alignWords(refWords: RefWord[], asrWords: AsrWord[]): AlignedWor
     // No ASR words at all — every reference word is unmatched; spread them
     // evenly across nothing meaningful is impossible, so surface zero
     // timing rather than a fabricated guess.
-    return refWords.map((rw) => ({ word: rw.word, textOffset: rw.textOffset, startMs: 0, endMs: 0 }));
+    return refWords.map((rw) => ({
+      word: rw.word,
+      textOffset: rw.textOffset,
+      startMs: 0,
+      endMs: 0,
+    }));
   }
 
   const refNorm = refWords.map((w) => normalize(w.word));
   const asrNorm = asrWords.map((w) => normalize(w.word));
 
-  const dp: Uint16Array[] = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  const dp: Uint16Array[] = Array.from(
+    { length: n + 1 },
+    () => new Uint16Array(m + 1),
+  );
   for (let i = 1; i <= n; i++) {
     for (let j = 1; j <= m; j++) {
       if (refNorm[i - 1] && refNorm[i - 1] === asrNorm[j - 1]) {
@@ -96,19 +107,28 @@ export function alignWords(refWords: RefWord[], asrWords: AsrWord[]): AlignedWor
     }
   }
 
-  const result: Array<{ word: string; textOffset: number; startMs: number | null; endMs: number | null }> =
-    refWords.map((rw, idx) => {
-      const asrIdx = matchRefToAsr.get(idx);
-      if (asrIdx !== undefined) {
-        return {
-          word: rw.word,
-          textOffset: rw.textOffset,
-          startMs: Math.round(asrWords[asrIdx].startMs),
-          endMs: Math.round(asrWords[asrIdx].endMs),
-        };
-      }
-      return { word: rw.word, textOffset: rw.textOffset, startMs: null, endMs: null };
-    });
+  const result: Array<{
+    word: string;
+    textOffset: number;
+    startMs: number | null;
+    endMs: number | null;
+  }> = refWords.map((rw, idx) => {
+    const asrIdx = matchRefToAsr.get(idx);
+    if (asrIdx !== undefined) {
+      return {
+        word: rw.word,
+        textOffset: rw.textOffset,
+        startMs: Math.round(asrWords[asrIdx].startMs),
+        endMs: Math.round(asrWords[asrIdx].endMs),
+      };
+    }
+    return {
+      word: rw.word,
+      textOffset: rw.textOffset,
+      startMs: null,
+      endMs: null,
+    };
+  });
 
   for (let k = 0; k < result.length; k++) {
     if (result[k].startMs !== null) continue;

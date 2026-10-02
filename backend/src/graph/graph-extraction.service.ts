@@ -2,7 +2,10 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { QdrantInitService } from '../rag/qdrant-init.service';
 import { ContentSpineService } from '../rag/content-spine.service';
-import { ILlmProvider, LLM_PROVIDER } from '../rag/interfaces/llm.provider.interface';
+import {
+  ILlmProvider,
+  LLM_PROVIDER,
+} from '../rag/interfaces/llm.provider.interface';
 import { CommunityDetectionService } from './community-detection.service';
 import { GraphEmbeddingService } from './graph-embedding.service';
 
@@ -12,7 +15,8 @@ import { GraphEmbeddingService } from './graph-embedding.service';
 // Extraction pointed at the dead collection found zero chunks for every book
 // and silently produced no graph ("Nothing to map yet"). This matches the
 // collection every other live reader feature uses.
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 
 /** A page-range scope for extraction. Absent/empty ⇒ the whole book. */
 export interface ExtractScope {
@@ -115,16 +119,27 @@ export class GraphExtractionService {
       return;
     }
 
-    const scopeLabel = scope?.pageStart != null ? ` (pages ${scope.pageStart}–${scope.pageEnd ?? scope.pageStart})` : '';
+    const scopeLabel =
+      scope?.pageStart != null
+        ? ` (pages ${scope.pageStart}–${scope.pageEnd ?? scope.pageStart})`
+        : '';
     const chunks = await this.fetchOrderedChunks(bookId, scope);
     if (chunks.length === 0) {
-      this.logger.warn(`No chunks for book ${bookId}${scopeLabel} — skipping graph extraction.`);
+      this.logger.warn(
+        `No chunks for book ${bookId}${scopeLabel} — skipping graph extraction.`,
+      );
       return;
     }
 
-    const { nodeByKey, rawRelations } = await this.extractFromChunks(chunks, book.title, scopeLabel);
+    const { nodeByKey, rawRelations } = await this.extractFromChunks(
+      chunks,
+      book.title,
+      scopeLabel,
+    );
     if (nodeByKey.size === 0) {
-      this.logger.warn(`No entities extracted for book ${bookId}${scopeLabel} — nothing to persist.`);
+      this.logger.warn(
+        `No entities extracted for book ${bookId}${scopeLabel} — nothing to persist.`,
+      );
       return;
     }
 
@@ -139,7 +154,9 @@ export class GraphExtractionService {
       const embedded = await this.graphEmbedding.embedBook(bookId);
       this.logger.log(`Embedded ${embedded} node(s) for semantic search`);
     } catch (err: any) {
-      this.logger.warn(`Node embedding failed (non-fatal, will backfill on search): ${err.message}`);
+      this.logger.warn(
+        `Node embedding failed (non-fatal, will backfill on search): ${err.message}`,
+      );
     }
 
     this.logger.log(
@@ -164,13 +181,17 @@ export class GraphExtractionService {
   async extractAllChapters(bookId: string): Promise<void> {
     const book = await this.prisma.book.findUnique({ where: { id: bookId } });
     if (!book) {
-      this.logger.warn(`Book ${bookId} not found — skipping chapter graph extraction.`);
+      this.logger.warn(
+        `Book ${bookId} not found — skipping chapter graph extraction.`,
+      );
       return;
     }
 
     const chunks = await this.fetchOrderedChunks(bookId); // whole book, no scope
     if (chunks.length === 0) {
-      this.logger.warn(`No chunks for book ${bookId} — skipping chapter graph extraction.`);
+      this.logger.warn(
+        `No chunks for book ${bookId} — skipping chapter graph extraction.`,
+      );
       return;
     }
 
@@ -183,12 +204,20 @@ export class GraphExtractionService {
       else byChapter.set(key, [c]);
     }
     const firstPage = (cs: RawChunk[]) =>
-      Math.min(...cs.map((c) => (c.pageNumber != null ? c.pageNumber : Number.MAX_SAFE_INTEGER)));
+      Math.min(
+        ...cs.map((c) =>
+          c.pageNumber != null ? c.pageNumber : Number.MAX_SAFE_INTEGER,
+        ),
+      );
     const chapters = [...byChapter.entries()].sort(
-      (a, b) => firstPage(a[1]) - firstPage(b[1]) || a[1][0].chunkIndex - b[1][0].chunkIndex,
+      (a, b) =>
+        firstPage(a[1]) - firstPage(b[1]) ||
+        a[1][0].chunkIndex - b[1][0].chunkIndex,
     );
 
-    this.logger.log(`Chapter-wise graph build for "${book.title}": ${chapters.length} chapter(s)`);
+    this.logger.log(
+      `Chapter-wise graph build for "${book.title}": ${chapters.length} chapter(s)`,
+    );
 
     // Clean slate — clear any prior whole-book graph so no orphan nodes remain
     // from a build made before this path existed.
@@ -205,15 +234,24 @@ export class GraphExtractionService {
         ` [${chapterTitle}]`,
       );
       if (nodeByKey.size === 0) {
-        this.logger.warn(`No entities for chapter "${chapterTitle}" of ${bookId} — leaving it empty.`);
+        this.logger.warn(
+          `No entities for chapter "${chapterTitle}" of ${bookId} — leaving it empty.`,
+        );
         continue;
       }
       const cap = this.chapterCap(chapterChunks);
       const capped = this.capChapterGraph(nodeByKey, rawRelations, cap);
       if (capped.nodeByKey.size < nodeByKey.size) {
-        this.logger.log(`Pruned "${chapterTitle}": ${nodeByKey.size} → ${capped.nodeByKey.size} nodes (adaptive cap ${cap})`);
+        this.logger.log(
+          `Pruned "${chapterTitle}": ${nodeByKey.size} → ${capped.nodeByKey.size} nodes (adaptive cap ${cap})`,
+        );
       }
-      await this.persistChapter(bookId, chapterTitle, capped.nodeByKey, capped.rawRelations);
+      await this.persistChapter(
+        bookId,
+        chapterTitle,
+        capped.nodeByKey,
+        capped.rawRelations,
+      );
       totalNodes += capped.nodeByKey.size;
       totalEdges += capped.rawRelations.length;
       built += 1;
@@ -229,7 +267,9 @@ export class GraphExtractionService {
       const embedded = await this.graphEmbedding.embedBook(bookId);
       this.logger.log(`Embedded ${embedded} node(s) for semantic search`);
     } catch (err: any) {
-      this.logger.warn(`Node embedding failed (non-fatal, will backfill on search): ${err.message}`);
+      this.logger.warn(
+        `Node embedding failed (non-fatal, will backfill on search): ${err.message}`,
+      );
     }
 
     this.logger.log(
@@ -271,7 +311,10 @@ export class GraphExtractionService {
     nodeByKey: Map<string, GraphNodeDraft>,
     rawRelations: GraphRelationDraft[],
     cap: number,
-  ): { nodeByKey: Map<string, GraphNodeDraft>; rawRelations: GraphRelationDraft[] } {
+  ): {
+    nodeByKey: Map<string, GraphNodeDraft>;
+    rawRelations: GraphRelationDraft[];
+  } {
     if (nodeByKey.size <= cap) return { nodeByKey, rawRelations };
 
     const degree = new Map<string, number>();
@@ -288,7 +331,10 @@ export class GraphExtractionService {
 
     // 1. Reserve the best person/place/event nodes — a fraction of the cap, so
     //    the quota scales with the chapter's size too (min 2, max 10).
-    const quota = Math.min(10, Math.max(2, Math.round(cap * NON_CONCEPT_FRACTION)));
+    const quota = Math.min(
+      10,
+      Math.max(2, Math.round(cap * NON_CONCEPT_FRACTION)),
+    );
     const kept = new Set(
       [...nodeByKey.keys()]
         .filter((k) => !isConcept(k))
@@ -306,7 +352,9 @@ export class GraphExtractionService {
     }
 
     const prunedNodes = new Map([...nodeByKey].filter(([k]) => kept.has(k)));
-    const prunedRels = rawRelations.filter((r) => kept.has(r.sourceKey) && kept.has(r.targetKey));
+    const prunedRels = rawRelations.filter(
+      (r) => kept.has(r.sourceKey) && kept.has(r.targetKey),
+    );
     return { nodeByKey: prunedNodes, rawRelations: prunedRels };
   }
 
@@ -320,9 +368,14 @@ export class GraphExtractionService {
     chunks: RawChunk[],
     bookTitle: string,
     scopeLabel = '',
-  ): Promise<{ nodeByKey: Map<string, GraphNodeDraft>; rawRelations: GraphRelationDraft[] }> {
+  ): Promise<{
+    nodeByKey: Map<string, GraphNodeDraft>;
+    rawRelations: GraphRelationDraft[];
+  }> {
     const windows = this.buildWindows(chunks);
-    this.logger.log(`Extracting entity graph for "${bookTitle}"${scopeLabel} — ${windows.length} window(s)`);
+    this.logger.log(
+      `Extracting entity graph for "${bookTitle}"${scopeLabel} — ${windows.length} window(s)`,
+    );
 
     const nodeByKey = new Map<string, GraphNodeDraft>();
     const rawRelations: GraphRelationDraft[] = [];
@@ -342,14 +395,19 @@ export class GraphExtractionService {
         // LLM output can omit label/description; skip a label-less entity rather
         // than crash on `.trim()` or index the graph with an empty-key node.
         if (typeof entity.label !== 'string' || !entity.label.trim()) continue;
-        const description = typeof entity.description === 'string' ? entity.description : '';
+        const description =
+          typeof entity.description === 'string' ? entity.description : '';
         const key = this.entityKey(entity.label, entity.type);
         const provenance = this.resolveSpan(window, entity.quote);
         const existing = nodeByKey.get(key);
         if (existing) {
           // Keep the earliest page as firstPage (and that page's chapter);
           // keep the longer description.
-          if (provenance.pageNumber != null && (existing.firstPage == null || provenance.pageNumber < existing.firstPage)) {
+          if (
+            provenance.pageNumber != null &&
+            (existing.firstPage == null ||
+              provenance.pageNumber < existing.firstPage)
+          ) {
             existing.firstPage = provenance.pageNumber;
             existing.firstChapter = provenance.chapterTitle;
           }
@@ -370,7 +428,12 @@ export class GraphExtractionService {
       for (const rel of result.relations) {
         // LLM output can omit an endpoint or the relation verb; skip rather than
         // crash on `.trim()` (entityKey → canonicalLabel, and rel.relation below).
-        if (typeof rel.source !== 'string' || typeof rel.target !== 'string' || typeof rel.relation !== 'string') continue;
+        if (
+          typeof rel.source !== 'string' ||
+          typeof rel.target !== 'string' ||
+          typeof rel.relation !== 'string'
+        )
+          continue;
         const sourceKey = this.entityKey(rel.source, undefined, nodeByKey);
         const targetKey = this.entityKey(rel.target, undefined, nodeByKey);
         if (!sourceKey || !targetKey || sourceKey === targetKey) continue; // dangling or self-referential
@@ -406,7 +469,10 @@ export class GraphExtractionService {
    * Practice chunks are left in: they are real positions in the book and good
    * entity material. (rag-search excludes them from ANSWERS, a different concern.)
    */
-  private async fetchOrderedChunks(bookId: string, scope?: ExtractScope): Promise<RawChunk[]> {
+  private async fetchOrderedChunks(
+    bookId: string,
+    scope?: ExtractScope,
+  ): Promise<RawChunk[]> {
     const contentItemId = await this.contentSpine.resolveContentItemId(bookId);
     if (!contentItemId) {
       this.logger.warn(
@@ -422,7 +488,9 @@ export class GraphExtractionService {
 
     do {
       const page: any = await qdrant.scroll(COLLECTION, {
-        filter: { must: [{ key: 'content_item_id', match: { value: contentItemId } }] },
+        filter: {
+          must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+        },
         limit: 256,
         offset,
         with_payload: true,
@@ -440,7 +508,9 @@ export class GraphExtractionService {
     const pageEnd = scope?.pageEnd ?? scope?.pageStart;
     const inScope = (p: any): boolean => {
       if (pageStart == null) return true;
-      const ps = Number.isFinite(p.payload?.page_start) ? p.payload.page_start : null;
+      const ps = Number.isFinite(p.payload?.page_start)
+        ? p.payload.page_start
+        : null;
       if (ps == null) return false;
       const pe = Number.isFinite(p.payload?.page_end) ? p.payload.page_end : ps;
       return ps <= (pageEnd as number) && pe >= pageStart;
@@ -450,8 +520,12 @@ export class GraphExtractionService {
       .filter(inScope)
       .map((p) => ({
         qdrantPointId: String(p.id),
-        chunkIndex: Number.isFinite(p.payload?.chunk_index) ? p.payload.chunk_index : 0,
-        pageNumber: Number.isFinite(p.payload?.page_start) ? p.payload.page_start : null,
+        chunkIndex: Number.isFinite(p.payload?.chunk_index)
+          ? p.payload.chunk_index
+          : 0,
+        pageNumber: Number.isFinite(p.payload?.page_start)
+          ? p.payload.page_start
+          : null,
         chapterTitle: p.payload?.chapter ?? p.payload?.section_title ?? null,
         text: typeof p.payload?.text === 'string' ? p.payload.text : '',
       }))
@@ -461,14 +535,22 @@ export class GraphExtractionService {
 
   // ── Windowing ────────────────────────────────────────────────────────
 
-  private buildWindows(chunks: RawChunk[]): { text: string; chunks: RawChunk[] }[] {
+  private buildWindows(
+    chunks: RawChunk[],
+  ): { text: string; chunks: RawChunk[] }[] {
     const windows: { text: string; chunks: RawChunk[] }[] = [];
     let current: RawChunk[] = [];
     let currentLen = 0;
 
     for (const chunk of chunks) {
-      if (currentLen + chunk.text.length > WINDOW_CHAR_BUDGET && current.length > 0) {
-        windows.push({ text: current.map((c) => c.text).join('\n\n'), chunks: current });
+      if (
+        currentLen + chunk.text.length > WINDOW_CHAR_BUDGET &&
+        current.length > 0
+      ) {
+        windows.push({
+          text: current.map((c) => c.text).join('\n\n'),
+          chunks: current,
+        });
         current = [];
         currentLen = 0;
       }
@@ -476,14 +558,19 @@ export class GraphExtractionService {
       currentLen += chunk.text.length;
     }
     if (current.length > 0) {
-      windows.push({ text: current.map((c) => c.text).join('\n\n'), chunks: current });
+      windows.push({
+        text: current.map((c) => c.text).join('\n\n'),
+        chunks: current,
+      });
     }
     return windows;
   }
 
   // ── LLM extraction ───────────────────────────────────────────────────
 
-  private async chatComplete(messages: { role: string; content: string }[]): Promise<string> {
+  private async chatComplete(
+    messages: { role: string; content: string }[],
+  ): Promise<string> {
     let full = '';
     await this.llmProvider.chatStream(messages, (token) => {
       full += token;
@@ -491,7 +578,10 @@ export class GraphExtractionService {
     return full;
   }
 
-  private async extractWindow(text: string, bookTitle: string): Promise<WindowResult> {
+  private async extractWindow(
+    text: string,
+    bookTitle: string,
+  ): Promise<WindowResult> {
     const systemPrompt =
       `You extract a compact concept map from a passage of the textbook "${bookTitle}", for a student studying this chapter. ` +
       `Return ONLY a JSON object, no prose, matching exactly this shape:\n` +
@@ -514,7 +604,10 @@ export class GraphExtractionService {
 
   private parseWindowResult(raw: string): WindowResult {
     // Models occasionally wrap JSON in a code fence despite instructions — strip it.
-    const cleaned = raw.trim().replace(/^```json?\s*/i, '').replace(/```\s*$/, '');
+    const cleaned = raw
+      .trim()
+      .replace(/^```json?\s*/i, '')
+      .replace(/```\s*$/, '');
     try {
       const parsed = JSON.parse(cleaned);
       return {
@@ -594,15 +687,26 @@ export class GraphExtractionService {
       .toLowerCase()
       .replace(/[‘’“”]/g, '') // curly quotes
       .replace(/^(the|a|an)\s+/, '') // leading article
-      .replace(/\b(process|concept|study|theory|phenomenon|idea|notion|field)\s+of\s+/g, '') // "process of X" → "X"
+      .replace(
+        /\b(process|concept|study|theory|phenomenon|idea|notion|field)\s+of\s+/g,
+        '',
+      ) // "process of X" → "X"
       .replace(/[^a-z0-9/ ]+/g, ' ') // punctuation → space (keep "/" for "ecology/ecosystem")
       .replace(/\s+/g, ' ')
       .trim();
   }
 
   private entityKey(label: string, type: string): string;
-  private entityKey(label: string, type: undefined, known: Map<string, any>): string | null;
-  private entityKey(label: string, type?: string, known?: Map<string, any>): string | null {
+  private entityKey(
+    label: string,
+    type: undefined,
+    known: Map<string, any>,
+  ): string | null;
+  private entityKey(
+    label: string,
+    type?: string,
+    known?: Map<string, any>,
+  ): string | null {
     const normalized = this.canonicalLabel(label);
     if (type) return `${type}::${normalized}`;
     if (!known) return null;
@@ -620,7 +724,13 @@ export class GraphExtractionService {
     bookId: string,
     nodeByKey: Map<
       string,
-      { label: string; type: string; description: string; firstPage: number | null; firstChapter: string | null }
+      {
+        label: string;
+        type: string;
+        description: string;
+        firstPage: number | null;
+        firstChapter: string | null;
+      }
     >,
     rawRelations: Array<{
       sourceKey: string;
@@ -695,7 +805,9 @@ export class GraphExtractionService {
     nodeByKey: Map<string, GraphNodeDraft>,
     rawRelations: GraphRelationDraft[],
   ) {
-    await this.prisma.graphNode.deleteMany({ where: { bookId, firstChapter: chapterTitle } });
+    await this.prisma.graphNode.deleteMany({
+      where: { bookId, firstChapter: chapterTitle },
+    });
 
     const keyToId = new Map<string, string>();
     for (const [key, node] of nodeByKey) {

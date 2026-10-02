@@ -10,7 +10,8 @@ import { RankedChunk } from './interfaces/reranker.provider.interface';
 // GraphEdge.qdrantPointId, which extraction now captures against this
 // collection, so anchors must be retrieved from here; `book_buddy_books_v1` was
 // deleted in the platform reset and held nothing.
-const COLLECTION = process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION =
+  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
 
 // Below this, a concept counts as "weak" for scaffolding purposes — the BKT
 // prior is 0.3, so anything that hasn't climbed meaningfully past it is
@@ -28,9 +29,34 @@ const MAX_ANCHOR_PASSAGES = 2;
 // like "what is the significance of X" from spuriously matching a concept
 // node labeled "The" or "What".
 const STOPWORDS = new Set([
-  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'what', 'who', 'why', 'how',
-  'when', 'where', 'does', 'did', 'this', 'that', 'and', 'for', 'with',
-  'about', 'from', 'into', 'their', 'they', 'them', 'you', 'your',
+  'the',
+  'a',
+  'an',
+  'is',
+  'are',
+  'was',
+  'were',
+  'what',
+  'who',
+  'why',
+  'how',
+  'when',
+  'where',
+  'does',
+  'did',
+  'this',
+  'that',
+  'and',
+  'for',
+  'with',
+  'about',
+  'from',
+  'into',
+  'their',
+  'they',
+  'them',
+  'you',
+  'your',
 ]);
 
 export interface MasteryAwareAugmentation {
@@ -83,9 +109,14 @@ export class MasteryAwareRetrievalService {
         return { chunks: baseChunks, weakConceptLabels: [] };
       }
 
-      const masteryVector = await this.masteryService.getMasteryVector(userId, bookId);
+      const masteryVector = await this.masteryService.getMasteryVector(
+        userId,
+        bookId,
+      );
       const weak = masteryVector.filter(
-        (m) => touchedConceptIds.has(m.conceptId) && m.mastery < WEAK_MASTERY_THRESHOLD,
+        (m) =>
+          touchedConceptIds.has(m.conceptId) &&
+          m.mastery < WEAK_MASTERY_THRESHOLD,
       );
       if (weak.length === 0) {
         return { chunks: baseChunks, weakConceptLabels: [] };
@@ -105,7 +136,9 @@ export class MasteryAwareRetrievalService {
     } catch (e) {
       // Augmentation is best-effort — a failure here should degrade to
       // today's plain retrieval, never break the chat response.
-      this.logger.warn(`Mastery-aware augmentation failed, falling back to plain retrieval: ${e.message}`);
+      this.logger.warn(
+        `Mastery-aware augmentation failed, falling back to plain retrieval: ${e.message}`,
+      );
       return { chunks: baseChunks, weakConceptLabels: [] };
     }
   }
@@ -117,7 +150,10 @@ export class MasteryAwareRetrievalService {
    * single-book scale) and good enough to gate an augmentation layer that
    * already degrades safely on a miss.
    */
-  private async resolveQueryConcepts(bookId: string, query: string): Promise<Set<string>> {
+  private async resolveQueryConcepts(
+    bookId: string,
+    query: string,
+  ): Promise<Set<string>> {
     const nodes = await this.prisma.graphNode.findMany({
       where: { bookId },
       select: { id: true, label: true },
@@ -157,7 +193,10 @@ export class MasteryAwareRetrievalService {
       where: {
         bookId,
         qdrantPointId: { not: null },
-        OR: [{ sourceId: { in: conceptIds } }, { targetId: { in: conceptIds } }],
+        OR: [
+          { sourceId: { in: conceptIds } },
+          { targetId: { in: conceptIds } },
+        ],
       },
       select: { qdrantPointId: true, citedPage: true, chapterTitle: true },
       take: 20, // small pool to pick MAX_ANCHOR_PASSAGES distinct points from
@@ -165,7 +204,11 @@ export class MasteryAwareRetrievalService {
 
     const candidateIds: string[] = [];
     for (const e of edges) {
-      if (e.qdrantPointId && !exclude.has(e.qdrantPointId) && !candidateIds.includes(e.qdrantPointId)) {
+      if (
+        e.qdrantPointId &&
+        !exclude.has(e.qdrantPointId) &&
+        !candidateIds.includes(e.qdrantPointId)
+      ) {
         candidateIds.push(e.qdrantPointId);
       }
       if (candidateIds.length >= MAX_ANCHOR_PASSAGES) break;

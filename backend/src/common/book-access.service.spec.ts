@@ -73,9 +73,9 @@ describe('BookAccessService', () => {
       // findFirst returns null because deletedAt is in the predicate. 404 over
       // 403 deliberately: 403 would confirm the id exists.
       prisma.book.findFirst.mockResolvedValue(null);
-      await expect(service.assertCanRead('user-1', 'gone')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(
+        service.assertCanRead('user-1', 'gone'),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -115,8 +115,13 @@ describe('BookAccessService', () => {
     });
 
     it('treats a null tenantId as global', async () => {
-      prisma.book.findFirst.mockResolvedValue({ ...GLOBAL_BOOK, tenantId: null });
-      await expect(service.assertCanRead('user-1', 'book-1')).resolves.toBeTruthy();
+      prisma.book.findFirst.mockResolvedValue({
+        ...GLOBAL_BOOK,
+        tenantId: null,
+      });
+      await expect(
+        service.assertCanRead('user-1', 'book-1'),
+      ).resolves.toBeTruthy();
       expect(prisma.userTenantMembership.findFirst).not.toHaveBeenCalled();
     });
   });
@@ -128,7 +133,9 @@ describe('BookAccessService', () => {
         accessTier: 'DIAMOND',
       });
 
-      await expect(service.assertCanRead('free-user', 'book-1')).resolves.toBeTruthy();
+      await expect(
+        service.assertCanRead('free-user', 'book-1'),
+      ).resolves.toBeTruthy();
       expect(prisma.user.findUnique).not.toHaveBeenCalled();
     });
 
@@ -162,7 +169,9 @@ describe('BookAccessService', () => {
           trialEndsAt: null,
         });
 
-        await expect(service.assertCanRead('paid', 'book-1')).resolves.toBeTruthy();
+        await expect(
+          service.assertCanRead('paid', 'book-1'),
+        ).resolves.toBeTruthy();
       });
 
       it('allows an active trial through any tier', async () => {
@@ -175,7 +184,9 @@ describe('BookAccessService', () => {
           trialEndsAt: new Date(Date.now() + 86_400_000),
         });
 
-        await expect(service.assertCanRead('trialist', 'book-1')).resolves.toBeTruthy();
+        await expect(
+          service.assertCanRead('trialist', 'book-1'),
+        ).resolves.toBeTruthy();
       });
 
       it('does NOT lock out an unrecognised tier string', async () => {
@@ -191,12 +202,16 @@ describe('BookAccessService', () => {
           trialEndsAt: null,
         });
 
-        await expect(service.assertCanRead('legacy', 'book-1')).resolves.toBeTruthy();
+        await expect(
+          service.assertCanRead('legacy', 'book-1'),
+        ).resolves.toBeTruthy();
       });
 
       it('gates nothing on a FREE book', async () => {
         prisma.book.findFirst.mockResolvedValue(GLOBAL_BOOK);
-        await expect(service.assertCanRead('anyone', 'book-1')).resolves.toBeTruthy();
+        await expect(
+          service.assertCanRead('anyone', 'book-1'),
+        ).resolves.toBeTruthy();
         expect(prisma.user.findUnique).not.toHaveBeenCalled();
       });
 
