@@ -237,9 +237,9 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
           close button — a second header inside a tab is just noise. The
           export action is not chrome though, so it moves inline. */}
       {!embedded ? (
-        <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 flex flex-col gap-3 shrink-0">
+        <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex flex-col gap-3 shrink-0">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)] flex items-center gap-2">
+            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
               <Highlighter className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
               Annotations
             </h3>

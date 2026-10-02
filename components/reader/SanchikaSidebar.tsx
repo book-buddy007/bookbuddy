@@ -82,15 +82,15 @@ export function SanchikaSidebar({
         isOpen,
         embedded,
         surface:
-          "bg-[var(--parchment)]/97 dark:bg-[var(--night-ink)]/97 border-[var(--accent-primary)]/20 dark:border-[var(--gold)]/12",
+          "bg-[var(--bb-surface)]/97 dark:bg-[var(--bb-ink)]/97 border-[var(--accent-primary)]/20 dark:border-[var(--bb-amber)]/12",
       })}
     >
       {/* Embedded in the Study drawer, the drawer draws the title and the
           close button — a second header inside a tab is just noise. */}
       {!embedded && (
-        <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 flex flex-col gap-3 shrink-0">
+        <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex flex-col gap-3 shrink-0">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)] flex items-center gap-2">
+            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
               <NotebookPen className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
               Sanchika Notes
             </h3>
@@ -108,7 +108,7 @@ export function SanchikaSidebar({
       )}
 
       {/* ── Scope + freshness ──────────────────────────────────────── */}
-      <div className="px-3 py-2.5 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 flex items-center gap-2 shrink-0">
+      <div className="px-3 py-2.5 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex items-center gap-2 shrink-0">
         <div
           role="tablist"
           aria-label="Which notes to show"

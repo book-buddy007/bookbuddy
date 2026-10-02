@@ -185,7 +185,7 @@ export function VartaModeSelector({
   return (
     <div className="flex flex-col items-start gap-1.5">
       {visible && SuggestionIcon && (
-        <div className="inline-flex items-center gap-1.5 rounded-full py-1 pl-2.5 pr-1 text-[11px] border border-[var(--accent-primary)]/30 bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10 text-[var(--accent-contrast)] dark:text-[var(--accent-primary-dark)]">
+        <div className="inline-flex items-center gap-1.5 rounded-full py-1 pl-2.5 pr-1 text-[11px] border border-[var(--accent-primary)]/30 bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10 text-[var(--accent-contrast)] dark:text-[var(--accent-primary-dark)]">
           <SuggestionIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span className="truncate">
             Try <span className="font-semibold">{visible.title}</span>?
@@ -214,7 +214,7 @@ export function VartaModeSelector({
             type="button"
             disabled={disabled}
             aria-label={`Answer mode: ${active.title}. Change mode.`}
-            className="group inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-primary)]/30 bg-white/70 py-1 pl-1 pr-2 text-[11px] font-semibold text-[var(--accent-contrast)] transition-colors hover:border-[var(--accent-strong)] disabled:opacity-50 dark:border-[var(--gold)]/20 dark:bg-slate-900/60 dark:text-[var(--accent-primary-dark)]"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-primary)]/30 bg-white/70 py-1 pl-1 pr-2 text-[11px] font-semibold text-[var(--accent-contrast)] transition-colors hover:border-[var(--accent-strong)] disabled:opacity-50 dark:border-[var(--bb-amber)]/20 dark:bg-slate-900/60 dark:text-[var(--accent-primary-dark)]"
           >
             <span className={`flex h-5 w-5 items-center justify-center rounded-full ${active.accent}`}>
               <ActiveIcon className="h-3 w-3" />
@@ -239,7 +239,7 @@ export function VartaModeSelector({
                   if (!isActive) onChange(m.id);
                 }}
                 className={`flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-2 ${
-                  isActive ? 'bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10' : ''
+                  isActive ? 'bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10' : ''
                 }`}
               >
                 <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${m.accent}`}>

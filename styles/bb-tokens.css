@@ -9,6 +9,7 @@
   /* core palette */
   --bb-ink: #0A0F24; --bb-navy-2: #0F1F5C; --bb-cobalt: #1E3A8A; --bb-cobalt-light: #3B5BDB; --bb-periwinkle: #5B7CFF;
   --bb-blaze: #FF4D00; --bb-blaze-light: #FF8A3D; --bb-blaze-dark: #D93A00; --bb-amber: #FFB547; --bb-cream: #FFE3A3; --bb-cloud: #F2F4F8;
+  --bb-ink-2: #121A33; --bb-cloud-rgb: 242 244 248; --bb-blaze-rgb: 255 77 0;
   /* artwork-only stops (3D hero, covers, player) */
   --bb-cobalt-mid: #2B4FD0; --bb-cobalt-glow: #4C6FFF; --bb-blaze-soft: #FF9A55; --bb-blaze-deep: #C23400; --bb-peach: #FFB37A; --bb-peach-light: #FFC58A; --bb-paper-line: #DCE1EA;
   /* semantic (light) */

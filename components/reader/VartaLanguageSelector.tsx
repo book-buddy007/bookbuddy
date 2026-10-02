@@ -107,7 +107,7 @@ export function VartaLanguageSelector({ disabled = false }: VartaLanguageSelecto
           type="button"
           disabled={disabled || !loaded || saving}
           aria-label={`Answer language: ${active.title}. Change language.`}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-primary)]/30 bg-white/70 py-1 pl-2 pr-2 text-[11px] font-semibold text-[var(--accent-contrast)] transition-colors hover:border-[var(--accent-strong)] disabled:opacity-50 dark:border-[var(--gold)]/20 dark:bg-slate-900/60 dark:text-[var(--accent-primary-dark)]"
+          className="group inline-flex items-center gap-1.5 rounded-full border border-[var(--accent-primary)]/30 bg-white/70 py-1 pl-2 pr-2 text-[11px] font-semibold text-[var(--accent-contrast)] transition-colors hover:border-[var(--accent-strong)] disabled:opacity-50 dark:border-[var(--bb-amber)]/20 dark:bg-slate-900/60 dark:text-[var(--accent-primary-dark)]"
         >
           <Languages className="h-3.5 w-3.5 opacity-80" />
           {PILL_LABEL[active.id]}
@@ -129,7 +129,7 @@ export function VartaLanguageSelector({ disabled = false }: VartaLanguageSelecto
                 if (!isActive) void choose(o.id);
               }}
               className={`flex cursor-pointer items-start gap-2.5 rounded-lg px-2 py-2 ${
-                isActive ? 'bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10' : ''
+                isActive ? 'bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10' : ''
               }`}
             >
               <div className="min-w-0 flex-1">

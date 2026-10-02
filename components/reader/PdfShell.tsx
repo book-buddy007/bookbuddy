@@ -436,9 +436,9 @@ function SelectionQuickToolbar({
           display: 'flex',
           flexDirection: 'column',
           gap: isCompact ? 8 : 4,
-          background: 'rgba(var(--ivory-cream-rgb, 255 248 240) / 0.97)',
+          background: 'rgba(var(--bb-cloud-rgb) / 0.97)',
           backdropFilter: 'blur(16px) saturate(180%)',
-          border: '1px solid rgba(var(--deep-saffron-rgb, 255 153 51) / 0.28)',
+          border: '1px solid rgba(var(--bb-blaze-rgb) / 0.28)',
           borderRadius: isCompact ? '16px 16px 0 0' : 12,
           padding: isCompact ? '12px 12px' : '4px 8px',
           paddingBottom: isCompact ? 'max(12px, env(safe-area-inset-bottom))' : 4,
@@ -521,8 +521,8 @@ function SelectionQuickToolbar({
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }}
             title="Add Note"
             style={quickBtnStyle('var(--bb-accent-ink)', 'rgba(255,77,0,0.1)', 'rgba(255,107,53,0.06)')}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
           >
             <FileText size={13} />
             Note
@@ -536,8 +536,8 @@ function SelectionQuickToolbar({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSpeakText(selectedText); }}
                 title="Listen to selected text"
                 style={quickBtnStyle('#1E40AF', 'rgba(59,130,246,0.1)', 'rgba(99,102,241,0.06)')}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
               >
                 <Volume2 size={13} />
                 Listen
@@ -570,8 +570,8 @@ function SelectionQuickToolbar({
             }}
             title="Define Word"
             style={quickBtnStyle('#7E22CE', 'rgba(168,85,247,0.1)', 'rgba(192,132,252,0.06)')}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
           >
             <BookA size={13} />
             Define
@@ -585,8 +585,8 @@ function SelectionQuickToolbar({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAskVarta(selectedText); cancel(); }}
                 title="Ask Varta"
                 style={quickBtnStyle('#C2185B', 'rgba(233,30,99,0.1)', 'rgba(255,105,180,0.06)')}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
               >
                 <WandSparkles size={13} />
                 Varta
@@ -602,8 +602,8 @@ function SelectionQuickToolbar({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSaveToSanchika(selectedText); cancel(); }}
                 title="Save to Sanchika"
                 style={quickBtnStyle('var(--bb-accent-ink)', 'rgba(255,183,77,0.1)', 'rgba(255,152,0,0.06)')}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
               >
                 <NotebookPen size={13} />
                 Extract
@@ -621,8 +621,8 @@ function SelectionQuickToolbar({
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCopy(); }}
             title="Copy"
             style={quickBtnStyle('#166534', 'rgba(34,197,94,0.1)', 'rgba(74,222,128,0.06)')}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
           >
             {justCopied ? <CopyCheck size={13} /> : <Copy size={13} />}
             {justCopied ? 'Copied' : 'Copy'}
@@ -633,8 +633,8 @@ function SelectionQuickToolbar({
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSelectAll(); }}
             title="Select all text on this page"
             style={quickBtnStyle('#334155', 'rgba(100,116,139,0.1)', 'rgba(148,163,184,0.06)')}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.20)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.20)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(var(--bb-blaze-rgb) / 0.08)'; }}
           >
             <TextSelect size={13} />
             Select all
@@ -664,8 +664,8 @@ function quickBtnStyle(_color?: string, _bgFrom?: string, _bgTo?: string): React
     minHeight: 'var(--hit-min, 40px)',
     padding: '4px 12px',
     borderRadius: 10,
-    border: '1px solid rgba(var(--deep-saffron-rgb, 255 153 51) / 0.28)',
-    background: 'rgba(var(--deep-saffron-rgb, 255 153 51) / 0.08)',
+    border: '1px solid rgba(var(--bb-blaze-rgb) / 0.28)',
+    background: 'rgba(var(--bb-blaze-rgb) / 0.08)',
     color: 'var(--accent-contrast, #7C2D12)',
     fontSize: 12,
     fontWeight: 600,

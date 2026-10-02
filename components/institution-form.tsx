@@ -273,7 +273,7 @@ export function InstitutionForm({
             {index > 0 && (
               <div className="h-1 w-full bg-slate-200 dark:bg-slate-800 relative overflow-hidden">
                 <div
-                  className={`h-full absolute top-0 left-0 bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] transition-all duration-500 ease-in-out`}
+                  className={`h-full absolute top-0 left-0 bg-gradient-to-r from-[var(--bb-blaze)] to-[var(--bb-blaze-light)] transition-all duration-500 ease-in-out`}
                   style={{
                     width: index <= currentStep ? '100%' : '0%',
                   }}
@@ -282,9 +282,9 @@ export function InstitutionForm({
             )}
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-500 ease-in-out relative z-10 ${index < currentStep
-                ? "border-transparent bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] text-white shadow-md shadow-[var(--saffron)]/20"
+                ? "border-transparent bg-gradient-to-r from-[var(--bb-blaze)] to-[var(--bb-blaze-light)] text-white shadow-md shadow-[var(--bb-blaze-light)]/20"
                 : index === currentStep
-                  ? "border-[var(--deep-saffron)] text-[var(--deep-saffron)] bg-white dark:bg-slate-900 shadow-sm shadow-[var(--saffron)]/10"
+                  ? "border-[var(--bb-blaze)] text-[var(--bb-blaze)] bg-white dark:bg-slate-900 shadow-sm shadow-[var(--bb-blaze-light)]/10"
                   : "border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 bg-white dark:bg-slate-950"
                 }`}
             >
@@ -318,7 +318,7 @@ export function InstitutionForm({
             <Card className="border-slate-200/60 dark:border-slate-700/40 shadow-sm rounded-2xl">
               <CardHeader className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200/60 dark:border-slate-700/40 rounded-t-2xl pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[var(--deep-saffron)]/10 text-[var(--deep-saffron)]">
+                  <div className="p-1.5 rounded-lg bg-[var(--bb-blaze)]/10 text-[var(--bb-blaze)]">
                     <Building2 className="h-4 w-4" />
                   </div>
                   Institution Details
@@ -394,7 +394,7 @@ export function InstitutionForm({
             <Card className="border-slate-200/60 dark:border-slate-700/40 shadow-sm rounded-2xl">
               <CardHeader className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200/60 dark:border-slate-700/40 rounded-t-2xl pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[var(--peacock-teal)]/10 text-[var(--peacock-teal)]">
+                  <div className="p-1.5 rounded-lg bg-[var(--bb-cobalt)]/10 text-[var(--bb-cobalt)]">
                     <Building2 className="h-4 w-4" />
                   </div>
                   Key Officials
@@ -495,7 +495,7 @@ export function InstitutionForm({
             <Card className="border-slate-200/60 dark:border-slate-700/40 shadow-sm rounded-2xl">
               <CardHeader className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200/60 dark:border-slate-700/40 rounded-t-2xl pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[var(--saffron)]/10 text-[var(--saffron)]">
+                  <div className="p-1.5 rounded-lg bg-[var(--bb-blaze-light)]/10 text-[var(--bb-blaze-light)]">
                     <Building2 className="h-4 w-4" />
                   </div>
                   Contact Details
@@ -666,7 +666,7 @@ export function InstitutionForm({
             <Card className="border-slate-200/60 dark:border-slate-700/40 shadow-sm rounded-2xl">
               <CardHeader className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200/60 dark:border-slate-700/40 rounded-t-2xl pb-4">
                 <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[var(--gold)]/10 text-[var(--gold)]">
+                  <div className="p-1.5 rounded-lg bg-[var(--bb-amber)]/10 text-[var(--bb-amber)]">
                     <Building2 className="h-4 w-4" />
                   </div>
                   Library Branch Details
@@ -808,7 +808,7 @@ export function InstitutionForm({
             <Button
               type="button"
               onClick={nextStep}
-              className="bg-gradient-to-r from-[var(--deep-saffron)] to-[var(--saffron)] hover:from-[var(--saffron)] hover:to-[var(--gold)] text-white shadow-md hover:shadow-lg transition-all rounded-xl"
+              className="bg-gradient-to-r from-[var(--bb-blaze)] to-[var(--bb-blaze-light)] hover:from-[var(--bb-blaze-light)] hover:to-[var(--bb-amber)] text-white shadow-md hover:shadow-lg transition-all rounded-xl"
             >
               {currentStep === steps.length - 1 ? "Save Institution Profile" : "Next Step"}
             </Button>

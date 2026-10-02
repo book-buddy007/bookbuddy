@@ -371,7 +371,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
               Pages read this session still offer themselves as a one-tap fill
               when that mapping happens to resolve — a convenience when it
               works, no longer a precondition for the feature existing. */}
-          <div className="rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 dark:border-[var(--gold)]/15 dark:bg-[var(--gold)]/[0.04] px-3 py-2.5">
+          <div className="rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04] px-3 py-2.5">
             <div className="flex items-start gap-3">
               <HistoryIcon className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
               <div className="min-w-0 flex-1">
@@ -415,7 +415,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
             type="button"
             disabled={loadingChapters || chapters.length === 0}
             onClick={() => setScope("chapter")}
-            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all disabled:opacity-50 dark:border-[var(--gold)]/15 dark:bg-[var(--gold)]/[0.04]"
+            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all disabled:opacity-50 dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04]"
           >
             <BookOpen className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
             <span className="min-w-0 flex-1">
@@ -433,7 +433,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
           <button
             type="button"
             onClick={() => startQuiz("book")}
-            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all dark:border-[var(--gold)]/15 dark:bg-[var(--gold)]/[0.04]"
+            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04]"
           >
             <Library className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
             <span className="min-w-0 flex-1">
@@ -492,7 +492,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
     const pct = score.total > 0 ? Math.round((score.right / score.total) * 100) : 0;
     return (
       <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center text-center">
-        <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10 flex items-center justify-center mb-3 border border-[var(--accent-primary)]/25">
+        <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10 flex items-center justify-center mb-3 border border-[var(--accent-primary)]/25">
           <Trophy className="h-7 w-7 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
         </div>
         <p className="text-2xl font-bold text-slate-800 dark:text-slate-200 tabular-nums">

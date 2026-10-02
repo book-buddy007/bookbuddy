@@ -285,10 +285,10 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
   return (
     <>
     <div className={panelShellClass({ isOpen, embedded, width: 'w-96' })}>
-      <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 flex flex-col gap-3 shrink-0">
+      <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex flex-col gap-3 shrink-0">
         {!embedded && (
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)] flex items-center gap-2">
+            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
               <Network className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
               Explore
             </h3>
@@ -667,12 +667,12 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
     {fullscreen && network && network.nodes.length > 0 && (
       <div
         ref={fsRef}
-        className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-[var(--night-ink)]"
+        className="fixed inset-0 z-[60] flex flex-col bg-white dark:bg-[var(--bb-ink)]"
         role="dialog"
         aria-label="Book map, full screen"
       >
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 shrink-0">
-          <span className="text-sm font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)] flex items-center gap-2">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 shrink-0">
+          <span className="text-sm font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
             <Network className="h-4 w-4 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
             {selectedChapter ? `Map · ${selectedChapter}` : "Book map"}
           </span>

@@ -227,8 +227,8 @@ export function AnnotationToolbar({
   ].filter(Boolean) as { key: string; label: string; icon: typeof Copy; run: () => void }[];
 
   const surface = isDarkMode
-    ? 'bg-[var(--night-ink)]/95 border-[var(--gold)]/20 text-[var(--ivory-cream)]'
-    : 'bg-[var(--ivory-cream)]/97 border-[var(--accent-primary)]/30 text-slate-900';
+    ? 'bg-[var(--bb-ink)]/95 border-[var(--bb-amber)]/20 text-[var(--bb-cloud)]'
+    : 'bg-[var(--bb-cloud)]/97 border-[var(--accent-primary)]/30 text-slate-900';
 
   const colorRow = (
     <div className="flex items-center gap-2 flex-wrap" role="radiogroup" aria-label="Highlight colour">
@@ -255,7 +255,7 @@ export function AnnotationToolbar({
                 ...(selected
                   ? ({
                       '--tw-ring-color': 'var(--accent-strong)',
-                      '--tw-ring-offset-color': isDarkMode ? 'var(--night-ink)' : 'var(--ivory-cream)',
+                      '--tw-ring-offset-color': isDarkMode ? 'var(--bb-ink)' : 'var(--bb-cloud)',
                     } as React.CSSProperties)
                   : {}),
               }}
@@ -273,7 +273,7 @@ export function AnnotationToolbar({
       aria-label="Note text"
       className={`min-h-[96px] resize-none text-sm rounded-xl focus-visible:ring-1 focus-visible:ring-[var(--accent-strong)] ${
         isDarkMode
-          ? 'bg-[var(--slate-blue)] border-[var(--gold)]/20 text-[var(--ivory-cream)] placeholder:text-slate-500'
+          ? 'bg-[var(--bb-ink-2)] border-[var(--bb-amber)]/20 text-[var(--bb-cloud)] placeholder:text-slate-500'
           : 'bg-white/70 border-[var(--accent-primary)]/30 text-slate-900 placeholder:text-slate-500'
       }`}
       value={noteContent}

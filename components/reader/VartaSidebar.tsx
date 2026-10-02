@@ -168,7 +168,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                   <button
                     onClick={() => handleCitationClick(String(cite.pageNumber))}
                     title={cite.textPreview ? `Page ${cite.pageNumber} — ${cite.textPreview}` : `Jump to page ${cite.pageNumber}`}
-                    className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 mx-0.5 rounded-sm bg-[var(--accent-soft)] text-[var(--accent-contrast)] hover:bg-[var(--accent-primary)]/20 dark:bg-[var(--gold)]/15 dark:text-[var(--gold)] dark:hover:bg-[var(--gold)]/25 transition-colors"
+                    className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 mx-0.5 rounded-sm bg-[var(--accent-soft)] text-[var(--accent-contrast)] hover:bg-[var(--accent-primary)]/20 dark:bg-[var(--bb-amber)]/15 dark:text-[var(--bb-amber)] dark:hover:bg-[var(--bb-amber)]/25 transition-colors"
                   >
                     <BookOpen className="w-3 h-3 mr-1 inline" />
                     Pg. {cite.pageNumber}
@@ -241,7 +241,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                  book and cost nothing. */
               <div className="flex flex-col justify-center h-full px-1 py-8">
                 <div className="flex flex-col items-center text-center mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] dark:bg-[var(--gold)]/10 flex items-center justify-center mb-3 shadow-sm border border-[var(--accent-primary)]/25 dark:border-[var(--gold)]/20">
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10 flex items-center justify-center mb-3 shadow-sm border border-[var(--accent-primary)]/25 dark:border-[var(--bb-amber)]/20">
                     <Bot className="h-7 w-7 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
                   </div>
                   <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
@@ -264,7 +264,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                         key={s.text}
                         type="button"
                         onClick={() => setInput(s.text)}
-                        className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all duration-150 dark:border-[var(--gold)]/15 dark:bg-[var(--gold)]/[0.04] dark:hover:bg-[var(--gold)]/10"
+                        className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all duration-150 dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04] dark:hover:bg-[var(--bb-amber)]/10"
                       >
                         <span className="mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]">
                           <Icon className="w-4 h-4" />
@@ -296,7 +296,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                     <div className={`px-3.5 py-3 rounded-2xl text-sm ${
                       m.role === 'USER'
                         ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tr-sm whitespace-pre-wrap break-words'
-                        : 'bg-[var(--accent-soft)] dark:bg-[var(--gold)]/[0.07] border border-[var(--accent-primary)]/20 dark:border-[var(--gold)]/15 text-slate-800 dark:text-slate-200 rounded-tl-sm break-words prose prose-sm max-w-none dark:prose-invert prose-p:my-2.5 prose-p:leading-relaxed prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-semibold prose-h1:text-base prose-h2:text-[15px] prose-h3:text-sm prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-li:marker:text-[var(--accent-strong)] dark:prose-li:marker:text-[var(--gold)] prose-strong:font-semibold prose-strong:text-slate-900 dark:prose-strong:text-white prose-code:text-[var(--accent-contrast)] dark:prose-code:text-[var(--gold)] prose-code:bg-black/[0.06] dark:prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-[""] prose-code:after:content-[""] prose-pre:bg-slate-800 prose-pre:text-white prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto prose-table:text-xs prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-blockquote:border-l-[var(--accent-strong)] prose-blockquote:not-italic prose-hr:my-3 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-1'
+                        : 'bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/[0.07] border border-[var(--accent-primary)]/20 dark:border-[var(--bb-amber)]/15 text-slate-800 dark:text-slate-200 rounded-tl-sm break-words prose prose-sm max-w-none dark:prose-invert prose-p:my-2.5 prose-p:leading-relaxed prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-semibold prose-h1:text-base prose-h2:text-[15px] prose-h3:text-sm prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-li:marker:text-[var(--accent-strong)] dark:prose-li:marker:text-[var(--bb-amber)] prose-strong:font-semibold prose-strong:text-slate-900 dark:prose-strong:text-white prose-code:text-[var(--accent-contrast)] dark:prose-code:text-[var(--bb-amber)] prose-code:bg-black/[0.06] dark:prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-[""] prose-code:after:content-[""] prose-pre:bg-slate-800 prose-pre:text-white prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto prose-table:text-xs prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-blockquote:border-l-[var(--accent-strong)] prose-blockquote:not-italic prose-hr:my-3 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-1'
                     }`}>
                       {m.role === 'ASSISTANT' ? renderMessageContent(m) : m.content}
                     </div>
@@ -326,7 +326,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
               ))
             )}
             {trialRequired ? (
-              <div className="p-4 rounded-xl border border-[var(--accent-primary)]/25 bg-[var(--accent-soft)] dark:bg-[var(--gold)]/[0.06]">
+              <div className="p-4 rounded-xl border border-[var(--accent-primary)]/25 bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/[0.06]">
                 <StartTrialButton variant="inline" />
               </div>
             ) : error && (
@@ -394,9 +394,9 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
 
   return (
     <div className={panelShellClass({ isOpen, width: 'w-96' })}>
-      <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--gold)]/10 flex flex-col gap-3 shrink-0">
+      <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex flex-col gap-3 shrink-0">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--gold)] flex items-center gap-2">
+          <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
             <WandSparkles className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
             Varta
           </h3>
