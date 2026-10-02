@@ -224,7 +224,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
   },
   badgeHighlight: { backgroundColor: colors.gold },
   badgeText: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
-  badgeTextHighlight: { color: '#1A1205' },
+  badgeTextHighlight: { color: '#0A0F24' },
   genres: { color: colors.primary, fontSize: 13, marginTop: spacing(4) },
   description: {
     color: colors.text,

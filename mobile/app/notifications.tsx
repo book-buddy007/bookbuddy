@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import Animated from 'react-native-reanimated';
 import { getNotifications } from '@/api/notifications';

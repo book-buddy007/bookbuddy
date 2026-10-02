@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, spacing, fonts, ColorTokens } from '@/theme';
 import { useThemeColors } from '@/ThemeProvider';
@@ -18,7 +18,7 @@ import { StatsBand, SecureBharat, CtaFooter } from '@/components/landing/StatsSe
 import { DeepDive } from '@/components/landing/DeepDive';
 import { VartaDeepDive, PdfStudio } from '@/components/landing/VartaPdf';
 import { TestimonialsFAQ } from '@/components/landing/TestimonialsFAQ';
-import { RotatingMandala } from '@/components/landing/RotatingMandala';
+import { BrandWatermark } from '@/components/landing/BrandWatermark';
 import { ScrollAnimatedCard } from '@/components/landing/ScrollAnimatedCard';
 
 /**
@@ -29,17 +29,17 @@ import { ScrollAnimatedCard } from '@/components/landing/ScrollAnimatedCard';
  * Platform translations vs web:
  *  • CSS grid (2-col hero) → stacked Flexbox (narrow viewport).
  *  • Hover selection toolbar / hover lift → static; press states on buttons.
- *  • Ambient radial orbs & mandala → low-opacity circular Views (no CSS gradients).
+ *  • Ambient radial orbs and the brand watermark → low-opacity Views / SVG (no CSS gradients).
  */
 
 // Per-feature icon + halo color. Copy is shared; styling is platform-native.
 const FEATURE_STYLE: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> = {
-  library:    { icon: 'book',                 color: '#E65100' },
-  varta:      { icon: 'chatbubble-ellipses',  color: '#006A6E' },
-  pdf:        { icon: 'brush',                 color: '#B8860B' },
-  sanchika:   { icon: 'bookmark',             color: '#E91E8C' },
-  dashboards: { icon: 'grid',                  color: '#0D1B6E' },
-  secure:     { icon: 'shield-checkmark',      color: '#C62828' },
+  library:    { icon: 'book',                 color: '#D93A00' },
+  varta:      { icon: 'chatbubble-ellipses',  color: '#1E3A8A' },
+  pdf:        { icon: 'brush',                 color: '#D98300' },
+  sanchika:   { icon: 'bookmark',             color: '#F4B3C2' },
+  dashboards: { icon: 'grid',                  color: '#0A0F24' },
+  secure:     { icon: 'shield-checkmark',      color: '#E5283A' },
 };
 
 export default function LandingScreen() {
@@ -94,8 +94,8 @@ export default function LandingScreen() {
         {/* ── Hero (Full-bleed opener) ────────────────────────────────── */}
         <View style={s.topPad}>
           <View style={s.hero}>
-            {/* Rotating Mandala Art Background */}
-            <RotatingMandala size={340} opacity={0.38} style={s.heroMandala} />
+            {/* Brand watermark behind the hero */}
+            <BrandWatermark size={340} opacity={0.38} style={s.heroWatermark} />
 
             {/* Ambient orbs — saffron top-right, teal bottom-left */}
             <View style={[s.orb, s.orbSaffron]} />
@@ -161,9 +161,9 @@ export default function LandingScreen() {
             <View style={s.mock}>
               <View style={s.mockHeader}>
                 <View style={s.mockDots}>
-                  <View style={[s.mockDot, { backgroundColor: '#FCA5A5' }]} />
-                  <View style={[s.mockDot, { backgroundColor: '#FCD34D' }]} />
-                  <View style={[s.mockDot, { backgroundColor: '#86EFAC' }]} />
+                  <View style={[s.mockDot, { backgroundColor: '#FFC2C9' }]} />
+                  <View style={[s.mockDot, { backgroundColor: '#FFB547' }]} />
+                  <View style={[s.mockDot, { backgroundColor: '#7FE3A5' }]} />
                 </View>
                 <Text style={s.mockTag}>Book Buddy READER</Text>
               </View>
@@ -288,7 +288,7 @@ export default function LandingScreen() {
           onPress={() => router.push('/(auth)/login')}
           style={({ pressed }) => [s.bottomNavSignInOutlineBtn, pressed && s.pressedDim]}
         >
-          <Ionicons name="person-circle-outline" size={18} color="#B45309" />
+          <Ionicons name="person-circle-outline" size={18} color="#FF4D00" />
           <Text style={s.bottomNavSignInOutlineText}>Sign In</Text>
         </Pressable>
       </View>
@@ -311,12 +311,12 @@ function CtaButton({
   const isOutline = variant === 'outline';
 
   // High contrast palette alignment:
-  // Primary: Saffron #B45309 + white text
-  // Outline: Solid White #FFFFFF + 2px Teal border #006A6E + bold Teal text
+  // Primary: Saffron #FF4D00 + white text
+  // Outline: Solid White #FFFFFF + 2px Teal border #1E3A8A + bold Teal text
   // Ghost: Solid White/Parchment + border
-  const bg = isPrimary ? '#B45309' : isOutline ? '#FFFFFF' : 'rgba(255,255,255,0.85)';
-  const border = isPrimary ? 'transparent' : isOutline ? '#006A6E' : c.border;
-  const fg = isPrimary ? '#FFFFFF' : isOutline ? '#006A6E' : c.text;
+  const bg = isPrimary ? '#FF4D00' : isOutline ? '#FFFFFF' : 'rgba(255,255,255,0.85)';
+  const border = isPrimary ? 'transparent' : isOutline ? '#1E3A8A' : c.border;
+  const fg = isPrimary ? '#FFFFFF' : isOutline ? '#1E3A8A' : c.text;
 
   return (
     <View style={{ position: 'relative', flex: compact ? 1 : undefined }}>
@@ -329,7 +329,7 @@ function CtaButton({
             bottom: -4,
             left: 8,
             right: 8,
-            backgroundColor: 'rgba(180, 83, 9, 0.35)',
+            backgroundColor: 'rgba(255, 77, 0, 0.35)',
             borderRadius: radius.md,
             zIndex: -1,
           }}
@@ -348,7 +348,7 @@ function CtaButton({
             backgroundColor: bg,
             borderWidth: isPrimary ? 0 : 2,
             borderColor: border,
-            shadowColor: isOutline ? '#006A6E' : '#000',
+            shadowColor: isOutline ? '#1E3A8A' : '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: isOutline ? 0.08 : 0.12,
             shadowRadius: 6,
@@ -460,11 +460,11 @@ function makeStyles(c: ColorTokens) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      backgroundColor: '#006A6E',
+      backgroundColor: '#1E3A8A',
       paddingHorizontal: spacing(5),
       paddingVertical: spacing(2.5),
       borderRadius: radius.full,
-      shadowColor: '#006A6E',
+      shadowColor: '#1E3A8A',
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
@@ -484,11 +484,11 @@ function makeStyles(c: ColorTokens) {
       paddingVertical: spacing(2),
       borderRadius: radius.full,
       borderWidth: 1.5,
-      borderColor: '#B45309',
+      borderColor: '#FF4D00',
       backgroundColor: '#FFFFFF',
     },
     bottomNavSignInOutlineText: {
-      color: '#B45309',
+      color: '#FF4D00',
       fontFamily: fonts.heading,
       fontSize: 13,
       fontWeight: '700',
@@ -500,26 +500,26 @@ function makeStyles(c: ColorTokens) {
       borderRadius: radius.xl, paddingVertical: spacing(6), paddingHorizontal: spacing(1),
       alignItems: 'center', marginBottom: spacing(9),
     },
-    heroMandala: { position: 'absolute', top: -30, alignSelf: 'center', zIndex: 0 },
+    heroWatermark: { position: 'absolute', top: -30, alignSelf: 'center', zIndex: 0 },
     orb: { position: 'absolute', width: 260, height: 260, borderRadius: 130, opacity: 0.5 },
-    orbSaffron: { top: -120, right: -100, backgroundColor: 'rgba(255,153,51,0.16)' },
-    orbTeal: { bottom: -40, left: -110, backgroundColor: 'rgba(13,27,110,0.12)' },
+    orbSaffron: { top: -120, right: -100, backgroundColor: 'rgba(255,138,61,0.16)' },
+    orbTeal: { bottom: -40, left: -110, backgroundColor: 'rgba(10,15,36,0.12)' },
 
     badge: {
       flexDirection: 'row', alignItems: 'center', gap: 6,
       paddingHorizontal: spacing(3), paddingVertical: spacing(1.5), borderRadius: radius.full,
-      backgroundColor: 'rgba(255,255,255,0.85)', borderWidth: 1, borderColor: 'rgba(180,83,9,0.3)',
+      backgroundColor: 'rgba(255,255,255,0.85)', borderWidth: 1, borderColor: 'rgba(255,77,0,0.3)',
       marginBottom: spacing(4),
     },
-    badgeText: { color: '#92400E', fontFamily: fonts.label, fontSize: 12 },
+    badgeText: { color: '#B83300', fontFamily: fonts.label, fontSize: 12 },
 
     headline: {
       color: c.text, fontFamily: fonts.heading, fontSize: 32, lineHeight: 40,
       textAlign: 'center', letterSpacing: -0.5, marginBottom: spacing(4),
     },
     headlineAccent: {
-      color: '#B45309',
-      fontFamily: fonts.display, // Yatra One display font (web hero alignment)
+      color: '#FF4D00',
+      fontFamily: fonts.display,
       fontSize: 36,
       letterSpacing: -0.5,
     },
@@ -546,7 +546,7 @@ function makeStyles(c: ColorTokens) {
       width: '100%', marginTop: spacing(8),
       backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: radius.xl,
       borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', overflow: 'hidden',
-      shadowColor: '#0D1B6E', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.12, shadowRadius: 30, elevation: 6,
+      shadowColor: '#0A0F24', shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.12, shadowRadius: 30, elevation: 6,
     },
     mockHeader: {
       height: 38, borderBottomWidth: 1, borderBottomColor: 'rgba(148,163,184,0.35)',
@@ -555,28 +555,28 @@ function makeStyles(c: ColorTokens) {
     },
     mockDots: { flexDirection: 'row', gap: 6 },
     mockDot: { width: 10, height: 10, borderRadius: 5 },
-    mockTag: { fontSize: 9, letterSpacing: 1.5, color: '#475569', fontFamily: fonts.label },
-    mockBody: { padding: spacing(4), backgroundColor: '#FAFAFA' },
+    mockTag: { fontSize: 9, letterSpacing: 1.5, color: '#4a5470', fontFamily: fonts.label },
+    mockBody: { padding: spacing(4), backgroundColor: '#F2F4F8' },
     mockChapter: {
-      fontFamily: fonts.heading, fontSize: 16, color: '#1E293B',
-      borderBottomWidth: 1, borderBottomColor: '#E2E8F0', paddingBottom: spacing(2), marginBottom: spacing(3),
+      fontFamily: fonts.heading, fontSize: 16, color: '#18213C',
+      borderBottomWidth: 1, borderBottomColor: '#DCE1EA', paddingBottom: spacing(2), marginBottom: spacing(3),
     },
-    mockLine: { height: 10, borderRadius: 4, backgroundColor: '#E2E8F0', marginBottom: spacing(2) },
-    mockLineHi: { backgroundColor: '#FDE68A' },
-    mockChat: { borderTopWidth: 1, borderTopColor: '#E2E8F0', backgroundColor: '#F8FAFC', padding: spacing(3) },
+    mockLine: { height: 10, borderRadius: 4, backgroundColor: '#DCE1EA', marginBottom: spacing(2) },
+    mockLineHi: { backgroundColor: '#FFE3A3' },
+    mockChat: { borderTopWidth: 1, borderTopColor: '#DCE1EA', backgroundColor: '#F2F4F8', padding: spacing(3) },
     mockChatHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: spacing(2.5) },
-    mockChatTitle: { fontFamily: fonts.label, fontSize: 12, color: '#1E293B' },
+    mockChatTitle: { fontFamily: fonts.label, fontSize: 12, color: '#18213C' },
     mockBubbleUser: {
-      alignSelf: 'flex-end', backgroundColor: '#006A6E', borderRadius: 12, borderTopRightRadius: 2,
+      alignSelf: 'flex-end', backgroundColor: '#1E3A8A', borderRadius: 12, borderTopRightRadius: 2,
       paddingHorizontal: spacing(2.5), paddingVertical: spacing(1.5), maxWidth: '85%', marginBottom: spacing(2),
     },
     mockBubbleUserText: { color: '#FFFFFF', fontFamily: fonts.body, fontSize: 11 },
     mockBubbleAi: {
-      alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0',
+      alignSelf: 'flex-start', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DCE1EA',
       borderRadius: 12, borderTopLeftRadius: 2, paddingHorizontal: spacing(2.5), paddingVertical: spacing(1.5), maxWidth: '95%',
     },
-    mockBubbleAiText: { color: '#334155', fontFamily: fonts.body, fontSize: 11, lineHeight: 16 },
-    mockCitation: { color: '#B45309', fontFamily: fonts.label, fontSize: 11 },
+    mockBubbleAiText: { color: '#2a3556', fontFamily: fonts.body, fontSize: 11, lineHeight: 16 },
+    mockCitation: { color: '#FF4D00', fontFamily: fonts.label, fontSize: 11 },
 
     /* Features */
     featuresHeader: { alignItems: 'center', marginBottom: spacing(6) },
@@ -589,7 +589,7 @@ function makeStyles(c: ColorTokens) {
     featureCard: {
       backgroundColor: c.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: c.borderGold,
       padding: spacing(5),
-      shadowColor: '#0D1B6E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.06, shadowRadius: 18, elevation: 2,
+      shadowColor: '#0A0F24', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.06, shadowRadius: 18, elevation: 2,
     },
     featureCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing(4) },
     featureIconHalo: {
@@ -598,16 +598,16 @@ function makeStyles(c: ColorTokens) {
     },
     featureTagPill: {
       paddingHorizontal: spacing(3), paddingVertical: spacing(1),
-      backgroundColor: 'rgba(93,64,55,0.05)', borderRadius: radius.full,
-      borderWidth: 1, borderColor: 'rgba(93,64,55,0.15)',
+      backgroundColor: 'rgba(42,53,86,0.05)', borderRadius: radius.full,
+      borderWidth: 1, borderColor: 'rgba(42,53,86,0.15)',
     },
-    featureTagText: { fontSize: 10, letterSpacing: 0.5, color: '#3E2723', fontFamily: fonts.label, textTransform: 'uppercase' },
+    featureTagText: { fontSize: 10, letterSpacing: 0.5, color: '#0A0F24', fontFamily: fonts.label, textTransform: 'uppercase' },
     featureTitle: { color: c.deepBlue, fontFamily: fonts.heading, fontSize: 20, marginBottom: spacing(3) },
     diamondRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing(3) },
-    diamondLineShort: { height: 1, width: 28, backgroundColor: '#B8860B', opacity: 0.5 },
-    diamond: { width: 6, height: 6, backgroundColor: '#B45309', transform: [{ rotate: '45deg' }], marginHorizontal: 6 },
-    diamondLineLong: { height: 1, width: 44, backgroundColor: '#B8860B', opacity: 0.5 },
-    featureDesc: { color: '#3E2723', fontFamily: fonts.body, fontSize: 14, lineHeight: 21 },
+    diamondLineShort: { height: 1, width: 28, backgroundColor: '#D98300', opacity: 0.5 },
+    diamond: { width: 6, height: 6, backgroundColor: '#FF4D00', transform: [{ rotate: '45deg' }], marginHorizontal: 6 },
+    diamondLineLong: { height: 1, width: 44, backgroundColor: '#D98300', opacity: 0.5 },
+    featureDesc: { color: '#0A0F24', fontFamily: fonts.body, fontSize: 14, lineHeight: 21 },
 
     /* Footer */
     footer: { alignItems: 'center', marginTop: spacing(9) },

@@ -9,10 +9,10 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RotatingMandala } from '@/components/landing/RotatingMandala';
+import { BrandWatermark } from '@/components/landing/BrandWatermark';
 import { entrance } from '@/motion';
 import { useThemeColors } from '@/ThemeProvider';
 import { fonts, radius, spacing, type ColorTokens } from '@/theme';
@@ -32,7 +32,7 @@ export interface AuthShellProps {
 
 /**
  * Shared shell for the account screens — the parchment card, saffron glow,
- * mandala watermark and haloed icon that the sign-in screen established.
+ * brand watermark and haloed icon that the sign-in screen established.
  *
  * Extracted so forgot-password, reset-password and verify-email don't each
  * re-derive the same 90 lines of styling, and so the card caps at a readable
@@ -93,7 +93,7 @@ export function AuthShell({
               <View style={styles.cardGlow} />
 
               <View style={styles.parchmentCard}>
-                <RotatingMandala size={280} opacity={0.25} style={styles.mandalaWatermark} />
+                <BrandWatermark size={280} opacity={0.25} style={styles.brandWatermark} />
 
                 <View style={styles.header}>
                   <View style={styles.iconHalo}>
@@ -124,7 +124,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,153,51,0.16)',
+    backgroundColor: 'rgba(255,138,61,0.16)',
   },
   orbIndigo: {
     position: 'absolute',
@@ -133,7 +133,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(13,27,110,0.12)',
+    backgroundColor: 'rgba(10,15,36,0.12)',
   },
   scrollContainer: {
     paddingHorizontal: spacing(5),
@@ -170,7 +170,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     bottom: -6,
     left: 10,
     right: 10,
-    backgroundColor: 'rgba(180, 83, 9, 0.16)',
+    backgroundColor: 'rgba(255, 77, 0, 0.16)',
     borderRadius: 24,
     zIndex: -1,
   },
@@ -187,7 +187,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     elevation: 6,
     overflow: 'hidden',
   },
-  mandalaWatermark: {
+  brandWatermark: {
     position: 'absolute',
     top: 10,
     alignSelf: 'center',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { fonts, radius, spacing } from '@/theme';
 import { INDIC, SectionHeader, Badge } from './primitives';
 
@@ -45,10 +45,10 @@ export function VartaDeepDive() {
               change in temperature.
             </Text>
             <View style={vp.citeRow}>
-              <View style={[vp.citePill, { backgroundColor: 'rgba(180,83,9,0.1)' }]}>
+              <View style={[vp.citePill, { backgroundColor: 'rgba(255,77,0,0.1)' }]}>
                 <Text style={[vp.citeText, { color: INDIC.burnt }]}>“ p. 148, ¶1</Text>
               </View>
-              <View style={[vp.citePill, { backgroundColor: 'rgba(0,106,110,0.1)' }]}>
+              <View style={[vp.citePill, { backgroundColor: 'rgba(30,58,138,0.1)' }]}>
                 <Text style={[vp.citeText, { color: INDIC.teal }]}>“ p. 149, fig 7.5</Text>
               </View>
             </View>
@@ -83,7 +83,7 @@ export function VartaDeepDive() {
       </View>
 
       <View style={vp.noHalluWrap}>
-        <Badge icon="shield-checkmark" text="No hallucinations — if it isn't in the book, Varta says so." color={INDIC.burntDark} bg={INDIC.cream2} border="rgba(180,83,9,0.2)" />
+        <Badge icon="shield-checkmark" text="No hallucinations — if it isn't in the book, Varta says so." color={INDIC.burntDark} bg={INDIC.cream2} border="rgba(255,77,0,0.2)" />
       </View>
     </View>
   );
@@ -158,7 +158,7 @@ const vp = StyleSheet.create({
 
   /* Varta chat card */
   chatCard: {
-    backgroundColor: INDIC.white, borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(226,232,240,0.8)',
+    backgroundColor: INDIC.white, borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(220,225,234,0.8)',
     overflow: 'hidden', marginBottom: spacing(6),
     shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.08, shadowRadius: 30, elevation: 5,
   },
@@ -195,13 +195,13 @@ const vp = StyleSheet.create({
   toolChip: { width: '47%', flexDirection: 'row', alignItems: 'center', gap: spacing(2.5), padding: spacing(3), borderRadius: radius.md, backgroundColor: '#fff', borderWidth: 1, borderColor: INDIC.slate100 },
   toolIcon: { width: 34, height: 34, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   toolLabel: { fontFamily: fonts.label, fontSize: 12, color: INDIC.slate700, flexShrink: 1 },
-  pdfCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(226,232,240,0.8)', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.08, shadowRadius: 30, elevation: 5 },
+  pdfCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(220,225,234,0.8)', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.08, shadowRadius: 30, elevation: 5 },
   pdfToolbar: { backgroundColor: 'rgba(15,23,42,0.95)', padding: spacing(1.5), gap: 6, alignItems: 'center', justifyContent: 'center' },
   pdfToolBtn: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   pdfPage: { flex: 1, padding: spacing(4), gap: spacing(2.5) },
   pdfPageNum: { fontFamily: fonts.body, fontSize: 10, color: INDIC.slate400, textAlign: 'center', marginBottom: spacing(1) },
   pdfLine: { height: 10, borderRadius: 4, backgroundColor: INDIC.slate200, marginBottom: spacing(1) },
-  pdfHi: { backgroundColor: '#FEF08A' },
+  pdfHi: { backgroundColor: '#FFE3A3' },
   pdfFig: { height: 56, borderRadius: radius.sm, backgroundColor: INDIC.slate100, borderWidth: 1, borderColor: INDIC.slate200, alignItems: 'center', justifyContent: 'center', marginVertical: spacing(1) },
   pdfFigText: { fontFamily: fonts.body, fontSize: 10, color: INDIC.slate400 },
   redactRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },

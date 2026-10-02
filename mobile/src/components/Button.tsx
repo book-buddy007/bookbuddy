@@ -7,7 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useThemeColors } from '@/ThemeProvider';
 import { fonts, radius, spacing } from '@/theme';
 import { PressableScale } from './ui/PressableScale';
@@ -64,8 +64,9 @@ export function Button({
           shadowRadius: 8,
           elevation: 4,
         },
+        // The design system's primary action: blaze (was the darker burnt-orange step).
         saffron: {
-          backgroundColor: colors.saffronDark,
+          backgroundColor: colors.saffron,
           shadowColor: colors.saffron,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.35,

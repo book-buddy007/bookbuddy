@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { ApiError } from '@/api/client';
 import { deleteAccount } from '@/api/user';
 import { useAuth } from '@/store/AuthContext';

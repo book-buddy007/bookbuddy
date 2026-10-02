@@ -48,7 +48,7 @@ export function BookCard({ book, onPress }: { book: Book; onPress: () => void })
           paddingVertical: spacing(0.5),
         },
         tierText: {
-          color: '#1A1205',
+          color: '#0A0F24',
           fontSize: 10,
           fontFamily: fonts.label,
           fontWeight: '800',

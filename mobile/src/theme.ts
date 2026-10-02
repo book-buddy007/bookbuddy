@@ -66,13 +66,13 @@ export function makeColors(mode: ThemeMode): ColorTokens {
     textMuted: t.text.muted,
     textSecondary: t.text.secondary,
     textInverse: t.text.inverse,
-    primary: t.accent.saffronDeep,
-    primaryDark: t.accent.saffronDark,
+    primary: t.accent.saffron,
+    primaryDark: t.accent.saffronDeep,
     primaryText: t.text.inverse,
     saffron: t.accent.saffron,
     saffronDeep: t.accent.saffronDeep,
     saffronDark: t.accent.saffronDark,
-    saffronLight: mode === 'light' ? '#FEF3C7' : 'rgba(255,153,51,0.15)',
+    saffronLight: mode === 'light' ? '#FFF4EE' : 'rgba(255,138,61,0.15)',
     gold: t.accent.gold,
     goldText: t.accent.goldHi,
     teal: t.accent.teal,
@@ -106,10 +106,11 @@ export const radius = {
 
 /** Font families for RN (registered via expo-font in app/_layout.tsx). */
 export const fonts = {
-  display: typography.display.native,   // Yatra One
-  heading: typography.heading.native,   // Plus Jakarta Sans (bold)
-  body: typography.body.native,         // Plus Jakarta Sans
-  label: typography.label.native,
+  display: typography.display.native,   // Bricolage Grotesque 800
+  heading: typography.heading.native,   // Bricolage Grotesque 700
+  body: typography.body.native,         // Familjen Grotesk 400
+  label: typography.label.native,       // Familjen Grotesk 600
+  reading: typography.reading.native,   // Newsreader 400 (book text)
 };
 
 export { tokens, typography, families, scale };

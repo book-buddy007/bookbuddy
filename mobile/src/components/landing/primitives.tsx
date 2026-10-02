@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { fonts, radius, spacing } from '@/theme';
 
 /**
@@ -10,33 +10,33 @@ import { fonts, radius, spacing } from '@/theme';
  * exactly, independent of the app's light/dark token theme.
  */
 export const INDIC = {
-  saffron: '#FF9933',
-  burnt: '#B45309',
-  burntDark: '#92400E',
-  amber: '#D97706',
-  gold: '#FCD34D',
-  goldDark: '#B8860B',
-  teal: '#006A6E',
-  tealDark: '#004D40',
-  deepBlue: '#0D1B6E',
-  indigoNight: '#1A237E',
-  red: '#C62828',
-  purple: '#9333EA',
-  brown: '#3E2723',
-  cream: '#FFFDE7',
-  cream2: '#FEF3C7',
+  saffron: '#FF8A3D',
+  burnt: '#FF4D00',
+  burntDark: '#B83300',
+  amber: '#D98300',
+  gold: '#FFB547',
+  goldDark: '#D98300',
+  teal: '#1E3A8A',
+  tealDark: '#0F1F5C',
+  deepBlue: '#0A0F24',
+  indigoNight: '#1E3A8A',
+  red: '#E5283A',
+  purple: '#3B5BDB',
+  brown: '#0A0F24',
+  cream: '#FFFFFF',
+  cream2: '#FFF4EE',
   white: '#FFFFFF',
-  slate900: '#0F172A',
-  slate800: '#1E293B',
-  slate700: '#334155',
-  slate600: '#475569',
-  slate500: '#64748B',
-  slate400: '#94A3B8',
-  slate300: '#CBD5E1',
-  slate200: '#E2E8F0',
-  slate100: '#F1F5F9',
-  slate50: '#F8FAFC',
-  green600: '#16A34A',
+  slate900: '#0A0F24',
+  slate800: '#18213C',
+  slate700: '#2a3556',
+  slate600: '#4a5470',
+  slate500: '#5F6B8C',
+  slate400: '#8E9AB8',
+  slate300: '#C5CCDA',
+  slate200: '#DCE1EA',
+  slate100: '#E6EAF1',
+  slate50: '#F2F4F8',
+  green600: '#0E9A4A',
 } as const;
 
 /** Centered section header: eyebrow label + heading (with accent) + subhead. */

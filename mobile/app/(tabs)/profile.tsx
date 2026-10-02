@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useAuth } from '@/store/AuthContext';
 import { useMobileTheme, useThemeColors } from '@/ThemeProvider';
 import { Button } from '@/components/Button';
@@ -230,7 +230,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     fontWeight: '600',
   },
   themeBadge: {
-    backgroundColor: 'rgba(255, 153, 51, 0.15)',
+    backgroundColor: 'rgba(255, 138, 61, 0.15)',
     borderWidth: 1,
     borderColor: colors.borderGold,
     paddingHorizontal: spacing(3),

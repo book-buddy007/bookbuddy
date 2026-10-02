@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useThemeColors } from '@/ThemeProvider';
 import { fonts } from '@/theme';
 import { useBreakpoint } from '@/utils/useBreakpoint';

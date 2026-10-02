@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, Text, UIManager, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { fonts, radius, spacing } from '@/theme';
 import { INDIC, SectionHeader } from './primitives';
 
@@ -180,7 +180,7 @@ const c = StyleSheet.create({
     shadowColor: INDIC.goldDark, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 24, elevation: 3,
   },
   stars: { flexDirection: 'row', gap: 4, marginBottom: spacing(4) },
-  quote: { fontFamily: fonts.body, fontStyle: 'italic', fontSize: 16, lineHeight: 25, color: '#5D4037', textAlign: 'center', marginBottom: spacing(5) },
+  quote: { fontFamily: fonts.body, fontStyle: 'italic', fontSize: 16, lineHeight: 25, color: '#2A3556', textAlign: 'center', marginBottom: spacing(5) },
   diamondRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing(6), opacity: 0.7 },
   diamondLine: { height: 1, width: 44, backgroundColor: INDIC.gold },
   diamond: { width: 6, height: 6, backgroundColor: INDIC.saffron, transform: [{ rotate: '45deg' }], marginHorizontal: 8 },
@@ -191,8 +191,8 @@ const c = StyleSheet.create({
   },
   avatarText: { fontFamily: fonts.heading, fontSize: 24, color: '#fff' },
   name: { fontFamily: fonts.heading, fontSize: 17, color: INDIC.indigoNight },
-  role: { fontFamily: fonts.label, fontSize: 13, color: '#5D4037', marginTop: 2 },
-  institution: { fontFamily: fonts.body, fontSize: 13, color: '#795548', opacity: 0.85, marginTop: 1 },
+  role: { fontFamily: fonts.label, fontSize: 13, color: '#2A3556', marginTop: 2 },
+  institution: { fontFamily: fonts.body, fontSize: 13, color: '#5f6b8c', opacity: 0.85, marginTop: 1 },
 
   arrow: {
     position: 'absolute', zIndex: 20, top: '50%', marginTop: -22,
@@ -215,7 +215,7 @@ const tf = StyleSheet.create({
   tNote: { fontFamily: fonts.body, fontSize: 11, fontStyle: 'italic', color: INDIC.slate400, textAlign: 'center', marginTop: spacing(5) },
 
   catRow: { gap: spacing(2), paddingBottom: spacing(5), paddingHorizontal: spacing(1) },
-  catChip: { paddingHorizontal: spacing(3.5), paddingVertical: spacing(2), borderRadius: radius.full, borderWidth: 1, borderColor: 'rgba(93,64,55,0.18)', backgroundColor: 'rgba(255,255,255,0.7)' },
+  catChip: { paddingHorizontal: spacing(3.5), paddingVertical: spacing(2), borderRadius: radius.full, borderWidth: 1, borderColor: 'rgba(42,53,86,0.18)', backgroundColor: 'rgba(255,255,255,0.7)' },
   catChipOn: { backgroundColor: INDIC.burnt, borderColor: INDIC.burnt },
   catText: { fontFamily: fonts.label, fontSize: 12.5 },
 

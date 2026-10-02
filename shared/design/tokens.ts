@@ -1,31 +1,21 @@
 /**
- * Book Buddy by VPD — CANONICAL DESIGN TOKENS (single source of truth)
+ * Book Buddy by VPD — design tokens for the Expo app (mobile/).
  * ---------------------------------------------------------------------------
- * Consumed by BOTH:
- *   • Web  (app/)     — mapped into CSS variables in app/globals.css + Tailwind
- *   • Mobile (mobile/) — consumed by src/ThemeProvider.tsx + StyleSheet
+ * The values are the navy + blaze design system (the web app's styles/bb-tokens.css):
+ * navy #0A0F24, blaze #FF4D00, cloud #F2F4F8, cobalt #1E3A8A, with light and dark modes.
  *
- * Decision (confirmed): token-driven with BOTH light + dark. "Parity" means an
- * identical token set + identical screen structure/copy across platforms; each
- * platform keeps its default mode (web = light, mobile = dark) but can switch.
+ * The SHAPE is the one the mobile app was written against (saffron / teal / gold / indigo
+ * slot names from the earlier "Indic" palette). Renaming every slot would touch ~90 files,
+ * so the slots are kept and re-pointed at their design-system equivalents:
  *
- * Framework-agnostic on purpose: plain strings only, no React Native or web
- * imports, so it is safe to bundle in either target.
+ *   accent.saffron*  → blaze scale (primary action)     accent.teal*   → cobalt / periwinkle
+ *   accent.gold*     → amber / cream (warm highlight)    accent.indigo* → cobalt-light (links)
+ *   accent.deepBlue  → navy                              accent.pink    → highlight rose
+ *   border.gold/teal/indigo → soft blaze / cobalt / periwinkle hairlines
  *
- * ─────────────────────────────────────────────────────────────────────────
- * RECONCILIATION NOTES (why these hexes — please sanity-check the ⚠ ones):
- *   Web has NO single palette today; colors come from three conflicting sources:
- *     1. shadcn vars in globals.css  → generic BLUE (--primary: 207 100% 45%)
- *     2. home.module.css             → LIGHT Indic override (saffron #d97706, gold #b45309)
- *     3. styles/indic-design-system.css → saffron #FF6B35 / deep-saffron #FF9933 / gold #FFD700
- *   …plus inline hero hexes: teal #006A6E, deep-blue #0D1B6E, gold #FCD34D, pink #E91E8C.
- *   The old mobile tokens used saffron #FF9933 + indigo #6366F1 (indigo is NOT
- *   used anywhere on web). Below reconciles these into ONE brand palette:
- *     • Primary brand action  = SAFFRON / burnt-orange (web's identity)   ⚠ was indigo on mobile
- *     • Cool secondary accent = TEAL #006A6E (web's hero accent)          ⚠ new — replaces indigo as secondary
- *     • indigo kept as a tertiary/link accent for continuity.
- *   Change any value here and it propagates to both apps.
- * ─────────────────────────────────────────────────────────────────────────
+ * New mobile code should prefer the semantic slots (bg, text, border.default,
+ * accent.saffron for the primary action, accent.danger/success/warning).
+ * Framework-agnostic on purpose: plain strings only.
  */
 
 export interface TokenSchema {
@@ -39,7 +29,7 @@ export interface TokenSchema {
     primary: string;
     secondary: string;
     muted: string;
-    inverse: string;    // text on saffron/teal fills
+    inverse: string;    // text on blaze / navy fills
   };
   border: {
     default: string;
@@ -48,21 +38,21 @@ export interface TokenSchema {
     indigo: string;
   };
   accent: {
-    // Primary brand action (buttons, active states) — saffron family
+    // Primary action: blaze
     saffron: string;
-    saffronDeep: string; // burnt-orange, web's actual CTA fill (#B45309)
-    saffronDark: string; // amber-600 hover (#D97706)
-    // Warm highlights
+    saffronDeep: string;
+    saffronDark: string;
+    // Warm highlights: amber / cream
     gold: string;
-    goldHi: string;      // bright highlight (#FCD34D)
-    // Cool secondary / brand teal
+    goldHi: string;
+    // Cool secondary: cobalt
     teal: string;
     tealDeep: string;
-    deepBlue: string;    // web hero deep indigo-blue (#0D1B6E)
-    // Tertiary / links (legacy mobile accent)
+    deepBlue: string;    // navy
+    // Links / tertiary
     indigo: string;
     indigoDark: string;
-    // Decorative
+    // Decorative (highlight rose)
     pink: string;
     // Semantic
     danger: string;
@@ -76,89 +66,88 @@ export interface TokenSchema {
 }
 
 export const tokens: Record<'light' | 'dark', TokenSchema> = {
-  // ── LIGHT — Web "Indic parchment" (default on web) ──────────────────────
+  // ── LIGHT — cloud background, white cards, navy ink ─────────────────────
   light: {
     bg: {
-      page: '#F8FAFC',       // home.module.css --night-ink (light override)
-      card: '#FFFDE7',       // saffron-cream card
-      surfaceAlt: '#F1F5F9',
-      glass: 'rgba(255, 253, 231, 0.95)',
+      page: '#F2F4F8',
+      card: '#FFFFFF',
+      surfaceAlt: '#E6EAF1',
+      glass: 'rgba(255, 255, 255, 0.86)',
     },
     text: {
-      primary: '#0F172A',    // slate-900 (web hero headline)
-      secondary: '#334155',
-      muted: '#64748B',
+      primary: '#0A0F24',
+      secondary: '#4A5470',
+      muted: '#8E9AB8',
       inverse: '#FFFFFF',
     },
     border: {
-      default: '#E2E8F0',
-      gold: '#D97706',
-      teal: 'rgba(0, 106, 110, 0.35)',
-      indigo: '#818CF8',
+      default: '#DCE1EA',
+      gold: 'rgba(255, 77, 0, 0.28)',
+      teal: 'rgba(30, 58, 138, 0.25)',
+      indigo: 'rgba(59, 91, 219, 0.3)',
     },
     accent: {
-      saffron: '#FF9933',
-      saffronDeep: '#B45309', // web primary CTA fill
-      saffronDark: '#92400E', // web CTA hover
-      gold: '#D97706',
-      goldHi: '#FCD34D',
-      teal: '#006A6E',        // web hero brand teal
-      tealDeep: '#0F5A5D',
-      deepBlue: '#0D1B6E',
-      indigo: '#6366F1',
-      indigoDark: '#4F46E5',
-      pink: '#E91E8C',
-      danger: '#E11D48',
-      success: '#059669',
-      warning: '#D97706',
+      saffron: '#FF4D00',
+      saffronDeep: '#D93A00',
+      saffronDark: '#B83300',
+      gold: '#D98300',
+      goldHi: '#FFE3A3',
+      teal: '#1E3A8A',
+      tealDeep: '#0F1F5C',
+      deepBlue: '#0A0F24',
+      indigo: '#3B5BDB',
+      indigoDark: '#1E3A8A',
+      pink: '#F4B3C2',
+      danger: '#E5283A',
+      success: '#0E9A4A',
+      warning: '#D98300',
     },
     gradient: {
-      heroFrom: '#EEF2FF',
-      heroTo: '#FFF8E1',
+      heroFrom: '#0A0F24',
+      heroTo: '#1E3A8A',
     },
   },
 
-  // ── DARK — Mobile "night slate glass" (default on mobile) ────────────────
+  // ── DARK — navy background (the app's default) ──────────────────────────
   dark: {
     bg: {
-      page: '#0B1120',
-      card: '#151C2C',
-      surfaceAlt: '#1E2740',
-      glass: 'rgba(21, 28, 44, 0.85)',
+      page: '#0A0F24',
+      card: '#121A33',
+      surfaceAlt: '#18213C',
+      glass: 'rgba(18, 26, 51, 0.86)',
     },
     text: {
-      primary: '#F8FAFC',
-      secondary: '#CBD5E1',
-      muted: '#94A3B8',
-      inverse: '#0B1120',
+      primary: '#F2F4F8',
+      secondary: '#A9B4D0',
+      muted: '#8E9AB8',
+      inverse: '#FFFFFF',
     },
     border: {
-      default: '#2A3350',
-      gold: 'rgba(245, 197, 66, 0.35)',
-      teal: 'rgba(45, 212, 191, 0.35)',
-      indigo: 'rgba(99, 102, 241, 0.35)',
+      default: '#2A3556',
+      gold: 'rgba(255, 138, 61, 0.35)',
+      teal: 'rgba(91, 124, 255, 0.35)',
+      indigo: 'rgba(125, 151, 255, 0.35)',
     },
     accent: {
-      // Hues stay constant across modes (brand identity); only tuned where a
-      // dark surface needs a brighter value for contrast.
-      saffron: '#FF9933',
-      saffronDeep: '#F97316',
-      saffronDark: '#D97706',
-      gold: '#F5C542',
-      goldHi: '#FDE047',
-      teal: '#2DD4BF',        // brightened teal for dark bg
-      tealDeep: '#14B8A6',
-      deepBlue: '#4F46E5',
-      indigo: '#6366F1',
-      indigoDark: '#4F46E5',
-      pink: '#F472B6',
-      danger: '#F43F5E',
-      success: '#10B981',
-      warning: '#F59E0B',
+      // Brighter steps where a navy surface needs more contrast.
+      saffron: '#FF4D00',
+      saffronDeep: '#FF8A3D',
+      saffronDark: '#D93A00',
+      gold: '#FFB547',
+      goldHi: '#FFE3A3',
+      teal: '#5B7CFF',
+      tealDeep: '#3B5BDB',
+      deepBlue: '#1E3A8A',
+      indigo: '#7D97FF',
+      indigoDark: '#5B7CFF',
+      pink: '#F4B3C2',
+      danger: '#FF5468',
+      success: '#3DDC84',
+      warning: '#FFB547',
     },
     gradient: {
-      heroFrom: '#151C2C',
-      heroTo: '#0B1120',
+      heroFrom: '#121A33',
+      heroTo: '#0A0F24',
     },
   },
 };

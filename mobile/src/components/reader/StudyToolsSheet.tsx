@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteAnnotation, getAnnotations } from '@/api/annotations';
 import { searchBook } from '@/api/reader';

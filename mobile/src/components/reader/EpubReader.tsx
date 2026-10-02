@@ -26,9 +26,9 @@ export function EpubReader({ url, title, onProgress }: EpubReaderProps) {
   const totalChapters = 12;
 
   const themeStyles = {
-    dark: { bg: '#0F172A', text: '#F8FAFC', card: '#1E293B', border: '#334155' },
-    sepia: { bg: '#FBF0D9', text: '#5F4B32', card: '#F4E4C1', border: '#E2CE9F' },
-    light: { bg: '#FFFFFF', text: '#0F172A', card: '#F1F5F9', border: '#E2E8F0' },
+    dark: { bg: '#0A0F24', text: '#F2F4F8', card: '#18213C', border: '#2a3556' },
+    sepia: { bg: '#F2F4F8', text: '#4A5470', card: '#FFE3A3', border: '#C5CCDA' },
+    light: { bg: '#FFFFFF', text: '#0A0F24', card: '#E6EAF1', border: '#DCE1EA' },
   }[themeMode];
 
   function prevChapter() {
@@ -76,11 +76,11 @@ export function EpubReader({ url, title, onProgress }: EpubReaderProps) {
           {/* Theme Toggles */}
           <TouchableOpacity
             onPress={() => setThemeMode('dark')}
-            style={[styles.themeDot, { backgroundColor: '#0F172A' }, themeMode === 'dark' && styles.activeDot]}
+            style={[styles.themeDot, { backgroundColor: '#0A0F24' }, themeMode === 'dark' && styles.activeDot]}
           />
           <TouchableOpacity
             onPress={() => setThemeMode('sepia')}
-            style={[styles.themeDot, { backgroundColor: '#FBF0D9' }, themeMode === 'sepia' && styles.activeDot]}
+            style={[styles.themeDot, { backgroundColor: '#F2F4F8' }, themeMode === 'sepia' && styles.activeDot]}
           />
           <TouchableOpacity
             onPress={() => setThemeMode('light')}
@@ -155,7 +155,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#94A3B8',
+    borderColor: '#8E9AB8',
   },
   activeDot: { borderWidth: 2, borderColor: colors.primary },
   body: { flex: 1 },
@@ -177,6 +177,6 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     borderRadius: radius.sm,
   },
   disabledBtn: { opacity: 0.4 },
-  navBtnText: { color: '#0F172A', fontSize: 13, fontWeight: '700' },
+  navBtnText: { color: '#0A0F24', fontSize: 13, fontWeight: '700' },
   chapterIndicator: { fontSize: 13, fontWeight: '600' },
 });

@@ -7,7 +7,7 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useThemeColors } from '@/ThemeProvider';
 import { fonts, radius, spacing } from '@/theme';
 

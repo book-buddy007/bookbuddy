@@ -14,7 +14,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useThemeColors } from '@/ThemeProvider';
 import { haptics, spring } from '@/motion';
 import { fonts, radius, spacing } from '@/theme';
@@ -87,7 +87,7 @@ export function BottomSheet({
       StyleSheet.create({
         backdrop: {
           flex: 1,
-          backgroundColor: 'rgba(4, 8, 18, 0.55)',
+          backgroundColor: 'rgba(10, 15, 36, 0.55)',
           justifyContent: asDialog ? 'center' : 'flex-end',
           alignItems: asDialog ? 'center' : 'stretch',
           padding: asDialog ? spacing(6) : 0,

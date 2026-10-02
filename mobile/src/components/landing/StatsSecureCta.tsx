@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useRouter } from 'expo-router';
 import { fonts, radius, spacing } from '@/theme';
 import { brand, landing } from '@shared/design/content';
@@ -150,7 +150,7 @@ const st = StyleSheet.create({
   foundingPill: {
     flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1,
     paddingHorizontal: spacing(4), paddingVertical: spacing(2.5), borderRadius: radius.full,
-    backgroundColor: INDIC.cream2, borderWidth: 1, borderColor: 'rgba(180,83,9,0.25)',
+    backgroundColor: INDIC.cream2, borderWidth: 1, borderColor: 'rgba(255,77,0,0.25)',
   },
   foundingText: { color: INDIC.burntDark, fontFamily: fonts.label, fontSize: 12.5, flexShrink: 1 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing(3), justifyContent: 'center' },
@@ -195,8 +195,8 @@ const st = StyleSheet.create({
   },
   ctaPrimaryText: { color: INDIC.white, fontFamily: fonts.label, fontSize: 16 },
   ctaOutline: {
-    height: 54, borderRadius: radius.md, backgroundColor: 'rgba(0,106,110,0.06)', borderWidth: 1.5,
-    borderColor: 'rgba(0,106,110,0.5)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing(2),
+    height: 54, borderRadius: radius.md, backgroundColor: 'rgba(30,58,138,0.06)', borderWidth: 1.5,
+    borderColor: 'rgba(30,58,138,0.5)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing(2),
   },
   ctaOutlineText: { color: INDIC.teal, fontFamily: fonts.label, fontSize: 16 },
 

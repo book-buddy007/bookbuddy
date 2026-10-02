@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useAuth } from '@/store/AuthContext';
 import { TextField } from '@/components/TextField';
 import { Button } from '@/components/Button';
@@ -17,7 +17,7 @@ import { ApiError } from '@/api/client';
 import { resendVerificationPublic } from '@/api/auth';
 import { useThemeColors } from '@/ThemeProvider';
 import { fonts, radius, spacing, type ColorTokens } from '@/theme';
-import { RotatingMandala } from '@/components/landing/RotatingMandala';
+import { BrandWatermark } from '@/components/landing/BrandWatermark';
 
 export default function LoginScreen() {
   const colors = useThemeColors();
@@ -111,7 +111,7 @@ export default function LoginScreen() {
             onPress={() => router.push('/landing')}
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.75 }]}
           >
-            <Ionicons name="arrow-back" size={18} color="#B45309" />
+            <Ionicons name="arrow-back" size={18} color="#FF4D00" />
             <Text style={styles.backBtnText}>Landing Page</Text>
           </Pressable>
         </View>
@@ -121,8 +121,8 @@ export default function LoginScreen() {
           <View style={styles.cardGlow} />
 
           <View style={styles.parchmentCard}>
-            {/* Subtle Rotating Mandala Watermark */}
-            <RotatingMandala size={280} opacity={0.25} style={styles.mandalaWatermark} />
+            {/* Brand watermark */}
+            <BrandWatermark size={280} opacity={0.25} style={styles.brandWatermark} />
 
             {/* Brand Badge Header */}
             <View style={styles.header}>
@@ -131,7 +131,7 @@ export default function LoginScreen() {
                   <Ionicons name="school" size={30} color="#FFFFFF" />
                 </View>
               </View>
-              {/* Title in Yatra One display font */}
+              {/* Title in the display face (Bricolage Grotesque) */}
               <Text style={styles.title}>Welcome Back</Text>
               <Text style={styles.subtitle}>Sign in to access your digital library & AI companion</Text>
             </View>
@@ -148,7 +148,7 @@ export default function LoginScreen() {
             {showResendVerification && (
               <View style={styles.resendCard}>
                 <View style={styles.resendHeaderRow}>
-                  <Ionicons name="mail-unread-outline" size={20} color="#B45309" />
+                  <Ionicons name="mail-unread-outline" size={20} color="#FF4D00" />
                   <Text style={styles.resendTitle}>Email Not Verified</Text>
                 </View>
                 <Text style={styles.resendDesc}>
@@ -261,7 +261,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(255,153,51,0.16)',
+    backgroundColor: 'rgba(255,138,61,0.16)',
   },
   orbIndigo: {
     position: 'absolute',
@@ -270,7 +270,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 280,
     height: 280,
     borderRadius: 140,
-    backgroundColor: 'rgba(13,27,110,0.12)',
+    backgroundColor: 'rgba(10,15,36,0.12)',
   },
   scrollContainer: {
     paddingHorizontal: spacing(5),
@@ -291,11 +291,11 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderWidth: 1,
-    borderColor: 'rgba(180,83,9,0.3)',
+    borderColor: 'rgba(255,77,0,0.3)',
     alignSelf: 'flex-start',
   },
   backBtnText: {
-    color: '#B45309',
+    color: '#FF4D00',
     fontFamily: fonts.heading,
     fontSize: 13,
     fontWeight: '700',
@@ -311,7 +311,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     bottom: -6,
     left: 10,
     right: 10,
-    backgroundColor: 'rgba(180, 83, 9, 0.16)',
+    backgroundColor: 'rgba(255, 77, 0, 0.16)',
     borderRadius: 24,
     zIndex: -1,
   },
@@ -319,16 +319,16 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1.5,
-    borderColor: 'rgba(180, 83, 9, 0.25)',
+    borderColor: 'rgba(255, 77, 0, 0.25)',
     padding: spacing(6),
-    shadowColor: '#0D1B6E',
+    shadowColor: '#0A0F24',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 18,
     elevation: 6,
     overflow: 'hidden',
   },
-  mandalaWatermark: {
+  brandWatermark: {
     position: 'absolute',
     top: 10,
     alignSelf: 'center',
@@ -343,11 +343,11 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: radius.lg,
-    backgroundColor: '#B45309',
+    backgroundColor: '#FF4D00',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing(3),
-    shadowColor: '#B45309',
+    shadowColor: '#FF4D00',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
@@ -357,13 +357,13 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: radius.md,
-    backgroundColor: '#E65100',
+    backgroundColor: '#D93A00',
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    color: '#B45309',
-    fontFamily: fonts.display, // Yatra One display font
+    color: '#FF4D00',
+    fontFamily: fonts.display,
     fontSize: 32,
     textAlign: 'center',
     letterSpacing: -0.5,
@@ -381,9 +381,9 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+    backgroundColor: 'rgba(229, 40, 58, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(244, 63, 94, 0.3)',
+    borderColor: 'rgba(229, 40, 58, 0.3)',
     borderRadius: radius.md,
     padding: spacing(3.5),
     marginBottom: spacing(4),
@@ -397,7 +397,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
 
   /* Resend Box */
   resendCard: {
-    backgroundColor: 'rgba(255, 153, 51, 0.1)',
+    backgroundColor: 'rgba(255, 138, 61, 0.1)',
     borderWidth: 1,
     borderColor: colors.borderGold,
     borderRadius: radius.md,

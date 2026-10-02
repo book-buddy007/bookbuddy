@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { useAuth } from '@/store/AuthContext';
 import { TextField } from '@/components/TextField';
 import { Button } from '@/components/Button';
@@ -220,7 +220,7 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: radius.md,
-    backgroundColor: '#E65100',
+    backgroundColor: '#D93A00',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -241,9 +241,9 @@ const makeStyles = (colors: ColorTokens) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+    backgroundColor: 'rgba(229, 40, 58, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(244, 63, 94, 0.3)',
+    borderColor: 'rgba(229, 40, 58, 0.3)',
     borderRadius: radius.md,
     padding: spacing(3.5),
     marginBottom: spacing(4),

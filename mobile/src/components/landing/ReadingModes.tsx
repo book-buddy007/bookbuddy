@@ -7,13 +7,13 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@/components/Ionicons';
 import { fonts, radius, spacing } from '@/theme';
 import { INDIC, SectionHeader } from './primitives';
 
 /** Mirrors reading-modes-section.tsx — 4 tabs swap a device preview. */
 type Mode = 'epub' | 'pdf' | 'tts' | 'varta';
-const MODES: { id: Mode; label: string; icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap; tint: string }[] = [
+const MODES: { id: Mode; label: string; icon: keyof typeof import('@/components/Ionicons').Ionicons.glyphMap; tint: string }[] = [
   { id: 'epub', label: 'EPUB', icon: 'book', tint: INDIC.burnt },
   { id: 'pdf', label: 'PDF', icon: 'document-text', tint: INDIC.red },
   { id: 'tts', label: 'Audiobook', icon: 'headset', tint: INDIC.teal },
@@ -42,7 +42,7 @@ export function ReadingModes() {
               onPress={() => setMode(m.id)}
               style={({ pressed }) => [
                 rm.tab,
-                { backgroundColor: on ? m.tint : 'rgba(255,255,255,0.7)', borderColor: on ? m.tint : 'rgba(93,64,55,0.18)' },
+                { backgroundColor: on ? m.tint : 'rgba(255,255,255,0.7)', borderColor: on ? m.tint : 'rgba(42,53,86,0.18)' },
                 pressed && { opacity: 0.85 },
               ]}
             >
@@ -57,9 +57,9 @@ export function ReadingModes() {
       <View style={rm.device}>
         <View style={rm.chrome}>
           <View style={rm.dots}>
-            <View style={[rm.dot, { backgroundColor: '#FCA5A5' }]} />
-            <View style={[rm.dot, { backgroundColor: '#FCD34D' }]} />
-            <View style={[rm.dot, { backgroundColor: '#86EFAC' }]} />
+            <View style={[rm.dot, { backgroundColor: '#FFC2C9' }]} />
+            <View style={[rm.dot, { backgroundColor: '#FFB547' }]} />
+            <View style={[rm.dot, { backgroundColor: '#7FE3A5' }]} />
           </View>
           <View style={[rm.modePill, { backgroundColor: `${active.tint}14` }]}>
             <Ionicons name={active.icon} size={11} color={active.tint} />
@@ -155,7 +155,7 @@ function AnimatedTtsBar({ height, index }: { height: number; index: number }) {
           width: 5,
           height: height * 0.7,
           borderRadius: 3,
-          backgroundColor: index < 9 ? INDIC.teal : 'rgba(0,106,110,0.2)',
+          backgroundColor: index < 9 ? INDIC.teal : 'rgba(30,58,138,0.2)',
         },
         animatedStyle,
       ]}
@@ -179,7 +179,7 @@ function TtsPreview() {
         <Text style={rm.ttsTime}>8:12</Text>
       </View>
       <View style={{ flexDirection: 'row', gap: spacing(2) }}>
-        <View style={[rm.ttsChip, { backgroundColor: 'rgba(0,106,110,0.1)', borderColor: 'rgba(0,106,110,0.2)' }]}>
+        <View style={[rm.ttsChip, { backgroundColor: 'rgba(30,58,138,0.1)', borderColor: 'rgba(30,58,138,0.2)' }]}>
           <Ionicons name="speedometer" size={13} color={INDIC.teal} />
           <Text style={[rm.ttsChipText, { color: INDIC.teal }]}>1.25× speed</Text>
         </View>
@@ -225,7 +225,7 @@ const rm = StyleSheet.create({
   tabs: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: spacing(2), marginBottom: spacing(6) },
   tab: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing(4), paddingVertical: spacing(2.5), borderRadius: radius.full, borderWidth: 2 },
   tabText: { fontFamily: fonts.label, fontSize: 13 },
-  device: { backgroundColor: '#fff', borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(226,232,240,0.8)', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.1, shadowRadius: 30, elevation: 6 },
+  device: { backgroundColor: '#fff', borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(220,225,234,0.8)', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.1, shadowRadius: 30, elevation: 6 },
   chrome: { height: 42, borderBottomWidth: 1, borderBottomColor: INDIC.slate100, backgroundColor: INDIC.slate50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing(4), gap: spacing(2) },
   dots: { flexDirection: 'row', gap: 6 },
   dot: { width: 10, height: 10, borderRadius: 5 },
@@ -234,20 +234,20 @@ const rm = StyleSheet.create({
   body: { padding: spacing(5), minHeight: 280, justifyContent: 'center' },
   caption: { fontFamily: fonts.body, fontSize: 13, color: INDIC.slate500, textAlign: 'center', marginTop: spacing(4) },
 
-  epubPage: { backgroundColor: '#FBF7EF', borderRadius: radius.md, borderWidth: 1, borderColor: '#E7D9B8', padding: spacing(4) },
+  epubPage: { backgroundColor: '#F2F4F8', borderRadius: radius.md, borderWidth: 1, borderColor: '#DCE1EA', padding: spacing(4) },
   epubTitle: { fontFamily: fonts.heading, fontSize: 17, color: INDIC.slate800, marginBottom: spacing(3) },
   epubBody: { fontFamily: fonts.body, fontSize: 14, lineHeight: 25, color: INDIC.slate700 },
-  epubHi: { backgroundColor: '#FEF08A', color: INDIC.slate900 },
+  epubHi: { backgroundColor: '#FFE3A3', color: INDIC.slate900 },
   epubControls: { flexDirection: 'row', gap: spacing(2) },
   epubCtl: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing(3), paddingVertical: spacing(2), borderRadius: radius.sm, borderWidth: 1 },
-  epubCtlOn: { backgroundColor: 'rgba(180,83,9,0.08)', borderColor: 'rgba(180,83,9,0.15)' },
+  epubCtlOn: { backgroundColor: 'rgba(255,77,0,0.08)', borderColor: 'rgba(255,77,0,0.15)' },
   epubCtlOff: { backgroundColor: INDIC.slate100, borderColor: INDIC.slate200 },
   epubCtlText: { fontFamily: fonts.label, fontSize: 11 },
 
   pdfPage: { width: '100%', maxWidth: 340, borderRadius: radius.sm, borderWidth: 1, borderColor: INDIC.slate300, backgroundColor: '#fff', padding: spacing(5), gap: spacing(2) },
   pdfNum: { fontFamily: fonts.body, fontSize: 10, color: INDIC.slate400, textAlign: 'center', marginBottom: spacing(1) },
   line: { height: 10, borderRadius: 4, backgroundColor: INDIC.slate200 },
-  lineHi: { backgroundColor: '#FDE68A' },
+  lineHi: { backgroundColor: '#FFE3A3' },
   pdfFig: { height: 72, borderRadius: radius.sm, backgroundColor: INDIC.slate100, borderWidth: 1, borderColor: INDIC.slate200, alignItems: 'center', justifyContent: 'center', marginVertical: spacing(2) },
   figText: { fontFamily: fonts.body, fontSize: 10, color: INDIC.slate400 },
   pdfCaption: { fontFamily: fonts.body, fontSize: 12, color: INDIC.slate500, textAlign: 'center', marginTop: spacing(3) },
@@ -266,7 +266,7 @@ const rm = StyleSheet.create({
   vAi: { alignSelf: 'flex-start', backgroundColor: '#fff', borderWidth: 1, borderColor: INDIC.slate200, borderRadius: 16, borderTopLeftRadius: 3, padding: spacing(3), maxWidth: '92%' },
   vAiText: { color: INDIC.slate700, fontFamily: fonts.body, fontSize: 13, lineHeight: 19 },
   vCiteRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: spacing(2), flexWrap: 'wrap' },
-  vCite: { backgroundColor: 'rgba(180,83,9,0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5 },
+  vCite: { backgroundColor: 'rgba(255,77,0,0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5 },
   vCiteText: { fontFamily: fonts.label, fontSize: 11, color: INDIC.burnt },
   vCiteNote: { fontFamily: fonts.body, fontSize: 11, color: INDIC.slate400 },
   vBtn: { flex: 1, alignItems: 'center', paddingVertical: spacing(2), borderRadius: radius.sm, borderWidth: 1 },
