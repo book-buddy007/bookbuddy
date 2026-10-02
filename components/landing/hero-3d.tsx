@@ -207,7 +207,8 @@ export function Hero3D({ onListening, speed = 1, className }: { onListening?: (l
           </div>
           {/* headphones */}
           <div ref={hp} style={{ position: "absolute", left: 0, top: 0, width: 260, height: 360, transformStyle: "preserve-3d", opacity: 0, pointerEvents: "none" }}>
-            <div style={{ position: "absolute", left: -74, top: -176, width: 408, height: 310, border: "18px solid var(--bb-blaze)", borderBottom: "none", borderRadius: "204px 204px 0 0", boxShadow: "inset 0 4px 0 rgba(255,255,255,0.35),0 0 40px rgba(255,77,0,0.35)", transform: "translateZ(30px)" }} />
+            {/* maxWidth none: globals.css sets `* { max-width: 100% }`, which clamps this 408px band to its 260px parent */}
+            <div style={{ position: "absolute", left: -74, top: -176, width: 408, maxWidth: "none", height: 310, border: "18px solid var(--bb-blaze)", borderBottom: "none", borderRadius: "204px 204px 0 0", boxShadow: "inset 0 4px 0 rgba(255,255,255,0.35),0 0 40px rgba(255,77,0,0.35)", transform: "translateZ(30px)" }} />
             {[{ left: -104, pad: { justifyContent: "flex-end", paddingRight: 8 }, g: "linear-gradient(90deg,var(--bb-navy-2),var(--bb-cobalt))" }, { left: 292, pad: { justifyContent: "flex-start", paddingLeft: 8 }, g: "linear-gradient(90deg,var(--bb-cobalt),var(--bb-navy-2))" }].map((c, i) => (
               <div key={i} style={{ position: "absolute", left: c.left, top: 110, width: 72, height: 136, borderRadius: 30, background: "linear-gradient(180deg,var(--bb-blaze-soft) 0%,var(--bb-blaze) 50%,var(--bb-blaze-deep) 100%)", boxShadow: "inset 0 2px 0 rgba(255,255,255,0.55),0 20px 40px -14px rgba(255,77,0,0.7)", transform: "translateZ(30px)", display: "flex", alignItems: "center", ...c.pad }}>
                 <div style={{ width: 22, height: 104, borderRadius: 12, background: c.g }} />
