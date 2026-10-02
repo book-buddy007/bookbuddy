@@ -95,8 +95,9 @@ export default function PrivacyPage() {
       <Section heading="Retention">
         <p>
           Account and study data is retained while your account is open. You can
-          delete your account from your profile at any time, which removes your
-          personal data and the study content attached to it. AI conversation
+          ask to delete your account at any time from Settings or at /delete-account;
+          we email a link to confirm, and confirming removes your personal data, the
+          study content attached to it and the files you uploaded. AI conversation
           history can be cleared separately without deleting the account.
           Retention periods for backups and audit logs are{' '}
           <Fill>[retention period]</Fill>.
@@ -105,8 +106,9 @@ export default function PrivacyPage() {
 
       <Section heading="Your rights">
         <p>
-          You can access, correct, export or delete your personal data. Account
-          deletion and AI-history deletion are self-service; for anything else,
+          You can access, correct, export or delete your personal data. Downloading
+          a copy of your data (Settings → Data &amp; privacy), account deletion and
+          AI-history deletion are self-service; for anything else,
           write to <Fill>[privacy contact email]</Fill> and we will respond
           within <Fill>[response window]</Fill>.
         </p>
