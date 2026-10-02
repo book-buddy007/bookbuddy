@@ -196,7 +196,103 @@ function SessionsSection() {
   )
 }
 
-const APP_THEMES: { value: "light" | "dark" | "system"; label: string; swatch: string }[] = [
+type NotificationPrefs = { studyReminders: boolean; push: boolean }
+
+/** Real switches, stored on the account and checked by the senders on the server. */
+function NotificationsSection() {
+  const [prefs, setPrefs] = React.useState<NotificationPrefs | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const [saving, setSaving] = React.useState<keyof NotificationPrefs | null>(null)
+
+  React.useEffect(() => {
+    fetch("/api/students/me/preferences", { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}))
+        if (!r.ok || !data?.notifications) throw new Error(data?.message || "Couldn't load your notification settings.")
+        setPrefs(data.notifications)
+      })
+      .catch((e) => setError(e.message))
+  }, [])
+
+  const update = async (key: keyof NotificationPrefs, value: boolean) => {
+    if (!prefs) return
+    const previous = prefs
+    setPrefs({ ...prefs, [key]: value })
+    setSaving(key)
+    try {
+      const r = await fetch("/api/students/me/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notifications: { [key]: value } }),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok || !data?.notifications) throw new Error(data?.message || "Not saved")
+      setPrefs(data.notifications)
+    } catch (e: any) {
+      setPrefs(previous)
+      toast({ title: "Couldn't save that setting", description: e?.message, variant: "destructive" })
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  return (
+    <Section icon="bell" title="Notifications" description="Saved to your account, so they apply on every device.">
+      {error ? (
+        <Alert variant="destructive">
+          <Icon name="alert-circle" fillLayer={false} />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <Row label="Study reminders" hint="Nudges to revisit ideas you may be starting to forget, in the app and on your phone.">
+            <Switch
+              aria-label="Study reminders"
+              checked={prefs?.studyReminders ?? true}
+              disabled={!prefs || saving === "studyReminders"}
+              onCheckedChange={(v) => update("studyReminders", v)}
+            />
+          </Row>
+          <Row label="Push notifications" hint="Alerts on phones where you use the Book Buddy app. Turning this off silences all of them.">
+            <Switch
+              aria-label="Push notifications"
+              checked={prefs?.push ?? true}
+              disabled={!prefs || saving === "push"}
+              onCheckedChange={(v) => update("push", v)}
+            />
+          </Row>
+          <p className="mt-4 text-xs text-bb-faint">Account emails, like password resets and sign-in codes, are always sent.</p>
+        </>
+      )}
+    </Section>
+  )
+}
+
+/** Downloads GET /export/me as a file, so failures can be reported instead of saved as a file. */
+async function downloadMyData(setBusy: (b: boolean) => void) {
+  setBusy(true)
+  try {
+    const res = await fetch("/api/v1/export/me", { cache: "no-store", credentials: "include" })
+    if (res.status === 429) throw new Error("You've just downloaded your data. Try again in a minute.")
+    if (!res.ok) throw new Error(`The download didn't start (${res.status}).`)
+    const blob = await res.blob()
+    const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "book-buddy-data.json"
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch (e: any) {
+    toast({ title: "Couldn't download your data", description: e?.message, variant: "destructive" })
+  } finally {
+    setBusy(false)
+  }
+}
+
+const APP_THEMES:{ value: "light" | "dark" | "system"; label: string; swatch: string }[] = [
   { value: "light", label: "Light", swatch: "bg-[#F2F4F8]" },
   { value: "dark", label: "Dark", swatch: "bg-[#0A0F24]" },
   { value: "system", label: "System", swatch: "bg-[linear-gradient(135deg,#F2F4F8_50%,#0A0F24_50%)]" },
@@ -208,6 +304,7 @@ export default function SettingsPage() {
   const readerTheme = useReaderStore((s) => s.theme)
   const resetReaderSettings = useReaderStore((s) => s.resetSettings)
   const { reduceMotion, highContrast, setReduceMotion, setHighContrast, setTheme: setAppTheme } = useAppStore()
+  const [exporting, setExporting] = React.useState(false)
 
   // Keep the app store's copy of the theme in step with next-themes.
   React.useEffect(() => {
@@ -336,21 +433,17 @@ export default function SettingsPage() {
 
         {/* ── Notifications ── */}
         <TabsContent value="notifications" className="space-y-6">
-          <Section icon="bell" title="Notifications" description="Due-date reminders, request updates and messages.">
-            <div className="flex items-start gap-3 rounded-bb-md bg-bb-surface-2 p-4">
-              <Icon name="info" size={18} fillLayer={false} className="mt-0.5 shrink-0 text-bb-muted" />
-              <p className="text-sm text-bb-muted">
-                Choosing which notifications you get isn&apos;t available yet. The bell in the top bar shows what has been sent to you.
-              </p>
-            </div>
-          </Section>
+          <NotificationsSection />
         </TabsContent>
 
         {/* ── Data & privacy ── */}
         <TabsContent value="privacy" className="space-y-6">
           <Section icon="shield-check" title="Your data">
-            <Row label="Download a copy of your data" hint="Reading history, notes and highlights.">
-              <NotYet />
+            <Row label="Download a copy of your data" hint="Profile, reading history, notes, highlights, flashcards, quiz results and Varta chats, as a JSON file.">
+              <Button variant="outline" size="sm" disabled={exporting} onClick={() => downloadMyData(setExporting)}>
+                {exporting ? <Icon name="loader" fillLayer={false} className="animate-spin" /> : <Icon name="download" fillLayer={false} />}
+                {exporting ? "Preparing…" : "Download"}
+              </Button>
             </Row>
             <Row label="How we use your data" hint="What we collect and why.">
               <div className="flex flex-wrap gap-2">

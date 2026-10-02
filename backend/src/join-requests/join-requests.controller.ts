@@ -19,6 +19,7 @@ import { Request } from 'express';
 import { BetterAuthGuard } from '../guards/better-auth.guard';
 import { CreateJoinRequestDto } from './dto/create-join-request.dto';
 import { RejectJoinRequestDto } from './dto/review-join-request.dto';
+import { ProofUploadDto } from './dto/proof-upload.dto';
 import { JoinRequestsService } from './join-requests.service';
 
 type SessionUser = { id: string; role: UserRole };
@@ -44,6 +45,24 @@ export class JoinRequestsController {
   ) {
     const user = req.user as SessionUser;
     return this.joinRequestsService.create(user.id, dto);
+  }
+
+  /** Presigned upload for a proof document (student ID, enrolment letter). */
+  @Post('proof-upload-url')
+  @HttpCode(HttpStatus.OK)
+  async proofUploadUrl(
+    @Req() req: Request,
+    @Body(new ValidationPipe({ transform: true })) dto: ProofUploadDto,
+  ) {
+    const user = req.user as SessionUser;
+    return this.joinRequestsService.createProofUploadUrl(user.id, dto);
+  }
+
+  /** Short-lived link to a request's proof document (requester or reviewer only). */
+  @Get(':id/proof-url')
+  async proofUrl(@Req() req: Request, @Param('id') id: string) {
+    const user = req.user as SessionUser;
+    return this.joinRequestsService.getProofUrl(user, id);
   }
 
   /** The signed-in user's own requests. */

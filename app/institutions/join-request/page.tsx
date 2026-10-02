@@ -17,11 +17,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuthStore } from "@/store/useAuthStore"
 import { toast } from "@/hooks/use-toast"
 
+const PROOF_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+const PROOF_MAX_BYTES = 5 * 1024 * 1024;
+
 const joinRequestSchema = z.object({
   tenantId: z.string().min(1, "Please select an institution"),
-  requestedRole: z.string().default("student"),
+  requestedRole: z.string().default("STUDENT"),
   message: z.string().optional(),
-  // Proof upload has no storage backend yet; the field stays so the API shape is unchanged.
+  // Storage key of an uploaded proof document (join-proofs/<userId>/...), set by the upload below.
   proofDocument: z.string().optional(),
 });
 
@@ -72,6 +75,44 @@ export default function JoinRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canRequest, setCanRequest] = useState<boolean | null>(null);
   const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [proof, setProof] = useState<{ status: 'idle' | 'uploading' | 'done' | 'error'; name?: string; error?: string }>({ status: 'idle' });
+
+  /* Proof upload: ask the backend for a presigned link, PUT the file straight to
+     storage, then attach the returned key to the request. The backend only accepts
+     a key from the requester's own upload folder. */
+  const handleProofFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (!PROOF_TYPES.includes(file.type)) {
+      setProof({ status: 'error', name: file.name, error: 'Choose a PDF, JPG or PNG.' });
+      return;
+    }
+    if (file.size > PROOF_MAX_BYTES) {
+      setProof({ status: 'error', name: file.name, error: 'The file must be 5 MB or smaller.' });
+      return;
+    }
+    setProof({ status: 'uploading', name: file.name });
+    try {
+      const res = await fetch('/api/join-requests/proof-upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.uploadUrl || !data?.key) throw new Error(data?.message || data?.error || 'Upload link unavailable');
+      const put = await fetch(data.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+      if (!put.ok) throw new Error(`Upload failed (${put.status})`);
+      setValue('proofDocument', data.key);
+      setProof({ status: 'done', name: file.name });
+    } catch (err: any) {
+      setValue('proofDocument', undefined);
+      setProof({ status: 'error', name: file.name, error: err?.message || 'Upload failed. Try again.' });
+    }
+  };
+
+  const removeProof = () => {
+    setValue('proofDocument', undefined);
+    setProof({ status: 'idle' });
+  };
 
   const {
     register,
@@ -81,7 +122,7 @@ export default function JoinRequestPage() {
     formState: { errors },
   } = useForm<JoinRequestFormData>({
     resolver: zodResolver(joinRequestSchema),
-    defaultValues: { requestedRole: "student" },
+    defaultValues: { requestedRole: "STUDENT" },
   });
 
   const selectedTenantId = watch("tenantId");
@@ -190,7 +231,9 @@ export default function JoinRequestPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to submit join request');
+        // Nest returns { message: string | string[], error: 'Bad Request' }; show the message.
+        const message = Array.isArray(error?.message) ? error.message[0] : error?.message;
+        throw new Error(message || error?.error || 'Failed to submit join request');
       }
 
       toast({
@@ -341,17 +384,42 @@ export default function JoinRequestPage() {
                 <Textarea id="message" placeholder="I'm a Class 10 student at…" rows={4} {...register("message")} />
               </FormField>
 
-              <div className="flex items-start gap-3 rounded-bb-md border border-dashed border-bb-border p-4">
-                <Icon name="upload" size={20} className="mt-0.5 shrink-0 text-bb-faint" />
-                <div className="text-sm">
-                  <p className="font-semibold text-bb-text">
-                    Supporting document <span className="ml-1 rounded-md bg-bb-surface-2 px-1.5 py-0.5 text-xs font-semibold text-bb-muted">Not available yet</span>
-                  </p>
-                  <p className="mt-1 text-bb-muted">
-                    Uploading proof of enrolment isn&apos;t supported yet. Put your student ID in the message instead.
-                  </p>
-                </div>
-              </div>
+              <FormField
+                label="Supporting document"
+                htmlFor="proofDocument"
+                hint="Optional. Student ID or enrolment letter as a PDF, JPG or PNG, up to 5 MB. Only this institution's admins can see it."
+                error={proof.status === 'error' ? proof.error : undefined}
+              >
+                {proof.status === 'done' || proof.status === 'uploading' ? (
+                  <div className="flex items-center gap-3 rounded-bb-md border border-bb-border bg-bb-surface-2 px-4 py-3">
+                    <Icon
+                      name={proof.status === 'uploading' ? 'loader' : 'check-circle'}
+                      size={20}
+                      fillLayer={proof.status !== 'uploading'}
+                      className={proof.status === 'uploading' ? 'animate-spin text-bb-accent' : 'text-bb-success-ink'}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-bb-text">{proof.name}</span>
+                    {proof.status === 'done' && (
+                      <Button type="button" variant="ghost" size="sm" onClick={removeProof}>Remove</Button>
+                    )}
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="proofDocument"
+                    className="flex cursor-pointer items-center gap-3 rounded-bb-md border border-dashed border-bb-border p-4 transition-colors hover:border-bb-accent/40 focus-within:shadow-focus"
+                  >
+                    <Icon name="upload" size={20} className="shrink-0 text-bb-accent-ink" />
+                    <span className="text-sm font-semibold text-bb-text">Choose a file</span>
+                    <input
+                      id="proofDocument"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                      className="sr-only"
+                      onChange={(e) => { handleProofFile(e.target.files?.[0]); e.target.value = ''; }}
+                    />
+                  </label>
+                )}
+              </FormField>
             </Section>
 
             {/* `canRequest === false` is already excluded by the guard around this block. */}
@@ -359,7 +427,7 @@ export default function JoinRequestPage() {
               <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" size="lg" disabled={isSubmitting || !selectedTenantId}>
+              <Button type="submit" size="lg" disabled={isSubmitting || !selectedTenantId || proof.status === 'uploading'}>
                 {isSubmitting ? <Icon name="loader" fillLayer={false} className="animate-spin" /> : <Icon name="send" fillLayer={false} />}
                 {isSubmitting ? "Sending…" : "Send request"}
               </Button>

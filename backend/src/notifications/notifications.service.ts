@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import axios from 'axios';
+import { UserPreferencesService } from '../user-preferences/user-preferences.service';
 
 export interface RegisterDeviceTokenDto {
   deviceToken: string;
@@ -20,7 +21,10 @@ export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
   private readonly expoPushUrl = 'https://exp.host/--/api/v2/push/send';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly preferences: UserPreferencesService,
+  ) {}
 
   /**
    * Register or update a native device push token for a user.
@@ -68,6 +72,11 @@ export class NotificationsService {
    */
   async sendPushToUser(dto: SendPushDto) {
     const { userId, title, body, data } = dto;
+
+    // Settings → Notifications → Push notifications.
+    if (!(await this.preferences.getNotificationPreferences(userId)).push) {
+      return { sentCount: 0, skipped: 'push-disabled' as const };
+    }
 
     const devices = await this.prisma.deviceToken.findMany({
       where: { userId, isActive: true },

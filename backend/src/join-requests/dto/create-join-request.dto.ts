@@ -1,5 +1,6 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { TenantRole } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 /**
  * Body for POST /join-requests.
@@ -15,6 +16,8 @@ export class CreateJoinRequestDto {
 
   /** Students are the only self-service role; staff are invited. */
   @IsOptional()
+  // Clients send 'student'; the enum is upper-case. Accept either.
+  @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
   @IsEnum(TenantRole)
   requestedRole?: TenantRole;
 

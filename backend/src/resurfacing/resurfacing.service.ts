@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UserPreferencesService } from '../user-preferences/user-preferences.service';
 
 // A concept must have been demonstrably learned before it's a candidate for
 // forgetting-based resurfacing — same bar §2 uses for "weak" (mirrored, not
@@ -57,6 +58,7 @@ export class ResurfacingService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private preferences: UserPreferencesService,
   ) {}
 
   /** Pure function, exported via the instance for direct unit testing. */
@@ -127,9 +129,16 @@ export class ResurfacingService {
     });
     const onCooldown = new Set(existing.map((e) => `${e.userId}:${e.conceptId}`));
 
+    // Settings → Notifications → Study reminders.
+    const remindersOff = await this.preferences.usersWithNotificationOff(
+      [...new Set(candidates.map((c) => c.userId))],
+      'studyReminders',
+    );
+
     let scheduled = 0;
     for (const c of candidates) {
       if (onCooldown.has(`${c.userId}:${c.conceptId}`)) continue;
+      if (remindersOff.has(c.userId)) continue;
 
       const event = await this.prisma.resurfacingEvent.create({
         data: { userId: c.userId, bookId: c.bookId, conceptId: c.conceptId },

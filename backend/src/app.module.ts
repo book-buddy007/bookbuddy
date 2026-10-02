@@ -43,6 +43,7 @@ import { GraphModule } from './graph/graph.module';
 import { QuizModule } from './quiz/quiz.module';
 import { VartaActivityModule } from './varta-activity/varta-activity.module';
 import { UserPreferencesModule } from './user-preferences/user-preferences.module';
+import { AccountDeletionModule } from './account-deletion/account-deletion.module';
 import { ResurfacingModule } from './resurfacing/resurfacing.module';
 import { TextAdaptationModule } from './text-adaptation/text-adaptation.module';
 import { VisualGroundingModule } from './visual-grounding/visual-grounding.module';
@@ -144,6 +145,7 @@ import { BookAccessModule } from './common/book-access.module';
     QuizModule,
     VartaActivityModule,
     UserPreferencesModule,
+    AccountDeletionModule,
     ResurfacingModule,
     TextAdaptationModule,
     VisualGroundingModule,

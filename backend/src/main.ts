@@ -30,6 +30,13 @@ async function bootstrap() {
   // rather than raised globally, to avoid widening the DoS surface on every
   // other endpoint.
   app.use('/books', json({ limit: '10mb' }));
+  // And the global JSON parser, explicitly. Nest only registers its own body parsers
+  // when none is present yet (ExpressAdapter.registerParserMiddleware checks for an
+  // existing "jsonParser" layer), and the /books parser above counted. So every JSON
+  // body outside /books arrived empty: POST /join-requests, PATCH preferences, auth
+  // DTO routes and so on all failed validation. /books requests are already parsed by
+  // the line above; this one skips them (body-parser marks the request as read).
+  app.use(json({ limit: '100kb' }));
 
   // Trust the reverse proxy — audit finding BB-004.
   //

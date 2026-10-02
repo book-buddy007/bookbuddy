@@ -85,6 +85,72 @@ export class EmailService {
     }
   }
 
+  /** Link to the confirmation page for a signed account-deletion token. */
+  accountDeletionLink(token: string): string {
+    return `${this.frontendUrl}/delete-account/confirm?token=${encodeURIComponent(token)}`;
+  }
+
+  /**
+   * Account-deletion confirmation (public /delete-account flow). The link opens a page
+   * with a button; nothing is deleted by following the link alone.
+   */
+  async sendAccountDeletionEmail(email: string, token: string, userName: string): Promise<boolean> {
+    if (!this.isConfigured) {
+      this.logger.warn(`Email not configured. Skipping account deletion email to ${email}`);
+      return false;
+    }
+    try {
+      const link = this.accountDeletionLink(token);
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: 'Confirm deleting your Book Buddy account',
+        html: this.getAccountDeletionTemplate(userName, link),
+      });
+      if (error) {
+        this.logger.error(`Failed to send account deletion email to ${email}: ${error.message}`);
+        return false;
+      }
+      this.logger.log(`Account deletion email sent to ${email}. Email ID: ${data?.id}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Error sending account deletion email: ${error.message}`, error.stack);
+      return false;
+    }
+  }
+
+  private getAccountDeletionTemplate(userName: string, link: string): string {
+    const safeName = String(userName).replace(/[<>&"]/g, '');
+    return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Confirm account deletion</title></head>
+<body style="margin:0;padding:0;background:#F2F4F8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#0A0F24;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;"><tr><td align="center">
+    <table width="560" cellpadding="0" cellspacing="0" style="max-width:100%;background:#FFFFFF;border-radius:22px;overflow:hidden;">
+      <tr><td style="background:#0A0F24;padding:28px 32px;">
+        <p style="margin:0;color:#FFFFFF;font-size:20px;font-weight:800;">Book Buddy</p>
+        <p style="margin:6px 0 0;color:#A9B4D0;font-size:14px;">Account deletion request</p>
+      </td></tr>
+      <tr><td style="padding:32px;">
+        <p style="margin:0 0 16px;font-size:18px;font-weight:700;">Hello ${safeName},</p>
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#4A5470;">
+          We received a request to permanently delete your Book Buddy account. If you go ahead, your
+          profile, reading history, notes, highlights, Varta conversations and uploaded files will be removed.
+          This cannot be undone.
+        </p>
+        <p style="margin:28px 0;text-align:center;">
+          <a href="${link}" style="display:inline-block;background:#E5283A;color:#FFFFFF;text-decoration:none;padding:14px 28px;border-radius:999px;font-weight:700;font-size:15px;">Review and delete my account</a>
+        </p>
+        <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:#4A5470;">
+          The link works for 24 hours and opens a page where you confirm. If you didn't ask for this,
+          ignore this email: nothing will be deleted.
+        </p>
+        <p style="margin:0;font-size:12px;color:#8E9AB8;word-break:break-all;">${link}</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+  }
+
   /**
    * Send welcome email to new users
    */

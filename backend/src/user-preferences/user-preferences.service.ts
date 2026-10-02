@@ -12,6 +12,29 @@ import { AnswerLanguage, coerceAnswerLanguage } from '../common/language/answer-
  * -schema sync. The cost of that choice is that every write is a read-modify
  * -write: we must not clobber the other keys sharing the bucket.
  */
+/**
+ * Notification switches. Only what the platform actually sends is listed:
+ * `studyReminders` gates the concept-resurfacing reminders (in-app and push),
+ * `push` gates every push to the user's devices. Both default to on.
+ */
+export interface NotificationPreferences {
+  studyReminders: boolean;
+  push: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  studyReminders: true,
+  push: true,
+};
+
+export function coerceNotificationPreferences(raw: unknown): NotificationPreferences {
+  const obj = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  return {
+    studyReminders: typeof obj.studyReminders === 'boolean' ? obj.studyReminders : DEFAULT_NOTIFICATION_PREFERENCES.studyReminders,
+    push: typeof obj.push === 'boolean' ? obj.push : DEFAULT_NOTIFICATION_PREFERENCES.push,
+  };
+}
+
 @Injectable()
 export class UserPreferencesService {
   constructor(private prisma: PrismaService) {}
@@ -47,5 +70,40 @@ export class UserPreferencesService {
       data: { metadata: next as any },
     });
     return lang;
+  }
+
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferences> {
+    const meta = await this.readMetadata(userId);
+    return coerceNotificationPreferences(meta.notificationPreferences);
+  }
+
+  async setNotificationPreferences(
+    userId: string,
+    patch: Partial<NotificationPreferences>,
+  ): Promise<NotificationPreferences> {
+    const meta = await this.readMetadata(userId);
+    const next = { ...coerceNotificationPreferences(meta.notificationPreferences), ...patch };
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { metadata: { ...meta, notificationPreferences: next } as any },
+    });
+    return next;
+  }
+
+  /** Batch read for senders: which of these users have a given switch turned off. */
+  async usersWithNotificationOff(userIds: string[], key: keyof NotificationPreferences): Promise<Set<string>> {
+    if (userIds.length === 0) return new Set();
+    const rows = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, metadata: true },
+    });
+    const off = new Set<string>();
+    for (const r of rows) {
+      const meta = r.metadata && typeof r.metadata === 'object' && !Array.isArray(r.metadata)
+        ? (r.metadata as Record<string, unknown>)
+        : {};
+      if (!coerceNotificationPreferences(meta.notificationPreferences)[key]) off.add(r.id);
+    }
+    return off;
   }
 }

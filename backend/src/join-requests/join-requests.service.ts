@@ -10,8 +10,20 @@ import {
   TenantRole,
   UserRole,
 } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { S3Service } from '../aws/s3.service';
 import { CreateJoinRequestDto } from './dto/create-join-request.dto';
+import { PROOF_MAX_BYTES, PROOF_MIME_TYPES, ProofUploadDto } from './dto/proof-upload.dto';
+
+/**
+ * Proof documents live under `join-proofs/<userId>/` in the media bucket, the same
+ * owner-prefix scheme personal files use, and are only ever served through short-lived
+ * presigned links. The key is checked against this shape on create, so a request can
+ * only reference the requester's own upload.
+ */
+const proofKeyPattern = (userId: string) =>
+  new RegExp(`^join-proofs/${userId}/[0-9a-f-]{36}\\.(pdf|jpg|png)$`);
 
 /** Roles within a tenant that may review join requests. */
 const REVIEWER_ROLES: TenantRole[] = [TenantRole.ADMIN, TenantRole.LIBRARIAN];
@@ -32,7 +44,43 @@ const REQUESTER_SUMMARY = {
 
 @Injectable()
 export class JoinRequestsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3: S3Service,
+  ) {}
+
+  /** A presigned PUT for the requester's proof document (PDF, JPG or PNG, up to 5 MB). */
+  async createProofUploadUrl(userId: string, dto: ProofUploadDto) {
+    const ext = PROOF_MIME_TYPES[dto.contentType];
+    const key = `join-proofs/${userId}/${randomUUID()}.${ext}`;
+    const { uploadUrl } = await this.s3.getPresignedUploadUrl({
+      key,
+      mimeType: dto.contentType,
+      format: 'proof',
+      expiresInSeconds: 300,
+    });
+    return { uploadUrl, key, maxBytes: PROOF_MAX_BYTES };
+  }
+
+  /**
+   * A short-lived link to a request's proof document, for the requester or a
+   * reviewer of that institution. Requests filed before uploads existed may hold a
+   * placeholder string rather than a key; those have nothing to show.
+   */
+  async getProofUrl(viewer: { id: string; role: UserRole }, id: string) {
+    const request = await this.prisma.joinRequest.findUnique({
+      where: { id },
+      select: { userId: true, tenantId: true, proofDocument: true },
+    });
+    if (!request) throw new NotFoundException('Join request not found');
+    if (request.userId !== viewer.id) await this.assertCanReview(viewer, request.tenantId);
+
+    if (!request.proofDocument || !proofKeyPattern(request.userId).test(request.proofDocument)) {
+      throw new NotFoundException('This request has no document attached');
+    }
+    const url = await this.s3.getPresignedDownloadUrl({ key: request.proofDocument, expiresInSeconds: 300 });
+    return { url };
+  }
 
   /**
    * File a request to join an institution.
@@ -77,6 +125,10 @@ export class JoinRequestsService {
       throw new BadRequestException(
         `You already have a request pending with ${tenant.name}`,
       );
+    }
+
+    if (dto.proofDocument && !proofKeyPattern(userId).test(dto.proofDocument)) {
+      throw new BadRequestException('The attached document could not be verified. Upload it again.');
     }
 
     return this.prisma.joinRequest.create({
@@ -147,6 +199,11 @@ export class JoinRequestsService {
     }
 
     await this.prisma.joinRequest.delete({ where: { id } });
+
+    // The withdrawn request's ID document has no further use; best-effort removal.
+    if (request.proofDocument && proofKeyPattern(userId).test(request.proofDocument)) {
+      await this.s3.deleteFile(request.proofDocument).catch(() => undefined);
+    }
     return { success: true, message: 'Join request withdrawn' };
   }
 

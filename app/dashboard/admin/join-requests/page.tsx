@@ -65,6 +65,26 @@ export default function AdminJoinRequestsPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
 
+  /* Proof documents are private; the backend hands out a five-minute link per view.
+     The tab is opened before the request so popup blockers treat it as a click. */
+  const openProofDocument = async (requestId: string) => {
+    const win = window.open("", "_blank");
+    try {
+      const res = await fetch(`/api/join-requests/${encodeURIComponent(requestId)}/proof-url`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.url) throw new Error(data?.message || data?.error || "Couldn't open the document");
+      if (win) {
+        win.opener = null;
+        win.location.href = data.url;
+      } else {
+        window.location.href = data.url;
+      }
+    } catch (err: any) {
+      win?.close();
+      toast({ title: "Couldn't open the document", description: err?.message, variant: "destructive" });
+    }
+  };
+
   // Fetch join requests for the institution
   const fetchRequests = async () => {
     if (!currentTenantId) return;
@@ -349,14 +369,19 @@ export default function AdminJoinRequestsPage() {
                     )}
 
                     {request.proofDocument && (
-                      <a
-                        href={request.proofDocument}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-bb-accent-ink hover:underline"
-                      >
-                        <Icon name="pdf" size={16} /> View proof document
-                      </a>
+                      request.proofDocument.startsWith("join-proofs/") ? (
+                        <button
+                          type="button"
+                          onClick={() => openProofDocument(request.id)}
+                          className="inline-flex items-center gap-2 rounded text-sm font-semibold text-bb-accent-ink hover:underline focus-visible:outline-none focus-visible:shadow-focus"
+                        >
+                          <Icon name="pdf" size={16} /> View proof document
+                        </button>
+                      ) : (
+                        <p className="text-sm text-bb-muted">
+                          A document was mentioned, but it was sent before uploads were supported and can&apos;t be opened.
+                        </p>
+                      )
                     )}
 
                     {request.status === "REJECTED" && request.rejectionReason && (
