@@ -35,34 +35,48 @@ export class AuthService {
     this.logger.setContext('AuthService');
   }
 
+  /**
+   * Public self-service sign-up is closed unless PUBLIC_SIGNUP_ENABLED=true, matching the
+   * web app (better-auth `disableSignUp`): accounts are created by an administrator or through
+   * the identity provider. Staff accounts are never created here.
+   */
+  private isPublicSignupEnabled(): boolean {
+    return this.configService.get<string>('PUBLIC_SIGNUP_ENABLED') === 'true';
+  }
+
+  private assertPublicSignupOpen(): void {
+    if (!this.isPublicSignupEnabled()) {
+      throw new ForbiddenException(
+        'Self-service sign-up is closed. Ask your institution administrator to create your account.',
+      );
+    }
+  }
+
   async register(
     registerDto: RegisterDto,
   ): Promise<{ id: string; email: string; name: string | null }> {
-    const { email, password, name, role, invitationToken, subscriptionTier } =
-      registerDto;
+    const { email, password, name, role } = registerDto;
 
-    // Validate invitation token for non-student roles
-    if (role && role !== 'STUDENT') {
-      if (!invitationToken || invitationToken.trim().length < 6) {
-        throw new ForbiddenException(
-          'A valid invitation token is required for non-student registration',
-        );
-      }
+    this.assertPublicSignupOpen();
+
+    // Anonymous callers can only ever create a trial student. `role` is accepted by the DTO for
+    // older clients but any other value is refused; the old "invitation token" for staff roles was
+    // only length-checked, never verified, so it is gone. `subscriptionTier` is likewise ignored:
+    // a sign-up cannot grant itself a paid tier.
+    if (role && role.toLowerCase() !== 'student') {
+      throw new ForbiddenException(
+        'Staff accounts are created by an administrator.',
+      );
     }
 
     // Hash the password with 12 salt rounds for enhanced security
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Determine account type and subscription details
-    const accountType = role === 'STUDENT' ? 'INDEPENDENT' : 'INSTITUTIONAL';
-    const tier =
-      accountType === 'INDEPENDENT' ? subscriptionTier || 'TRIAL' : null;
-    const status = accountType === 'INDEPENDENT' ? 'TRIAL' : null;
-    const trialEndsAt =
-      accountType === 'INDEPENDENT'
-        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        : null; // 30 days trial
+    const accountType = 'INDEPENDENT';
+    const tier = 'TRIAL';
+    const status = 'TRIAL';
+    const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days trial
 
     try {
       // Create the user in the database
@@ -71,7 +85,7 @@ export class AuthService {
           email,
           password: hashedPassword,
           name,
-          role: (role as any) || 'STUDENT',
+          role: 'STUDENT',
           accountType: accountType as any,
           subscriptionTier: tier,
           subscriptionStatus: status as any,
@@ -1258,6 +1272,9 @@ export class AuthService {
       });
 
       if (!user) {
+        // Existing users can always sign in with Google; creating a new account is sign-up.
+        this.assertPublicSignupOpen();
+
         // Create new user with Google OAuth
         user = await this.prisma.user.create({
           data: {

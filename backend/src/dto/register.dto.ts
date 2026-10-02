@@ -43,16 +43,16 @@ export class RegisterDto {
     message:
       'Role must be one of: super-admin, admin, librarian, teacher, student',
   })
-  role?: string;
+  role?: string; // Ignored except to refuse staff roles: public sign-up only ever creates a student.
 
   @IsOptional()
   @IsString()
   @MinLength(10, { message: 'Invitation token must be at least 10 characters' })
-  invitationToken?: string;
+  invitationToken?: string; // Deprecated and ignored: it was never verified, so it cannot authorise anything.
 
   @IsOptional()
   @IsEnum(['trial', 'basic', 'premium'], {
     message: 'Subscription tier must be one of: trial, basic, premium',
   })
-  subscriptionTier?: string;
+  subscriptionTier?: string; // Ignored: a sign-up always starts on the trial tier.
 }
