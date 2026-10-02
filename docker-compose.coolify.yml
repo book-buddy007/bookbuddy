@@ -47,6 +47,11 @@ services:
       MEDIA_PROXY_ALLOWED_HOSTS: ${MEDIA_HOST:-media.bookbuddy.vinstitution.com}
       FEDERATION_ENABLED: "false"
       NEXT_PUBLIC_FEDERATION_ENABLED: "false"
+      # Google sign-in: inert until both are set in Coolify (callback: <APP_URL>/api/auth/callback/google).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # One switch for the web app and the API: anyone may create an account. Default closed.
+      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,6 +90,8 @@ services:
       SEED_SUPERADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@bookbuddy.vinstitution.com}
       SEED_SUPERADMIN_PASSWORD: ${SERVICE_PASSWORD_ADMIN}
       SEED_SUPERADMIN_NAME: Super Admin
+      # Same switch as the web service: public sign-up (POST /auth/register, first-time Google). Default closed.
+      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
       REDIS_PORT: "6379"

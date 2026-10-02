@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthProviders } from '@/hooks/use-auth-providers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
@@ -27,6 +28,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const { register: registerUser, isLoading, error, clearError, isAuthenticated } = useAuthStore();
+  const providers = useAuthProviders();
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string>('');
@@ -61,7 +63,7 @@ export default function RegisterPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await authClient.signIn.social({ provider: 'google', callbackURL: '/dashboard' });
+      await authClient.signIn.social({ provider: 'google', callbackURL: '/dashboard', errorCallbackURL: '/login', requestSignUp: true });
     } catch (error) {
       console.error('Google sign-in error:', error);
       setRegisterError('Failed to sign in with Google. Please try again.');
@@ -166,12 +168,17 @@ export default function RegisterPage() {
             Create account
           </AuthButton>
 
-          <AuthDivider>or</AuthDivider>
+          {/* Only when Google is configured AND the server lets Google create accounts; otherwise it can only sign existing users in (see the login page). */}
+          {providers.google && providers.publicSignup && (
+            <>
+              <AuthDivider>or</AuthDivider>
 
-          <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleSignIn}>
-            <GoogleMark />
-            Sign up with Google
-          </Button>
+              <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleSignIn}>
+                <GoogleMark />
+                Sign up with Google
+              </Button>
+            </>
+          )}
         </form>
       </AuthCard>
     </AuthBackdrop>

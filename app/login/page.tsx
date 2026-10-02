@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthProviders } from '@/hooks/use-auth-providers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
@@ -23,9 +24,25 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+/** Plain-language text for the error codes Better Auth appends when a Google sign-in is turned back. */
+function googleErrorMessage(code: string): string {
+  switch (code) {
+    case 'signup_disabled':
+    case 'email_not_found':
+      return "We couldn't find a Book Buddy account for that Google address. Accounts are created by your institution administrator.";
+    case 'account_not_linked':
+      return 'That email already has an account that Google could not be linked to. Sign in with your password instead.';
+    case 'access_denied':
+      return 'Google sign-in was cancelled.';
+    default:
+      return 'Google sign-in did not complete. Please try again.';
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuthStore();
+  const providers = useAuthProviders();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [resendEmail, setResendEmail] = useState('');
@@ -104,9 +121,15 @@ export default function LoginPage() {
     }
   };
 
+  // Google sends failures back here as ?error=<code> (see errorCallbackURL below).
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('error');
+    if (code) setLoginError(googleErrorMessage(code));
+  }, []);
+
   const handleGoogleSignIn = async () => {
     try {
-      await authClient.signIn.social({ provider: 'google', callbackURL: '/dashboard' });
+      await authClient.signIn.social({ provider: 'google', callbackURL: '/dashboard', errorCallbackURL: '/login' });
     } catch (error) {
       console.error('Google sign-in error:', error);
       setLoginError('Failed to sign in with Google. Please try again.');
@@ -224,12 +247,16 @@ export default function LoginPage() {
             Sign in
           </AuthButton>
 
-          <AuthDivider>or</AuthDivider>
+          {providers.google && (
+            <>
+              <AuthDivider>or</AuthDivider>
 
-          <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleSignIn}>
-            <GoogleMark />
-            Continue with Google
-          </Button>
+              <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleSignIn}>
+                <GoogleMark />
+                Continue with Google
+              </Button>
+            </>
+          )}
 
           {federationEnabled && (
             <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleVidyaverseSignIn}>

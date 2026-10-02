@@ -22,12 +22,17 @@ const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || "http://localhost:3001";
 // which is the redirect URI that must be authorised in Google Cloud Console.
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+// Accounts here are created by an administrator or the identity provider, so Google may only sign
+// in someone whose verified email already has an account (it links to it). It cannot create new
+// accounts unless PUBLIC_SIGNUP_ENABLED=true, the same switch the NestJS backend uses.
+const PUBLIC_SIGNUP_ENABLED = process.env.PUBLIC_SIGNUP_ENABLED === "true";
 const socialProviders =
   GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET
     ? {
         google: {
           clientId: GOOGLE_CLIENT_ID,
           clientSecret: GOOGLE_CLIENT_SECRET,
+          disableSignUp: !PUBLIC_SIGNUP_ENABLED,
         },
       }
     : {};
