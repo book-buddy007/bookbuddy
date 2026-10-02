@@ -1,14 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs,TabsContent,TabsList,TabsTrigger } from "@/components/ui/tabs"
+import { Card,CardContent,CardDescription,CardHeader,CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus } from "@/components/ui/icons"
 import { motion } from "framer-motion"
 
 export default function BranchesPage() {
-  const [activeTab, setActiveTab] = useState("all")
+  const [, setActiveTab] = useState("all")
 
   return (
     <div className="container mx-auto py-8">

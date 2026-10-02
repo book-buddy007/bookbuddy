@@ -1,11 +1,9 @@
-import { Control, Controller } from 'react-hook-form';
 import { SectionEditor } from './SectionEditor';
 import { ImageUploader } from './ContentImageUploader';
 import { Button } from '@/components/ui/button';
-import { Trash2, GripVertical } from '@/components/ui/icons';
-import { toast } from '@/components/ui/use-toast';
+import { Trash2 } from '@/components/ui/icons';
 
-export function ImageGalleryEditor({ control, formValues, setValue, uploadImage }: any) {
+export function ImageGalleryEditor({ formValues, setValue, uploadImage }: any) {
     const images = formValues.gallery?.images || [];
 
     const handleRemove = (index: number) => {

@@ -1,20 +1,20 @@
-import { useMemo, useState } from "react";
+import { useMemo,useState } from "react";
 import {
-  X,
-  NotebookPen,
-  BookOpen,
-  RefreshCw,
-  Loader2,
-  Pin,
-  Star,
-  CloudOff,
-  Link2Off,
-  AlertTriangle,
+X,
+NotebookPen,
+BookOpen,
+RefreshCw,
+Loader2,
+Pin,
+Star,
+CloudOff,
+Link2Off,
+AlertTriangle,
 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSanchikaStore } from "@/store/useSanchikaStore";
-import { useSanchikaNotes, type SanchikaScope } from "@/lib/hooks/useSanchikaNotes";
+import { useSanchikaNotes,type SanchikaScope } from "@/lib/hooks/useSanchikaNotes";
 import { sanitizeNoteHtml } from "@/lib/sanitizeNoteHtml";
 import { panelShellClass } from "./panelShell";
 import { formatDistanceToNow } from "date-fns";
@@ -53,7 +53,6 @@ interface SanchikaSidebarProps {
 
 export function SanchikaSidebar({
   bookId,
-  isDarkMode = false,
   isOpen = false,
   onClose,
   embedded = false,

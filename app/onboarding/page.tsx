@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authClient } from '@/lib/auth-client';
 import { useUserProfile } from '@/lib/hooks/useUserProfile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Icon, type BBIconName } from '@/components/ui/icon';
+import { Icon,type BBIconName } from '@/components/ui/icon';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert,AlertDescription } from '@/components/ui/alert';
 import { AuthBackdrop } from '@/components/auth/auth-backdrop';
 import { AuthCardSkeleton } from '@/components/auth/auth-card';
 import { cn } from '@/lib/utils';
@@ -151,7 +151,7 @@ export default function OnboardingPage() {
   }, [userProfile?.phone, editingPhone]);
 
   // Phone capture is kept for when mobile verification is switched back on.
-  const handleSavePhone = async () => {
+  const _handleSavePhone = async () => {
     if (!phoneNumber) return;
     setProfileError('');
     try {

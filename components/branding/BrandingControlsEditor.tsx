@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState,useEffect } from 'react';
 import { SectionEditor } from './SectionEditor';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { Check } from '@/components/ui/icons';
 import type { BrandingControlsEditorProps } from '@/types/branding.types';
@@ -25,7 +25,7 @@ const FALLBACK_FONTS = [
  * Pure controlled component. No API calls. No persistence.
  * All state changes flow upward via `onChange`. The parent owns saving.
  */
-export function BrandingControlsEditor({ tenantId, branding, onChange }: BrandingControlsEditorProps) {
+export function BrandingControlsEditor({ branding, onChange }: BrandingControlsEditorProps) {
   const [primaryColor, setPrimaryColor] = useState(branding?.colors?.primary || '#6366f1');
   const [secondaryColor, setSecondaryColor] = useState(branding?.colors?.secondary || '#14b8a6');
   const [typography, setTypography] = useState(branding?.typography || 'Inter');

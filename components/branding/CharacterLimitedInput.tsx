@@ -113,4 +113,6 @@ export const CharacterLimitedInput = forwardRef<HTMLInputElement | HTMLTextAreaE
       </div>
     );
   }
-); 
+);
+
+CharacterLimitedInput.displayName = 'CharacterLimitedInput';

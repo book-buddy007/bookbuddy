@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState,useEffect,useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Loader2,
-  Mic2,
-  FileText,
+Loader2,
+Mic2,
+FileText,
 } from "@/components/ui/icons";
 
 interface RecapContentProps {
@@ -26,7 +26,7 @@ interface Digest {
 
 /* Embedded as the "Recap" tab inside VartaSidebar (was a standalone
    top-toolbar panel — folded in as part of the reader consolidation). */
-export function RecapContent({ bookId, isDarkMode = false }: RecapContentProps) {
+export function RecapContent({ bookId }: RecapContentProps) {
   const [chapters, setChapters] = useState<string[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [digest, setDigest] = useState<Digest | null>(null);

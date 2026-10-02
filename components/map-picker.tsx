@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState,useEffect,useRef } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { MapPin, Search, X } from "@/components/ui/icons"
+import { MapPin,Search,X } from "@/components/ui/icons"
 
 // Declare types for Google Maps API
 declare global {
@@ -23,9 +23,10 @@ declare global {
 }
 
 // Mock events for testing
-type MockListener = () => void;
-type MockMapClickListener = (e: { latLng: { lat: () => number; lng: () => number } }) => void;
 
+// Ambient Google Maps types (the script is loaded at runtime, there is no @types package here).
+// Namespaces are how those globals are declared.
+/* eslint-disable @typescript-eslint/no-namespace */
 // Declare the google namespace if it doesn't exist
 declare namespace google {
   namespace maps {
@@ -65,20 +66,21 @@ namespace google.maps {
     setCenter(latLng: LatLng): void;
     setZoom(zoom: number): void;
     addListener(event: "click", callback: (e: MapMouseEvent) => void): void;
-    addListener(event: string, callback: Function): void;
+    addListener(event: string, callback: (...args: unknown[]) => void): void;
   }
 
   export interface Marker {
     setPosition(latLng: LatLng): void;
     setMap(map: Map | null): void;
     getPosition(): LatLng | null;
-    addListener(event: string, callback: Function): google.maps.MapsEventListener;
+    addListener(event: string, callback: (...args: unknown[]) => void): google.maps.MapsEventListener;
   }
 
   export interface Geocoder {
     geocode(request: { address: string }, callback: (results: Array<{ geometry: { location: LatLng } }>, status: string) => void): void;
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 interface MapPickerProps {
   label?: string

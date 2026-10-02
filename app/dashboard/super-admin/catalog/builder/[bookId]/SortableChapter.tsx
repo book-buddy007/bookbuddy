@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React,{ useState,useRef,useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronDown, ChevronUp, ListPlus, Trash2, Pencil, Check } from '@/components/ui/icons';
-import type { FlatChapter, FlatSection } from './AudiobookBuilder';
+import { GripVertical,ChevronDown,ChevronUp,ListPlus,Trash2,Pencil,Check } from '@/components/ui/icons';
+import type { FlatChapter,FlatSection } from './AudiobookBuilder';
 import { UploadSlot } from './UploadSlot';
 
 interface Props {
@@ -172,7 +172,7 @@ export function SortableChapter({
         <div className="p-4 space-y-3">
           {sections.length === 0 && (
             <p className="text-xs text-bb-faint pl-8 italic">
-              No sections yet — click "Add Section" to add one.
+              No sections yet — click &quot;Add Section&quot; to add one.
             </p>
           )}
           {sections.map((section, idx) => (
@@ -196,7 +196,7 @@ export function SortableChapter({
 // ─── SectionRow (inline sub-component) ───────────────────────────────
 
 function SectionRow({
-  section, index, chapterId, bookId, onRename, onRenameSave, onTrackUploadSuccess
+  section, chapterId, bookId, onRename, onRenameSave, onTrackUploadSuccess
 }: {
   section: FlatSection;
   index: number;

@@ -1,22 +1,22 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState,useEffect,useRef } from "react"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useUserProfile } from "@/lib/hooks/useUserProfile"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Chip } from "@/components/ui/chip"
 import { FormField } from "@/components/ui/form-field"
-import { Icon, type BBIconName } from "@/components/ui/icon"
+import { Icon,type BBIconName } from "@/components/ui/icon"
 import { PageHeader } from "@/components/ui/page-header"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Avatar,AvatarFallback,AvatarImage } from "@/components/ui/avatar"
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 
 export default function StudentProfilePage() {
-  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuthStore()
+  const { user, isLoading: isAuthLoading } = useAuthStore()
   const { userProfile, loading: profileLoading, error: profileError } = useUserProfile()
 
   // Editable form state
@@ -43,8 +43,8 @@ export default function StudentProfilePage() {
   const [isSendingPhoneOtp, setIsSendingPhoneOtp] = useState(false)
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false)
   const [isVerifyingPhone, setIsVerifyingPhone] = useState(false)
-  const [emailOtpSent, setEmailOtpSent] = useState(false)
-  const [phoneOtpSent, setPhoneOtpSent] = useState(false)
+  const [, setEmailOtpSent] = useState(false)
+  const [, setPhoneOtpSent] = useState(false)
   const [emailOtpCountdown, setEmailOtpCountdown] = useState(0)
   const [phoneOtpCountdown, setPhoneOtpCountdown] = useState(0)
 

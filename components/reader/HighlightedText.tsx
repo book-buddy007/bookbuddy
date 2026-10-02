@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useAnnotationStore, Annotation } from '@/store/useAnnotationStore';
+import React,{ useState,useRef,useEffect } from 'react';
+import { useAnnotationStore,Annotation } from '@/store/useAnnotationStore';
 import { useReaderStore } from '@/store/useReaderStore';
 import { AnnotationToolbar } from './AnnotationToolbar';
-import { highlightColor, highlightLabel, HIGHLIGHT_INK } from './highlightPalette';
+import { highlightColor,highlightLabel,HIGHLIGHT_INK } from './highlightPalette';
 
 interface HighlightedTextProps {
   bookId: string;
@@ -89,13 +89,12 @@ export function HighlightedText({ bookId, pageNumber, children, isDarkMode = fal
       const selectedText = selection.toString();
 
       // Calculate the start and end index in the original text
-      const textContent = textNode.textContent;
       const preCaretRange = range.cloneRange();
       preCaretRange.selectNodeContents(textNode);
       preCaretRange.setEnd(range.startContainer, range.startOffset);
 
       // Get the text before selection point
-      let beforeText = preCaretRange.toString();
+      const beforeText = preCaretRange.toString();
 
       // Find the actual start index in the original text
       const startIndex = beforeText.length;
@@ -128,7 +127,7 @@ export function HighlightedText({ bookId, pageNumber, children, isDarkMode = fal
   const renderHighlightedText = () => {
     if (!children) return <div ref={textRef}></div>;
 
-    let text = children;
+    const text = children;
     let segments = [{ text, highlighted: false, annotation: null as Annotation | null, searchHighlight: null as any }];
 
     // Apply all highlights

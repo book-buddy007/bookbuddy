@@ -1,31 +1,30 @@
 'use client';
-import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, ReactNode } from 'react';
+import { useState,useCallback,useMemo,useRef,useEffect,useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Worker, Viewer, SpecialZoomLevel, RenderPageProps, LoadError } from '@react-pdf-viewer/core';
+import { Worker,Viewer,SpecialZoomLevel,RenderPageProps,LoadError } from '@react-pdf-viewer/core';
 import { zoomPlugin } from '@react-pdf-viewer/zoom';
-import { searchPlugin, OnHighlightKeyword } from '@react-pdf-viewer/search';
+import { searchPlugin } from '@react-pdf-viewer/search';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import { scrollModePlugin } from '@react-pdf-viewer/scroll-mode';
-import { selectionModePlugin, SelectionMode } from '@react-pdf-viewer/selection-mode';
-import { thumbnailPlugin, ThumbnailDirection } from '@react-pdf-viewer/thumbnail';
+import { selectionModePlugin,SelectionMode } from '@react-pdf-viewer/selection-mode';
+import { thumbnailPlugin,ThumbnailDirection } from '@react-pdf-viewer/thumbnail';
 import { bookmarkPlugin } from '@react-pdf-viewer/bookmark';
 import {
-  highlightPlugin,
-  RenderHighlightTargetProps,
-  RenderHighlightContentProps,
-  RenderHighlightsProps,
-  HighlightArea,
-  Trigger,
+highlightPlugin,
+RenderHighlightTargetProps,
+RenderHighlightContentProps,
+RenderHighlightsProps,
+HighlightArea,
+Trigger,
 } from '@react-pdf-viewer/highlight';
 import { useAnnotationStore } from '@/store/useAnnotationStore';
 import { useDictionaryStore } from '@/store/useDictionaryStore';
 import { DictionaryModal } from './DictionaryModal';
-import { HIGHLIGHT_SWATCHES, highlightLabel } from './highlightPalette';
-import dynamic from 'next/dynamic';
+import { HIGHLIGHT_SWATCHES,highlightLabel } from './highlightPalette';
 
 import { InkOverlay } from './pdf/InkOverlay';
 import { DrawingToolbar } from './pdf/DrawingToolbar';
-import { FileSearch, CirclePlus, CircleMinus, X, ChevronDown, ChevronUp, Highlighter, FileText, Palette, TriangleAlert, Volume2, BookA, WandSparkles, NotebookPen, Copy, CopyCheck, TextSelect } from '@/components/ui/icons';
+import { FileSearch,CirclePlus,CircleMinus,X,ChevronDown,ChevronUp,FileText,TriangleAlert,Volume2,BookA,WandSparkles,NotebookPen,Copy,CopyCheck,TextSelect } from '@/components/ui/icons';
 
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/zoom/lib/styles/index.css';
@@ -230,7 +229,7 @@ function NoteInputPopup({
             lineHeight: 1.4,
           }}
         >
-          "{selectedText.length > 120 ? selectedText.slice(0, 120) + '...' : selectedText}"
+          &quot;{selectedText.length > 120 ? selectedText.slice(0, 120) + '...' : selectedText}&quot;
         </div>
         <textarea
           autoFocus
@@ -685,7 +684,7 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
     const originalSetStart = Range.prototype.setStart;
     const originalSetEnd = Range.prototype.setEnd;
 
-    const safeSet = (originalFunc: Function, ctx: Range, refNode: Node, offset: number) => {
+    const safeSet = (originalFunc: (this: Range, node: Node, offset: number) => void, ctx: Range, refNode: Node, offset: number) => {
       try {
         originalFunc.call(ctx, refNode, offset);
       } catch (e: any) {
@@ -923,15 +922,15 @@ export function PdfShell({ url, bookId, initialPage = 0, onPageChange, onDocumen
     zoomPluginInstance,
     searchPluginInstance,
     pageNavigationPluginInstance,
-    scrollModePluginInstance,
+    , // scroll mode (unused here)
     thumbnailPluginInstance,
     bookmarkPluginInstance,
-    highlightPluginInstance,
+    , // highlight (unused here)
     selectionModePluginInstance,
   ] = firstRenderPlugins;
 
   const { zoomTo } = zoomPluginInstance;
-  const { highlight, clearHighlights, Search } = searchPluginInstance;
+  const { clearHighlights, Search } = searchPluginInstance;
   const { jumpToPage } = pageNavigationPluginInstance;
   const { Thumbnails } = thumbnailPluginInstance;
   const { Bookmarks } = bookmarkPluginInstance;

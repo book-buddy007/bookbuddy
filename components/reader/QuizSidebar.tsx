@@ -1,20 +1,20 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState,useEffect,useCallback,useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useReaderStore } from "@/store/useReaderStore";
 import {
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  RotateCcw,
-  BookOpen,
-  Library,
-  Lightbulb,
-  Languages,
-  LogOut,
-  ArrowRight,
-  Trophy,
-  // Aliased: the bare name resolves to the DOM `History` interface, not the icon.
-  History as HistoryIcon,
+Loader2,
+CheckCircle2,
+XCircle,
+RotateCcw,
+BookOpen,
+Library,
+Lightbulb,
+Languages,
+LogOut,
+ArrowRight,
+Trophy,
+// Aliased: the bare name resolves to the DOM `History` interface, not the icon.
+History as HistoryIcon,
 } from "@/components/ui/icons";
 
 interface ChapterQuizContentProps {
@@ -91,7 +91,7 @@ function formatPages(pages: number[]): string {
   return parts.join(", ");
 }
 
-export function ChapterQuizContent({ bookId, isDarkMode = false }: ChapterQuizContentProps) {
+export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
   const sessionPages = useReaderStore((s) => s.sessionPages);
   const totalPages = useReaderStore((s) => s.totalPages);
 
@@ -112,7 +112,6 @@ export function ChapterQuizContent({ bookId, isDarkMode = false }: ChapterQuizCo
 
   const [pageMap, setPageMap] = useState<PageMap | null>(null);
   const [pageSpec, setPageSpec] = useState("");
-  const [editingPages, setEditingPages] = useState(false);
 
   const [loadingChapters, setLoadingChapters] = useState(false);
   const [loadingQuiz, setLoadingQuiz] = useState(false);

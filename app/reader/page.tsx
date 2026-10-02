@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
+import React,{ useEffect,useState,useCallback,useMemo,Suspense } from 'react';
 
 
 
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useTheme } from "next-themes"
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from "@/components/ui/button";
+import { Tabs,TabsList,TabsTrigger,TabsContent } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTheme } from "next-themes";
+import { useRouter,useSearchParams } from 'next/navigation';
 import { useReaderStore } from '@/store/useReaderStore';
 import { useAppStore } from '@/store/useAppStore';
 import { useAnnotationStore } from '@/store/useAnnotationStore';
@@ -24,11 +24,10 @@ import { CreateFlashcardModal } from '@/components/reader/CreateFlashcardModal';
 import { CitationGeneratorModal } from '@/components/reader/CitationGeneratorModal';
 import { useTextToSpeech } from '@/lib/hooks/useTextToSpeech';
 import { TTSControlBar } from '@/components/reader/TTSControlBar';
-import { ReaderTopBar, type ReaderMode } from '@/components/reader/ReaderTopBar';
+import { ReaderTopBar,type ReaderMode } from '@/components/reader/ReaderTopBar';
 import { ReaderDisplayContent } from '@/components/reader/ReaderDisplayContent';
-import { READER_PALETTES, toReaderKey } from '@/lib/reader-themes';
+import { READER_PALETTES,toReaderKey } from '@/lib/reader-themes';
 import { Icon } from '@/components/ui/icon';
-import { useDictionaryStore } from '@/store/useDictionaryStore';
 
 import { useBookContent } from '@/lib/hooks/useBookContent';
 import { PdfShell } from '@/components/reader/PdfShell';
@@ -75,7 +74,6 @@ function ReaderContent() {
   const [bookId, setBookId] = useState<string | null>(bookIdUrl);
   const [personalFileId] = useState<string | null>(personalFileIdUrl);
   const [format, setFormat] = useState<string>(formatUrl);
-  const [isMobile, setIsMobile] = useState(false);
   /* `?page=N` (Varta's "Open in reader" citation links) opens at that page. It is
      applied once, AFTER the saved position arrives from the server, so the citation
      wins over "where you left off". Page numbers come from PDF citations, so an
@@ -92,14 +90,12 @@ function ReaderContent() {
     pageParamRef.current = null;
     useReaderStore.getState().setCurrentPage(p);
   }, []);
-  const [hoverZone, setHoverZone] = useState<'left' | 'right' | 'center' | null>(null);
 
   // Use our Zustand store instead of local state
   const {
     fontSize,
     lineHeight,
     fontFamily,
-    margins,
     theme: readerTheme,
     colorTemperature,
     contrast,
@@ -110,29 +106,18 @@ function ReaderContent() {
     viewMode,
     bookmarks,
     activePanel,
-    studyTab,
     isFocusMode,
     bottomBarHeight,
     searchQuery,
     searchResults,
     activeResultIndex,
     sessionPageSeconds,
-    currentStreak,
-    dailyGoalProgress,
 
-    setFontSize,
-    setLineHeight,
-    setFontFamily,
-    setMargins,
     setTheme,
-    setColorTemperature,
-    setContrast,
-    toggleAutoTheme,
 
     setCurrentPage,
     setTotalPages,
     setLastCfi,
-    toggleViewMode,
     toggleBookmark,
 
     togglePanel,
@@ -164,7 +149,7 @@ function ReaderContent() {
      anything else can be reached, so these stay local booleans. The
      *panels*, which could stack, are the ones that moved to the single
      activePanel enum in the reader store (audit fix 1). */
-  const [flashcardText, setFlashcardText] = useState('');
+  const [flashcardText] = useState('');
   const [isFlashcardOpen, setIsFlashcardOpen] = useState(false);
   const [isCitationOpen, setIsCitationOpen] = useState(false);
 
@@ -186,17 +171,6 @@ function ReaderContent() {
     else if (tabParam === 'digest' || tabParam === 'recap') openStudy('digest');
     else if (tabParam === 'vocab' || tabParam === 'vocabulary') openStudy('vocab');
   }, [tabParam, openStudy]);
-
-  const { openDictionary } = useDictionaryStore();
-
-  const handleDefine = (text: string) => {
-    openDictionary(text, undefined, currentBookId);
-  };
-
-  const handleCreateFlashcard = (text: string) => {
-    setFlashcardText(text);
-    setIsFlashcardOpen(true);
-  };
 
   const handleAskVarta = (text: string) => {
     setVartaInitialQuery(text);
@@ -467,16 +441,6 @@ function ReaderContent() {
 
   useEffect(() => {
     setIsClient(true);
-
-    // Check if mobile on mount
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // If not authenticated, redirect to login
@@ -526,67 +490,6 @@ function ReaderContent() {
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [isFocusMode, toggleFocusMode]);
-
-  // Handle click navigation on page margins (Page View mode only)
-  const handlePageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (viewMode !== 'page') return;
-
-    const target = e.currentTarget;
-    const rect = target.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const containerWidth = rect.width;
-
-    // Calculate click position as percentage
-    const clickPercentage = (clickX / containerWidth) * 100;
-
-    // Define zones: left margin (0-25%), center (25-75%), right margin (75-100%)
-    const leftMarginThreshold = isMobile ? 20 : 25;
-    const rightMarginThreshold = isMobile ? 80 : 75;
-
-    if (clickPercentage < leftMarginThreshold) {
-      // Left margin - go to previous page
-      if (currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    } else if (clickPercentage > rightMarginThreshold) {
-      // Right margin - go to next page
-      if (currentPage < totalPages) {
-        setCurrentPage(currentPage + 1);
-      }
-    }
-    // Center area - do nothing, allow text selection
-  }, [viewMode, currentPage, totalPages, setCurrentPage, isMobile]);
-
-  // Handle mouse move to show hover indicators
-  const handlePageMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (viewMode !== 'page') {
-      setHoverZone(null);
-      return;
-    }
-
-    const target = e.currentTarget;
-    const rect = target.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const containerWidth = rect.width;
-
-    const mousePercentage = (mouseX / containerWidth) * 100;
-
-    const leftMarginThreshold = isMobile ? 20 : 25;
-    const rightMarginThreshold = isMobile ? 80 : 75;
-
-    if (mousePercentage < leftMarginThreshold && currentPage > 1) {
-      setHoverZone('left');
-    } else if (mousePercentage > rightMarginThreshold && currentPage < totalPages) {
-      setHoverZone('right');
-    } else {
-      setHoverZone('center');
-    }
-  }, [viewMode, currentPage, totalPages, isMobile]);
-
-  // Handle mouse leave to clear hover indicators
-  const handlePageMouseLeave = useCallback(() => {
-    setHoverZone(null);
-  }, []);
 
   // Auto theme based on time of day
   useEffect(() => {
@@ -650,27 +553,12 @@ function ReaderContent() {
 
   // Session timer for the progress sheet — hooks must be before any early return
   const [sessionSeconds, setSessionSeconds] = useState(0);
-  const [showPageShimmer, setShowPageShimmer] = useState(false);
   const [vartaInitialQuery, setVartaInitialQuery] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => setSessionSeconds(s => s + 1), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  // Trigger golden shimmer on page change
-  useEffect(() => {
-    setShowPageShimmer(true);
-    const t = setTimeout(() => setShowPageShimmer(false), 900);
-    return () => clearTimeout(t);
-  }, [currentPage]);
-
-  const formatSessionTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
 
   /* The FAB's eight-item radial menu was here (audit fix 2). Every one
      of its actions now has a permanent home: Search and Aa in the

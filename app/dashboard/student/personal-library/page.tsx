@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState,useRef,useCallback,useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BookCover } from '@/components/ui/book-cover';
 import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Icon, type BBIconName } from '@/components/ui/icon';
+import { Icon,type BBIconName } from '@/components/ui/icon';
 import { Progress } from '@/components/ui/progress';
 import { SearchInput } from '@/components/ui/search-input';
 import { Segmented } from '@/components/ui/segmented';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
+Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter
 } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 
@@ -107,33 +107,6 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
-}
-
-// ── Long-press hook ──────────────────────────────────────────────────────────
-
-function useLongPress(callback: () => void, ms = 500) {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const didLongPressRef = useRef(false);
-
-  const start = useCallback(() => {
-    didLongPressRef.current = false;
-    timerRef.current = setTimeout(() => {
-      didLongPressRef.current = true;
-      callback();
-    }, ms);
-  }, [callback, ms]);
-
-  const stop = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = null;
-  }, []);
-
-  return {
-    onTouchStart: start,
-    onTouchEnd: stop,
-    onTouchCancel: stop,
-    didLongPress: didLongPressRef,
-  };
 }
 
 // ── Main Component ───────────────────────────────────────────────────────────

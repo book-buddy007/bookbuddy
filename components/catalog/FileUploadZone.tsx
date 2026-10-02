@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState,useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { UploadCloud, FileIcon, X, CheckCircle, AlertCircle } from '@/components/ui/icons';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { UploadCloud,FileIcon,CheckCircle,AlertCircle } from '@/components/ui/icons';
+import { Alert,AlertDescription,AlertTitle } from '@/components/ui/alert';
 
 export interface FileUploadZoneProps {
   accept?: string;

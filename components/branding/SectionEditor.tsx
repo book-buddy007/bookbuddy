@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, forwardRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState,useEffect,forwardRef } from 'react';
+import { Card,CardContent,CardHeader,CardTitle,CardDescription } from '@/components/ui/card';
+import { Collapsible,CollapsibleContent,CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronsUpDown } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +16,7 @@ interface SectionEditorProps {
 }
 
 export const SectionEditor = forwardRef<HTMLDivElement, SectionEditorProps>(
-  ({ title, description, name, defaultOpen = true, children, onToggle }, ref) => {
+  ({ title, description, defaultOpen = true, children, onToggle }, ref) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     
     useEffect(() => {
@@ -59,4 +59,6 @@ export const SectionEditor = forwardRef<HTMLDivElement, SectionEditorProps>(
       </div>
     );
   }
-); 
+);
+
+SectionEditor.displayName = 'SectionEditor';

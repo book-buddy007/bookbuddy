@@ -1,17 +1,16 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect,useState,useCallback,useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs,TabsList,TabsTrigger,TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { X, Plus, StickyNote, Bookmark, Highlighter, CircleUserRound, Share2, Trash2, FileDown, Loader2, BookA, BookOpen } from "@/components/ui/icons";
+import { X,StickyNote,Highlighter,CircleUserRound,Trash2,FileDown,Loader2,BookA,BookOpen } from "@/components/ui/icons";
 import { useAnnotationStore } from "@/store/useAnnotationStore";
 import { formatDistanceToNow } from 'date-fns';
 import { panelShellClass } from "./panelShell";
-import { highlightColor, HIGHLIGHT_INK } from "./highlightPalette";
+import { highlightColor,HIGHLIGHT_INK } from "./highlightPalette";
 
 interface AnnotationSidebarProps {
   bookId: string;
@@ -32,7 +31,6 @@ interface AnnotationSidebarProps {
 
 export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDarkMode = false, embedded = false, mainTab: controlledMainTab }: AnnotationSidebarProps) {
   const {
-    annotations,
     selectedAnnotation,
     visibleTypes,
     getBookAnnotations,
@@ -385,7 +383,7 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
 
                         {annotation.selectedText && (
                           <div className="text-sm mb-2 italic border-l-2 pl-2 line-clamp-2 border-primary/20">
-                            "{annotation.selectedText}"
+                            &quot;{annotation.selectedText}&quot;
                           </div>
                         )}
 
@@ -516,7 +514,7 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
 
                         {annotation.selectedText && (
                           <div className="text-sm mb-2 italic border-l-2 pl-2 line-clamp-2 border-primary/20">
-                            "{annotation.selectedText}"
+                            &quot;{annotation.selectedText}&quot;
                           </div>
                         )}
 
@@ -594,7 +592,7 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
                         No Vocabulary Saved
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px] mt-1">
-                        You haven't saved any vocabulary for this book yet. Highlight any word in the PDF and click the Define button.
+                        You haven&apos;t saved any vocabulary for this book yet. Highlight any word in the PDF and click the Define button.
                       </p>
                     </div>
                   )
@@ -643,7 +641,7 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
                         No Vocabulary Saved
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[200px] mt-1">
-                        You haven't saved any vocabulary across any books yet. Highlight words to start learning!
+                        You haven&apos;t saved any vocabulary across any books yet. Highlight words to start learning!
                       </p>
                     </div>
                   )

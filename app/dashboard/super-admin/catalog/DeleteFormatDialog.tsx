@@ -127,7 +127,7 @@ export function DeleteFormatDialog({ open, onOpenChange, target }: DeleteFormatD
           <div className="flex gap-2.5 rounded-xl border border-bb-warning/30 bg-bb-warning-soft/70 p-3">
             <BrainCircuit className="h-4 w-4 shrink-0 mt-0.5 text-bb-warning-ink" />
             <p className="text-xs leading-relaxed text-bb-warning-ink">
-              Already-embedded text is <strong>not</strong> removed. This chapter's chunks stay in the
+              Already-embedded text is <strong>not</strong> removed. This chapter&apos;s chunks stay in the
               shared index — and the tutor can still quote them — until the book is re-ingested.
             </p>
           </div>

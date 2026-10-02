@@ -3,20 +3,20 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getGlobalCatalogBook } from '@/lib/api/adminApi';
-import { DeleteFormatDialog, type FormatFileTarget } from './DeleteFormatDialog';
+import { DeleteFormatDialog,type FormatFileTarget } from './DeleteFormatDialog';
 import { FormatFileList } from './FormatFileList';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+Sheet,
+SheetContent,
+SheetHeader,
+SheetTitle,
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
-  BookOpen,
-  Calendar, Globe, Building2, User, Hash, Languages, FileType2,
-  Layers, Shield, Loader2, ExternalLink, ImageIcon, Sparkles,
+BookOpen,
+Calendar,Globe,Building2,User,Hash,Languages,FileType2,
+Layers,Shield,Loader2,ExternalLink,ImageIcon
 } from '@/components/ui/icons';
 
 const TIER_COLORS: Record<string, string> = {

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState,useEffect } from 'react';
+import { Card,CardContent,CardHeader,CardTitle,CardDescription } from '@/components/ui/card';
+import { Tabs,TabsList,TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { LayoutGrid, Smartphone, Tablet, RefreshCw, ExternalLink } from '@/components/ui/icons';
+import { LayoutGrid,Smartphone,Tablet,ExternalLink } from '@/components/ui/icons';
 import Link from 'next/link';
 import { toast } from '@/components/ui/use-toast';
 
@@ -16,7 +16,7 @@ interface LivePreviewWindowProps {
 export function LivePreviewWindow({ htmlContent, children }: LivePreviewWindowProps) {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [debouncedHtml, setDebouncedHtml] = useState(htmlContent);
-  const [previewToken, setPreviewToken] = useState('temp-token-123'); // In a real app this would be fetched
+  const [previewToken] = useState('temp-token-123'); // In a real app this would be fetched
 
   // 500ms debounce for htmlContent
   useEffect(() => {

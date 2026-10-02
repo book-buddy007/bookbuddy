@@ -1,29 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState,useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+Select,
+SelectContent,
+SelectItem,
+SelectTrigger,
+SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+Popover,
+PopoverContent,
+PopoverTrigger,
 } from "@/components/ui/popover";
-import { 
-  Volume2, 
-  VolumeX, 
-  Pause, 
-  Play, 
-  Settings, 
-  SkipForward, 
-  SkipBack,
-  X,
+import {
+Volume2,
+VolumeX,
+Pause,
+Play,
+Settings,
+SkipForward,
+SkipBack,
+X,
 } from "@/components/ui/icons";
 import { useTextToSpeech } from "@/lib/hooks/useTextToSpeech";
 import { cn } from "@/lib/utils";
@@ -50,8 +50,6 @@ export function TTSControlBar({ text = '', onClose, className, ttsInstance }: TT
     state,
     options,
     speak,
-    pause,
-    resume,
     stop,
     togglePlayPause,
     updateOptions,

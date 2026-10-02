@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState,useEffect,useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wand2, Loader2, Lightbulb } from "@/components/ui/icons";
+import { Wand2,Loader2,Lightbulb } from "@/components/ui/icons";
 
 interface SimplifyContentProps {
   bookId: string;
@@ -57,7 +57,7 @@ const TARGET_LEVEL = "grade_6";
  * Embedded as the "Simplify" tab inside VartaSidebar (was a standalone
  * top-toolbar panel — folded in as part of the reader consolidation).
  */
-export function SimplifyContent({ bookId, isDarkMode = false }: SimplifyContentProps) {
+export function SimplifyContent({ bookId }: SimplifyContentProps) {
   const [chapters, setChapters] = useState<string[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [flags, setFlags] = useState<AdaptiveFlag[]>([]);
@@ -127,7 +127,7 @@ export function SimplifyContent({ bookId, isDarkMode = false }: SimplifyContentP
   return (
     <div className="flex flex-col h-full">
       <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 font-medium px-4 pt-3 pb-1 shrink-0">
-        Passages touching concepts you haven't mastered yet — rewritten in simpler language.
+        Passages touching concepts you haven&apos;t mastered yet — rewritten in simpler language.
       </p>
 
       <ScrollArea className="flex-1">

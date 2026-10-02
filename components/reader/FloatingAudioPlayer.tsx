@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect,useRef,useState } from 'react';
 import { EnhancedButton } from "@/components/ui/enhanced-button";
 import { Slider } from "@/components/ui/slider";
 import {
-  Play,
-  Pause,
-  Rewind,
-  FastForward,
-  Volume2,
-  VolumeX,
-  X,
-  ChevronDown,
-  ChevronUp,
-  GripVertical,
+Play,
+Pause,
+Rewind,
+FastForward,
+Volume2,
+VolumeX,
+X,
+ChevronDown,
+ChevronUp,
+GripVertical,
 } from "@/components/ui/icons";
 import { cn } from '@/lib/utils';
 import { PlaybackSpeed } from '@/types/audiobook';
@@ -34,7 +34,6 @@ export function FloatingAudioPlayer({
   bookAuthor,
   coverUrl,
   audioUrl,
-  chapters = [],
   onClose,
 }: FloatingAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);

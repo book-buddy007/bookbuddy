@@ -3,33 +3,32 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter
+Dialog,
+DialogContent,
+DialogHeader,
+DialogTitle,
+DialogDescription
 } from "@/components/ui/dialog"
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+Form,
+FormControl,
+FormField,
+FormItem,
+FormLabel,
+FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { EnhancedButton } from "@/components/ui/enhanced-button"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+Select,
+SelectContent,
+SelectItem,
+SelectTrigger,
+SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Sparkles, ShieldCheck, Crown, Zap, X } from "@/components/ui/icons"
+import { Crown,X } from "@/components/ui/icons"
 import { cn } from "@/lib/utils"
 
 const subscriptionSchema = z.object({

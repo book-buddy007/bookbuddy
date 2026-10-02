@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useState,useEffect,useCallback } from 'react';
+import { useForm,Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { PageHeader } from '@/components/ui/page-header';
 import { Segmented } from '@/components/ui/segmented';
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Home, ArrowLeft, Save, Send, RotateCcw, Eye, Wifi, WifiOff, AlertTriangle, BookOpen, Search, X } from '@/components/ui/icons';
+import { Loader2,BookOpen,Search,X } from '@/components/ui/icons';
 import { SectionEditor } from '@/components/branding/SectionEditor';
 import { CharacterLimitedInput } from '@/components/branding/CharacterLimitedInput';
 import { ImageUploader } from '@/components/branding/ContentImageUploader';
@@ -22,31 +21,31 @@ import { RichTextEditor } from '@/components/branding/RichTextEditor';
 import { useOfflineAutoSave } from '@/components/branding/useOfflineAutoSave';
 import { SectionOrderEditor } from '@/components/branding/SectionOrderEditor';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+AlertDialog,
+AlertDialogAction,
+AlertDialogCancel,
+AlertDialogContent,
+AlertDialogDescription,
+AlertDialogFooter,
+AlertDialogHeader,
+AlertDialogTitle,
+AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  homepageSchema,
-  HOMEPAGE_TEXT_LIMITS,
+homepageSchema,
+HOMEPAGE_TEXT_LIMITS,
 } from '@/utils/content-validator';
 import { useBrandingTenant } from '../BrandingProvider';
 import { TenantSelector } from '../TenantSelector';
 import {
-  updateBranding as apiBrandingUpdate,
-  publishBranding,
-  revertBranding,
-  getBrandingUploadUrl,
-  uploadFileToPresignedUrl,
+updateBranding as apiBrandingUpdate,
+publishBranding,
+revertBranding,
+getBrandingUploadUrl,
+uploadFileToPresignedUrl,
 } from '@/lib/api/adminApi';
 import { useCatalogBooks } from '@/hooks/useCatalogBooks';
-import type { HomepageContent, PageAction, BrandingColors } from '@/types/branding.types';
+import type { HomepageContent,PageAction,BrandingColors } from '@/types/branding.types';
 import Link from 'next/link';
 
 // ─── S3 Image Upload ─────────────────────────────────────────────────────────

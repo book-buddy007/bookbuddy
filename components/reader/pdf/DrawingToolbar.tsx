@@ -1,20 +1,18 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React,{ useState,useRef,useEffect } from 'react';
 import { useAnnotationStore } from '@/store/useAnnotationStore';
 import { useReaderStore } from '@/store/useReaderStore';
 import {
-  TextSelect,
-  Grab,
-  PenLine,
-  Highlighter,
-  Eraser,
-  Trash2,
-  RotateCcw,
-  RotateCw,
-  SlidersHorizontal,
-  Check,
-  ChevronDown,
+TextSelect,
+Grab,
+PenLine,
+Highlighter,
+Eraser,RotateCcw,
+RotateCw,
+SlidersHorizontal,
+Check,
+ChevronDown
 } from '@/components/ui/icons';
 
 /* ── Color Palette ── */
@@ -34,7 +32,6 @@ const COLORS = [
 const PEN_WIDTHS = [1, 2, 3, 5, 8];
 const HIGHLIGHTER_WIDTHS = [8, 14, 20, 28, 40];
 
-type ToolType = 'text' | 'hand' | 'pen' | 'highlighter' | 'eraser';
 
 /* ════════════════════════════════════════════════════════════════════
  *  MAIN TOOLBAR
@@ -78,7 +75,6 @@ export function DrawingToolbar() {
   }, []);
 
   const isDrawing = activeTool === 'pen' || activeTool === 'highlighter';
-  const isInkTool = isDrawing || activeTool === 'eraser';
 
   const widthPresets = activeTool === 'highlighter' ? HIGHLIGHTER_WIDTHS : PEN_WIDTHS;
 

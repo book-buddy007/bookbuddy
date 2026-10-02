@@ -1,17 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card,CardContent,CardDescription,CardHeader,CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LayoutDashboard as DashboardIcon, BookOpen as BookOpenIcon, Library as LibraryIcon, Settings as SettingsIcon } from '@/components/ui/icons';
+import { Avatar,AvatarFallback,AvatarImage } from '@/components/ui/avatar';
+import { LayoutDashboard as DashboardIcon,BookOpen as BookOpenIcon,Library as LibraryIcon,Settings as SettingsIcon } from '@/components/ui/icons';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuthStore();
+  const { user, isLoading, logout } = useAuthStore();
   const { toast } = useToast();
   // NOTE: Auth redirects to /login are handled by middleware.ts (single source of truth).
   // No client-side redirect here — this prevents the infinite loop.

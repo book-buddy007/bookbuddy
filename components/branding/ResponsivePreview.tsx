@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card,CardContent } from '@/components/ui/card';
+import { Tabs,TabsList,TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { Monitor, Moon, Sun } from '@/components/ui/icons';
+import { Moon,Sun } from '@/components/ui/icons';
 
 interface BreakpointProps {
   device: string;

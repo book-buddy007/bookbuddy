@@ -102,7 +102,7 @@ export function DictionaryModal() {
                     </div>
                 ) : (!lookupData || (!lookupData.definition && !lookupData.wikiExtract && !lookupData.hindiTranslation)) ? (
                     <div className="py-8 text-center flex flex-col items-center justify-center space-y-3">
-                        <p className="text-muted-foreground">No definitions found for "{word}".</p>
+                        <p className="text-muted-foreground">No definitions found for &quot;{word}&quot;.</p>
                         <p className="text-sm text-slate-500">You can still save this word to your vocabulary list to review later.</p>
                     </div>
                 ) : (
@@ -137,7 +137,7 @@ export function DictionaryModal() {
                                         </div>
                                         {lookupData.example && (
                                             <p className="text-sm text-muted-foreground italic mt-2">
-                                                "{lookupData.example}"
+                                                &quot;{lookupData.example}&quot;
                                             </p>
                                         )}
                                     </div>
@@ -146,7 +146,7 @@ export function DictionaryModal() {
                                         <div className="mt-6 pt-4 border-t border-border">
                                             <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Found in context</h5>
                                             <p className="text-sm italic pl-3 border-l-2 border-primary/50 text-muted-foreground">
-                                                "{contextSentence}"
+                                                &quot;{contextSentence}&quot;
                                             </p>
                                         </div>
                                     )}

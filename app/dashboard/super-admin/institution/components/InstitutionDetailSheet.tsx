@@ -1,13 +1,13 @@
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
+Sheet,
+SheetContent,
+SheetDescription,
+SheetHeader,
+SheetTitle,
 } from "@/components/ui/sheet"
 import { Institution } from "@/types/admin"
 import { StatCard } from "@/components/ui/stat-card"
-import { Building2, Users, User, BookOpen, MapPin, Phone, Globe, ShieldCheck } from "@/components/ui/icons"
+import { Building2,User,BookOpen,MapPin,Phone,Globe,ShieldCheck } from "@/components/ui/icons"
 import { Badge } from "@/components/ui/badge"
 
 interface InstitutionDetailSheetProps {
@@ -36,7 +36,6 @@ export function InstitutionDetailSheet({
   }
 
   const establishedYear = meta.establishedYear || "N/A"
-  const recognitionNumber = meta.recognitionNumber || "N/A"
   const principal = meta.principal || {}
   const librarian = meta.librarian || {}
   const contactNumbers = meta.contactNumbers || []

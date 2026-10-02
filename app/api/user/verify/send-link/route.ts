@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextRequest,NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { readSessionToken } from '@/lib/auth-cookies';
 
 const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3333'
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const cookieStore = await cookies()
     const accessToken = readSessionToken(cookieStore)

@@ -60,7 +60,7 @@ export const allowedTransitions: RoleTransition = {
   "LIBRARIAN": ["ADMIN"]
 }
 
-export const validateRoleChange = (currentRole: RoleId, newRole: RoleId, existingSuperAdmin?: boolean): { valid: boolean; message?: string } => {
+export const validateRoleChange = (currentRole: RoleId, newRole: RoleId, _existingSuperAdmin?: boolean): { valid: boolean; message?: string } => {
   // Prevent creating multiple super-admins
   if (newRole === "SUPER_ADMIN") {
     return {

@@ -151,7 +151,7 @@ export default function JoinRequestPage() {
       setSelectedInstitution(null);
       setCanRequest(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [selectedTenantId, institutions, user]);
 
   const fetchInstitutions = async () => {

@@ -1,22 +1,21 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState,useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { catalogKeys } from '@/lib/query-keys';
-import { getCatalogBookUploadUrl, confirmCatalogBookUpload, triggerBookEmbedding } from '@/lib/api/adminApi';
+import { getCatalogBookUploadUrl,confirmCatalogBookUpload,triggerBookEmbedding } from '@/lib/api/adminApi';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
+Dialog,
+DialogContent,
+DialogHeader,
+DialogTitle,
+DialogDescription,
 } from '@/components/ui/dialog';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Progress } from '@/components/ui/progress';
 import {
-  FileText, BookOpenCheck, Headphones, Check, Upload, Loader2, X, FileUp, Sparkles,
+FileText,BookOpenCheck,Headphones,Check,Upload,Loader2,X,FileUp,Sparkles,
 } from '@/components/ui/icons';
 
 const ALL_FORMATS = [

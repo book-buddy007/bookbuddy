@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect,useRef } from 'react';
 import { useBookChat } from '@/hooks/useBookChat';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, StopCircle, BookOpen } from '@/components/ui/icons';
+import { Send,StopCircle,BookOpen } from '@/components/ui/icons';
 import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 

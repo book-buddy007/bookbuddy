@@ -1,28 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState,useEffect } from 'react';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
+DndContext,
+closestCenter,
+KeyboardSensor,
+PointerSensor,
+useSensor,
+useSensors,
+DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  arrayMove,
+SortableContext,
+sortableKeyboardCoordinates,
+verticalListSortingStrategy,
+arrayMove,
 } from '@dnd-kit/sortable';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery,useMutation } from '@tanstack/react-query';
 import * as adminApi from '@/lib/api/adminApi';
 import { SortableChapter } from './SortableChapter';
 import { BookContextHeader } from './BookContextHeader';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { useToast } from '@/components/ui/use-toast';
-import { Music, Plus, Save } from '@/components/ui/icons';
+import { Music,Plus,Save } from '@/components/ui/icons';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -57,7 +57,6 @@ interface Props {
 }
 
 export default function AudiobookBuilder({ bookId, initialBook }: Props) {
-  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // ── State: flat arrays (correct shape for dnd-kit)
@@ -98,7 +97,6 @@ export default function AudiobookBuilder({ bookId, initialBook }: Props) {
       const previousChapters = chapters;
       const previousSections = sections;
       const removedChapter = chapters.find((c) => c.id === chapterId);
-      const removedSections = sections.filter((s) => s.chapterId === chapterId);
 
       setChapters((prev) => prev.filter((c) => c.id !== chapterId));
       setSections((prev) => prev.filter((s) => s.chapterId !== chapterId));

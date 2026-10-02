@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest,NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import { readSessionToken } from '@/lib/auth-cookies';
@@ -6,7 +6,7 @@ import { readSessionToken } from '@/lib/auth-cookies';
 const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3333';
 
 // Mock function - in a real implementation, this would call the backend
-const processMedia = async (uploadId: string, s3Key: string) => {
+const processMedia = async (_uploadId: string, _s3Key: string) => {
   // Simulate processing delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 

@@ -1,19 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect,useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Badge } from '@/components/ui/badge';
-import { 
-  getSubscriptionTierDisplayName,
-  getTrialStatus,
-  calculateDaysRemaining
+import {
+getSubscriptionTierDisplayName,
+getTrialStatus
 } from '@/lib/utils/subscription';
-import { 
-  Crown, 
-  Sparkles, 
-  Zap,
-  Clock
+import {
+Crown,
+Sparkles,
+Zap,
+Clock
 } from '@/components/ui/icons';
 
 interface SubscriptionBadgeProps {

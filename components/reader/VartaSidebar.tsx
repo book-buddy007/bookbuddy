@@ -1,9 +1,8 @@
-import { X, Send, Bot, User, StopCircle, RefreshCw, WandSparkles, Download, BookOpen, Lightbulb, MessageCircleQuestion, Swords, HelpCircle, AudioLines, Wand2, SquarePen } from "@/components/ui/icons";
+import { X,Send,Bot,User,StopCircle,WandSparkles,Download,BookOpen,Lightbulb,HelpCircle,AudioLines,Wand2,SquarePen } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useBookChat, type DialogueMode, type Citation } from "@/hooks/useBookChat";
+import { Tabs,TabsList,TabsTrigger,TabsContent } from "@/components/ui/tabs";
+import { useBookChat,type DialogueMode,type Citation } from "@/hooks/useBookChat";
 import { StartTrialButton } from "@/components/subscription/StartTrialButton";
 import { useReaderStore } from "@/store/useReaderStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -18,7 +17,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { useEffect, useRef, useState } from "react";
+import { useEffect,useRef,useState } from "react";
 
 type PanelTab = 'ask' | 'recap' | 'simplify';
 

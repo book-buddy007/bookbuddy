@@ -25,7 +25,8 @@
     "test": "cd backend && npm test",
     "test:e2e": "cd backend && npm run test:e2e",
     "install:all": "npm install && cd backend && npm install --legacy-peer-deps && cd ../mobile && npm install",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -124,6 +125,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@types/d3-force": "^3.0.10",
     "@types/d3-selection": "^3.0.11",
     "@types/d3-zoom": "^3.0.8",
@@ -133,6 +135,8 @@
     "@types/react-dom": "^19.1.2",
     "concurrently": "^9.2.1",
     "cypress": "^15.19.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "15.2.9",
     "json-server": "^1.0.0-beta.3",
     "postcss": "^8",
     "prisma": "^6.19.3",
@@ -162,7 +166,11 @@
       "glob": ">=10.5.0",
       "minimatch": ">=9.0.6",
       "picomatch": ">=2.3.2",
-      "postcss": ">=8.5.12"
+      "postcss": ">=8.5.12",
+      "@eslint/eslintrc>minimatch": "^3.1.5",
+      "eslint-plugin-react>minimatch": "^3.1.5",
+      "eslint-plugin-import>minimatch": "^3.1.5",
+      "eslint-plugin-jsx-a11y>minimatch": "^3.1.5"
     }
   }
 }

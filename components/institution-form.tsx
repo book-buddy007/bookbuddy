@@ -6,27 +6,25 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+Card,
+CardContent,
+CardDescription,CardHeader,
+CardTitle
 } from "@/components/ui/card"
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+Form,
+FormControl,
+FormDescription,
+FormField,
+FormItem,
+FormLabel,
+FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { MapPicker } from "./map-picker"
-import { Building2, CircleDashed, Check, Plus, Trash, X } from "@/components/ui/icons"
+import { Building2,CircleDashed,Check,Plus,Trash,X } from "@/components/ui/icons"
 
 // Define validation schema for institution data
 const institutionFormSchema = z.object({
@@ -608,7 +606,7 @@ export function InstitutionForm({
                           <Input placeholder="https://www.yourschool.edu" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Your institution's official website URL
+                          Your institution&apos;s official website URL
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

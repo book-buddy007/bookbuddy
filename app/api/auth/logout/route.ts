@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest,NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { readSessionToken } from '@/lib/auth-cookies';
@@ -14,7 +14,7 @@ const BACKEND_URL = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_
 // be visible.
 const JWT_SECRET = process.env.JWT_SECRET;
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const cookieStore = await cookies();
     const accessToken = readSessionToken(cookieStore);

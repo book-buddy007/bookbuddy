@@ -7,6 +7,6 @@ export const dynamic = 'force-dynamic';
 
 export function GET() {
   throw new Error('GlitchTip test error — book-buddy-frontend (safe to ignore)');
-  // eslint-disable-next-line no-unreachable
+   
   return NextResponse.json({ ok: true });
 }

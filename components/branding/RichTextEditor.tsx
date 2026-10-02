@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef,useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bold, Italic, Link as LinkIcon, AlertCircle } from '@/components/ui/icons';
+import { Bold,Italic,Link as LinkIcon,AlertCircle } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';
-import { getRemainingCharacters, getCounterStatusColor } from '@/utils/content-validator';
 
 interface RichTextEditorProps {
     id?: string;

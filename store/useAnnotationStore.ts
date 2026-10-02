@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useAuthStore, useAuthSyncStore } from './useAuthStore';
+import { useAuthSyncStore } from './useAuthStore';
 import { fetchWithRetry } from '@/lib/utils/fetch-with-retry';
 
 // Types for annotations
@@ -199,7 +199,7 @@ export const useAnnotationStore = create<AnnotationState>()(
         });
 
         // Sync with backend
-        deleted.forEach(a => fetch(`/api/annotations/\${a.id}`, { method: 'DELETE' }).catch(console.error));
+        deleted.forEach(a => fetch(`/api/annotations/${a.id}`, { method: 'DELETE' }).catch(console.error));
         added.forEach(a => fetch('/api/annotations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(a) }).catch(console.error));
         updated.forEach(a => fetch('/api/annotations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(a) }).catch(console.error));
       },
@@ -226,7 +226,7 @@ export const useAnnotationStore = create<AnnotationState>()(
         });
 
         // Sync with backend
-        deleted.forEach(a => fetch(`/api/annotations/\${a.id}`, { method: 'DELETE' }).catch(console.error));
+        deleted.forEach(a => fetch(`/api/annotations/${a.id}`, { method: 'DELETE' }).catch(console.error));
         added.forEach(a => fetch('/api/annotations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(a) }).catch(console.error));
         updated.forEach(a => fetch('/api/annotations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(a) }).catch(console.error));
       },

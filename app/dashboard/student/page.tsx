@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState,useEffect } from "react"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useUserProfile } from "@/lib/hooks/useUserProfile"
 import apiClient from "@/lib/apiClient"
@@ -11,19 +11,19 @@ import { PageHeader } from "@/components/ui/page-header"
 import { StatCard } from "@/components/ui/stat-card"
 import { Icon } from "@/components/ui/icon"
 import { TrialExpirationBanner } from "@/components/TrialExpirationBanner"
-import { StartTrialButton, useCanStartTrial } from "@/components/subscription/StartTrialButton"
-import { ContinueLearningRow, type ContinueBook } from "@/components/dashboard/student/continue-learning-row"
-import { StudyStreamsGrid, type StudyStreamsData } from "@/components/dashboard/student/study-streams-grid"
-import { UpcomingPanel, type UpcomingItem } from "@/components/dashboard/student/upcoming-and-activity"
-import { ActivityFeed, type ActivityItem } from "@/components/dashboard/student/upcoming-and-activity"
+import { StartTrialButton,useCanStartTrial } from "@/components/subscription/StartTrialButton"
+import { ContinueLearningRow,type ContinueBook } from "@/components/dashboard/student/continue-learning-row"
+import { StudyStreamsGrid,type StudyStreamsData } from "@/components/dashboard/student/study-streams-grid"
+import { UpcomingPanel,type UpcomingItem } from "@/components/dashboard/student/upcoming-and-activity"
+import { ActivityFeed,type ActivityItem } from "@/components/dashboard/student/upcoming-and-activity"
 
 export default function StudentDashboard() {
-  const { userProfile, loading: profileLoading, error: profileError } = useUserProfile()
+  const { userProfile } = useUserProfile()
 
   // Dynamic Dashboard State
   const [borrowedBooks, setBorrowedBooks] = useState<any[]>([])
   const [readingHistory, setReadingHistory] = useState<any[]>([])
-  const [recommendations, setRecommendations] = useState<any[]>([])
+  const [, setRecommendations] = useState<any[]>([])
   const [overviewStats, setOverviewStats] = useState<any>(null)
   const [vartaActivity, setVartaActivity] = useState<any>(null)
   const [recentBooks, setRecentBooks] = useState<any[]>([])

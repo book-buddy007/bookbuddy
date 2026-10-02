@@ -31,6 +31,27 @@ export function TrialExpirationBanner() {
     setMounted(true);
   }, []);
 
+  // Was the banner dismissed recently? Declared above the early returns below: hooks
+  // must run on every render, and this one used to sit after them, which crashed the
+  // banner on the first render that showed it.
+  useEffect(() => {
+    const dismissalData = localStorage.getItem('trialBannerDismissed');
+    if (dismissalData) {
+      try {
+        const { expiresAt } = JSON.parse(dismissalData);
+        if (Date.now() < expiresAt) {
+          setIsDismissed(true);
+        } else {
+          // Dismissal expired, remove from storage
+          localStorage.removeItem('trialBannerDismissed');
+        }
+      } catch (error) {
+        // Invalid data, remove it
+        localStorage.removeItem('trialBannerDismissed');
+      }
+    }
+  }, []);
+
   if (!mounted || !user) return null;
 
   // Check if we should show the banner
@@ -108,24 +129,6 @@ export function TrialExpirationBanner() {
     localStorage.setItem('trialBannerDismissed', JSON.stringify(dismissalData));
   };
 
-  // Check if banner was previously dismissed and still within dismissal period
-  useEffect(() => {
-    const dismissalData = localStorage.getItem('trialBannerDismissed');
-    if (dismissalData) {
-      try {
-        const { expiresAt } = JSON.parse(dismissalData);
-        if (Date.now() < expiresAt) {
-          setIsDismissed(true);
-        } else {
-          // Dismissal expired, remove from storage
-          localStorage.removeItem('trialBannerDismissed');
-        }
-      } catch (error) {
-        // Invalid data, remove it
-        localStorage.removeItem('trialBannerDismissed');
-      }
-    }
-  }, []);
 
   return (
     <div className="w-full animate-in fade-in-0 duration-bb-ui">

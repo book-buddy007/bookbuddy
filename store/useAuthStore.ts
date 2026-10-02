@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authClient } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export interface TenantMembership {
@@ -90,7 +89,7 @@ export function useAuthStore() {
     logout: async () => {
       await authClient.signOut();
     },
-    register: async (name: string, email: string, password: string, role = 'student', subscriptionTier = 'trial') => {
+    register: async (name: string, email: string, password: string, _role = 'student', _subscriptionTier = 'trial') => {
       setInternalError(null);
       const res = await authClient.signUp.email({ email, password, name });
       if (res.error) {

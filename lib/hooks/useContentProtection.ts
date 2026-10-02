@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect,useRef,useCallback } from 'react';
 
 /**
  * useContentProtection — Anti-piracy event listeners for the reader.
@@ -95,7 +95,6 @@ export function useContentProtection() {
   }, []);
 
   useEffect(() => {
-    const el = containerRef.current;
     
     document.addEventListener('contextmenu', handleContextMenu, true);
     document.addEventListener('keydown', handleKeyDown, true);

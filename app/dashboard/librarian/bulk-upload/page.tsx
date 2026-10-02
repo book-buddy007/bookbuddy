@@ -66,7 +66,7 @@ export default function BulkUploadPage() {
       <section className="space-y-4">
         <div>
           <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Bulk upload guidelines</h2>
-          <p className="text-[13px] text-bb-muted">What to prepare so imports succeed once they're available</p>
+          <p className="text-[13px] text-bb-muted">What to prepare so imports succeed once they&apos;re available</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {guidelines.map((g) => (

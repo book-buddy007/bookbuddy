@@ -4,8 +4,8 @@
 import * as React from "react"
 
 import type {
-  ToastActionElement,
-  ToastProps,
+ToastActionElement,
+ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -18,6 +18,8 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
+// Only its type is used (ActionType below); shadcn keeps the constant as documentation.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
   UPDATE_TOAST: "UPDATE_TOAST",

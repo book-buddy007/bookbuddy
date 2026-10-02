@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useState,useRef,useEffect } from 'react';
+import { Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, User, Send, Sparkles, Loader2 } from "@/components/ui/icons";
+import { Bot,Send,Sparkles,Loader2 } from "@/components/ui/icons";
 
 interface AiStudyAssistantModalProps {
     isOpen: boolean;
@@ -83,7 +83,7 @@ export function AiStudyAssistantModal({ isOpen, onClose, initialContext }: AiStu
                         AI Study Assistant
                     </DialogTitle>
                     <DialogDescription className="text-xs line-clamp-2 italic">
-                        Context: "{initialContext}"
+                        Context: &quot;{initialContext}&quot;
                     </DialogDescription>
                 </DialogHeader>
 
@@ -92,8 +92,8 @@ export function AiStudyAssistantModal({ isOpen, onClose, initialContext }: AiStu
                         {messages.length === 0 && !isLoading && (
                             <div className="text-center text-muted-foreground text-sm mt-10">
                                 <Bot className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                                <p>Hi! I'm your AI study buddy.</p>
-                                <p>I'm analyzing your selection now...</p>
+                                <p>Hi! I&apos;m your AI study buddy.</p>
+                                <p>I&apos;m analyzing your selection now...</p>
                             </div>
                         )}
                         {messages.map((msg, index) => (

@@ -32,11 +32,11 @@ async function handleProxy(request: NextRequest, { params }: { params: Promise<{
         };
 
         if (request.method !== 'GET' && request.method !== 'HEAD' && request.body) {
-            // @ts-ignore - Next.js Request body is compatible with fetch body
-            options.body = request.body;
+            // RequestInit.body accepts a ReadableStream at runtime; the DOM typings disagree.
+            (options as RequestInit & { body: unknown }).body = request.body;
             // Next.js handles duplex for us typically, or we can use duplex: 'half' in newer Node
-            // @ts-ignore
-            options.duplex = 'half';
+            // `duplex` is required by Node's fetch for streamed bodies but missing from RequestInit's type.
+            (options as RequestInit & { duplex?: 'half' }).duplex = 'half';
         }
 
         const response = await fetch(targetUrl, options);

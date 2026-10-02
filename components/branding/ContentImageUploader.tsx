@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState,useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { UploadCloud, Check, AlertCircle } from '@/components/ui/icons';
+import { Alert,AlertTitle,AlertDescription } from '@/components/ui/alert';
+import { UploadCloud,Check,AlertCircle } from '@/components/ui/icons';
 import Image from 'next/image';
 
 interface ImageUploaderProps {
@@ -23,7 +23,6 @@ interface ImageUploaderProps {
 
 export function ImageUploader({
   label = 'Image',
-  currentImage,
   onUpload,
   aspectRatio,
   recommendedSize,

@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback,useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { ImagePlus, X, FileImage, Loader2, Check } from '@/components/ui/icons';
+import { ImagePlus,X,Loader2,Check } from '@/components/ui/icons';
 import { Badge } from '@/components/ui/badge';
 
 export interface CoverUploadZoneProps {

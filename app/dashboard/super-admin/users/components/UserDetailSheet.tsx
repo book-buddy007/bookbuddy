@@ -1,22 +1,17 @@
 import { format } from 'date-fns';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
+Sheet,
+SheetContent,SheetHeader,
+SheetTitle
 } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar,AvatarFallback,AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Calendar, 
-  Mail, 
-  Phone, 
-  Shield, 
-  Building2, 
-  UserCircle, 
-  Clock 
+import {
+Calendar,
+Mail,Shield,
+Building2,
+UserCircle,
+Clock
 } from '@/components/ui/icons';
 
 interface UserDetailSheetProps {

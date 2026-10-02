@@ -1,11 +1,11 @@
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
+Sheet,
+SheetContent,
+SheetDescription,
+SheetHeader,
+SheetTitle,
 } from "@/components/ui/sheet"
-import { InstitutionForm, InstitutionFormValues } from "@/components/institution-form"
+import { InstitutionForm,InstitutionFormValues } from "@/components/institution-form"
 import { Building2 } from "@/components/ui/icons"
 
 interface AddInstitutionSheetProps {
@@ -22,7 +22,6 @@ export function AddInstitutionSheet({
   open,
   onOpenChange,
   onSubmit,
-  isLoading,
   title = "Add New Institution",
   description = "Register a new school or library network node. Fill in the details below to create their profile and administrative account.",
   defaultValues
