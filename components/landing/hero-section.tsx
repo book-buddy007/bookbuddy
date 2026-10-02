@@ -19,7 +19,7 @@ export function HeroSection() {
       <div aria-hidden className="pointer-events-none absolute -right-32 top-20 h-[820px] w-[820px] rounded-full [background:radial-gradient(circle,rgba(255,77,0,0.32)_0%,rgba(30,58,138,0.28)_40%,transparent_70%)]" />
       <LandingNav />
 
-      <div className="relative mx-auto grid max-w-[1360px] items-center gap-6 px-5 pb-16 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_620px] lg:px-16 lg:pb-20 lg:pt-10">
+      <div className="relative mx-auto grid max-w-[1360px] items-center gap-6 px-5 pb-16 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(724px,54%))] lg:px-16 lg:pb-20 lg:pt-10">
         <div className="flex min-w-0 flex-col gap-7">
           <span className="inline-flex h-[34px] items-center gap-2 self-start whitespace-nowrap rounded-full border border-bb-night-line bg-white/[0.04] px-4 text-sm text-bb-dim">
             <span aria-hidden className="h-2 w-2 rounded-full bg-bb-accent shadow-[0_0_12px_var(--bb-blaze)]" />
@@ -47,7 +47,10 @@ export function HeroSection() {
           </div>
         </div>
 
-        <Hero3D onListening={setListening} className="mx-auto w-full lg:mx-0" />
+        {/* The open spread swings ~104px (17% of the 620px stage) to the left of the stage box; the 14.4% gutter keeps that overhang inside this column, clear of the copy. */}
+        <div className="pl-[14.4%]">
+          <Hero3D onListening={setListening} className="mx-auto w-full lg:mx-0" />
+        </div>
       </div>
     </section>
   )
