@@ -69,13 +69,14 @@ export function NotificationBell({ enabled = true, settingsHref = "/settings" }:
       type="button"
       aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
       onClick={isMobile ? () => setOpen(true) : undefined}
-      className="relative flex h-11 w-11 items-center justify-center rounded-full text-bb-text transition-colors hover:bg-bb-surface-2 focus-visible:outline-none focus-visible:shadow-focus"
+      className="relative flex h-11 w-11 items-center justify-center rounded-full bg-bb-surface text-bb-text shadow-e1 transition-colors hover:bg-bb-surface-2 focus-visible:outline-none focus-visible:shadow-focus"
     >
-      <Icon name="bell" size={22} />
+      <Icon name="bell" size={21} />
       {unread > 0 && (
-        <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-bb-accent px-1 text-[10px] font-bold text-white ring-2 ring-bb-surface">
-          {unread > 9 ? "9+" : unread}
-        </span>
+        <span
+          aria-hidden
+          className="absolute right-2.5 top-2.5 h-[9px] w-[9px] rounded-full bg-bb-blaze shadow-[0_0_0_2px_var(--bb-surface),0_0_10px_#FF4D00]"
+        />
       )}
     </button>
   )

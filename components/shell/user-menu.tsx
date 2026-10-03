@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Icon } from "@/components/ui/icon"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ROLE_LABEL, normaliseRole } from "@/lib/nav"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,12 +24,18 @@ export function userInitials(name?: string | null) {
 /** The slice of the session user the shell needs; keeps the shell testable without the auth store. */
 export type ShellUser = Pick<User, "name" | "email" | "role"> & Partial<Pick<User, "avatar" | "accountType">>
 
+/**
+ * Avatar inside the blaze-to-cobalt gradient ring (--bb-grad-ring). `className` sizes the whole
+ * ring (e.g. "h-11 w-11"); the photo or initials sit in a 2px-inset disc.
+ */
 export function UserAvatar({ user, className }: { user?: ShellUser | null; className?: string }) {
   return (
-    <Avatar className={className}>
-      <AvatarImage src={user?.avatar || "/placeholder-user.jpg"} alt="" />
-      <AvatarFallback className="bg-bb-cream font-bold text-bb-ink">{userInitials(user?.name)}</AvatarFallback>
-    </Avatar>
+    <span className={cn("inline-flex shrink-0 rounded-full bg-bb-ring p-0.5", className)}>
+      <Avatar className="h-full w-full bg-bb-surface">
+        <AvatarImage src={user?.avatar || "/placeholder-user.jpg"} alt="" />
+        <AvatarFallback className="bg-bb-surface text-[0.8em] font-extrabold text-bb-text">{userInitials(user?.name)}</AvatarFallback>
+      </Avatar>
+    </span>
   )
 }
 
@@ -43,9 +50,9 @@ export function UserMenu({ user, profileHref, onLogout }: { user: ShellUser; pro
         <button
           type="button"
           aria-label="Account menu"
-          className="flex h-11 w-11 items-center justify-center rounded-full ring-2 ring-bb-border transition-shadow hover:ring-bb-accent focus-visible:outline-none focus-visible:shadow-focus"
+          className="flex h-11 w-11 items-center justify-center rounded-full shadow-[0_8px_16px_-8px_rgba(255,77,0,.6)] transition-transform hover:scale-105 focus-visible:outline-none focus-visible:shadow-focus"
         >
-          <UserAvatar user={user} className="h-10 w-10" />
+          <UserAvatar user={user} className="h-11 w-11" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
@@ -57,7 +64,7 @@ export function UserMenu({ user, profileHref, onLogout }: { user: ShellUser; pro
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href={profileHref}>
-            <Icon name="profile" size={18} /> Profile
+            <Icon name="user" size={18} /> Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

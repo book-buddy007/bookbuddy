@@ -286,6 +286,15 @@ a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
   --bb-scrim: rgba(3,5,14,.6);
 }
 
+@keyframes bbwave { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+@keyframes bbfadeup { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes bbspin { to { transform: rotate(360deg); } }
+@keyframes bbtype { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+/* Cards enter with a fade-up (18px, 800ms); stagger with style="animation-delay: calc(var(--i) * var(--bb-stagger))". */
+.bb-enter { animation: bbfadeup var(--bb-dur-enter, 800ms) var(--bb-ease, cubic-bezier(.2,.8,.2,1)) both; animation-delay: calc(var(--i, 0) * var(--bb-stagger, 60ms)); }
+@media (prefers-reduced-motion: reduce) { .bb-enter { animation: none; } }
+[data-reduce-motion] .bb-enter { animation: none; }
+
 /* ---- Legacy palette shim ----------------------------------------------------
    Pages that have not been migrated yet still reference the old Indic pigments
    (var(--kumkum), var(--lotus-pink) …) and the VG scale. Re-pointing the
