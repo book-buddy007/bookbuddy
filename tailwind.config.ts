@@ -250,6 +250,7 @@ const config: Config = {
 			},
 			boxShadow: {
 				e0: 'var(--bb-shadow-e0)', e1: 'var(--bb-shadow-e1)', e2: 'var(--bb-shadow-e2)', gloss: 'var(--bb-shadow-gloss)', focus: 'var(--bb-focus-ring)',
+				'card-hover': 'var(--bb-shadow-card-hover)', 'glow-blaze': 'var(--bb-shadow-glow-blaze)', 'glow-cobalt': 'var(--bb-shadow-glow-cobalt)', stage: 'var(--bb-shadow-stage)', navy: 'var(--bb-shadow-navy)',
 				'vg-xs': 'var(--vg-shadow-xs)',
 				'vg-sm': 'var(--vg-shadow-sm)',
 				'vg-md': 'var(--vg-shadow-md)',
@@ -261,7 +262,7 @@ const config: Config = {
 				'vg-cultural': 'var(--vg-shadow-cultural)',
 			},
 			borderRadius: {
-				'bb-xs': '6px', 'bb-sm': '10px', 'bb-md': '14px', 'bb-lg': '22px', 'bb-xl': '28px',
+				'bb-xs': '6px', 'bb-sm': '10px', 'bb-md': '14px', 'bb-lg': '22px', 'bb-xl': '28px', 'bb-tile': '16px', 'bb-card': '26px',
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
@@ -275,8 +276,9 @@ const config: Config = {
 			backgroundImage: {
 				'bb-primary': 'var(--bb-grad-primary)', 'bb-navy': 'var(--bb-grad-navy)',
 				'bb-progress': 'var(--bb-grad-progress)', 'bb-orb': 'var(--bb-varta-orb)',
+				'bb-cobalt': 'var(--bb-grad-cobalt)', 'bb-stage': 'var(--bb-grad-stage)', 'bb-ai': 'var(--bb-grad-ai-card)', 'bb-ring': 'var(--bb-grad-ring)',
 			},
-			transitionTimingFunction: { bb: 'cubic-bezier(.2,.8,.2,1)' },
+			transitionTimingFunction: { bb: 'cubic-bezier(.2,.8,.2,1)', spring: 'cubic-bezier(.3,1.5,.5,1)' },
 			transitionDuration: { 'bb-micro': '120ms', 'bb-ui': '240ms' },
 			backdropBlur: {
 				'vg-sm': 'var(--vg-blur-sm)',

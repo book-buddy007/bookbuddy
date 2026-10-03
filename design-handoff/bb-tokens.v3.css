@@ -1,0 +1,42 @@
+/* Book Buddy tokens v3 — ADDITIVE patch for styles/bb-tokens.css.
+   Your existing file already holds the palette, semantic colours, radii, fonts and motion.
+   Append this block after it. Nothing here renames an existing token. */
+:root{
+  /* new gradients */
+  --bb-grad-cobalt: linear-gradient(180deg,#7D97FF 0%,#3B5BDB 55%,#1E3A8A 100%);
+  --bb-grad-stage: linear-gradient(150deg,#16224A 0%,#0A0F24 70%);
+  --bb-grad-ai-card: linear-gradient(160deg,#4C6FFF 0%,#3B5BDB 45%,#1E3A8A 100%);
+  --bb-grad-ring: linear-gradient(160deg,#FF8A3D,#FF4D00 50%,#3B5BDB);           /* avatar ring */
+  --bb-glow-stage: radial-gradient(circle,rgba(255,77,0,.32),rgba(59,91,219,.24) 45%,transparent 70%);
+  --bb-sheen: linear-gradient(180deg,rgba(255,255,255,.14),transparent 45%);      /* top sheen on AI/featured cards */
+  /* new shadows */
+  --bb-shadow-card-hover: 0 1px 0 var(--bb-border), 0 30px 50px -26px rgba(6,10,30,.5);
+  --bb-shadow-glow-blaze: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 0 rgba(120,30,0,.25), 0 12px 24px -10px rgba(255,77,0,.8);
+  --bb-shadow-glow-cobalt: inset 0 1px 0 rgba(255,255,255,.45), 0 12px 22px -8px rgba(59,91,219,.85);
+  --bb-shadow-stage: inset 0 1px 0 rgba(255,255,255,.1), 0 30px 60px -30px rgba(10,15,36,.8);
+  --bb-shadow-navy: inset 0 1px 0 rgba(255,255,255,.2), 0 10px 22px -12px rgba(10,15,36,.7); /* was inset only */
+  /* glass for app chrome (sidebar, header, tab bar) */
+  --bb-glass-surface: rgba(255,255,255,.72);
+  --bb-glass-filter: blur(22px) saturate(1.5);
+  --bb-glass-dark: rgba(10,15,36,.86);   /* mini player, toasts */
+  /* radius */
+  --bb-r-tile: 16px; --bb-r-card: 26px;
+  /* motion */
+  --bb-dur-enter: 800ms; --bb-stagger: 60ms; --bb-spring: cubic-bezier(.3,1.5,.5,1);
+  /* icon accents read by <Icon> */
+  --ic-accent: #FF4D00; --ic-accent-b: #3B5BDB;
+  /* overlay */
+  --bb-scrim: rgba(10,15,36,.45);
+}
+[data-theme="dark"], .dark{
+  --bb-shadow-card-hover: 0 1px 0 var(--bb-border), 0 30px 50px -24px rgba(0,0,0,.9);
+  --bb-glass-surface: rgba(18,26,51,.72);
+  --ic-accent: #FF6A26; --ic-accent-b: #7D97FF;
+  --bb-scrim: rgba(3,5,14,.6);
+}
+/* Optional Tailwind additions (tailwind.config.ts → theme.extend):
+   backgroundImage: { 'bb-cobalt':'var(--bb-grad-cobalt)', 'bb-stage':'var(--bb-grad-stage)', 'bb-ai':'var(--bb-grad-ai-card)', 'bb-ring':'var(--bb-grad-ring)' }
+   boxShadow: { 'card-hover':'var(--bb-shadow-card-hover)', 'glow-blaze':'var(--bb-shadow-glow-blaze)', 'glow-cobalt':'var(--bb-shadow-glow-cobalt)', stage:'var(--bb-shadow-stage)' }
+   borderRadius: { 'bb-tile':'16px', 'bb-card':'26px' }
+   transitionTimingFunction: { spring:'cubic-bezier(.3,1.5,.5,1)' }
+*/

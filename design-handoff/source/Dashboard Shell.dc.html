@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Familjen+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<script src="./bb-icons-v3.js"></script>
+<style>
+body{margin:0;background:#DDE2EC;-webkit-font-smoothing:antialiased}
+a{color:#D93A00;text-decoration:none}
+a:hover{color:#FF4D00}
+[data-bb="s"]{--bg:#F2F4F8;--glass:rgba(255,255,255,.72);--card:#FFFFFF;--card-2:#F3F6FA;--line:#E3E8F0;--text:#0A0F24;--muted:#4A5470;--faint:#8E9AB8;--bz-soft:#FFEDE4;--bz-ink:#B83300;--cb-soft:#E6EDFF;--cb-ink:#1E3A8A;--ok:#12A150;--ok-soft:#E3F7EA;--sh:0 1px 0 rgba(10,15,36,.05),0 22px 40px -30px rgba(10,15,36,.35);--ic-accent:#FF4D00;--ic-accent-b:#3B5BDB}
+[data-bb="s"][data-theme="dark"]{--bg:#070B1C;--glass:rgba(15,22,48,.72);--card:#0F1630;--card-2:#141D3B;--line:#222C4E;--text:#F2F4F8;--muted:#A9B4D0;--faint:#7883A3;--bz-soft:#3A1A0C;--bz-ink:#FF8A3D;--cb-soft:#16224A;--cb-ink:#93AEFF;--ok:#3DDC84;--ok-soft:#0E2E1C;--sh:inset 0 1px 0 rgba(255,255,255,.04),0 22px 40px -30px rgba(0,0,0,.9);--ic-accent:#FF6A26;--ic-accent-b:#7D97FF}
+@keyframes bbwave{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail" data-bg-color="#0A0F24"><svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#0A0F24"></rect><rect x="330" y="220" width="140" height="360" rx="30" fill="#121A33"></rect><rect x="355" y="260" width="90" height="44" rx="14" fill="#FF4D00"></rect><rect x="500" y="220" width="370" height="160" rx="30" fill="#3B5BDB"></rect><rect x="500" y="410" width="370" height="170" rx="30" fill="#1E2B57"></rect></svg></template>
+<div style="padding:24px clamp(12px,3vw,40px) 48px;font-family:'Familjen Grotesk',system-ui,sans-serif;color:#0A0F24;display:flex;flex-direction:column;gap:18px;align-items:center">
+
+  <div style="width:100%;max-width:1280px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#4A5470">Book Buddy · App shell v3</span>
+      <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.03em">Sidebar, header, tab bar &amp; mini player</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;padding:4px;border-radius:999px;background:#fff;box-shadow:0 1px 0 #DCE1EA">
+        <sc-for list="{{ roleOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" style="height:36px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;background:{{ o.bg }};color:{{ o.c }}">{{ o.label }}</button></sc-for>
+      </div>
+      <div style="display:flex;padding:4px;border-radius:999px;background:#fff;box-shadow:0 1px 0 #DCE1EA">
+        <sc-for list="{{ devOpts }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" style="height:36px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;background:{{ o.bg }};color:{{ o.c }}"><bb-ico name="{{ o.icon }}" size="16" tone="line"></bb-ico>{{ o.label }}</button></sc-for>
+      </div>
+      <button onClick="{{ toggleTheme }}" style="height:44px;padding:0 16px;border-radius:999px;border:0;background:#0A0F24;color:#F2F4F8;font:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px"><bb-ico name="{{ themeIcon }}" size="16" tone="soft"></bb-ico>{{ themeLabel }}</button>
+    </div>
+  </div>
+
+  <div style="max-width:100%;overflow-x:auto">
+  <div data-bb="s" data-theme="{{ theme }}" data-screen-label="App shell" style="position:relative;width:{{ frameW }};height:{{ frameH }};border-radius:{{ frameR }};overflow:hidden;background:var(--bg);color:var(--text);box-shadow:0 0 0 {{ bezel }} #0A0F24,0 50px 100px -40px rgba(10,15,36,.6);display:flex;transition:background-color .4s,color .4s">
+    <div style="position:absolute;left:-10%;top:-20%;width:60%;height:60%;border-radius:50%;background:radial-gradient(circle,rgba(59,91,219,.16),transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;right:-10%;bottom:-25%;width:55%;height:60%;border-radius:50%;background:radial-gradient(circle,rgba(255,77,0,.12),transparent 70%);pointer-events:none"></div>
+
+    <sc-if value="{{ showFull }}" hint-placeholder-val="{{ true }}">
+    <aside style="position:relative;z-index:2;flex:none;width:272px;height:100%;display:flex;flex-direction:column;background:var(--glass);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border-right:1px solid var(--line)">
+      <div style="height:72px;flex:none;display:flex;align-items:center;gap:11px;padding:0 24px">
+        <span style="position:relative;width:36px;height:22px;flex:none"><span style="position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;background:linear-gradient(160deg,#4C6FFF,#1E3A8A 60%)"></span><span style="position:absolute;left:12px;top:0;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);opacity:.95;box-shadow:0 0 14px rgba(255,77,0,.45)"></span></span>
+        <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.03em">Book Buddy</span>
+        <button onClick="{{ toggleCollapse }}" aria-label="Collapse sidebar" title="Collapse sidebar  [" style="margin-left:auto;margin-right:-10px;width:36px;height:36px;border-radius:11px;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--muted);transition:background .2s,color .2s" style-hover="background:var(--card-2);color:var(--text)"><bb-ico name="panel-left-close" size="20" tone="soft"></bb-ico></button>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:4px 14px 14px;display:flex;flex-direction:column;gap:3px">
+        <span style="padding:8px 12px 6px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)">{{ roleLabel }}</span>
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="10">
+          <button onClick="{{ n.pick }}" style="position:relative;display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;border-radius:14px;border:0;font:inherit;font-size:15px;font-weight:{{ n.fw }};text-align:left;cursor:pointer;color:{{ n.c }};background:{{ n.bg }};box-shadow:{{ n.sh }};transition:background .25s,box-shadow .25s,color .2s" style-hover="background:{{ n.hov }}">
+            <span style="width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;background:{{ n.chip }}"><bb-ico name="{{ n.icon }}" size="20" tone="{{ n.tone }}"></bb-ico></span>
+            <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ n.label }}</span>
+            <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;background:{{ n.badgeBg }};color:{{ n.badgeC }}">{{ n.badge }}</span></sc-if>
+          </button>
+        </sc-for>
+        <sc-if value="{{ hasSwitch }}" hint-placeholder-val="{{ true }}">
+          <div style="height:1px;background:var(--line);margin:12px 10px 4px"></div>
+          <span style="padding:8px 12px 6px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)">Switch dashboard</span>
+          <sc-for list="{{ switchItems }}" as="s" hint-placeholder-count="4">
+            <span style="display:flex;align-items:center;gap:12px;height:40px;padding:0 10px;border-radius:14px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer" style-hover="background:var(--card-2);color:var(--text)">
+              <span style="width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center"><bb-ico name="{{ s.icon }}" size="18" tone="soft"></bb-ico></span>{{ s.label }}
+              <span style="margin-left:auto;color:var(--faint)"><bb-ico name="arrow-up-right" size="14" tone="line"></bb-ico></span>
+            </span>
+          </sc-for>
+        </sc-if>
+      </div>
+      <div style="flex:none;margin:0 14px 14px;padding:12px;border-radius:18px;background:var(--card);box-shadow:var(--sh);display:flex;align-items:center;gap:12px">
+        <span style="position:relative;width:40px;height:40px;flex:none;border-radius:50%;padding:2px;background:linear-gradient(160deg,#FF8A3D,#FF4D00 50%,#3B5BDB)"><span style="display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center;background:var(--card);font-weight:800;font-size:14px">{{ initials }}</span></span>
+        <div style="min-width:0;flex:1"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ userName }}</div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--bz-ink)">{{ roleLabel }}</div></div>
+        <span style="width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--card-2);color:var(--muted)"><bb-ico name="settings" size="18" tone="soft"></bb-ico></span>
+      </div>
+    </aside>
+    </sc-if>
+
+    <sc-if value="{{ showRail }}" hint-placeholder-val="{{ false }}">
+    <aside style="position:relative;z-index:2;flex:none;width:80px;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0;background:var(--glass);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border-right:1px solid var(--line)">
+      <sc-if value="{{ isDesk }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toggleCollapse }}" aria-label="Expand sidebar" title="Expand sidebar  [" style="width:40px;height:40px;margin-bottom:4px;border-radius:12px;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--card);color:var(--muted);box-shadow:var(--sh)" style-hover="color:var(--text)"><bb-ico name="panel-left" size="20" tone="soft"></bb-ico></button>
+      </sc-if>
+      <span style="position:relative;width:34px;height:22px;margin-bottom:14px"><span style="position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;background:linear-gradient(160deg,#4C6FFF,#1E3A8A 60%)"></span><span style="position:absolute;left:12px;top:0;width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);opacity:.95"></span></span>
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="10">
+        <button onClick="{{ n.pick }}" title="{{ n.label }}" aria-label="{{ n.label }}" style="width:50px;height:50px;flex:none;border-radius:16px;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:{{ n.c }};background:{{ n.bg }};box-shadow:{{ n.sh }};transform:{{ n.tf }};transition:background .25s,box-shadow .25s,transform .25s" style-hover="background:{{ n.hov }}"><bb-ico name="{{ n.icon }}" size="22" tone="{{ n.tone }}"></bb-ico></button>
+      </sc-for>
+      <span style="margin-top:auto;width:42px;height:42px;border-radius:50%;padding:2px;background:linear-gradient(160deg,#FF8A3D,#FF4D00 50%,#3B5BDB)"><span style="display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center;background:var(--card);font-weight:800;font-size:13px">{{ initials }}</span></span>
+    </aside>
+    </sc-if>
+
+    <div style="position:relative;z-index:1;flex:1;min-width:0;height:100%;display:flex;flex-direction:column">
+      <header style="position:relative;z-index:3;flex:none;height:{{ headH }};display:flex;align-items:center;gap:12px;padding:{{ headPad }};background:var(--glass);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border-bottom:1px solid var(--line)">
+        <sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}">
+          <span style="display:flex;align-items:center;gap:9px"><span style="position:relative;width:30px;height:18px;flex:none"><span style="position:absolute;left:0;top:0;width:18px;height:18px;border-radius:50%;background:linear-gradient(160deg,#4C6FFF,#1E3A8A 60%)"></span><span style="position:absolute;left:10px;top:0;width:18px;height:18px;border-radius:50%;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);opacity:.95"></span></span><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.03em">Book Buddy</span></span>
+        </sc-if>
+        <sc-if value="{{ notPhone }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;max-width:520px;height:44px;display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;border-radius:999px;background:var(--card);box-shadow:var(--sh);color:var(--muted)">
+            <bb-ico name="search" size="18" tone="line"></bb-ico>
+            <span style="flex:1;font-size:14px">Search the library</span>
+            <span style="display:flex;gap:3px"><span style="min-width:24px;height:24px;padding:0 6px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--card-2);border:1px solid var(--line)">⌘</span><span style="min-width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--card-2);border:1px solid var(--line)">K</span></span>
+          </div>
+        </sc-if>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+          <sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}"><span style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center"><bb-ico name="search" size="22" tone="line"></bb-ico></span></sc-if>
+          <span style="position:relative;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card);box-shadow:var(--sh)"><bb-ico name="bell" size="21" tone="soft"></bb-ico><span style="position:absolute;right:10px;top:10px;width:9px;height:9px;border-radius:50%;background:#FF4D00;box-shadow:0 0 0 2px var(--card),0 0 10px #FF4D00"></span></span>
+          <button onClick="{{ openMore }}" aria-label="Account" style="width:44px;height:44px;border-radius:50%;border:0;padding:2px;cursor:pointer;background:linear-gradient(160deg,#FF8A3D,#FF4D00 50%,#3B5BDB);box-shadow:0 8px 16px -8px rgba(255,77,0,.6)"><span style="display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center;background:var(--card);color:var(--text);font:inherit;font-weight:800;font-size:14px">{{ initials }}</span></button>
+        </div>
+      </header>
+
+      <main style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:{{ mainPad }}">
+        <div style="position:relative;display:flex;flex-direction:column;gap:22px">
+          <section style="position:relative;display:flex;flex-direction:{{ phDir }};gap:16px;justify-content:space-between;align-items:{{ phAlign }}">
+            <div style="position:absolute;left:-40px;top:-60px;width:420px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,77,0,.12),rgba(59,91,219,.08) 60%,transparent);pointer-events:none"></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:8px;min-width:0">
+              <span style="align-self:flex-start;display:flex;align-items:center;gap:7px;height:28px;padding:0 12px;border-radius:999px;background:var(--card);box-shadow:var(--sh);font-size:12px;font-weight:700;color:var(--bz-ink)"><span style="width:7px;height:7px;border-radius:50%;background:#FF4D00;box-shadow:0 0 8px #FF4D00"></span>{{ eyebrow }}</span>
+              <h1 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:{{ h1 }};line-height:1.02;letter-spacing:-.04em;text-wrap:balance">{{ title }}</h1>
+              <p style="margin:0;max-width:560px;font-size:15px;color:var(--muted);text-wrap:pretty">{{ desc }}</p>
+            </div>
+            <div style="position:relative;display:flex;gap:10px;flex-wrap:wrap">
+              <sc-if value="{{ secondary }}" hint-placeholder-val="{{ true }}"><a href="#" style="height:44px;padding:0 18px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--text);background:var(--card);box-shadow:var(--sh)"><bb-ico name="{{ secIcon }}" size="18" tone="soft"></bb-ico>{{ secondary }}</a></sc-if>
+              <a href="#" style="height:44px;padding:0 20px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(180deg,#FF8A3D 0%,#FF4D00 55%,#D93A00 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(120,30,0,.25),0 12px 24px -10px rgba(255,77,0,.8)"><bb-ico name="{{ priIcon }}" size="18" tone="onfill"></bb-ico>{{ primary }}</a>
+            </div>
+          </section>
+
+          <sc-if value="{{ showStudentHome }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:{{ cols }};gap:16px">
+            <article style="grid-column:span {{ span2 }};position:relative;overflow:hidden;border-radius:26px;padding:22px;background:linear-gradient(150deg,#16224A 0%,#0A0F24 70%);color:#F2F4F8;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 30px 60px -30px rgba(10,15,36,.8);display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);gap:20px;align-items:center">
+              <div style="position:absolute;right:-110px;top:-130px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(255,77,0,.32),rgba(59,91,219,.22) 45%,transparent 70%)"></div>
+              <div style="position:relative;aspect-ratio:3/4;border-radius:12px;background:linear-gradient(155deg,#FF8A3D 0%,#FF4D00 45%,#3B5BDB 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 18px 28px -14px rgba(255,77,0,.7);padding:10px;display:flex;align-items:flex-end;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:13px;line-height:1.05">Physics<br>Class XI</div>
+              <div style="position:relative;display:flex;flex-direction:column;gap:12px;min-width:0">
+                <span style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FF8A3D"><bb-ico name="book-open" size="16" tone="soft"></bb-ico>Continue reading</span>
+                <div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em;line-height:1.1">Ch 7 · Heat &amp; Thermodynamics</div><div style="font-size:13px;color:#A9B4D0;margin-top:4px">Page 142 of 220 · 64%</div></div>
+                <span style="height:7px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden"><span style="display:block;height:100%;width:64%;border-radius:7px;background:linear-gradient(90deg,#FF8A3D,#FF4D00);box-shadow:0 0 12px rgba(255,77,0,.7)"></span></span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="#" style="height:40px;padding:0 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)"><bb-ico name="book-open" size="16" tone="onfill"></bb-ico>Resume</a><a href="#" style="height:40px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:#F2F4F8;border:1px solid rgba(255,255,255,.18)"><bb-ico name="headphones" size="16" tone="soft"></bb-ico>Listen</a></div>
+              </div>
+            </article>
+            <article style="border-radius:26px;padding:20px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:12px">
+              <span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="flame" size="20" tone="soft"></bb-ico>Reading streak</span>
+              <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:52px;letter-spacing:-.05em;line-height:.9">9</span><span style="font-weight:700;color:var(--muted)">days</span></div>
+              <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px">
+                <sc-for list="{{ week }}" as="d" hint-placeholder-count="7"><span style="aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;background:{{ d.bg }};box-shadow:{{ d.sh }};border:{{ d.bd }}"><bb-ico name="{{ d.icon }}" size="14" tone="{{ d.tone }}"></bb-ico></span></sc-for>
+              </div>
+            </article>
+            <article style="grid-column:span {{ span2 }};position:relative;overflow:hidden;border-radius:26px;padding:22px;background:linear-gradient(160deg,#4C6FFF 0%,#3B5BDB 45%,#1E3A8A 100%);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 30px 60px -30px rgba(59,91,219,.85);display:flex;flex-direction:column;gap:14px">
+              <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 45%);pointer-events:none"></div>
+              <span style="position:relative;display:flex;align-items:center;gap:10px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px"><span style="width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"><bb-ico name="varta" size="20" tone="onfill"></bb-ico></span>Ask Varta</span>
+              <div style="position:relative;display:flex;align-items:center;gap:10px;height:52px;padding:0 6px 0 16px;border-radius:999px;background:rgba(255,255,255,.96);color:#4A5470"><bb-ico name="search" size="18" tone="line"></bb-ico><span style="flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Why is water's specific heat so high?</span><span style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00)"><bb-ico name="arrow-right" size="18" tone="onfill"></bb-ico></span></div>
+            </article>
+            <article style="border-radius:26px;padding:20px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px">
+              <span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="flashcards" size="20" tone="soft"></bb-ico>Sanchika</span>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+                <div style="padding:12px 8px;border-radius:16px;background:var(--card-2);text-align:center"><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px">48</div><div style="font-size:11px;color:var(--muted)">Highlights</div></div>
+                <div style="padding:12px 8px;border-radius:16px;background:var(--bz-soft);text-align:center;color:var(--bz-ink)"><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px">12</div><div style="font-size:11px">Cards due</div></div>
+                <div style="padding:12px 8px;border-radius:16px;background:var(--cb-soft);text-align:center;color:var(--cb-ink)"><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px">9</div><div style="font-size:11px">Answers</div></div>
+              </div>
+            </article>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ showAdminHome }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:16px">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+              <article style="border-radius:24px;padding:18px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:{{ k.chip }};box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 18px -10px {{ k.glow }}"><bb-ico name="{{ k.icon }}" size="20" tone="onfill"></bb-ico></span><span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--ok-soft);color:var(--ok)">{{ k.delta }}</span></div>
+                <div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.04em;line-height:1">{{ k.v }}</div><div style="font-size:13px;color:var(--muted);margin-top:3px">{{ k.l }}</div></div>
+              </article>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:{{ twoCols }};gap:16px">
+            <article style="border-radius:26px;padding:20px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:4px">
+              <span style="display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:6px"><bb-ico name="institution" size="20" tone="soft"></bb-ico>Recent institutions</span>
+              <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)"><span style="width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:#fff;background:{{ t.bg }}">{{ t.ini }}</span><div style="min-width:0"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.n }}</div><div style="font-size:12px;color:var(--muted)">{{ t.meta }}</div></div><span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{ t.sBg }};color:{{ t.sC }}">{{ t.s }}</span></div>
+              </sc-for>
+            </article>
+            <article style="border-radius:26px;padding:20px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:4px">
+              <span style="display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:6px"><bb-ico name="clock" size="20" tone="soft"></bb-ico>System audit logs</span>
+              <sc-for list="{{ audits }}" as="a" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)"><span style="width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--card-2)"><bb-ico name="{{ a.icon }}" size="17" tone="soft"></bb-ico></span><div style="min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>{{ a.who }}</b> {{ a.what }}</div><span style="font-size:12px;color:var(--faint)">{{ a.t }}</span></div>
+              </sc-for>
+            </article>
+          </div>
+          </sc-if>
+
+          <sc-if value="{{ showOther }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:26px;padding:40px 24px;background:var(--card);box-shadow:var(--sh);border:1px dashed var(--line);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+              <span style="width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--bz-soft)"><bb-ico name="{{ activeIcon }}" size="32" tone="soft"></bb-ico></span>
+              <span style="font-weight:700;font-size:17px">{{ activeLabel }}: existing page content</span>
+              <span style="font-size:14px;color:var(--muted);max-width:420px">Only the shell around this page changes: sidebar, header, page header and tab bar. The page body is restyled through tokens and the card kit.</span>
+            </div>
+          </sc-if>
+          <span style="font-size:12px;color:var(--faint);text-align:center">All figures are sample data.</span>
+        </div>
+      </main>
+    </div>
+
+    <sc-if value="{{ notPhone }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;right:20px;bottom:20px;z-index:5;width:{{ mpW }}">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:22px;background:rgba(10,15,36,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.1);color:#F2F4F8;box-shadow:0 24px 40px -20px rgba(10,15,36,.8)">
+          <span style="width:44px;height:44px;flex:none;border-radius:12px;background:linear-gradient(155deg,#7D97FF,#3B5BDB 50%,#FF4D00);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"></span>
+          <div style="min-width:0;flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ch 4 · Laws of Motion</span><div style="height:18px;overflow:hidden">{{ waveSm }}</div></div>
+          <span style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#A9B4D0"><bb-ico name="skip-forward" size="18" tone="line"></bb-ico></span>
+          <button onClick="{{ togglePlay }}" aria-label="Play or pause" style="width:44px;height:44px;flex:none;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 20px -8px rgba(59,91,219,.9)"><bb-ico name="{{ playIcon }}" size="18" tone="onfill"></bb-ico></button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:12px;right:12px;bottom:12px;z-index:6;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px 8px 8px;border-radius:20px;background:rgba(10,15,36,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.1);color:#F2F4F8">
+          <span style="width:38px;height:38px;flex:none;border-radius:11px;background:linear-gradient(155deg,#7D97FF,#3B5BDB 50%,#FF4D00)"></span>
+          <div style="min-width:0;flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ch 4 · Laws of Motion</span><div style="height:14px;overflow:hidden">{{ waveSm }}</div></div>
+          <button onClick="{{ togglePlay }}" aria-label="Play or pause" style="width:40px;height:40px;flex:none;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A)"><bb-ico name="{{ playIcon }}" size="16" tone="onfill"></bb-ico></button>
+        </div>
+        <nav style="height:70px;display:grid;grid-template-columns:repeat({{ tabCount }},minmax(0,1fr));align-items:end;padding:0 6px 8px;border-radius:26px;background:var(--glass);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);border:1px solid var(--line);box-shadow:0 20px 40px -20px rgba(10,15,36,.5)">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+            <button onClick="{{ t.pick }}" aria-label="{{ t.label }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;cursor:pointer;font:inherit;padding:0;color:{{ t.c }}">
+              <span style="width:{{ t.size }};height:{{ t.size }};border-radius:50%;display:flex;align-items:center;justify-content:center;background:{{ t.bg }};box-shadow:{{ t.sh }};transform:{{ t.tf }};transition:transform .35s cubic-bezier(.3,1.5,.5,1),background .25s"><bb-ico name="{{ t.icon }}" size="22" tone="{{ t.tone }}"></bb-ico></span>
+              <span style="font-size:11px;font-weight:{{ t.fw }}">{{ t.label }}</span>
+            </button>
+          </sc-for>
+        </nav>
+      </div>
+      <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeMore }}" style="position:absolute;inset:0;z-index:8;background:rgba(10,15,36,.45);backdrop-filter:blur(2px)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;z-index:9;border-radius:30px 30px 0 0;padding:12px 18px 26px;background:var(--card);box-shadow:0 -20px 60px -20px rgba(10,15,36,.6);display:flex;flex-direction:column;gap:16px">
+          <span style="align-self:center;width:40px;height:5px;border-radius:5px;background:var(--line)"></span>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:46px;height:46px;border-radius:50%;padding:2px;background:linear-gradient(160deg,#FF8A3D,#FF4D00 50%,#3B5BDB)"><span style="display:flex;width:100%;height:100%;border-radius:50%;align-items:center;justify-content:center;background:var(--card);font-weight:800">{{ initials }}</span></span><div><div style="font-weight:700">{{ userName }}</div><div style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--bz-ink)">{{ roleLabel }}</div></div><button onClick="{{ closeMore }}" aria-label="Close" style="margin-left:auto;width:40px;height:40px;border-radius:50%;border:0;background:var(--card-2);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center"><bb-ico name="close" size="18" tone="line"></bb-ico></button></div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+            <sc-for list="{{ nav }}" as="n" hint-placeholder-count="9">
+              <button onClick="{{ n.pickClose }}" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border-radius:20px;border:0;cursor:pointer;font:inherit;font-size:12px;font-weight:700;color:{{ n.c }};background:{{ n.tileBg }};box-shadow:{{ n.sh }}"><bb-ico name="{{ n.icon }}" size="24" tone="{{ n.tone }}"></bb-ico><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">{{ n.label }}</span></button>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <span style="height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14px;background:var(--card-2)"><bb-ico name="settings" size="18" tone="soft"></bb-ico>Settings</span>
+            <span style="height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14px;background:var(--bz-soft);color:var(--bz-ink)"><bb-ico name="logout" size="18" tone="line"></bb-ico>Sign out</span>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+  </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;student&quot;,&quot;super-admin&quot;],&quot;default&quot;:&quot;student&quot;,&quot;tsType&quot;:&quot;'student'|'super-admin'&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;tablet&quot;,&quot;phone&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;'desktop'|'tablet'|'phone'&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rich&quot;,&quot;subtle&quot;],&quot;default&quot;:&quot;rich&quot;,&quot;tsType&quot;:&quot;'rich'|'subtle'&quot;}}">
+const NAV = {
+  student: { label: 'Student', user: 'Ananya Sharma', ini: 'AS', items: [
+    ['Home', 'home'], ['Library', 'library'], ['My shelf', 'bookmark'], ['Reader', 'book-open'], ['Listen', 'headphones'],
+    ['Varta', 'varta', 'ai'], ['Sanchika', 'flashcards', 'ai', '12'], ['Review', 'highlighter'], ['Goals', 'target'],
+    ['Reading list', 'list'], ['Recommendations', 'sparkles'], ['Requests', 'assignment']],
+    tabs: [['Home', 0], ['Library', 1], ['Listen', 4], ['Varta', 5], ['Me', -1]], switch: [] },
+  'super-admin': { label: 'Super admin', user: 'Rohit Verma', ini: 'RV', items: [
+    ['Overview', 'home'], ['Institutions', 'institution'], ['Users', 'users'], ['Library', 'library'],
+    ['Subscriptions', 'card'], ['Branding', 'palette'], ['Storage', 'database'], ['Audit logs', 'clock']],
+    tabs: [['Home', 0], ['Institutions', 1], ['Users', 2], ['Library', 3], ['More', -2]],
+    switch: [['Admin', 'shield'], ['Librarian', 'library'], ['Teacher', 'users'], ['Student', 'book-open']] },
+};
+const BLAZE = 'linear-gradient(180deg,#FF8A3D 0%,#FF4D00 55%,#D93A00 100%)';
+const COBALT = 'linear-gradient(180deg,#7D97FF 0%,#3B5BDB 55%,#1E3A8A 100%)';
+const GLOW_B = 'inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(120,30,0,.25),0 10px 22px -8px rgba(255,77,0,.75)';
+const GLOW_C = 'inset 0 1px 0 rgba(255,255,255,.45),0 10px 22px -8px rgba(59,91,219,.85)';
+class Component extends DCLogic {
+  state = { theme: null, role: null, dev: null, active: 0, more: false, playing: true,
+    collapsed: (() => { try { return localStorage.getItem('bb-shell-collapsed') === '1'; } catch (e) { return false; } })() };
+  componentDidMount() {
+    this.onKey = e => { if (e.key === '[' && !/input|textarea/i.test(e.target.tagName)) this.toggleCollapse(); };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+  toggleCollapse = () => this.setState(s => { const c = !s.collapsed; try { localStorage.setItem('bb-shell-collapsed', c ? '1' : '0'); } catch (e) {} return { collapsed: c }; });
+  renderVals() {
+    const theme = this.state.theme || this.props.theme || 'light';
+    const dark = theme === 'dark';
+    const role = this.state.role || this.props.role || 'student';
+    const dev = this.state.dev || this.props.device || 'desktop';
+    const R = NAV[role];
+    const a = Math.min(this.state.active, R.items.length - 1);
+    const isDesk = dev === 'desktop', isTab = dev === 'tablet', isPhone = dev === 'phone';
+    const pick = i => () => this.setState({ active: i });
+    const nav = R.items.map(([label, icon, ai, badge], i) => {
+      const on = i === a;
+      return { label, icon, badge: badge || '', pick: pick(i), pickClose: () => this.setState({ active: i, more: false }),
+        tone: on ? 'onfill' : 'soft', fw: on ? '700' : '600',
+        c: on ? '#fff' : 'var(--muted)', bg: on ? (ai ? COBALT : BLAZE) : 'transparent', sh: on ? (ai ? GLOW_C : GLOW_B) : 'none',
+        hov: on ? (ai ? COBALT : BLAZE) : 'var(--card-2)', chip: on ? 'rgba(255,255,255,.16)' : 'transparent', tf: on ? 'scale(1.04)' : 'scale(1)',
+        tileBg: on ? (ai ? COBALT : BLAZE) : 'var(--card-2)',
+        badgeBg: on ? 'rgba(255,255,255,.22)' : 'var(--cb-soft)', badgeC: on ? '#fff' : 'var(--cb-ink)' };
+    });
+    const tabs = R.tabs.map(([label, idx]) => {
+      const on = idx >= 0 ? idx === a : false;
+      const ai = idx >= 0 && R.items[idx][2] === 'ai';
+      const icon = idx >= 0 ? R.items[idx][1] : idx === -1 ? 'user' : 'more';
+      return { label, icon, tone: on ? 'onfill' : 'soft', c: on ? 'var(--text)' : 'var(--muted)', fw: on ? '800' : '600',
+        size: on ? '50px' : '34px', bg: on ? (ai ? COBALT : BLAZE) : 'transparent', sh: on ? (ai ? GLOW_C : GLOW_B) : 'none',
+        tf: on ? 'translateY(-14px)' : 'translateY(0)',
+        pick: idx >= 0 ? pick(idx) : () => this.setState({ more: true }) };
+    });
+    const home = a === 0;
+    const hour = new Date().getHours();
+    const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const first = R.user.split(' ')[0];
+    const ph = role === 'student'
+      ? (home ? { eyebrow: "St. Xavier's College", title: `${greet}, ${first}.`, desc: 'Pick up where you left off, listen while you commute, or ask Varta to clear your doubts.', secondary: 'Ask Varta', secIcon: 'varta', primary: 'Browse library', priIcon: 'arrow-right' }
+        : { eyebrow: 'Student', title: R.items[a][0], desc: 'Page header keeps the same eyebrow, title, description and actions API.', secondary: '', secIcon: 'search', primary: 'Primary action', priIcon: 'plus' })
+      : (home ? { eyebrow: 'Super admin', title: 'System overview', desc: 'Monitor and manage your entire platform ecosystem.', secondary: 'Audit logs', secIcon: 'clock', primary: 'New institution', priIcon: 'plus' }
+        : { eyebrow: 'Super admin', title: R.items[a][0], desc: 'Page header keeps the same eyebrow, title, description and actions API.', secondary: '', secIcon: 'search', primary: 'Primary action', priIcon: 'plus' });
+    const wk = [1, 1, 1, 1, 2, 0, 0];
+    const week = wk.map(s => ({ icon: s === 1 ? 'check' : s === 2 ? 'flame' : 'plus', tone: s ? 'onfill' : 'line',
+      bg: s === 1 ? BLAZE : s === 2 ? COBALT : 'var(--card-2)', sh: s ? 'inset 0 1px 0 rgba(255,255,255,.5)' : 'none', bd: s ? '0' : '1px dashed var(--line)' }));
+    const kpis = [['users', 'Total users', '18,240', '+6.1%', 'b'], ['institution', 'Institutions', '42', '+3', 'c'], ['library', 'Books in catalogue', '3,912', '+146', 'c'], ['analytics', 'Active sessions', '1,208', '+12%', 'b']]
+      .map(([icon, l, v, delta, h]) => ({ icon, l, v, delta, chip: h === 'b' ? BLAZE : COBALT, glow: h === 'b' ? 'rgba(255,77,0,.8)' : 'rgba(59,91,219,.85)' }));
+    const tenants = [['SX', "St. Xavier's College", '4 branches · 3,210 seats', 'Active', 'linear-gradient(160deg,#4C6FFF,#1E3A8A)'], ['DP', 'Delhi Public School, Noida', '1 branch · 1,840 seats', 'Active', 'linear-gradient(160deg,#FF8A3D,#D93A00)'], ['AC', 'Aakash Coaching · Patna', '6 branches · 5,400 seats', 'Trial', 'linear-gradient(160deg,#7D97FF,#3B5BDB)'], ['VU', 'Vidyapeeth University', '9 branches · 12,000 seats', 'Active', 'linear-gradient(160deg,#16224A,#0A0F24)']]
+      .map(([ini, n, meta, s, bg]) => ({ ini, n, meta, s, bg, sBg: s === 'Trial' ? 'var(--bz-soft)' : 'var(--ok-soft)', sC: s === 'Trial' ? 'var(--bz-ink)' : 'var(--ok)' }));
+    const audits = [['user', 'Priya N.', 'added 120 students to DPS Noida', '2m'], ['upload', 'System', 'finished OCR for 14 PDFs', '18m'], ['card', 'Rohit V.', 'upgraded Aakash to Pro', '1h'], ['shield', 'System', 'rotated API keys', '3h']]
+      .map(([icon, who, what, t]) => ({ icon, who, what, t }));
+    const playing = this.state.playing;
+    const waveSm = React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 2, height: 18 } },
+      Array.from({ length: 34 }, (_, i) => React.createElement('span', { key: i, style: { flex: 'none', width: 2, borderRadius: 2, height: 4 + Math.round(Math.abs(Math.sin(i * 1.9)) * 12),
+        background: i < 10 ? '#7D97FF' : 'rgba(255,255,255,.22)', animation: playing && this.props.motion !== 'subtle' ? `bbwave ${0.7 + (i % 5) * 0.12}s ease-in-out ${i * 0.03}s infinite alternate` : 'none' } })));
+    const opt = (cur, k, set) => ({ bg: cur === k ? '#0A0F24' : 'transparent', c: cur === k ? '#F2F4F8' : '#4A5470', pick: set });
+    return {
+      theme, themeIcon: dark ? 'sun' : 'moon', themeLabel: dark ? 'Light' : 'Dark', toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' }),
+      roleOpts: [['student', 'Student'], ['super-admin', 'Super admin']].map(([k, label]) => ({ label, ...opt(role, k, () => this.setState({ role: k, active: 0, more: false })) })),
+      devOpts: [['desktop', 'Desktop', 'monitor'], ['tablet', 'Tablet', 'image'], ['phone', 'Phone', 'smartphone']].map(([k, label, icon]) => ({ label, icon, ...opt(dev, k, () => this.setState({ dev: k, more: false })) })),
+      frameW: isDesk ? '1280px' : isTab ? '834px' : '390px', frameH: isDesk ? '860px' : isTab ? '1000px' : '844px',
+      frameR: isDesk ? '22px' : isTab ? '34px' : '46px', bezel: isDesk ? '0px' : isTab ? '10px' : '12px',
+      isDesk, isTab, isPhone, notPhone: !isPhone,
+      showFull: isDesk && !this.state.collapsed, showRail: isTab || (isDesk && this.state.collapsed), toggleCollapse: this.toggleCollapse,
+      headH: isPhone ? '62px' : '72px', headPad: isPhone ? '0 14px' : isTab ? '0 24px' : '0 36px',
+      mainPad: isPhone ? '20px 16px 190px' : isTab ? '26px 26px 110px' : '30px 36px 110px',
+      phDir: isPhone ? 'column' : 'row', phAlign: isPhone ? 'flex-start' : 'flex-end', h1: isPhone ? '30px' : '40px',
+      cols: isDesk ? 'repeat(3,minmax(0,1fr))' : isTab ? 'repeat(2,minmax(0,1fr))' : 'minmax(0,1fr)', span2: isPhone ? '1' : '2',
+      kpiCols: isDesk ? 'repeat(4,minmax(0,1fr))' : 'repeat(2,minmax(0,1fr))', twoCols: isDesk ? 'repeat(2,minmax(0,1fr))' : 'minmax(0,1fr)',
+      mpW: isTab ? '340px' : '380px',
+      roleLabel: R.label, userName: R.user, initials: R.ini,
+      nav, tabs, tabCount: tabs.length, hasSwitch: R.switch.length > 0, switchItems: R.switch.map(([label, icon]) => ({ label, icon })),
+      ...ph, showStudentHome: role === 'student' && home, showAdminHome: role === 'super-admin' && home, showOther: !home,
+      activeIcon: R.items[a][1], activeLabel: R.items[a][0],
+      week, kpis, tenants, audits, waveSm,
+      playIcon: playing ? 'pause' : 'play', togglePlay: () => this.setState(s => ({ playing: !s.playing })),
+      moreOpen: this.state.more, openMore: () => isPhone && this.setState({ more: true }), closeMore: () => this.setState({ more: false }),
+    };
+  }
+}
+</script>
+</body>
+</html>

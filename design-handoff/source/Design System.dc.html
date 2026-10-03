@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Familjen+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<script src="./bb-icons-v3.js"></script>
+<style>
+body{margin:0;background:#F2F4F8;-webkit-font-smoothing:antialiased}
+a{color:#B83300;text-decoration:none}
+a:hover{color:#FF4D00}
+[data-bb="ds"]{--bb-bg:#F2F4F8;--bb-surface:#FFFFFF;--bb-surface-2:#E6EAF1;--bb-border:#DCE1EA;--bb-text:#0A0F24;--bb-text-muted:#4A5470;--bb-text-faint:#8E9AB8;--bb-accent-soft:#FFE7DC;--bb-accent-ink:#B83300;--bb-info-soft:#DCE8FF;--bb-info-ink:#1E3A8A;--bb-success-soft:#DDF8E6;--bb-success-ink:#0B7A3B;--bb-warning-soft:#FFF4C2;--bb-warning-ink:#7A5A00;--bb-danger-soft:#FFE1E4;--bb-danger-ink:#B0182A;--bb-glass:rgba(255,255,255,.72);--e1:0 1px 0 #DCE1EA,0 18px 40px -26px rgba(6,10,30,.5);--e2:0 40px 60px -30px rgba(6,10,30,.55);--hov:0 1px 0 #DCE1EA,0 30px 50px -26px rgba(6,10,30,.5);--ic-accent:#FF4D00;--ic-accent-b:#3B5BDB}
+[data-bb="ds"][data-theme="dark"]{--bb-bg:#0A0F24;--bb-surface:#121A33;--bb-surface-2:#18213C;--bb-border:#2A3556;--bb-text:#F2F4F8;--bb-text-muted:#A9B4D0;--bb-text-faint:#8E9AB8;--bb-accent-soft:#3A1A0C;--bb-accent-ink:#FF8A3D;--bb-info-soft:#16224A;--bb-info-ink:#A9BCFF;--bb-success-soft:#0F2E1F;--bb-success-ink:#3DDC84;--bb-warning-soft:#33290A;--bb-warning-ink:#FFD23F;--bb-danger-soft:#3A1520;--bb-danger-ink:#FF8A98;--bb-glass:rgba(18,26,51,.72);--e1:0 1px 0 #2A3556,0 18px 40px -26px rgba(0,0,0,.7);--e2:0 40px 60px -30px rgba(0,0,0,.8);--hov:0 1px 0 #2A3556,0 30px 50px -24px rgba(0,0,0,.9);--ic-accent:#FF6A26;--ic-accent-b:#7D97FF}
+@keyframes bbspin{to{transform:rotate(360deg)}}
+@keyframes bbshimmer{100%{transform:translateX(100%)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail" data-bg-color="#0A0F24"><svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#0A0F24"></rect><rect x="360" y="300" width="150" height="200" rx="34" fill="#FF4D00"></rect><rect x="525" y="300" width="150" height="200" rx="34" fill="#3B5BDB"></rect><rect x="690" y="300" width="150" height="200" rx="34" fill="#F2F4F8"></rect></svg></template>
+<div data-bb="ds" data-theme="{{ theme }}" data-screen-label="Design system" style="min-height:100vh;background:var(--bb-bg);color:var(--bb-text);font-family:'Familjen Grotesk',system-ui,sans-serif;font-size:15px;line-height:1.55;transition:background-color .4s,color .4s">
+<div style="max-width:1240px;margin:0 auto;padding:clamp(20px,4vw,56px);display:flex;flex-direction:column;gap:56px">
+
+  <header style="position:relative;overflow:hidden;border-radius:32px;padding:clamp(28px,4vw,48px);background:linear-gradient(150deg,#16224A 0%,#0A0F24 70%);color:#F2F4F8;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 40px 80px -40px rgba(10,15,36,.7);display:flex;flex-direction:column;gap:18px">
+    <div style="position:absolute;right:-160px;top:-180px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(255,77,0,.32),rgba(59,91,219,.26) 45%,transparent 70%)"></div>
+    <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:12px"><span style="position:relative;width:46px;height:28px"><span style="position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:linear-gradient(160deg,#4C6FFF,#1E3A8A 60%);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)"></span><span style="position:absolute;left:16px;top:0;width:28px;height:28px;border-radius:50%;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);opacity:.95;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 18px rgba(255,77,0,.5)"></span></span><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.03em">Book Buddy</span></span>
+      <button onClick="{{ toggleTheme }}" style="height:42px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#F2F4F8;font:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px"><bb-ico name="{{ themeIcon }}" size="16" tone="soft"></bb-ico>{{ themeLabel }} theme</button>
+    </div>
+    <h1 style="position:relative;margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(40px,6vw,72px);line-height:.96;letter-spacing:-.045em;max-width:820px;text-wrap:balance">Design system v3, <span style="background:linear-gradient(180deg,#FFB37A 10%,#FF4D00 75%);-webkit-background-clip:text;background-clip:text;color:transparent">glossy &amp; calm</span></h1>
+    <p style="position:relative;margin:0;max-width:640px;font-size:18px;color:#C5CCDA">Navy, cobalt and blaze. One rule carries the system: <b style="color:#FF8A3D">blaze means action</b>, <b style="color:#93AEFF">cobalt means AI</b>, navy holds the stage. Gloss goes only on things you can press or that are selected.</p>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">01</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Colour</h2></div>
+    <sc-for list="{{ ramps }}" as="r" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--bb-text-faint)">{{ r.name }}</span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px">
+          <sc-for list="{{ r.sw }}" as="s" hint-placeholder-count="8">
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="height:64px;border-radius:14px;background:{{ s.c }};box-shadow:inset 0 0 0 1px rgba(10,15,36,.06)"></span><span style="font-size:12px;font-weight:700">{{ s.n }}</span><span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--bb-text-muted);margin-top:-6px">{{ s.c }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+      <sc-for list="{{ grads }}" as="g" hint-placeholder-count="4">
+        <div style="height:120px;border-radius:22px;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;background:{{ g.bg }};box-shadow:{{ g.sh }};color:{{ g.c }};position:relative;overflow:hidden"><span style="font-weight:800">{{ g.n }}</span><span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;opacity:.85">{{ g.v }}</span></div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:24px">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">02</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Type</h2></div>
+      <div style="border-radius:26px;background:var(--bb-surface);box-shadow:var(--e1);padding:8px 22px">
+        <sc-for list="{{ type }}" as="t" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--bb-border)">
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--bb-text-muted)">{{ t.k }}<br>{{ t.spec }}</span>
+            <span style="font-family:{{ t.f }};font-size:{{ t.s }};font-weight:{{ t.w }};letter-spacing:{{ t.ls }};line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.sample }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">03</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Depth, radius &amp; motion</h2></div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+        <sc-for list="{{ shadows }}" as="s" hint-placeholder-count="6">
+          <div style="height:96px;border-radius:20px;background:{{ s.bg }};box-shadow:{{ s.sh }};display:flex;flex-direction:column;justify-content:flex-end;padding:12px;color:{{ s.c }}"><span style="font-weight:700;font-size:13px">{{ s.n }}</span><span style="font-size:11px;opacity:.8">{{ s.u }}</span></div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <sc-for list="{{ radii }}" as="r" hint-placeholder-count="7">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:56px;height:56px;border-radius:{{ r.v }};background:var(--bb-surface);box-shadow:var(--e1);border:2px solid #FF4D00;border-right-color:transparent;border-bottom-color:transparent"></span><span style="font-size:11px;font-weight:700">{{ r.n }}</span><span style="font-size:10px;color:var(--bb-text-muted);margin-top:-6px">{{ r.v }}</span></div>
+        </sc-for>
+      </div>
+      <div style="border-radius:22px;background:var(--bb-surface);box-shadow:var(--e1);padding:16px 18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;font-size:13px">
+        <div><b>Micro · 120ms</b><div style="color:var(--bb-text-muted)">hover, press, toggles</div></div>
+        <div><b>UI · 240ms</b><div style="color:var(--bb-text-muted)">sheets, tabs, menus</div></div>
+        <div><b>Enter · 800ms</b><div style="color:var(--bb-text-muted)">cards fade-up 18px, stagger 60ms</div></div>
+        <div><b>Ease</b><div style="font-family:ui-monospace,Menlo,monospace;color:var(--bb-text-muted)">cubic-bezier(.2,.8,.2,1)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">04</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Buttons</h2><span style="font-size:14px;color:var(--bb-text-muted)">components/ui/button.tsx</span></div>
+    <div style="border-radius:26px;background:var(--bb-surface);box-shadow:var(--e1);padding:24px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <button style="height:44px;padding:0 20px;border-radius:999px;border:0;font:inherit;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#FF8A3D 0%,#FF4D00 55%,#D93A00 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(120,30,0,.25),0 10px 24px -8px rgba(255,77,0,.6)" style-hover="transform:translateY(-2px)"><bb-ico name="book-open" size="18" tone="onfill"></bb-ico>Primary</button>
+        <button style="height:44px;padding:0 20px;border-radius:999px;border:0;font:inherit;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#7D97FF 0%,#3B5BDB 55%,#1E3A8A 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 10px 22px -8px rgba(59,91,219,.85)" style-hover="transform:translateY(-2px)"><bb-ico name="varta" size="18" tone="onfill"></bb-ico>Cobalt · AI <span style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.2)">NEW</span></button>
+        <button style="height:44px;padding:0 20px;border-radius:999px;border:0;font:inherit;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(160deg,#1E3A8A 0%,#0F1F5C 45%,#0A0F24 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)">Secondary</button>
+        <button style="height:44px;padding:0 20px;border-radius:999px;border:0;font:inherit;font-weight:700;color:var(--bb-text);cursor:pointer;display:flex;align-items:center;gap:8px;background:var(--bb-surface);box-shadow:var(--e1),inset 0 0 0 1px var(--bb-border)"><bb-ico name="filter" size="18" tone="soft"></bb-ico>Soft <span style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:999px;background:var(--bb-accent-soft);color:var(--bb-accent-ink)">replaces outline</span></button>
+        <button style="height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-weight:700;color:var(--bb-info-ink);cursor:pointer;background:transparent" style-hover="background:var(--bb-surface-2)">Ghost</button>
+        <button style="height:44px;padding:0 16px;border-radius:12px;border:0;font:inherit;font-weight:700;color:var(--bb-accent-ink);cursor:pointer;background:var(--bb-accent-soft)">Danger soft</button>
+        <button disabled="" style="height:44px;padding:0 20px;border-radius:999px;border:0;font:inherit;font-weight:700;color:var(--bb-text-faint);background:var(--bb-surface-2)">Disabled</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <button style="height:52px;padding:0 26px;border-radius:999px;border:0;font:inherit;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 24px -8px rgba(255,77,0,.6)">Large 52</button>
+        <button style="height:36px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)">Small 36</button>
+        <button style="height:44px;padding:0 20px;border-radius:999px;border:0;font:inherit;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)"><span style="display:flex;animation:bbspin 1s linear infinite"><bb-ico name="loader" size="18" tone="onfill"></bb-ico></span>Saving…</button>
+        <span style="width:1px;height:32px;background:var(--bb-border)"></span>
+        <button aria-label="Play" style="width:52px;height:52px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 24px -8px rgba(255,77,0,.6)"><bb-ico name="play" size="22" tone="onfill"></bb-ico></button>
+        <button aria-label="Ask Varta" style="width:44px;height:44px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A);box-shadow:inset 0 1px 0 rgba(255,255,255,.45)"><bb-ico name="sparkles" size="20" tone="onfill"></bb-ico></button>
+        <button aria-label="Bookmark" style="width:44px;height:44px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;background:var(--bb-surface);color:var(--bb-text);box-shadow:var(--e1),inset 0 0 0 1px var(--bb-border)"><bb-ico name="bookmark" size="20" tone="soft"></bb-ico></button>
+        <button aria-label="More" style="width:44px;height:44px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--bb-text)"><bb-ico name="more" size="20" tone="line"></bb-ico></button>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">05</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Inputs &amp; selection</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px">
+      <div style="border-radius:26px;background:var(--bb-surface);box-shadow:var(--e1);padding:22px;display:flex;flex-direction:column;gap:14px">
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700">Email<span style="height:50px;border-radius:14px;border:1.5px solid var(--bb-border);background:var(--bb-surface);display:flex;align-items:center;gap:10px;padding:0 14px;font-weight:400;font-size:15px;color:var(--bb-text-faint)"><bb-ico name="mail" size="18" tone="line"></bb-ico>you@college.edu</span></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700">Focused<span style="height:50px;border-radius:14px;border:1.5px solid #FF4D00;box-shadow:0 0 0 4px rgba(255,77,0,.15);background:var(--bb-surface);display:flex;align-items:center;padding:0 14px;font-weight:400;font-size:15px">Ananya Sharma<span style="width:1.5px;height:18px;background:#FF4D00;margin-left:2px"></span></span></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700">Error<span style="height:50px;border-radius:14px;border:1.5px solid #E5283A;background:var(--bb-surface);display:flex;align-items:center;padding:0 14px;font-weight:400;font-size:15px">12</span><span style="display:flex;align-items:center;gap:6px;font-weight:600;color:var(--bb-danger-ink)"><bb-ico name="alert" size="16" tone="soft"></bb-ico>Enter a valid roll number</span></label>
+        <div style="height:48px;border-radius:999px;background:var(--bb-surface);box-shadow:var(--e1),inset 0 0 0 1px var(--bb-border);display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;color:var(--bb-text-muted)"><bb-ico name="search" size="18" tone="line"></bb-ico><span style="flex:1">Search the library</span><span style="display:flex;gap:3px"><span style="min-width:24px;height:24px;padding:0 6px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--bb-surface-2)">⌘</span><span style="min-width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--bb-surface-2)">K</span></span></div>
+      </div>
+      <div style="border-radius:26px;background:var(--bb-surface);box-shadow:var(--e1);padding:22px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:700">Tabs / segmented</span>
+          <div style="align-self:flex-start;display:flex;padding:4px;border-radius:999px;background:var(--bb-surface-2)">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.pick }}" style="height:36px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;color:{{ t.c }};background:{{ t.bg }};box-shadow:{{ t.sh }};transition:background .24s,box-shadow .24s">{{ t.label }}</button></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:700">Chips</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="5"><button onClick="{{ c.pick }}" style="height:34px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;color:{{ c.c }};background:{{ c.bg }};box-shadow:{{ c.sh }};transition:background .2s"><bb-ico name="{{ c.icon }}" size="14" tone="{{ c.tone }}"></bb-ico>{{ c.label }}</button></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:700">Status badges</span>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span style="height:28px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:var(--bb-success-soft);color:var(--bb-success-ink)"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Active</span>
+            <span style="height:28px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:var(--bb-warning-soft);color:var(--bb-warning-ink)"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Due soon</span>
+            <span style="height:28px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:var(--bb-danger-soft);color:var(--bb-danger-ink)"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Overdue</span>
+            <span style="height:28px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:var(--bb-info-soft);color:var(--bb-info-ink)"><bb-ico name="sparkles" size="13" tone="soft"></bb-ico>AI ready</span>
+            <span style="height:28px;padding:0 12px;border-radius:999px;display:flex;align-items:center;font-size:13px;font-weight:700;background:var(--bb-accent-soft);color:var(--bb-accent-ink)">Trial</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
+          <button onClick="{{ toggleSw }}" aria-label="Toggle" style="width:52px;height:30px;border-radius:999px;border:0;padding:3px;cursor:pointer;display:flex;justify-content:{{ swJ }};background:{{ swBg }};box-shadow:{{ swSh }};transition:background .24s"><span style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(10,15,36,.3)"></span></button>
+          <span style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)"><bb-ico name="check" size="14" tone="onfill"></bb-ico></span>Checked</span>
+          <span style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:22px;height:22px;border-radius:7px;border:1.5px solid var(--bb-border);background:var(--bb-surface)"></span>Unchecked</span>
+          <span style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600"><span style="width:22px;height:22px;border-radius:50%;border:6px solid #FF4D00;background:#fff"></span>Radio</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">06</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Cards</h2><span style="font-size:14px;color:var(--bb-text-muted)">card · stat-card · enhanced-card · book-list-card</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:16px">
+      <article style="border-radius:24px;padding:18px;background:var(--bb-surface);box-shadow:var(--e1);display:flex;flex-direction:column;gap:10px;transition:box-shadow .3s,transform .3s" style-hover="box-shadow:var(--hov);transform:translateY(-2px)">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 18px -10px rgba(255,77,0,.8)"><bb-ico name="library" size="22" tone="onfill"></bb-ico></span><span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--bb-success-soft);color:var(--bb-success-ink)">↑ 12%</span></div>
+        <div><div style="font-size:13px;color:var(--bb-text-muted)">Books borrowed</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.03em;line-height:1.05">24</div></div>
+        <svg viewBox="0 0 200 40" preserveAspectRatio="none" style="width:100%;height:36px"><path d="M0 32L25 28L50 30L75 20L100 22L125 14L150 16L175 8L200 6L200 40L0 40Z" fill="#FF4D00" opacity=".14"></path><path d="M0 32L25 28L50 30L75 20L100 22L125 14L150 16L175 8L200 6" fill="none" stroke="#FF4D00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path></svg>
+        <span style="font-size:11px;font-weight:700;color:var(--bb-text-faint)">StatCard · default + sparkline</span>
+      </article>
+      <article style="position:relative;overflow:hidden;border-radius:24px;padding:18px;background:linear-gradient(150deg,#16224A 0%,#0A0F24 70%);color:#F2F4F8;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 30px 50px -30px rgba(10,15,36,.8);display:flex;flex-direction:column;gap:10px">
+        <div style="position:absolute;right:-60px;top:-70px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,77,0,.35),transparent 70%)"></div>
+        <div style="position:relative;display:flex;justify-content:space-between;align-items:center"><span style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)"><bb-ico name="flame" size="22" tone="soft"></bb-ico></span></div>
+        <div style="position:relative"><div style="font-size:13px;color:#A9B4D0">Reading streak</div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.03em;line-height:1.05">9 days</div></div>
+        <span style="position:relative;font-size:11px;font-weight:700;color:#8E9AB8;margin-top:auto">StatCard · featured (one per row)</span>
+      </article>
+      <article style="position:relative;overflow:hidden;border-radius:24px;padding:18px;background:linear-gradient(160deg,#4C6FFF 0%,#3B5BDB 45%,#1E3A8A 100%);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 30px 50px -30px rgba(59,91,219,.85);display:flex;flex-direction:column;gap:10px">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 45%)"></div>
+        <span style="position:relative;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"><bb-ico name="varta" size="22" tone="onfill"></bb-ico></span>
+        <div style="position:relative"><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px">Ask Varta</div><div style="font-size:13px;color:#DCE8FF">Answers only from your books</div></div>
+        <span style="position:relative;font-size:11px;font-weight:700;color:#C9D4FF;margin-top:auto">Card · ai (cobalt)  <b>NEW</b></span>
+      </article>
+      <article style="border-radius:24px;padding:16px;background:var(--bb-surface);box-shadow:var(--e1);display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:center;transition:box-shadow .3s,transform .3s" style-hover="box-shadow:var(--hov);transform:translateY(-2px)">
+        <div style="position:relative;width:72px;height:106px;border-radius:4px 12px 12px 4px;overflow:hidden;background:linear-gradient(150deg,#7D97FF 0%,#3B5BDB 55%,#1E3A8A 100%);box-shadow:0 18px 26px -14px rgba(6,10,30,.6)"><span style="position:absolute;inset:0;padding:10px 8px 0 13px;color:#fff;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:11px;line-height:1.05">Physics Class XI</span><span style="position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.28) 48%,transparent 60%)"></span><span style="position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.1))"></span></div>
+        <div style="min-width:0;display:flex;flex-direction:column;gap:8px">
+          <div><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Physics · Class XI</div><div style="font-size:12px;color:var(--bb-text-muted)">NCERT · Ch 7 of 15</div></div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bb-surface-2)">EPUB</span><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bb-surface-2)">Audio</span><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bb-info-soft);color:var(--bb-info-ink)">Varta</span></div>
+          <span style="height:6px;border-radius:6px;background:var(--bb-surface-2);overflow:hidden"><span style="display:block;height:100%;width:64%;border-radius:6px;background:linear-gradient(90deg,#FF8A3D,#FF4D00)"></span></span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px">
+    <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">07</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Feedback</h2></div>
+    <div style="border-radius:26px;padding:32px 22px;background:var(--bb-surface);box-shadow:var(--e1);display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+      <span style="position:relative;width:88px;height:88px;display:flex;align-items:center;justify-content:center"><span style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(255,77,0,.16),transparent 70%)"></span><span style="position:absolute;inset:10px;border-radius:50%;border:1.5px dashed var(--bb-border)"></span><span style="position:relative;width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--bb-surface);box-shadow:var(--e1)"><bb-ico name="bookmark" size="26" tone="soft"></bb-ico></span></span>
+      <span style="font-weight:700;font-size:17px">Your shelf is empty</span>
+      <span style="font-size:14px;color:var(--bb-text-muted);max-width:280px">Borrow a book and it lands here, with your place saved.</span>
+      <button style="margin-top:6px;height:40px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)">Browse library</button>
+      <span style="font-size:11px;font-weight:700;color:var(--bb-text-faint)">EmptyState: halo replaces the dashed box</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:rgba(10,15,36,.92);color:#F2F4F8;box-shadow:0 24px 40px -20px rgba(10,15,36,.8)"><span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(61,220,132,.16)"><bb-ico name="check-circle" size="18" tone="soft"></bb-ico></span><span style="flex:1;font-size:14px"><b>Saved to Sanchika</b><br><span style="color:#A9B4D0">Highlight from p. 142</span></span><span style="font-size:13px;font-weight:700;color:#FF8A3D">Undo</span></div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:18px;background:var(--bb-warning-soft);color:var(--bb-warning-ink)"><bb-ico name="clock" size="20" tone="soft"></bb-ico><span style="font-size:14px"><b>2 books due in 3 days.</b> Renew from My shelf to keep reading.</span></div>
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:18px;background:var(--bb-info-soft);color:var(--bb-info-ink)"><bb-ico name="sparkles" size="20" tone="soft"></bb-ico><span style="font-size:14px"><b>Varta indexed 3 new books.</b> Ask anything from them now.</span></div>
+      <div style="padding:16px;border-radius:18px;background:var(--bb-surface);box-shadow:var(--e1);display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ skel }}" as="s" hint-placeholder-count="3"><span style="position:relative;overflow:hidden;height:{{ s.h }};width:{{ s.w }};border-radius:10px;background:var(--bb-surface-2)"><span style="position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:bbshimmer 1.4s infinite"></span></span></sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px">
+    <div style="grid-column:1/-1;display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">08</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Overlays &amp; Varta</h2></div>
+    <div style="position:relative;border-radius:26px;overflow:hidden;min-height:340px;background:linear-gradient(150deg,#C9D4EC,#E6EAF1);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="position:absolute;inset:0;background:rgba(10,15,36,.45);backdrop-filter:blur(4px)"></div>
+      <div style="position:relative;width:100%;max-width:380px;border-radius:28px;padding:22px;background:var(--bb-surface);box-shadow:var(--e2);display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><span style="width:48px;height:48px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--bb-danger-soft)"><bb-ico name="trash" size="22" tone="soft" hue="a"></bb-ico></span><span style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bb-surface-2)"><bb-ico name="close" size="16" tone="line"></bb-ico></span></div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.03em">Remove this book?</div>
+        <div style="font-size:14px;color:var(--bb-text-muted)">Highlights stay in Sanchika. You can borrow it again any time.</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px"><button style="height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-weight:700;color:var(--bb-text);background:var(--bb-surface-2)">Cancel</button><button style="height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-weight:700;color:#fff;background:#E5283A">Remove</button></div>
+      </div>
+    </div>
+    <div style="border-radius:26px;padding:20px;background:var(--bb-surface);box-shadow:var(--e1);display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#FFFFFF 0%,#C9D4FF 16%,#5B7CFF 45%,#1E3A8A 75%);box-shadow:0 0 18px rgba(91,124,255,.6)"></span><span style="font-weight:700">Varta</span><span style="margin-left:auto;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--bb-info-soft);color:var(--bb-info-ink)">Strict · from this book</span></div>
+      <div style="align-self:flex-end;max-width:80%;padding:12px 16px;border-radius:18px 18px 4px 18px;background:linear-gradient(160deg,#1E3A8A,#0A0F24);color:#F2F4F8;font-size:15px">Why is water's specific heat so high?</div>
+      <div style="max-width:88%;padding:14px 16px;border-radius:4px 18px 18px 18px;background:var(--bb-info-soft);font-size:15px;display:flex;flex-direction:column;gap:10px">
+        <span>Hydrogen bonds absorb energy before the temperature can rise, so water heats slowly.</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><span style="height:26px;padding:0 10px;display:flex;align-items:center;border-radius:999px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)">p. 142 · ¶2</span><span style="height:26px;padding:0 10px;display:flex;align-items:center;border-radius:999px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A)">p. 143 · ¶1</span></div>
+      </div>
+      <div style="margin-top:auto;height:52px;display:flex;align-items:center;gap:10px;padding:0 6px 0 16px;border-radius:999px;background:var(--bb-surface-2);color:var(--bb-text-muted)"><span style="flex:1;font-size:14px">Ask from Physics XI…</span><span style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A)"><bb-ico name="arrow-right" size="18" tone="onfill"></bb-ico></span></div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">09</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Data table</h2></div>
+    <div style="overflow-x:auto;border-radius:26px;background:var(--bb-surface);box-shadow:var(--e1)">
+      <div style="min-width:720px">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--bb-border)"><span style="font-weight:700">Users</span><span style="font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--bb-surface-2)">1,284</span><span style="margin-left:auto;height:38px;width:240px;border-radius:999px;background:var(--bb-surface-2);display:flex;align-items:center;gap:8px;padding:0 14px;font-size:13px;color:var(--bb-text-muted)"><bb-ico name="search" size="16" tone="line"></bb-ico>Filter users</span><span style="height:38px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;background:var(--bb-surface);box-shadow:inset 0 0 0 1px var(--bb-border)"><bb-ico name="filter" size="15" tone="soft"></bb-ico>Role</span></div>
+        <div style="display:grid;grid-template-columns:2.2fr 1.2fr 1fr 1fr 80px;gap:12px;padding:10px 20px;background:var(--bb-bg);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bb-text-faint)"><span>Name</span><span>Role</span><span>Last active</span><span>Status</span><span></span></div>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:2.2fr 1.2fr 1fr 1fr 80px;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid var(--bb-border);font-size:14px" style-hover="background:var(--bb-bg)">
+            <span style="display:flex;align-items:center;gap:10px;min-width:0"><span style="width:36px;height:36px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:{{ r.bg }}">{{ r.ini }}</span><span style="min-width:0"><span style="display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.n }}</span><span style="display:block;font-size:12px;color:var(--bb-text-muted)">{{ r.e }}</span></span></span>
+            <span style="display:flex;align-items:center;gap:6px;color:var(--bb-text-muted)"><bb-ico name="{{ r.icon }}" size="16" tone="soft"></bb-ico>{{ r.role }}</span>
+            <span style="color:var(--bb-text-muted)">{{ r.t }}</span>
+            <span style="justify-self:start;height:26px;padding:0 10px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;background:{{ r.sBg }};color:{{ r.sC }}"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>{{ r.s }}</span>
+            <span style="justify-self:end;font-weight:700;color:var(--bb-accent-ink)">Edit</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--bb-accent-ink)">10</span><h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.03em">Rules</h2></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px">
+      <sc-for list="{{ rules }}" as="r" hint-placeholder-count="6">
+        <div style="display:flex;gap:12px;padding:16px;border-radius:20px;background:var(--bb-surface);box-shadow:var(--e1)"><span style="width:36px;height:36px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;background:{{ r.bg }}"><bb-ico name="{{ r.icon }}" size="18" tone="{{ r.tone }}"></bb-ico></span><div><div style="font-weight:700">{{ r.t }}</div><div style="font-size:14px;color:var(--bb-text-muted)">{{ r.d }}</div></div></div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;}}">
+const BLAZE = 'linear-gradient(180deg,#FF8A3D 0%,#FF4D00 55%,#D93A00 100%)';
+const COBALT = 'linear-gradient(180deg,#7D97FF 0%,#3B5BDB 55%,#1E3A8A 100%)';
+class Component extends DCLogic {
+  state = { theme: null, tab: 0, chips: { 1: true }, sw: true };
+  renderVals() {
+    const theme = this.state.theme || this.props.theme || 'light';
+    const dark = theme === 'dark';
+    const ramps = [
+      ['Navy · stage', [['ink', '#0A0F24'], ['ink-2', '#121A33'], ['navy-750', '#18213C'], ['navy-700', '#1E2B57'], ['night-line', '#2A3556'], ['muted', '#4A5470'], ['faint', '#8E9AB8'], ['cloud', '#F2F4F8']]],
+      ['Cobalt · AI', [['cobalt-800', '#1E3A8A'], ['cobalt-600', '#3B5BDB'], ['cobalt-500', '#4C6FFF'], ['periwinkle', '#5B7CFF'], ['cobalt-400', '#7D97FF'], ['cobalt-300', '#93AEFF'], ['info-soft', '#DCE8FF'], ['cobalt-50', '#EEF3FF']]],
+      ['Blaze · action', [['blaze-ink', '#B83300'], ['blaze-dark', '#D93A00'], ['blaze', '#FF4D00'], ['blaze-light', '#FF8A3D'], ['peach', '#FFB37A'], ['cream', '#FFE3A3'], ['accent-soft', '#FFE7DC'], ['blaze-50', '#FFF4EE']]],
+      ['Semantic', [['success', '#12B85A'], ['success-soft', '#DDF8E6'], ['warning', '#F5B800'], ['warning-soft', '#FFF4C2'], ['danger', '#E5283A'], ['danger-soft', '#FFE1E4'], ['highlight', '#FFE3A3'], ['surface', '#FFFFFF']]],
+    ].map(([name, sw]) => ({ name, sw: sw.map(([n, c]) => ({ n, c })) }));
+    const grads = [
+      ['--bb-grad-primary', 'Blaze gloss', BLAZE, 'inset 0 1px 0 rgba(255,255,255,.6),0 14px 28px -12px rgba(255,77,0,.7)', '#fff'],
+      ['--bb-grad-cobalt (new)', 'Cobalt gloss', COBALT, 'inset 0 1px 0 rgba(255,255,255,.45),0 14px 28px -12px rgba(59,91,219,.8)', '#fff'],
+      ['--bb-grad-stage (new)', 'Navy stage', 'linear-gradient(150deg,#16224A 0%,#0A0F24 70%)', 'inset 0 1px 0 rgba(255,255,255,.1)', '#F2F4F8'],
+      ['--bb-glass-surface (new)', 'Frosted glass', 'linear-gradient(135deg,rgba(255,255,255,.75),rgba(255,255,255,.55)),radial-gradient(circle at 20% 20%,#93AEFF,transparent 60%),radial-gradient(circle at 80% 90%,#FFB37A,transparent 60%)', 'inset 0 0 0 1px rgba(255,255,255,.6)', '#0A0F24'],
+    ].map(([v, n, bg, sh, c]) => ({ v, n, bg, sh, c }));
+    const type = [
+      ['display-xl', '80/0.96 · 800', 'Bricolage Grotesque', '56px', 800, '-.045em', 'Read. Listen.'],
+      ['h1', '40/1.05 · 800', 'Bricolage Grotesque', '40px', 800, '-.03em', 'Good evening, Ananya'],
+      ['h2', '28/1.1 · 800', 'Bricolage Grotesque', '28px', 800, '-.03em', 'Continue reading'],
+      ['h3', '20/1.25 · 600', 'Familjen Grotesk', '20px', 600, '-.01em', 'Assigned by teachers'],
+      ['body', '15/1.55 · 400', 'Familjen Grotesk', '15px', 400, '0', 'Pick up where you left off.'],
+      ['label', '13/1.3 · 600', 'Familjen Grotesk', '13px', 600, '.02em', 'Books borrowed'],
+      ['eyebrow', '12 · 700 · caps', 'Familjen Grotesk', '12px', 700, '.14em', 'ST. XAVIER\u2019S COLLEGE'],
+      ['reading', '19/1.75 · 400', 'Newsreader', '19px', 400, '0', 'Heat flows from a hotter body\u2026'],
+    ].map(([k, spec, f, s, w, ls, sample]) => ({ k, spec, f: `'${f}',sans-serif`, s, w, ls, sample }));
+    const surf = 'var(--bb-surface)';
+    const shadows = [
+      ['e0', 'dividers, rows', surf, '0 1px 0 var(--bb-border)', 'var(--bb-text)'],
+      ['e1', 'cards (default)', surf, 'var(--e1)', 'var(--bb-text)'],
+      ['e2', 'dialogs, sheets', surf, 'var(--e2)', 'var(--bb-text)'],
+      ['card-hover (new)', 'interactive cards', surf, 'var(--hov)', 'var(--bb-text)'],
+      ['glow-blaze (new)', 'primary, active nav', BLAZE, 'inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(120,30,0,.25),0 12px 24px -10px rgba(255,77,0,.8)', '#fff'],
+      ['glow-cobalt (new)', 'AI actions', COBALT, 'inset 0 1px 0 rgba(255,255,255,.45),0 12px 22px -8px rgba(59,91,219,.85)', '#fff'],
+    ].map(([n, u, bg, sh, c]) => ({ n, u, bg, sh, c }));
+    const radii = [['xs', '6px'], ['sm', '10px'], ['md', '14px'], ['tile', '16px'], ['lg', '22px'], ['card', '26px'], ['xl', '28px']].map(([n, v]) => ({ n, v }));
+    const tabs = ['Reading', 'Listening', 'Varta'].map((label, i) => {
+      const on = this.state.tab === i;
+      return { label, pick: () => this.setState({ tab: i }), c: on ? 'var(--bb-text)' : 'var(--bb-text-muted)', bg: on ? 'var(--bb-surface)' : 'transparent', sh: on ? '0 1px 0 var(--bb-border),0 6px 14px -8px rgba(10,15,36,.4)' : 'none' };
+    });
+    const chips = [['All books', 'library'], ['Physics', 'book-open'], ['Audio', 'headphones'], ['AI ready', 'sparkles'], ['Due soon', 'clock']].map(([label, icon], i) => {
+      const on = !!this.state.chips[i];
+      return { label, icon, pick: () => this.setState(s => ({ chips: { ...s.chips, [i]: !s.chips[i] } })),
+        tone: on ? 'onfill' : 'soft', c: on ? '#fff' : 'var(--bb-text)', bg: on ? BLAZE : 'var(--bb-surface-2)', sh: on ? 'inset 0 1px 0 rgba(255,255,255,.5),0 8px 16px -8px rgba(255,77,0,.7)' : 'none' };
+    });
+    const rows = [['AS', 'Ananya Sharma', 'ananya@xaviers.edu', 'Student', 'student', '2 min ago', 'Active', 'linear-gradient(160deg,#FF8A3D,#D93A00)'],
+      ['RM', 'Dr. Ravi Mehta', 'r.mehta@xaviers.edu', 'Teacher', 'users', '1 h ago', 'Active', 'linear-gradient(160deg,#4C6FFF,#1E3A8A)'],
+      ['SI', 'Sunita Iyer', 's.iyer@xaviers.edu', 'Librarian', 'library', 'Yesterday', 'Invited', 'linear-gradient(160deg,#7D97FF,#3B5BDB)'],
+      ['KP', 'Karan Patel', 'karan.p@xaviers.edu', 'Student', 'student', '14 days ago', 'Suspended', 'linear-gradient(160deg,#16224A,#0A0F24)']]
+      .map(([ini, n, e, role, icon, t, s, bg]) => ({ ini, n, e, role, icon, t, s, bg,
+        sBg: s === 'Active' ? 'var(--bb-success-soft)' : s === 'Invited' ? 'var(--bb-warning-soft)' : 'var(--bb-danger-soft)',
+        sC: s === 'Active' ? 'var(--bb-success-ink)' : s === 'Invited' ? 'var(--bb-warning-ink)' : 'var(--bb-danger-ink)' }));
+    const rules = [
+      ['Blaze = action', 'Primary buttons, active nav, progress, play. One primary per view.', 'book-open', BLAZE, 'onfill'],
+      ['Cobalt = AI', 'Varta, Sanchika, sparkles, citations. Never for non-AI actions.', 'sparkles', COBALT, 'onfill'],
+      ['Gloss only when pressable', 'Flat cards, glossy controls. Selected states earn gloss.', 'star', 'var(--bb-accent-soft)', 'soft'],
+      ['One featured card per row', 'Navy stage or cobalt AI card; everything else is surface + e1.', 'grid', 'var(--bb-info-soft)', 'soft'],
+      ['Icons: 2b set', 'soft by default, onfill on gradients, line for pure strokes.', 'palette', 'var(--bb-surface-2)', 'soft'],
+      ['Honest data', 'Anything without live data shows \u201CSample data\u201D. No fake stats.', 'shield', 'var(--bb-success-soft)', 'soft'],
+    ].map(([t, d, icon, bg, tone]) => ({ t, d, icon, bg, tone }));
+    return {
+      theme, themeIcon: dark ? 'sun' : 'moon', themeLabel: dark ? 'Light' : 'Dark', toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' }),
+      ramps, grads, type, shadows, radii, tabs, chips, rows, rules,
+      skel: [{ h: '14px', w: '40%' }, { h: '12px', w: '90%' }, { h: '12px', w: '70%' }],
+      toggleSw: () => this.setState(s => ({ sw: !s.sw })), swJ: this.state.sw ? 'flex-end' : 'flex-start',
+      swBg: this.state.sw ? BLAZE : 'var(--bb-surface-2)', swSh: this.state.sw ? 'inset 0 1px 0 rgba(255,255,255,.4)' : 'inset 0 0 0 1px var(--bb-border)',
+    };
+  }
+}
+</script>
+</body>
+</html>

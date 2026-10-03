@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Familjen+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<script src="./bb-icons-v3.js"></script>
+<style>
+body{margin:0;background:#F2F4F8;-webkit-font-smoothing:antialiased}
+a{color:#D93A00;text-decoration:none}
+a:hover{color:#FF4D00}
+[data-bb="d"]{--bg:#F2F4F8;--card:#FFFFFF;--card-2:#F6F8FB;--line:#E3E8F0;--text:#0A0F24;--muted:#4A5470;--faint:#8E9AB8;--bz:#FF4D00;--bz-soft:#FFEDE4;--bz-ink:#B83300;--cb:#3B5BDB;--cb-soft:#E6EDFF;--cb-ink:#1E3A8A;--ok:#12A150;--ok-soft:#E3F7EA;--sh:0 1px 0 rgba(10,15,36,.05),0 1px 2px rgba(10,15,36,.04),0 22px 40px -30px rgba(10,15,36,.35);--shh:0 1px 0 rgba(10,15,36,.05),0 30px 50px -28px rgba(10,15,36,.45);--ic-accent:#FF4D00;--ic-accent-b:#3B5BDB}
+[data-bb="d"][data-theme="dark"]{--bg:#070B1C;--card:#0F1630;--card-2:#141D3B;--line:#222C4E;--text:#F2F4F8;--muted:#A9B4D0;--faint:#7883A3;--bz-soft:#3A1A0C;--bz-ink:#FF8A3D;--cb-soft:#16224A;--cb-ink:#93AEFF;--ok-soft:#0E2E1C;--ok:#3DDC84;--sh:0 1px 0 rgba(255,255,255,.04) inset,0 22px 40px -30px rgba(0,0,0,.9);--shh:0 1px 0 rgba(255,255,255,.06) inset,0 30px 50px -24px rgba(0,0,0,.95);--ic-accent:#FF6A26;--ic-accent-b:#7D97FF}
+@keyframes bbwave{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail" data-bg-color="#0A0F24"><svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#0A0F24"></rect><rect x="380" y="250" width="200" height="300" rx="36" fill="#3B5BDB"></rect><rect x="620" y="250" width="200" height="130" rx="36" fill="#FF4D00"></rect><rect x="620" y="420" width="200" height="130" rx="36" fill="#1E2B57"></rect></svg></template>
+<div data-bb="d" data-theme="{{ theme }}" data-screen-label="Dashboard cards" style="min-height:100vh;background:var(--bg);color:var(--text);font-family:'Familjen Grotesk',system-ui,sans-serif;font-size:15px;line-height:1.5;transition:background-color .4s,color .4s">
+<div style="max-width:1320px;margin:0 auto;padding:clamp(20px,4vw,48px);display:flex;flex-direction:column;gap:28px">
+
+  <header style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bz-ink)">
+        <span style="position:relative;width:30px;height:18px;flex:none"><span style="position:absolute;left:0;top:0;width:18px;height:18px;border-radius:50%;background:linear-gradient(160deg,#4C6FFF,#1E3A8A 60%)"></span><span style="position:absolute;left:12px;top:0;width:18px;height:18px;border-radius:50%;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);opacity:.95"></span></span>
+        Book Buddy · Dashboard card kit
+      </span>
+      <h1 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(32px,4vw,48px);letter-spacing:-.035em;line-height:1">Good evening, Ananya</h1>
+      <span style="color:var(--muted)">B.Sc. Physics · Sem 1 · St. Xavier's</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;padding:4px;border-radius:999px;background:var(--card);box-shadow:var(--sh)">
+        <sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+          <button onClick="{{ r.pick }}" style="height:38px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-weight:700;font-size:14px;cursor:pointer;background:{{ r.bg }};color:{{ r.c }};box-shadow:{{ r.sh }};transition:background .25s,color .25s">{{ r.label }}</button>
+        </sc-for>
+      </div>
+      <button onClick="{{ toggleTheme }}" aria-label="Toggle theme" style="width:46px;height:46px;border-radius:50%;border:0;background:var(--card);color:var(--text);box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;cursor:pointer"><bb-ico name="{{ themeIcon }}" size="20" tone="soft"></bb-ico></button>
+    </div>
+  </header>
+
+  <sc-if value="{{ showStudent }}" hint-placeholder-val="{{ true }}">
+  <section style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));grid-auto-flow:dense;gap:18px">
+
+    <article style="grid-column:span {{ span2 }};position:relative;overflow:hidden;border-radius:28px;padding:26px;background:linear-gradient(150deg,#16224A 0%,#0A0F24 70%);color:#F2F4F8;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 30px 60px -30px rgba(10,15,36,.8);display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr);gap:24px;align-items:center;opacity:{{ in0.op }};transform:{{ in0.tf }};transition:opacity .6s,transform .8s cubic-bezier(.2,.8,.2,1)" style-hover="transform:translateY(-3px)">
+      <div style="position:absolute;right:-120px;top:-140px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,77,0,.35),rgba(59,91,219,.25) 45%,transparent 70%);pointer-events:none"></div>
+      <div style="position:relative;aspect-ratio:3/4;border-radius:14px;background:linear-gradient(155deg,#FF8A3D 0%,#FF4D00 45%,#3B5BDB 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 20px 30px -16px rgba(255,77,0,.7);padding:12px;display:flex;flex-direction:column;justify-content:flex-end;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;line-height:1.05">Physics<br>Class XI</div>
+      <div style="position:relative;display:flex;flex-direction:column;gap:14px;min-width:0">
+        <span style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FF8A3D"><bb-ico name="book-open" size="16" tone="soft"></bb-ico>Continue reading</span>
+        <div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(22px,2.4vw,28px);letter-spacing:-.03em;line-height:1.1">Ch 7 · Heat &amp; Thermodynamics</div><div style="font-size:14px;color:#A9B4D0;margin-top:4px">Page 142 of 220 · 18 min left in chapter</div></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.12);overflow:hidden"><span style="display:block;height:100%;width:{{ bar64 }};border-radius:8px;background:linear-gradient(90deg,#FF8A3D,#FF4D00);box-shadow:0 0 12px rgba(255,77,0,.7);transition:width 1.2s cubic-bezier(.2,.8,.2,1) .3s"></span></span><span style="font-weight:700;font-variant-numeric:tabular-nums">64%</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a href="#" style="height:44px;padding:0 20px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:700;color:#fff;background:linear-gradient(180deg,#FF8A3D 0%,#FF4D00 55%,#D93A00 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(120,30,0,.25),0 12px 24px -10px rgba(255,77,0,.8)"><bb-ico name="book-open" size="18" tone="onfill"></bb-ico>Resume</a>
+          <a href="#" style="height:44px;padding:0 18px;border-radius:999px;display:flex;align-items:center;gap:8px;font-weight:600;color:#F2F4F8;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05)"><bb-ico name="headphones" size="18" tone="soft"></bb-ico>Listen instead</a>
+        </div>
+      </div>
+    </article>
+
+    <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px;opacity:{{ in1.op }};transform:{{ in1.tf }};transition:opacity .6s .06s,transform .8s cubic-bezier(.2,.8,.2,1) .06s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="target" size="20" tone="soft"></bb-ico>Today's goal</span><span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--bz-soft);color:var(--bz-ink)">13 min to go</span></div>
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="position:relative;width:128px;height:128px;flex:none">
+          <svg viewBox="0 0 120 120" width="128" height="128" style="transform:rotate(-90deg)"><defs><linearGradient id="bbring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A3D"></stop><stop offset="1" stop-color="#FF4D00"></stop></linearGradient></defs><circle cx="60" cy="60" r="50" fill="none" stroke="var(--card-2)" stroke-width="12"></circle><circle cx="60" cy="60" r="50" fill="none" stroke="url(#bbring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314.16" style="stroke-dashoffset:{{ ringOff }};transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1) .3s;filter:drop-shadow(0 3px 6px rgba(255,77,0,.45))"></circle></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.04em;line-height:1">32</span><span style="font-size:12px;color:var(--muted)">of 45 min</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:14px">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:#FF4D00"></span>Read · 22 min</span>
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:#3B5BDB"></span>Listen · 10 min</span>
+        </div>
+      </div>
+    </article>
+
+    <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:16px;opacity:{{ in2.op }};transform:{{ in2.tf }};transition:opacity .6s .12s,transform .8s cubic-bezier(.2,.8,.2,1) .12s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="flame" size="20" tone="soft"></bb-ico>Reading streak</span><span style="font-size:13px;color:var(--muted)">Best 14</span></div>
+      <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:56px;letter-spacing:-.05em;line-height:.9">9</span><span style="font-weight:700;color:var(--muted)">days in a row</span></div>
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">
+        <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <span style="width:100%;aspect-ratio:1;max-width:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:{{ d.bg }};box-shadow:{{ d.sh }};border:{{ d.bd }};transform:{{ d.tf }};transition:transform .5s cubic-bezier(.3,1.5,.5,1) {{ d.delay }}"><bb-ico name="{{ d.icon }}" size="16" tone="{{ d.tone }}"></bb-ico></span>
+            <span style="font-size:11px;font-weight:700;color:var(--faint)">{{ d.l }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </article>
+
+    <article style="grid-column:span {{ span2 }};position:relative;overflow:hidden;border-radius:28px;padding:24px;background:linear-gradient(160deg,#4C6FFF 0%,#3B5BDB 45%,#1E3A8A 100%);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 30px 60px -30px rgba(59,91,219,.85);display:flex;flex-direction:column;gap:16px;opacity:{{ in3.op }};transform:{{ in3.tf }};transition:opacity .6s .18s,transform .8s cubic-bezier(.2,.8,.2,1) .18s">
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 45%);pointer-events:none"></div>
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:10px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em"><span style="width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"><bb-ico name="varta" size="22" tone="onfill"></bb-ico></span>Ask Varta</span>
+        <span style="font-size:13px;color:#DCE8FF">Answers only from your books, with page citations</span>
+      </div>
+      <div style="position:relative;display:flex;align-items:center;gap:10px;height:56px;padding:0 8px 0 18px;border-radius:999px;background:rgba(255,255,255,.96);color:#0A0F24;box-shadow:0 12px 30px -12px rgba(10,15,36,.6)">
+        <bb-ico name="search" size="20" tone="line"></bb-ico>
+        <span style="flex:1;color:#4A5470;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ typed }}<span style="display:inline-block;width:2px;height:18px;margin-left:2px;vertical-align:middle;background:#3B5BDB;opacity:{{ caret }}"></span></span>
+        <span style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 8px 16px -6px rgba(255,77,0,.8)"><bb-ico name="arrow-right" size="18" tone="onfill"></bb-ico></span>
+      </div>
+      <div style="position:relative;display:flex;gap:8px;flex-wrap:wrap">
+        <span style="height:34px;padding:0 14px;display:flex;align-items:center;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);font-size:13px;font-weight:600">Explain latent heat</span>
+        <span style="height:34px;padding:0 14px;display:flex;align-items:center;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);font-size:13px;font-weight:600">Quiz me on Ch 7</span>
+        <span style="height:34px;padding:0 14px;display:flex;align-items:center;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);font-size:13px;font-weight:600">Summarise p. 140–150</span>
+      </div>
+    </article>
+
+    <article style="position:relative;border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px;opacity:{{ in4.op }};transform:{{ in4.tf }};transition:opacity .6s .24s,transform .8s cubic-bezier(.2,.8,.2,1) .24s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="flashcards" size="20" tone="soft"></bb-ico>Sanchika</span><span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--cb-soft);color:var(--cb-ink)">12 due tonight</span></div>
+      <div style="position:relative;height:130px;margin:4px 14px 0 0">
+        <div style="position:absolute;inset:0;border-radius:18px;background:var(--card-2);border:1px solid var(--line);transform:translate(14px,-10px) rotate(5deg)"></div>
+        <div style="position:absolute;inset:0;border-radius:18px;background:var(--card-2);border:1px solid var(--line);transform:translate(7px,-5px) rotate(2.5deg)"></div>
+        <div style="position:absolute;inset:0;border-radius:18px;padding:16px;background:linear-gradient(170deg,#FF8A3D,#FF4D00 60%,#D93A00);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 18px 30px -16px rgba(255,77,0,.7);display:flex;flex-direction:column;justify-content:space-between">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">From p. 142</span>
+          <span style="font-family:'Newsreader',Georgia,serif;font-size:18px;line-height:1.3">Why does water take so long to heat up?</span>
+        </div>
+      </div>
+      <a href="#" style="align-self:flex-start;display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px">Start review<bb-ico name="arrow-right" size="16" tone="line"></bb-ico></a>
+    </article>
+
+    <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px;opacity:{{ in5.op }};transform:{{ in5.tf }};transition:opacity .6s .3s,transform .8s cubic-bezier(.2,.8,.2,1) .3s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="headphones" size="20" tone="soft"></bb-ico>Now listening</span>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button onClick="{{ togglePlay }}" aria-label="Play or pause" style="flex:none;width:54px;height:54px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 12px 22px -8px rgba(59,91,219,.85)"><bb-ico name="{{ playIcon }}" size="22" tone="onfill"></bb-ico></button>
+        <div style="min-width:0;flex:1;display:flex;flex-direction:column;gap:6px">
+          <span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ch 4 · Laws of Motion</span>
+          <div style="height:30px;min-width:0;overflow:hidden">{{ wave }}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums"><span>3:12 / 11:40</span><span style="font-weight:700;padding:2px 8px;border-radius:999px;background:var(--card-2)">1.25×</span></div>
+    </article>
+
+    <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:12px;opacity:{{ in6.op }};transform:{{ in6.tf }};transition:opacity .6s .36s,transform .8s cubic-bezier(.2,.8,.2,1) .36s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="assignment" size="20" tone="soft"></bb-ico>Assigned by teachers</span><span style="font-size:13px;color:var(--muted)">3</span></div>
+      <sc-for list="{{ assigned }}" as="a" hint-placeholder-count="3">
+        <div style="display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px;border-radius:16px;background:var(--card-2)">
+          <span style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:{{ a.chip }};color:var(--text)"><bb-ico name="{{ a.icon }}" size="20" tone="soft"></bb-ico></span>
+          <div style="min-width:0"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.t }}</div><div style="font-size:12px;color:var(--muted)">{{ a.by }}</div></div>
+          <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ a.dueBg }};color:{{ a.dueC }};white-space:nowrap">{{ a.due }}</span>
+        </div>
+      </sc-for>
+    </article>
+
+    <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px;opacity:{{ in7.op }};transform:{{ in7.tf }};transition:opacity .6s .42s,transform .8s cubic-bezier(.2,.8,.2,1) .42s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="analytics" size="20" tone="soft"></bb-ico>This week</span><span style="font-size:13px;color:var(--ok);font-weight:700;display:flex;align-items:center;gap:4px"><bb-ico name="trending" size="16" tone="line"></bb-ico>+18%</span></div>
+      <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:40px;letter-spacing:-.04em;line-height:1">4h 12m</span><span style="color:var(--muted);font-size:14px">reading time</span></div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:90px">
+        <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+          <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px">
+            <span style="width:100%;height:{{ b.h }};border-radius:9px 9px 4px 4px;background:{{ b.bg }};box-shadow:inset 0 1px 0 rgba(255,255,255,.4);transition:height .9s cubic-bezier(.2,.8,.2,1) {{ b.d }}"></span>
+            <span style="font-size:11px;font-weight:700;color:{{ b.lc }}">{{ b.l }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </article>
+
+    <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px;opacity:{{ in8.op }};transform:{{ in8.tf }};transition:opacity .6s .48s,transform .8s cubic-bezier(.2,.8,.2,1) .48s,box-shadow .3s" style-hover="box-shadow:var(--shh)">
+      <span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="highlighter" size="20" tone="soft"></bb-ico>Latest highlight</span>
+      <p style="margin:0;font-family:'Newsreader',Georgia,serif;font-size:19px;line-height:1.55"><span style="background:linear-gradient(transparent 55%,#FFE3A3 55%);color:#0A0F24;padding:0 2px">The specific heat capacity of water is 4186 J/kg·K</span>, which makes it an excellent thermal buffer.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)"><span>Physics XI · p. 142</span><span style="display:flex;gap:6px"><span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--card-2)"><bb-ico name="varta" size="16" tone="soft"></bb-ico></span><span style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--card-2)"><bb-ico name="share" size="16" tone="soft"></bb-ico></span></span></div>
+    </article>
+
+  </section>
+  </sc-if>
+
+  <sc-if value="{{ showAdmin }}" hint-placeholder-val="{{ false }}">
+  <section style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:18px">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+        <article style="position:relative;overflow:hidden;border-radius:26px;padding:20px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:12px;opacity:{{ k.op }};transform:{{ k.tf }};transition:opacity .6s {{ k.d }},transform .8s cubic-bezier(.2,.8,.2,1) {{ k.d }},box-shadow .3s" style-hover="box-shadow:var(--shh)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:{{ k.chip }};box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 20px -10px {{ k.glow }}"><bb-ico name="{{ k.icon }}" size="22" tone="onfill"></bb-ico></span>
+            <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ k.dBg }};color:{{ k.dC }}">{{ k.delta }}</span>
+          </div>
+          <div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums">{{ k.v }}</div><div style="font-size:13px;color:var(--muted);margin-top:4px">{{ k.l }}</div></div>
+          <svg viewBox="0 0 200 44" preserveAspectRatio="none" style="width:100%;height:44px;overflow:visible"><path d="{{ k.area }}" fill="{{ k.fill }}" opacity=".16"></path><path d="{{ k.line }}" fill="none" stroke="{{ k.stroke }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path></svg>
+        </article>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px">
+      <article style="border-radius:28px;padding:22px;background:var(--card);box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="institution" size="20" tone="soft"></bb-ico>Institutions</span><a href="#" style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:4px">View all<bb-ico name="chevron-right" size="16" tone="line"></bb-ico></a></div>
+        <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:42px minmax(0,1fr) 110px auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)">
+            <span style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:#fff;background:{{ t.bg }};box-shadow:inset 0 1px 0 rgba(255,255,255,.4)">{{ t.ini }}</span>
+            <div style="min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.n }}</div><div style="font-size:12px;color:var(--muted)">{{ t.meta }}</div></div>
+            <span style="height:6px;border-radius:6px;background:var(--card-2);overflow:hidden"><span style="display:block;height:100%;width:{{ t.w }};border-radius:6px;background:linear-gradient(90deg,#7D97FF,#3B5BDB);transition:width 1s cubic-bezier(.2,.8,.2,1) .4s"></span></span>
+            <span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{ t.sBg }};color:{{ t.sC }}">{{ t.s }}</span>
+          </div>
+        </sc-for>
+      </article>
+      <article style="position:relative;overflow:hidden;border-radius:28px;padding:22px;background:linear-gradient(160deg,#121A33,#0A0F24);color:#F2F4F8;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 30px 60px -30px rgba(10,15,36,.8);display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:8px;font-weight:700"><bb-ico name="shield" size="20" tone="soft"></bb-ico>Platform health</span><span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#3DDC84"><span style="width:8px;height:8px;border-radius:50%;background:#3DDC84;box-shadow:0 0 10px #3DDC84"></span>All systems normal</span></div>
+        <sc-for list="{{ health }}" as="h" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center">
+            <bb-ico name="{{ h.icon }}" size="20" tone="soft"></bb-ico>
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px">{{ h.l }}</span><span style="display:flex;gap:2px;height:16px"><sc-for list="{{ h.ticks }}" as="x" hint-placeholder-count="30"><span style="flex:1;border-radius:2px;background:{{ x }}"></span></sc-for></span></div>
+            <span style="font-weight:700;font-variant-numeric:tabular-nums;font-size:14px">{{ h.v }}</span>
+          </div>
+        </sc-for>
+      </article>
+    </div>
+  </section>
+  </sc-if>
+
+  <span style="font-size:12px;color:var(--faint);text-align:center">All figures are sample data.</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;},&quot;role&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;student&quot;,&quot;admin&quot;,&quot;both&quot;],&quot;default&quot;:&quot;student&quot;,&quot;tsType&quot;:&quot;'student'|'admin'|'both'&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;rich&quot;,&quot;subtle&quot;],&quot;default&quot;:&quot;rich&quot;,&quot;tsType&quot;:&quot;'rich'|'subtle'&quot;}}">
+const QS = ['Why is water\'s specific heat so high?', 'Difference between latent and specific heat?', 'Give me 3 exam questions from Ch 7'];
+const spark = (pts) => {
+  const max = Math.max(...pts), min = Math.min(...pts), n = pts.length - 1;
+  const xy = pts.map((v, i) => [(i / n * 200).toFixed(1), (40 - (v - min) / (max - min || 1) * 34).toFixed(1)]);
+  const line = 'M' + xy.map(p => p.join(' ')).join('L');
+  return { line, area: line + `L200 44L0 44Z` };
+};
+class Component extends DCLogic {
+  state = { theme: null, role: null, ready: false, qi: 0, ci: 0, caret: true, playing: true };
+  componentDidMount() {
+    this.t0 = setTimeout(() => this.setState({ ready: true }), 60);
+    this.ti = setInterval(() => this.setState(s => {
+      const q = QS[s.qi];
+      if (s.ci < q.length + 24) return { ci: s.ci + 1, caret: !s.caret || s.ci < q.length };
+      return { qi: (s.qi + 1) % QS.length, ci: 0 };
+    }), 60);
+  }
+  componentWillUnmount() { clearTimeout(this.t0); clearInterval(this.ti); }
+  renderVals() {
+    const theme = this.state.theme || this.props.theme || 'light';
+    const dark = theme === 'dark';
+    const role = this.state.role || this.props.role || 'student';
+    const subtle = this.props.motion === 'subtle';
+    const R = this.state.ready;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const inn = i => ({ op: R ? '1' : '0', tf: R ? 'translateY(0)' : 'translateY(18px)' });
+    const ins = {}; for (let i = 0; i < 9; i++) ins['in' + i] = inn(i);
+    const wk = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const week = wk.map((l, i) => {
+      const done = i < 4, today = i === 4;
+      return { l, icon: done ? 'check' : today ? 'flame' : 'plus', tone: done || today ? 'onfill' : 'line',
+        bg: done ? 'linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00)' : today ? 'linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A)' : 'var(--card-2)',
+        sh: done || today ? 'inset 0 1px 0 rgba(255,255,255,.5),0 8px 14px -8px rgba(255,77,0,.7)' : 'none',
+        bd: done || today ? '0' : '1px dashed var(--line)', tf: R ? 'scale(1)' : 'scale(.4)', delay: (300 + i * 70) + 'ms' };
+    });
+    const bh = [42, 64, 38, 80, 92, 30, 0];
+    const bars = wk.map((l, i) => ({ l, h: R ? Math.max(bh[i], 4) + '%' : '4%', d: (i * 60) + 'ms',
+      bg: i === 4 ? 'linear-gradient(180deg,#FF8A3D,#FF4D00)' : bh[i] === 0 ? 'var(--card-2)' : (dark ? 'linear-gradient(180deg,#2F3D6B,#222C4E)' : 'linear-gradient(180deg,#DCE4F5,#C9D4EC)'),
+      lc: i === 4 ? 'var(--bz-ink)' : 'var(--faint)' }));
+    const assigned = [
+      ['Ch 7 · Heat & Thermodynamics', 'Dr. Mehta · Physics', 'Today', 'book-open', 1],
+      ['Lab manual · Calorimetry', 'Ms. Iyer · Lab', 'Fri', 'file', 0],
+      ['Ch 4 · Laws of Motion (audio)', 'Dr. Mehta · Physics', 'Mon', 'headphones', 0],
+    ].map(([t, by, due, icon, urgent]) => ({ t, by, due, icon, chip: urgent ? 'var(--bz-soft)' : 'var(--cb-soft)',
+      dueBg: urgent ? 'var(--bz-soft)' : 'var(--card)', dueC: urgent ? 'var(--bz-ink)' : 'var(--muted)' }));
+    const wave = React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 3, height: 30 } },
+      Array.from({ length: 28 }, (_, i) => React.createElement('span', { key: i, style: {
+        flex: 'none', width: 3, borderRadius: 3, height: 6 + Math.round(Math.abs(Math.sin(i * 1.9)) * 20),
+        background: i < 8 ? '#3B5BDB' : 'var(--line)',
+        animation: subtle || !this.state.playing ? 'none' : `bbwave ${0.7 + (i % 5) * 0.12}s ease-in-out ${i * 0.03}s infinite alternate` } })));
+    const q = QS[this.state.qi];
+    const kpiDef = [
+      ['users', 'Active readers · 7d', '12,480', '+8.2%', [20, 24, 22, 30, 28, 34, 38, 36, 44, 48], 'bz'],
+      ['library', 'Books in catalogue', '3,912', '+146', [10, 12, 14, 15, 18, 20, 22, 25, 27, 30], 'cb'],
+      ['varta', 'Varta questions · 7d', '41.2k', '+21%', [12, 18, 15, 26, 22, 30, 41, 36, 48, 55], 'cb'],
+      ['database', 'Storage used', '1.8 TB', '62%', [30, 31, 33, 34, 36, 37, 39, 40, 41, 42], 'bz'],
+    ];
+    const kpis = kpiDef.map(([icon, l, v, delta, pts, hue], i) => {
+      const s = spark(pts), bz = hue === 'bz';
+      return { icon, l, v, delta, ...s, op: R ? '1' : '0', tf: R ? 'translateY(0)' : 'translateY(18px)', d: (i * 70) + 'ms',
+        chip: bz ? 'linear-gradient(180deg,#FF8A3D,#FF4D00 55%,#D93A00)' : 'linear-gradient(180deg,#7D97FF,#3B5BDB 55%,#1E3A8A)',
+        glow: bz ? 'rgba(255,77,0,.8)' : 'rgba(59,91,219,.85)', stroke: bz ? '#FF4D00' : '#3B5BDB', fill: bz ? '#FF4D00' : '#3B5BDB',
+        dBg: 'var(--ok-soft)', dC: 'var(--ok)' };
+    });
+    const tenants = [
+      ['SX', "St. Xavier's College", '4 branches · 3,210 seats', 82, 'Active', 'linear-gradient(160deg,#4C6FFF,#1E3A8A)'],
+      ['DP', 'Delhi Public School, Noida', '1 branch · 1,840 seats', 64, 'Active', 'linear-gradient(160deg,#FF8A3D,#D93A00)'],
+      ['AC', 'Aakash Coaching · Patna', '6 branches · 5,400 seats', 47, 'Trial', 'linear-gradient(160deg,#7D97FF,#3B5BDB)'],
+      ['VU', 'Vidyapeeth University', '9 branches · 12,000 seats', 91, 'Active', 'linear-gradient(160deg,#16224A,#0A0F24)'],
+    ].map(([ini, n, meta, w, s, bg]) => ({ ini, n, meta, s, bg, w: R ? w + '%' : '0%',
+      sBg: s === 'Trial' ? 'var(--bz-soft)' : 'var(--ok-soft)', sC: s === 'Trial' ? 'var(--bz-ink)' : 'var(--ok)' }));
+    const tk = (bad) => Array.from({ length: 30 }, (_, i) => bad.includes(i) ? '#FF8A3D' : 'rgba(61,220,132,.75)');
+    const health = [
+      ['monitor', 'Reader & API', '99.98%', tk([]), ], ['sparkles', 'Varta inference', '99.91%', tk([17])],
+      ['headphones', 'Text-to-speech', '99.95%', tk([])], ['scan', 'OCR pipeline', '99.70%', tk([6, 7])],
+    ].map(([icon, l, v, ticks]) => ({ icon, l, v, ticks }));
+    const roles = [['student', 'Student'], ['admin', 'Admin'], ['both', 'Both']].map(([k, label]) => ({ label,
+      pick: () => this.setState({ role: k }), bg: role === k ? 'var(--text)' : 'transparent', c: role === k ? 'var(--bg)' : 'var(--muted)',
+      sh: role === k ? '0 6px 14px -8px rgba(10,15,36,.6)' : 'none' }));
+    return {
+      theme, themeIcon: dark ? 'sun' : 'moon', toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' }),
+      roles, showStudent: role !== 'admin', showAdmin: role !== 'student',
+      span2: vw < 700 ? '1' : '2', ...ins,
+      bar64: R ? '64%' : '0%', ringOff: R ? (314.16 * (1 - 32 / 45)).toFixed(1) : '314.16',
+      week, bars, assigned, wave,
+      playIcon: this.state.playing ? 'pause' : 'play', togglePlay: () => this.setState(s => ({ playing: !s.playing })),
+      typed: q.slice(0, Math.min(this.state.ci, q.length)), caret: this.state.caret ? '1' : '0',
+      kpis, tenants, health,
+    };
+  }
+}
+</script>
+</body>
+</html>

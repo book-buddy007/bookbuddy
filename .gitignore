@@ -104,3 +104,6 @@ backend/scratch*.js
 .claude/worktrees/
 .claude/settings.local.json
 .claude/session-*.log
+
+# UI refresh handoff: rendered references are large; keep them local
+design-handoff/reference/
