@@ -146,6 +146,16 @@ export function isDashRole(value: unknown): value is DashRole {
   return typeof value === "string" && value in NAV
 }
 
+/**
+ * The session carries the database role as-is (`SUPER_ADMIN`, `ADMIN`, ...), while the
+ * dashboards are keyed `super-admin`, `admin`, ... — map one to the other. Null if unknown.
+ */
+export function normaliseRole(role: unknown): DashRole | null {
+  if (typeof role !== "string") return null
+  const key = role.trim().toLowerCase().replace(/_/g, "-")
+  return isDashRole(key) ? key : null
+}
+
 /** Which dashboard a path belongs to, e.g. /dashboard/admin/users -> "admin". */
 export function sectionFromPath(pathname: string | null): DashRole | null {
   const m = pathname?.match(/^\/dashboard\/([^/]+)/)
@@ -154,7 +164,7 @@ export function sectionFromPath(pathname: string | null): DashRole | null {
 
 /** Dashboards a user of `role` may open (mirrors the role gates in middleware.ts). */
 export function accessibleSections(role: string | undefined): DashRole[] {
-  switch (role) {
+  switch (normaliseRole(role)) {
     case "super-admin":
       return ["super-admin", "admin", "librarian", "teacher", "student"]
     case "admin":

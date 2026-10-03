@@ -6,7 +6,7 @@ import type { User } from "@/store/useAuthStore"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Icon } from "@/components/ui/icon"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { ROLE_LABEL, isDashRole } from "@/lib/nav"
+import { ROLE_LABEL, normaliseRole } from "@/lib/nav"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +34,8 @@ export function UserAvatar({ user, className }: { user?: ShellUser | null; class
 
 /** Avatar dropdown (tablet/desktop): profile, settings, theme, sign out. Phones use the "More" sheet. */
 export function UserMenu({ user, profileHref, onLogout }: { user: ShellUser; profileHref: string; onLogout: () => void }) {
-  const role = isDashRole(user.role) ? ROLE_LABEL[user.role] : user.role
+  const dashRole = normaliseRole(user.role)
+  const role = dashRole ? ROLE_LABEL[dashRole] : user.role
 
   return (
     <DropdownMenu>

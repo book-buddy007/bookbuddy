@@ -17,7 +17,7 @@ import { NotificationBell } from "@/components/shell/notification-bell"
 import { UserAvatar, UserMenu, type ShellUser } from "@/components/shell/user-menu"
 import { MiniPlayerDock } from "@/components/shell/mini-player-dock"
 import { InstallPrompt } from "@/components/pwa/install-prompt"
-import { ROLE_LABEL, accessibleSections, isDashRole, navForRole, sectionFromPath, type DashRole } from "@/lib/nav"
+import { ROLE_LABEL, accessibleSections, navForRole, normaliseRole, sectionFromPath, type DashRole } from "@/lib/nav"
 
 const SECTION_ICON: Record<DashRole, NavItem["icon"]> = {
   student: "read",
@@ -56,7 +56,7 @@ export function AppShellFrame({ children, user, onLogout, section, disableNotifi
   React.useEffect(() => setMoreOpen(false), [pathname])
 
   const chrome = !!user
-  const resolved: DashRole = section ?? sectionFromPath(pathname) ?? (isDashRole(user?.role) ? user.role : "student")
+  const resolved: DashRole = section ?? sectionFromPath(pathname) ?? (normaliseRole(user?.role) ?? "student")
   const nav = navForRole(resolved, { independent: user?.accountType === "INDEPENDENT" })
   const others = accessibleSections(user?.role).filter((s) => s !== resolved)
   const switchItems: NavItem[] = others.map((s) => ({

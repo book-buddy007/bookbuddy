@@ -158,6 +158,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // /dashboard itself has no content of its own (it is where sign-in lands, e.g. after Google):
+  // send each user to their own dashboard.
+  if (pathname === '/dashboard' || pathname === '/dashboard/') {
+    return NextResponse.redirect(new URL(getDashboardForRole(userRole), request.url));
+  }
+
   // ── 6. ROLE-BASED ACCESS ──────────────────────────────────────────────
   for (const [route, allowedRoles] of Object.entries(roleBasedRoutes)) {
     if (pathname.startsWith(route)) {
