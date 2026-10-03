@@ -94,22 +94,30 @@ export const auth = betterAuth({
   }),
 
   user: {
+    // SECURITY: every field here is `input: false`. These are declared so they appear on
+    // session.user, but without `input: false` Better Auth also accepts them from the client on
+    // POST /api/auth/update-user, which let any signed-in user set their own `role` to
+    // SUPER_ADMIN (verified). They are written only by server code (Prisma / the NestJS backend).
     additionalFields: {
       role: {
         type: "string",
         required: false,
+        input: false,
       },
       accountType: {
         type: "string",
         required: false,
+        input: false,
       },
       onboardingCompleted: {
         type: "boolean",
         required: false,
+        input: false,
       },
       onboardingStep: {
         type: "number",
         required: false,
+        input: false,
       },
       // Surfaced so the client can gate the "Start free trial" button and the
       // trial-expiry banner on real state, and so a just-activated trial is
@@ -119,14 +127,17 @@ export const auth = betterAuth({
       subscriptionTier: {
         type: "string",
         required: false,
+        input: false,
       },
       subscriptionStatus: {
         type: "string",
         required: false,
+        input: false,
       },
       trialEndsAt: {
         type: "date",
         required: false,
+        input: false,
       },
     },
   },
