@@ -1,18 +1,21 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-/** The two-circle mark: a cobalt circle overlapped by a glossy blaze one. */
+/**
+ * The two-circle mark: a cobalt circle overlapped (by 46% of the diameter) by a blaze gloss
+ * one with a soft blaze glow.
+ */
 export function BrandMark({ height = 26, className }: { height?: number; className?: string }) {
   const d = height
   return (
     <span aria-hidden className={cn("relative inline-block shrink-0", className)} style={{ width: d * 1.54, height: d }}>
       <span
-        className="absolute left-0 top-0 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,.5)]"
-        style={{ width: d, height: d, background: "linear-gradient(160deg,#4C6FFF 0%,var(--bb-cobalt) 60%)" }}
+        className="absolute left-0 top-0 rounded-full"
+        style={{ width: d, height: d, background: "linear-gradient(160deg,#4C6FFF,#1E3A8A 60%)" }}
       />
       <span
-        className="absolute top-0 rounded-full bg-bb-primary opacity-95 shadow-[inset_0_1px_0_rgba(255,255,255,.6)]"
-        style={{ width: d, height: d, left: d * 0.54 }}
+        className="absolute top-0 rounded-full bg-bb-primary opacity-95"
+        style={{ width: d, height: d, left: d * 0.54, boxShadow: `0 0 ${Math.round(d * 0.64)}px rgba(255,77,0,.45)` }}
       />
     </span>
   )
