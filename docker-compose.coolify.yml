@@ -50,10 +50,12 @@ services:
       # Google sign-in: inert until both are set in Coolify (callback: <APP_URL>/api/auth/callback/google).
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      # One switch for the web app and the API: anyone may create an account. Default closed.
-      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
+      # One switch for the web app and the API: email sign-up (and Google sign-up). Default on; set false in Coolify to close.
+      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-true}
       # Google may CREATE accounts (existing accounts can always sign in with Google). Default on; set false in Coolify to turn off.
       GOOGLE_SIGNUP_ENABLED: ${GOOGLE_SIGNUP_ENABLED:-true}
+      # The platform owner: the only address ever made super-admin, and only after Google verifies it.
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-thevinstitution@gmail.com}
     depends_on:
       postgres:
         condition: service_healthy
@@ -86,14 +88,14 @@ services:
       JWT_REFRESH_EXPIRES_IN: 7d
       OTP_HMAC_SECRET: ${SERVICE_PASSWORD_64_OTP}
       DRM_SECRET_KEY: ${SERVICE_PASSWORD_64_DRM}
-      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@bookbuddy.vinstitution.com}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-thevinstitution@gmail.com}
       # First-run seed (reference data + this super admin). Create-only.
       SEED_ON_BOOT: ${SEED_ON_BOOT:-1}
-      SEED_SUPERADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@bookbuddy.vinstitution.com}
+      SEED_SUPERADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-thevinstitution@gmail.com}
       SEED_SUPERADMIN_PASSWORD: ${SERVICE_PASSWORD_ADMIN}
       SEED_SUPERADMIN_NAME: Super Admin
-      # Same switch as the web service: public sign-up (POST /auth/register, first-time Google). Default closed.
-      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
+      # Same switch as the web service: public sign-up (POST /auth/register, first-time Google). Default on.
+      PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-true}
       # Google may CREATE accounts (existing accounts can always sign in with Google). Default on; set false in Coolify to turn off.
       GOOGLE_SIGNUP_ENABLED: ${GOOGLE_SIGNUP_ENABLED:-true}
       REDIS_URL: redis://redis:6379

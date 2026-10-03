@@ -72,6 +72,18 @@ describe('AuthService public sign-up', () => {
       },
     );
 
+    it('refuses to password-register the reserved owner address', async () => {
+      const { service, prisma } = build('true');
+      const original = (service as any).configService.get;
+      (service as any).configService.get = jest.fn((key: string) =>
+        key === 'SUPER_ADMIN_EMAIL' ? 'Owner@Example.com' : original(key),
+      );
+      await expect(
+        service.register(dto({ email: ' owner@example.com ' })),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(prisma.user.create).not.toHaveBeenCalled();
+    });
+
     it('creates a trial student when explicitly enabled', async () => {
       const { service, prisma } = build('true');
       const result = await service.register(dto());

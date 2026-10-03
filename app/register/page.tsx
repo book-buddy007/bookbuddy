@@ -83,11 +83,11 @@ export default function RegisterPage() {
         <AuthCard
           icon="mail"
           tone="success"
-          title="Check your email"
+          title="Welcome to Book Buddy"
           description={
             <>
-              We sent a verification link to <strong className="text-bb-text">{registeredEmail}</strong>. Verify your
-              email, then sign in.
+              Your account for <strong className="text-bb-text">{registeredEmail}</strong> is ready. Sign in to start
+              reading.
             </>
           }
         >
@@ -132,7 +132,7 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          {/* Email sign-up is closed on the web (Better Auth disableSignUp), so this form only renders if the server says it works; otherwise it could only ever fail. */}
+          {/* Renders only if the server says email sign-up works (PUBLIC_SIGNUP_ENABLED); otherwise it could only ever fail. */}
           {providers.ready && providers.emailSignup && (
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
               <FormField label="Full name" htmlFor="name" error={errors.name?.message}>

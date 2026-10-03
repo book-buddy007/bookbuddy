@@ -74,6 +74,18 @@ export class AuthService {
 
     this.assertPublicSignupOpen();
 
+    // The owner address is claimed only through Google (verified); a password sign-up on it would
+    // let anyone squat the account the owner's Google sign-in later links to.
+    const ownerEmail = this.configService
+      .get<string>('SUPER_ADMIN_EMAIL')
+      ?.trim()
+      .toLowerCase();
+    if (ownerEmail && email.trim().toLowerCase() === ownerEmail) {
+      throw new ForbiddenException(
+        'This address is reserved. Please continue with Google to sign in.',
+      );
+    }
+
     // Anonymous callers can only ever create a trial student. `role` is accepted by the DTO for
     // older clients but any other value is refused; the old "invitation token" for staff roles was
     // only length-checked, never verified, so it is gone. `subscriptionTier` is likewise ignored:

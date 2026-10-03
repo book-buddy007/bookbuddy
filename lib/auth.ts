@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { APIError } from "better-auth/api";
 import { organization } from "better-auth/plugins";
 import { bearer } from "better-auth/plugins";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
@@ -30,10 +31,32 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const GOOGLE_SIGNUP_ENABLED =
   process.env.GOOGLE_SIGNUP_ENABLED === "true" || process.env.PUBLIC_SIGNUP_ENABLED === "true";
 
-// Email + password sign-up is closed on the web (accounts come from an administrator or the
-// identity provider; sign-in stays enabled). Exported so the register page can hide a form that
-// could only ever fail.
-export const EMAIL_SIGNUP_ENABLED = false as boolean;
+// Email + password sign-up follows PUBLIC_SIGNUP_ENABLED (the same switch the NestJS API reads).
+// Exported so the register page can hide a form that could only ever fail.
+export const EMAIL_SIGNUP_ENABLED = process.env.PUBLIC_SIGNUP_ENABLED === "true";
+
+// The platform owner: the ONE address that is made SUPER_ADMIN, and only once Google (or another
+// provider) has proven the person controls it. Nobody else is ever promoted by this code.
+const OWNER_EMAIL = normaliseEmail(process.env.SUPER_ADMIN_EMAIL ?? "");
+const isOwnerEmail = (email: unknown): boolean =>
+  Boolean(OWNER_EMAIL) && typeof email === "string" && normaliseEmail(email) === OWNER_EMAIL;
+
+// Promote the owner's existing account the first time a session is created for it, provided a
+// Google account is linked (i.e. the address is verified). A password-only account is never
+// promoted, so registering the owner's address by email cannot hand anyone the role.
+async function promoteOwnerIfEligible(userId: string): Promise<void> {
+  if (!OWNER_EMAIL) return;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, role: true, accounts: { select: { providerId: true } } },
+  });
+  if (!user || user.role === "SUPER_ADMIN" || !isOwnerEmail(user.email)) return;
+  if (!user.accounts.some((a) => a.providerId === "google")) return;
+  await prisma.user.update({
+    where: { id: userId },
+    data: { role: "SUPER_ADMIN", emailVerified: true },
+  });
+}
 
 const socialProviders =
   GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET
@@ -176,11 +199,8 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    // OIDC-via-Vidyaverse is now the only account-creation path (2026-08-06
-    // identity reset). Sign-IN stays enabled -- the super-admin's break-glass
-    // recovery path and any future password-reset-issued credential still
-    // need it -- only new local sign-ups are blocked. (Google sign-up is a
-    // separate, deliberate exception: GOOGLE_SIGNUP_ENABLED above.)
+    // Email sign-up is open when PUBLIC_SIGNUP_ENABLED=true; it only ever creates a plain
+    // student (role is `input: false`). Sign-in is always enabled.
     disableSignUp: !EMAIL_SIGNUP_ENABLED,
     requireEmailVerification: false,
     password: {
@@ -242,6 +262,16 @@ export const auth = betterAuth({
         // See lib/email-normalise.ts.
         before: async (user) => {
           const email = normaliseEmail((user as { email: string }).email);
+          if (isOwnerEmail(email)) {
+            // The owner's address can only be claimed through a provider that has verified it
+            // (Google). A password sign-up on it is refused so it can't be squatted.
+            if (!(user as { emailVerified?: boolean }).emailVerified) {
+              throw new APIError("FORBIDDEN", {
+                message: "This address is reserved. Please continue with Google to sign in.",
+              });
+            }
+            return { data: { ...user, email, role: "SUPER_ADMIN" } };
+          }
           return { data: { ...user, email } };
         },
       },
@@ -265,6 +295,11 @@ export const auth = betterAuth({
     session: {
       create: {
         after: async (session) => {
+          try {
+            await promoteOwnerIfEligible(session.userId);
+          } catch (err) {
+            console.error("[auth] owner promotion failed:", err);
+          }
           if (!FEDERATION_ENABLED) return;
           try {
             await syncFederatedSession(session.userId);
