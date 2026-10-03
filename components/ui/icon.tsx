@@ -1,28 +1,59 @@
+// Book Buddy icon set v3 — "2b: line + soft fill, glossy active". Data: shared/design/bb-icons.json
+// (the v3 handoff set plus the v2 utility glyphs the handoff does not redraw).
 import * as React from "react"
-import { bbIcons, type BBIconName } from "@/lib/bb-icons"
+import ICONS from "@/shared/design/bb-icons.json"
 
-export type { BBIconName }
+type Glyph = { stroke: string; soft: string; solid: string; hue: "a" | "b" }
+const SET = ICONS as Record<string, Glyph>
+
+/** Old v2 names → v3 glyphs. Keeps legacy call sites rendering while they migrate. */
+const LEGACY: Record<string, string> = {
+  read: "book-open", audiobook: "headphones", sanchika: "flashcards", highlight: "highlighter", goals: "target",
+  contents: "list", streak: "flame", class: "users", profile: "user", subscription: "card", branding: "palette",
+  overdue: "clock", admin: "shield", pdf: "file", edit: "annotate", flashcard: "flashcards", theme: "moon",
+  "shield-check": "shield", x: "close", settings2: "settings",
+}
+
+export type BBIconName = keyof typeof ICONS | keyof typeof LEGACY | (string & {})
+export type IconTone = "line" | "soft" | "active" | "onfill"
 
 export interface IconProps extends Omit<React.SVGProps<SVGSVGElement>, "name" | "ref"> {
   name: BBIconName
   /** Pixel size (width and height). Tailwind `h-* w-*` classes override it. */
   size?: number | string
-  /** Hide the orange fill layer (inactive tab-bar items, disabled states). */
+  /** soft (default) · line · active (accent stroke) · onfill (white, for gradient chips/buttons) */
+  tone?: IconTone
+  /** a = blaze (default), b = cobalt (AI). Defaults per glyph (Varta, sparkles, brain, lightbulb are b). */
+  hue?: "a" | "b"
+  /** Legacy v2 prop: false renders the plain line tone. */
   fillLayer?: boolean
+  strokeWidth?: number
   /** Accessible label. Icons are decorative (aria-hidden) unless a title is given. */
   title?: string
 }
 
 /**
- * The one icon component. Duotone: an accent-orange fill layer at 0.9 opacity under a
- * currentColor stroke (1.8, round caps). Inks follow the surrounding text colour, so
- * light/dark theming comes for free.
+ * The one icon component. A 1.5 stroke in currentColor with a 16% accent fill on the key
+ * shape. Inks follow the surrounding text colour, so light/dark theming comes for free;
+ * the accent reads --ic-accent / --ic-accent-b.
  */
 export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
-  { name, size = 24, fillLayer = true, title, className, ...rest },
+  { name, size = 24, tone, hue, fillLayer, strokeWidth, className, title, style, ...rest },
   ref
 ) {
-  const glyph = bbIcons[name]
+  const g = SET[name as string] ?? SET[LEGACY[name as string] ?? ""]
+  if (!g) {
+    if (process.env.NODE_ENV !== "production") console.warn("[Icon] unknown name:", name)
+    return null
+  }
+  const t: IconTone = tone ?? (fillLayer === false ? "line" : "soft")
+  const h = hue ?? g.hue
+  const acc = h === "b" ? "var(--ic-accent-b, #3B5BDB)" : "var(--ic-accent, #FF4D00)"
+  const px = typeof size === "number" ? size : parseFloat(size)
+  const sw = strokeWidth ?? (px <= 18 ? 1.7 : px >= 40 ? 1.35 : 1.5)
+  const ink = t === "active" ? acc : t === "onfill" ? "#fff" : "currentColor"
+  const softFill = t === "onfill" ? "#fff" : acc
+  const solidFill = t === "line" ? "currentColor" : t === "onfill" ? "#fff" : acc
   return (
     <svg
       ref={ref}
@@ -35,25 +66,22 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
       aria-hidden={title ? undefined : true}
       aria-label={title}
       focusable="false"
+      style={{ display: "block", overflow: "visible", flex: "none", ...style }}
       {...rest}
     >
-      {fillLayer && glyph.fill ? <path d={glyph.fill} fill="var(--bb-accent)" opacity={0.9} /> : null}
-      {glyph.stroke ? (
-        <path
-          d={glyph.stroke}
-          stroke="currentColor"
-          strokeWidth={1.8}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      ) : null}
+      {t !== "line" && g.soft && (
+        <g style={{ fill: softFill }} opacity={t === "onfill" ? 0.24 : 0.16} stroke="none" dangerouslySetInnerHTML={{ __html: g.soft }} />
+      )}
+      {g.stroke && (
+        <g style={{ stroke: ink }} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" fill="none" dangerouslySetInnerHTML={{ __html: g.stroke }} />
+      )}
+      {g.solid && <g style={{ fill: solidFill }} stroke="none" dangerouslySetInnerHTML={{ __html: g.solid }} />}
     </svg>
   )
 })
 
 /** Props accepted by the lucide-compatible wrappers in `components/ui/icons.tsx`. */
-export type CompatIconProps = Omit<IconProps, "name"> & {
+export type CompatIconProps = Omit<IconProps, "name" | "strokeWidth"> & {
   strokeWidth?: number | string
   absoluteStrokeWidth?: boolean
 }

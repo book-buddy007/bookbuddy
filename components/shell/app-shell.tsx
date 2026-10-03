@@ -20,10 +20,10 @@ import { InstallPrompt } from "@/components/pwa/install-prompt"
 import { ROLE_LABEL, accessibleSections, navForRole, normaliseRole, sectionFromPath, type DashRole } from "@/lib/nav"
 
 const SECTION_ICON: Record<DashRole, NavItem["icon"]> = {
-  student: "read",
-  teacher: "class",
+  student: "book-open",
+  teacher: "users",
   librarian: "library",
-  admin: "admin",
+  admin: "shield",
   "super-admin": "institution",
 }
 
