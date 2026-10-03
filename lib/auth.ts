@@ -48,14 +48,21 @@ async function promoteOwnerIfEligible(userId: string): Promise<void> {
   if (!OWNER_EMAIL) return;
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, role: true, accounts: { select: { providerId: true } } },
+    select: { email: true, role: true, emailVerified: true, accounts: { select: { providerId: true } } },
   });
   if (!user || user.role === "SUPER_ADMIN" || !isOwnerEmail(user.email)) return;
-  if (!user.accounts.some((a) => a.providerId === "google")) return;
+  // Verified = Google linked, or the address was already marked verified (e.g. by a Google
+  // sign-up). A password-only, unverified account is never promoted.
+  const verified = user.emailVerified || user.accounts.some((a) => a.providerId === "google");
+  if (!verified) {
+    console.warn("[auth] owner address signed in but is not verified — not promoted (use Google).");
+    return;
+  }
   await prisma.user.update({
     where: { id: userId },
     data: { role: "SUPER_ADMIN", emailVerified: true },
   });
+  console.info(`[auth] owner ${userId} promoted to SUPER_ADMIN`);
 }
 
 const socialProviders =
