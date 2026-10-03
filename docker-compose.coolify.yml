@@ -52,6 +52,8 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       # One switch for the web app and the API: anyone may create an account. Default closed.
       PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
+      # Google may CREATE accounts (existing accounts can always sign in with Google). Default on; set false in Coolify to turn off.
+      GOOGLE_SIGNUP_ENABLED: ${GOOGLE_SIGNUP_ENABLED:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -92,6 +94,8 @@ services:
       SEED_SUPERADMIN_NAME: Super Admin
       # Same switch as the web service: public sign-up (POST /auth/register, first-time Google). Default closed.
       PUBLIC_SIGNUP_ENABLED: ${PUBLIC_SIGNUP_ENABLED:-false}
+      # Google may CREATE accounts (existing accounts can always sign in with Google). Default on; set false in Coolify to turn off.
+      GOOGLE_SIGNUP_ENABLED: ${GOOGLE_SIGNUP_ENABLED:-true}
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
       REDIS_PORT: "6379"

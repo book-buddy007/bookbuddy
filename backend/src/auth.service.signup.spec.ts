@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
  * does not depend on the Nest testing module wiring.
  */
 describe('AuthService public sign-up', () => {
-  const build = (flag?: string) => {
+  const build = (flag?: string, googleFlag?: string) => {
     const prisma = {
       user: {
         create: jest.fn(({ data }) => Promise.resolve({ id: 'u1', ...data })),
@@ -19,9 +19,11 @@ describe('AuthService public sign-up', () => {
       session: { create: jest.fn() },
     };
     const config = {
-      get: jest.fn((key: string) =>
-        key === 'PUBLIC_SIGNUP_ENABLED' ? flag : undefined,
-      ),
+      get: jest.fn((key: string) => {
+        if (key === 'PUBLIC_SIGNUP_ENABLED') return flag;
+        if (key === 'GOOGLE_SIGNUP_ENABLED') return googleFlag;
+        return undefined;
+      }),
     };
     const logger = {
       setContext: jest.fn(),
@@ -159,6 +161,41 @@ describe('AuthService public sign-up', () => {
       expect(prisma.user.create).not.toHaveBeenCalled();
       expect(prisma.session.create).toHaveBeenCalled();
     });
+
+    it('GOOGLE_SIGNUP_ENABLED opens first-time Google sign-in but NOT POST /auth/register', async () => {
+      const { service, prisma } = build(undefined, 'true');
+      (service as any).verifyGoogleIdToken = jest
+        .fn()
+        .mockResolvedValue(googleProfile);
+      prisma.user.findUnique.mockResolvedValue(null);
+      await service.googleSignIn({ idToken: 't' });
+      expect(prisma.user.create.mock.calls[0][0].data).toMatchObject({
+        role: 'STUDENT',
+        accountType: 'INDEPENDENT',
+        subscriptionTier: 'TRIAL',
+      });
+
+      prisma.user.create.mockClear();
+      await expect(service.register(dto())).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+      expect(prisma.user.create).not.toHaveBeenCalled();
+    });
+
+    it.each(['false', 'TRUE', '1', 'yes', ''])(
+      'stays closed when GOOGLE_SIGNUP_ENABLED is %j',
+      async (googleFlag) => {
+        const { service, prisma } = build(undefined, googleFlag);
+        (service as any).verifyGoogleIdToken = jest
+          .fn()
+          .mockResolvedValue(googleProfile);
+        prisma.user.findUnique.mockResolvedValue(null);
+        await expect(
+          service.googleSignIn({ idToken: 't' }),
+        ).rejects.toBeInstanceOf(ForbiddenException);
+        expect(prisma.user.create).not.toHaveBeenCalled();
+      },
+    );
 
     it('creates a student on first Google sign-in only when sign-up is enabled', async () => {
       const { service, prisma } = build('true');

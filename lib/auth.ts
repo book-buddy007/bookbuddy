@@ -22,17 +22,26 @@ const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || "http://localhost:3001";
 // which is the redirect URI that must be authorised in Google Cloud Console.
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-// Accounts here are created by an administrator or the identity provider, so Google may only sign
-// in someone whose verified email already has an account (it links to it). It cannot create new
-// accounts unless PUBLIC_SIGNUP_ENABLED=true, the same switch the NestJS backend uses.
-const PUBLIC_SIGNUP_ENABLED = process.env.PUBLIC_SIGNUP_ENABLED === "true";
+// Whether Google may CREATE accounts (as opposed to signing in people who already have one, which
+// it always may: it links to the account with the same verified email). On when
+// GOOGLE_SIGNUP_ENABLED=true, or when PUBLIC_SIGNUP_ENABLED=true (the broader switch the NestJS
+// backend also reads). Google-created accounts are plain students: role and the other privileged
+// fields are server-side defaults (see `input: false` on the extra user fields below).
+export const GOOGLE_SIGNUP_ENABLED =
+  process.env.GOOGLE_SIGNUP_ENABLED === "true" || process.env.PUBLIC_SIGNUP_ENABLED === "true";
+
+// Email + password sign-up is closed on the web (accounts come from an administrator or the
+// identity provider; sign-in stays enabled). Exported so the register page can hide a form that
+// could only ever fail.
+export const EMAIL_SIGNUP_ENABLED = false as boolean;
+
 const socialProviders =
   GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET
     ? {
         google: {
           clientId: GOOGLE_CLIENT_ID,
           clientSecret: GOOGLE_CLIENT_SECRET,
-          disableSignUp: !PUBLIC_SIGNUP_ENABLED,
+          disableSignUp: !GOOGLE_SIGNUP_ENABLED,
         },
       }
     : {};
@@ -170,8 +179,9 @@ export const auth = betterAuth({
     // OIDC-via-Vidyaverse is now the only account-creation path (2026-08-06
     // identity reset). Sign-IN stays enabled -- the super-admin's break-glass
     // recovery path and any future password-reset-issued credential still
-    // need it -- only new local sign-ups are blocked.
-    disableSignUp: true,
+    // need it -- only new local sign-ups are blocked. (Google sign-up is a
+    // separate, deliberate exception: GOOGLE_SIGNUP_ENABLED above.)
+    disableSignUp: !EMAIL_SIGNUP_ENABLED,
     requireEmailVerification: false,
     password: {
       hash: async (password: string): Promise<string> => {

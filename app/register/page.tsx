@@ -123,7 +123,7 @@ export default function RegisterPage() {
           </>
         }
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+        <div className="flex flex-col gap-5">
           {(error || registerError) && (
             <Alert variant="destructive">
               <Icon name="alert-circle" fillLayer={false} />
@@ -132,54 +132,65 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          <FormField label="Full name" htmlFor="name" error={errors.name?.message}>
-            <Input
-              id="name"
-              type="text"
-              autoComplete="name"
-              placeholder="Your full name"
-              {...register("name")}
-              aria-invalid={errors.name ? "true" : "false"}
-            />
-          </FormField>
+          {/* Email sign-up is closed on the web (Better Auth disableSignUp), so this form only renders if the server says it works; otherwise it could only ever fail. */}
+          {providers.ready && providers.emailSignup && (
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
+              <FormField label="Full name" htmlFor="name" error={errors.name?.message}>
+                <Input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Your full name"
+                  {...register("name")}
+                  aria-invalid={errors.name ? "true" : "false"}
+                />
+              </FormField>
 
-          <FormField label="Email address" htmlFor="email" error={errors.email?.message}>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              {...register("email")}
-              aria-invalid={errors.email ? "true" : "false"}
-            />
-          </FormField>
+              <FormField label="Email address" htmlFor="email" error={errors.email?.message}>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  {...register("email")}
+                  aria-invalid={errors.email ? "true" : "false"}
+                />
+              </FormField>
 
-          <FormField label="Password" htmlFor="password" hint="At least 8 characters." error={errors.password?.message}>
-            <PasswordInput
-              id="password"
-              autoComplete="new-password"
-              placeholder="Create a password"
-              {...register("password")}
-              aria-invalid={errors.password ? "true" : "false"}
-            />
-          </FormField>
+              <FormField label="Password" htmlFor="password" hint="At least 8 characters." error={errors.password?.message}>
+                <PasswordInput
+                  id="password"
+                  autoComplete="new-password"
+                  placeholder="Create a password"
+                  {...register("password")}
+                  aria-invalid={errors.password ? "true" : "false"}
+                />
+              </FormField>
 
-          <AuthButton type="submit" loading={isLoading} loadingText="Creating account…" icon="arrow-right">
-            Create account
-          </AuthButton>
-
-          {/* Only when Google is configured AND the server lets Google create accounts; otherwise it can only sign existing users in (see the login page). */}
-          {providers.google && providers.publicSignup && (
-            <>
-              <AuthDivider>or</AuthDivider>
-
-              <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleSignIn}>
-                <GoogleMark />
-                Sign up with Google
-              </Button>
-            </>
+              <AuthButton type="submit" loading={isLoading} loadingText="Creating account…" icon="arrow-right">
+                Create account
+              </AuthButton>
+            </form>
           )}
-        </form>
+
+          {providers.ready && providers.emailSignup && providers.googleSignup && <AuthDivider>or</AuthDivider>}
+
+          {/* Shown only when Google is configured AND the server lets Google create accounts. */}
+          {providers.ready && providers.googleSignup && (
+            <Button type="button" variant="outline" size="lg" className="w-full" onClick={handleGoogleSignIn}>
+              <GoogleMark />
+              Sign up with Google
+            </Button>
+          )}
+
+          {providers.ready && !providers.emailSignup && (
+            <p className="text-center text-sm text-bb-muted">
+              {providers.googleSignup
+                ? 'Signing up with an email address is by invitation. Ask your institution administrator to create your account.'
+                : 'Accounts are created by your institution administrator. Ask them to add you, then sign in.'}
+            </p>
+          )}
+        </div>
       </AuthCard>
     </AuthBackdrop>
   );

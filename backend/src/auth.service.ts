@@ -52,6 +52,21 @@ export class AuthService {
     }
   }
 
+  /**
+   * First-time Google sign-in creates an account, so it needs its own switch: it opens with
+   * GOOGLE_SIGNUP_ENABLED=true (Google only) or with PUBLIC_SIGNUP_ENABLED=true (everything).
+   * POST /auth/register deliberately ignores GOOGLE_SIGNUP_ENABLED.
+   */
+  private assertGoogleSignupOpen(): void {
+    const googleOnly =
+      this.configService.get<string>('GOOGLE_SIGNUP_ENABLED') === 'true';
+    if (!googleOnly && !this.isPublicSignupEnabled()) {
+      throw new ForbiddenException(
+        'Self-service sign-up is closed. Ask your institution administrator to create your account.',
+      );
+    }
+  }
+
   async register(
     registerDto: RegisterDto,
   ): Promise<{ id: string; email: string; name: string | null }> {
@@ -1273,7 +1288,7 @@ export class AuthService {
 
       if (!user) {
         // Existing users can always sign in with Google; creating a new account is sign-up.
-        this.assertPublicSignupOpen();
+        this.assertGoogleSignupOpen();
 
         // Create new user with Google OAuth
         user = await this.prisma.user.create({
