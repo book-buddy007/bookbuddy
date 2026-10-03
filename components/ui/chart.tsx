@@ -5,6 +5,12 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
 
+/** Bar corner radius for the design system (rounded 9px tops): `<Bar radius={CHART_BAR_RADIUS} />`. */
+export const CHART_BAR_RADIUS: [number, number, number, number] = [9, 9, 0, 0]
+
+// Series colours live in the --chart-1..5 tokens: cobalt 600, cobalt 300, navy 700, blaze (the
+// highlighted series), slate. Use `hsl(var(--chart-n))`.
+
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 

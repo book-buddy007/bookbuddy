@@ -2,8 +2,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { BookCover } from "@/components/ui/book-cover"
 import { Progress } from "@/components/ui/progress"
-import { Chip } from "@/components/ui/chip"
-import type { BBIconName } from "@/components/ui/icon"
+import { Icon, type BBIconName } from "@/components/ui/icon"
 
 export interface BookListCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: string
@@ -12,12 +11,12 @@ export interface BookListCardProps extends Omit<React.HTMLAttributes<HTMLDivElem
   coverUrl?: string | null
   /** 0–100. Omit to hide the progress bar. */
   progress?: number
-  formats?: { label: string; icon?: BBIconName }[]
-  /** Adds hover lift + focus ring for cards that open something. */
+  formats?: { label: string; icon?: BBIconName; /** `ai` renders the Varta chip in info-soft. */ tone?: "ai" }[]
+  /** Adds the card-hover lift + focus ring for cards that open something. */
   interactive?: boolean
 }
 
-/** Design-system book card: white, radius 18, padding 16, cover 84x124 beside the details. */
+/** Design-system book card: surface, radius 24, padding 16, cover beside the details, format chips and a 6px blaze progress bar. */
 export function BookListCard({
   title,
   publisher,
@@ -32,7 +31,7 @@ export function BookListCard({
   return (
     <div
       className={cn(
-        "flex gap-4 rounded-[18px] bg-bb-surface p-4 shadow-e1",
+        "flex gap-4 rounded-[24px] bg-bb-surface p-4 shadow-e1",
         interactive && "bb-lift cursor-pointer focus-visible:outline-none focus-visible:shadow-focus",
         className
       )}
@@ -50,11 +49,18 @@ export function BookListCard({
           </div>
         )}
         {formats && formats.length > 0 && (
-          <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
+          <div className="mt-auto flex flex-wrap gap-1 pt-3">
             {formats.map((f) => (
-              <Chip key={f.label} icon={f.icon}>
+              <span
+                key={f.label}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold",
+                  f.tone === "ai" ? "bg-bb-info-soft text-bb-info-ink" : "bg-bb-surface-2 text-bb-text"
+                )}
+              >
+                {f.icon && <Icon name={f.icon} size={12} hue={f.tone === "ai" ? "b" : undefined} />}
                 {f.label}
-              </Chip>
+              </span>
             ))}
           </div>
         )}

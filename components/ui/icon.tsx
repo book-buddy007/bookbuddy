@@ -17,6 +17,10 @@ const LEGACY: Record<string, string> = {
 export type BBIconName = keyof typeof ICONS | keyof typeof LEGACY | (string & {})
 export type IconTone = "line" | "soft" | "active" | "onfill"
 
+// Gradient surfaces (primary/cobalt buttons) turn every glyph inside them white without each call
+// site passing tone="onfill": they set --ic-soft / --ic-soft-o / --ic-solid, which the soft layers
+// below read (falling back to the accent colours).
+
 export interface IconProps extends Omit<React.SVGProps<SVGSVGElement>, "name" | "ref"> {
   name: BBIconName
   /** Pixel size (width and height). Tailwind `h-* w-*` classes override it. */
@@ -52,8 +56,8 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
   const px = typeof size === "number" ? size : parseFloat(size)
   const sw = strokeWidth ?? (px <= 18 ? 1.7 : px >= 40 ? 1.35 : 1.5)
   const ink = t === "active" ? acc : t === "onfill" ? "#fff" : "currentColor"
-  const softFill = t === "onfill" ? "#fff" : acc
-  const solidFill = t === "line" ? "currentColor" : t === "onfill" ? "#fff" : acc
+  const softFill = t === "onfill" ? "#fff" : `var(--ic-soft, ${acc})`
+  const solidFill = t === "line" ? "currentColor" : t === "onfill" ? "#fff" : `var(--ic-solid, ${acc})`
   return (
     <svg
       ref={ref}
@@ -70,7 +74,7 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(function Icon(
       {...rest}
     >
       {t !== "line" && g.soft && (
-        <g style={{ fill: softFill }} opacity={t === "onfill" ? 0.24 : 0.16} stroke="none" dangerouslySetInnerHTML={{ __html: g.soft }} />
+        <g style={{ fill: softFill, opacity: t === "onfill" ? 0.24 : "var(--ic-soft-o, 0.16)" }} stroke="none" dangerouslySetInnerHTML={{ __html: g.soft }} />
       )}
       {g.stroke && (
         <g style={{ stroke: ink }} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" fill="none" dangerouslySetInnerHTML={{ __html: g.stroke }} />

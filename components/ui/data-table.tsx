@@ -15,6 +15,33 @@ export interface DataColumn<T> {
   className?: string
 }
 
+/** 36px gradient initials tile for a name column (blaze, cobalt, navy …). */
+export function AvatarTile({
+  initials,
+  tone = "blaze",
+  className,
+}: {
+  initials: string
+  tone?: "blaze" | "cobalt" | "periwinkle" | "navy"
+  className?: string
+}) {
+  const bg = {
+    blaze: "linear-gradient(160deg,#FF8A3D,#D93A00)",
+    cobalt: "linear-gradient(160deg,#4C6FFF,#1E3A8A)",
+    periwinkle: "linear-gradient(160deg,#7D97FF,#3B5BDB)",
+    navy: "linear-gradient(160deg,#16224A,#0A0F24)",
+  }[tone]
+  return (
+    <span
+      aria-hidden
+      className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[13px] font-extrabold text-white", className)}
+      style={{ background: bg }}
+    >
+      {initials}
+    </span>
+  )
+}
+
 export interface DataTableProps<T> {
   columns: DataColumn<T>[]
   rows: T[]
@@ -30,12 +57,18 @@ export interface DataTableProps<T> {
   emptyDescription?: string
   emptyIcon?: BBIconName
   emptyAction?: React.ReactNode
+  /** Toolbar title and count pill above the header strip. */
+  title?: React.ReactNode
+  count?: number | string
+  /** Toolbar slot, right-aligned: a filter pill, search field or actions. */
+  toolbar?: React.ReactNode
   className?: string
 }
 
 /**
- * Standard data table. Header strip on cloud, 12px uppercase labels, 14px rows with 1px
- * dividers and a quiet hover. Always put status in a column rendered with <StatusBadge>.
+ * Standard data table in a radius-26 card. Optional toolbar (title, count pill, filter slot), header
+ * strip on cloud, 12px uppercase labels, 14px rows with 1px dividers and a quiet hover. Always put
+ * status in a column rendered with <StatusBadge> (status dot included).
  * Scrolls horizontally inside its card on narrow screens instead of squashing columns.
  */
 export function DataTable<T>({
@@ -51,6 +84,9 @@ export function DataTable<T>({
   emptyDescription,
   emptyIcon = "library",
   emptyAction,
+  title,
+  count,
+  toolbar,
   className,
 }: DataTableProps<T>) {
   const colCount = columns.length + (renderActions ? 1 : 0)
@@ -60,7 +96,16 @@ export function DataTable<T>({
   }
 
   return (
-    <div className={cn("overflow-hidden rounded-bb-lg bg-bb-surface shadow-e1", className)}>
+    <div className={cn("overflow-hidden rounded-bb-card bg-bb-surface shadow-e1", className)}>
+      {(title || count !== undefined || toolbar) && (
+        <div className="flex flex-wrap items-center gap-2.5 border-b border-bb-border px-5 py-4">
+          {title && <span className="font-bold">{title}</span>}
+          {count !== undefined && (
+            <span className="rounded-full bg-bb-surface-2 px-[9px] py-0.5 text-xs font-bold">{count}</span>
+          )}
+          {toolbar && <div className="ml-auto flex items-center gap-2">{toolbar}</div>}
+        </div>
+      )}
       <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow className="hover:bg-transparent">

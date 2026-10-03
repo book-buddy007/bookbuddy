@@ -1,13 +1,14 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { cardVariants } from "@/components/ui/card"
 
 /**
- * Legacy API, new look: white card, radius 22, elevation e1. Hover lift (the design system's
- * -10px / 6deg tilt) now applies only to `interactive` cards — dashboards stay still.
- * Variant names are kept so existing pages compile; they map onto the new surfaces.
+ * Legacy API, new look: white card, radius 26, elevation e1. `interactive` cards lift 2px with
+ * the card-hover shadow — dashboards otherwise stay still. Variant names are kept so existing
+ * pages compile; they map onto the new surfaces, and `stage` / `ai` are the featured ones.
  */
-const enhancedCardVariants = cva("rounded-bb-lg transition-[transform,box-shadow] duration-bb-ui ease-bb", {
+const enhancedCardVariants = cva("rounded-bb-card transition-[transform,box-shadow] duration-300 ease-bb", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground shadow-e1",
@@ -16,7 +17,9 @@ const enhancedCardVariants = cva("rounded-bb-lg transition-[transform,box-shadow
       ghost: "bg-transparent",
       cultural: "bg-bb-accent-soft text-bb-text",
       glass: "border border-bb-border bg-bb-surface/70 backdrop-blur",
-      gradient: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
+      gradient: "bg-bb-navy text-white shadow-navy",
+      stage: cardVariants({ variant: "stage" }).replace("rounded-bb-card ", ""),
+      ai: cardVariants({ variant: "ai" }).replace("rounded-bb-card ", ""),
     },
     padding: {
       none: "p-0",
@@ -26,7 +29,7 @@ const enhancedCardVariants = cva("rounded-bb-lg transition-[transform,box-shadow
       xl: "p-10",
     },
     interactive: {
-      true: "bb-lift cursor-pointer",
+      true: "cursor-pointer motion-safe:hover:-translate-y-0.5 hover:shadow-card-hover",
       false: "",
     },
   },

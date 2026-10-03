@@ -8,7 +8,13 @@ import { cn } from "@/lib/utils"
  * Book Buddy button. Pill-shaped, three heights (lg 52 / md 44 / sm 36), motion per
  * the design system: hover lifts 2px, press sinks 1px, 120ms micro transition.
  * Hit area never drops under 44px on touch devices.
+ *
+ * Blaze means action, cobalt means AI: `default`/`primary` is the blaze gloss (at most one per
+ * view), `cobalt` is for Varta/Sanchika, `soft` (alias `outline`) is the quiet surface button.
  */
+// Glyphs on a gradient/solid fill render white (the "onfill" icon tone) via these Icon variables.
+const ON_FILL = "[--ic-soft:#fff] [--ic-soft-o:.24] [--ic-solid:#fff]"
+
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold",
@@ -22,18 +28,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // primary: glossy blaze
-        default: "bg-bb-primary text-white shadow-gloss",
-        primary: "bg-bb-primary text-white shadow-gloss",
+        default: `bg-bb-primary text-white shadow-glow-blaze ${ON_FILL}`,
+        primary: `bg-bb-primary text-white shadow-glow-blaze ${ON_FILL}`,
+        // AI: glossy cobalt (Varta, Sanchika)
+        cobalt: `bg-bb-grad-cobalt text-white shadow-glow-cobalt ${ON_FILL}`,
         // secondary: navy gradient
-        secondary: "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]",
-        outline: "border-[1.5px] border-foreground bg-transparent text-foreground hover:bg-bb-surface-2",
-        ghost: "bg-transparent text-bb-cobalt hover:bg-bb-surface-2 dark:text-bb-text",
+        secondary: `bg-bb-navy text-white shadow-navy ${ON_FILL}`,
+        // soft: surface + e1 + 1px inset border (replaces the 1.5px ink outline)
+        soft: "bg-bb-surface text-bb-text shadow-[var(--bb-shadow-e1),inset_0_0_0_1px_var(--bb-border)] hover:bg-bb-surface-2",
+        outline: "bg-bb-surface text-bb-text shadow-[var(--bb-shadow-e1),inset_0_0_0_1px_var(--bb-border)] hover:bg-bb-surface-2",
+        ghost: "bg-transparent text-bb-info-ink hover:bg-bb-surface-2",
         // solid danger for destructive confirmations
-        destructive: "bg-bb-danger text-white hover:brightness-95",
+        destructive: `bg-bb-danger text-white hover:brightness-95 ${ON_FILL}`,
         // soft orange-tinted action (design-system "danger-soft"), radius 10
-        "danger-soft": "rounded-bb-sm bg-bb-accent-soft text-bb-accent-ink hover:brightness-95",
+        "danger-soft": "rounded-[12px] bg-bb-accent-soft text-bb-accent-ink hover:brightness-95",
         // semantic fills used by legacy call sites (success is the only green in the system)
-        success: "bg-bb-success text-white hover:brightness-95",
+        success: `bg-bb-success text-white hover:brightness-95 ${ON_FILL}`,
         warning: "bg-bb-warning text-bb-ink hover:brightness-95",
         glass: "border border-bb-border bg-bb-surface/70 text-bb-text backdrop-blur hover:bg-bb-surface",
         link: "rounded-none px-0 text-bb-accent underline-offset-4 hover:underline motion-safe:hover:translate-y-0",

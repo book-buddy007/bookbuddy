@@ -10,18 +10,21 @@ export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   action?: React.ReactNode
 }
 
-/** Dashed 1.5px container, centred 40px icon. Used for every empty list and "no results". */
+/** Halo (blaze glow + dashed ring) around a 52px surface tile holding a soft icon. Used for every empty list and "no results". */
 export function EmptyState({ icon = "library", title, description, action, className, ...props }: EmptyStateProps) {
   return (
     <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-bb-border px-6 py-12 text-center",
-        className
-      )}
+      className={cn("flex flex-col items-center justify-center gap-2 rounded-bb-card px-6 py-12 text-center", className)}
       {...props}
     >
-      <Icon name={icon} size={40} />
-      <h3 className="mt-2 text-lg font-semibold">{title}</h3>
+      <span aria-hidden className="relative flex h-[88px] w-[88px] items-center justify-center">
+        <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(255,77,0,.16),transparent_70%)]" />
+        <span className="absolute inset-2.5 rounded-full border-[1.5px] border-dashed border-bb-border" />
+        <span className="relative flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-bb-surface shadow-e1">
+          <Icon name={icon} size={26} />
+        </span>
+      </span>
+      <h3 className="mt-1 text-[17px] font-bold">{title}</h3>
       {description && <p className="max-w-sm text-sm text-bb-muted">{description}</p>}
       {action && <div className="mt-3">{action}</div>}
     </div>

@@ -16,14 +16,16 @@ interface SegmentedProps<T extends string> {
   /** md = 36px segments, sm = 32px. */
   size?: "sm" | "md"
   fullWidth?: boolean
+  /** surface (default): the active segment is a surface pill. navy: the reader mode switch. */
+  tone?: "surface" | "navy"
   className?: string
   "aria-label"?: string
 }
 
 /**
- * Segmented control: surface-2 pill track, active segment is the navy gradient with
- * white text. For switching a single view state (Read / PDF / Listen, speed, theme).
- * Use Tabs when the segments each own a panel.
+ * Segmented control: surface-2 pill track, active segment is a surface pill with a small
+ * shadow (`tone="navy"` keeps the navy gradient for the reader mode switch). For switching a
+ * single view state (Read / PDF / Listen, speed, theme). Use Tabs when the segments each own a panel.
  */
 export function Segmented<T extends string>({
   options,
@@ -31,6 +33,7 @@ export function Segmented<T extends string>({
   onValueChange,
   size = "md",
   fullWidth,
+  tone = "surface",
   className,
   ...rest
 }: SegmentedProps<T>) {
@@ -56,12 +59,14 @@ export function Segmented<T extends string>({
             onClick={() => onValueChange(o.value)}
             className={cn(
               "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 text-sm font-semibold",
-              "transition-[background-color,color,box-shadow] duration-bb-micro focus-visible:outline-none focus-visible:shadow-focus",
+              "transition-[background-color,color,box-shadow] duration-bb-ui focus-visible:outline-none focus-visible:shadow-focus",
               "disabled:pointer-events-none disabled:opacity-50 [@media(pointer:coarse)]:min-h-10",
               size === "md" ? "h-9" : "h-8 px-3 text-[13px]",
               fullWidth && "flex-1",
               active
-                ? "bg-bb-navy text-white shadow-[var(--bb-shadow-navy)]"
+                ? tone === "navy"
+                  ? "bg-bb-navy text-white shadow-navy"
+                  : "bg-bb-surface text-bb-text shadow-[0_1px_0_var(--bb-border),0_6px_14px_-8px_rgba(10,15,36,.4)]"
                 : "text-bb-muted hover:text-bb-text"
             )}
           >

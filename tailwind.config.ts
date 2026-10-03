@@ -276,7 +276,7 @@ const config: Config = {
 			backgroundImage: {
 				'bb-primary': 'var(--bb-grad-primary)', 'bb-navy': 'var(--bb-grad-navy)',
 				'bb-progress': 'var(--bb-grad-progress)', 'bb-orb': 'var(--bb-varta-orb)',
-				'bb-cobalt': 'var(--bb-grad-cobalt)', 'bb-stage': 'var(--bb-grad-stage)', 'bb-ai': 'var(--bb-grad-ai-card)', 'bb-ring': 'var(--bb-grad-ring)',
+				'bb-grad-cobalt': 'var(--bb-grad-cobalt)', 'bb-stage': 'var(--bb-grad-stage)', 'bb-ai': 'var(--bb-grad-ai-card)', 'bb-ring': 'var(--bb-grad-ring)',
 			},
 			transitionTimingFunction: { bb: 'cubic-bezier(.2,.8,.2,1)', spring: 'cubic-bezier(.3,1.5,.5,1)' },
 			transitionDuration: { 'bb-micro': '120ms', 'bb-ui': '240ms' },

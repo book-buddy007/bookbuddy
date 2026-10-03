@@ -169,7 +169,7 @@ export default function TeacherDashboard() {
                   <XAxis dataKey="month" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} width={32} />
                   <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                  <Bar dataKey="books" fill="var(--color-books)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="books" fill="var(--color-books)" radius={[9, 9, 0, 0]} />
                 </BarChart>
               </ChartContainer>
             </section>

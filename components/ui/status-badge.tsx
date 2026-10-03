@@ -2,7 +2,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Status is always shown with this component. 28px tall, radius 8, 13px/600, 7px dot.
+ * Status is always shown with this component. 28px tall pill, 13px/600, 7px dot.
  * Green is reserved for "returned"/success; there is no lime anywhere in the system.
  */
 export type BBStatus = "returned" | "due-soon" | "overdue" | "pending" | "reserved"
@@ -36,7 +36,7 @@ export function StatusBadge({ status, label, className, ...props }: StatusBadgeP
   const s = STATUS[key]
   return (
     <span
-      className={cn("inline-flex h-7 items-center gap-[7px] rounded-lg px-3 text-[13px] font-semibold", s.cls, className)}
+      className={cn("inline-flex h-7 items-center gap-[7px] rounded-full px-3 text-[13px] font-semibold", s.cls, className)}
       {...props}
     >
       <span aria-hidden className={cn("h-[7px] w-[7px] rounded-full", s.dot)} />

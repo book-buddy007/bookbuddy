@@ -184,8 +184,8 @@ export default function AdminAnalyticsPage() {
                   <YAxis tickLine={false} axisLine={false} width={36} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
-                  <Bar dataKey="actions" fill="var(--color-actions)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="visitors" fill="var(--color-visitors)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="actions" fill="var(--color-actions)" radius={[9, 9, 0, 0]} />
+                  <Bar dataKey="visitors" fill="var(--color-visitors)" radius={[9, 9, 0, 0]} />
                 </BarChart>
               </ChartContainer>
             </ChartSection>

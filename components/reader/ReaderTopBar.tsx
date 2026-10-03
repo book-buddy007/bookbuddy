@@ -59,6 +59,7 @@ export function ReaderTopBar({
         {modes.length > 1 && (
           <Segmented<ReaderMode>
             aria-label="Reading mode"
+            tone="navy"
             value={mode}
             onValueChange={onMode}
             options={modes.map((m) => ({ value: m, label: MODE_LABEL[m] }))}

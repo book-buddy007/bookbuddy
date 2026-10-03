@@ -87,10 +87,11 @@
   --ring: 18 100% 50%;
   --radius: 14px;
   /* charts: navy/cobalt series, orange is the highlight series. No rainbow. */
+  /* series: cobalt 600, cobalt 300, navy 700; chart-4 is blaze, reserved for the highlighted series */
   --chart-1: 228 69% 55%;
-  --chart-2: 18 100% 50%;
-  --chart-3: 224 64% 33%;
-  --chart-4: 228 100% 68%;
+  --chart-2: 228 100% 79%;
+  --chart-3: 224 51% 24%;
+  --chart-4: 18 100% 50%;
   --chart-5: 223 23% 64%;
   --sidebar-background: 0 0% 100%;
   --sidebar-foreground: 228 57% 9%;
@@ -134,9 +135,9 @@
   --input: 225 34% 25%;
   --ring: 19 100% 53%;
   --chart-1: 228 100% 75%;
-  --chart-2: 19 100% 53%;
-  --chart-3: 228 69% 55%;
-  --chart-4: 223 29% 74%;
+  --chart-2: 228 69% 55%;
+  --chart-3: 223 29% 74%;
+  --chart-4: 19 100% 53%;
   --chart-5: 223 23% 64%;
   --sidebar-background: 225 48% 14%;
   --sidebar-foreground: 220 30% 96%;
@@ -212,8 +213,8 @@ a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .bb-lift { transition: transform 350ms var(--bb-ease), box-shadow 350ms var(--bb-ease); }
-  .bb-lift:hover { transform: translateY(-10px) rotateX(6deg); box-shadow: var(--bb-shadow-e2); }
+  .bb-lift { transition: transform 300ms var(--bb-ease), box-shadow 300ms var(--bb-ease); }
+  .bb-lift:hover { transform: translateY(-2px); box-shadow: var(--bb-shadow-card-hover); }
 }
 
 /* ---- Accessibility preferences (Settings → Accessibility, applied by A11yPreferences) ----
