@@ -14,7 +14,7 @@
   --bb-cobalt-mid: #2B4FD0; --bb-cobalt-glow: #4C6FFF; --bb-blaze-soft: #FF9A55; --bb-blaze-deep: #C23400; --bb-peach: #FFB37A; --bb-peach-light: #FFC58A; --bb-paper-line: #DCE1EA;
   /* semantic (light) */
   --bb-bg: #F2F4F8; --bb-surface: #FFFFFF; --bb-surface-2: #E6EAF1; --bb-border: #DCE1EA;
-  --bb-text: #0A0F24; --bb-text-muted: #4A5470; --bb-text-faint: #8E9AB8;
+  --bb-text: #0A0F24; --bb-text-muted: #4A5470; --bb-text-faint: #5F6B8C;
   --bb-accent: #FF4D00; --bb-accent-soft: #FFE7DC; --bb-accent-ink: #B83300;
   --bb-info: #3B5BDB; --bb-info-soft: #DCE8FF; --bb-info-ink: #1E3A8A;
   --bb-success: #12B85A; --bb-success-soft: #DDF8E6; --bb-success-ink: #0B7A3B;
@@ -205,10 +205,13 @@ a { color: inherit; }
   box-shadow: var(--bb-focus-ring);
   border-color: var(--bb-accent);
 }
-/* Elements that are not boxes (links, icons) fall back to an outline. */
+/* Links, tabs and icon-only buttons get a 2px blaze outline, 2px off the edge. It is !important
+   because components that draw their own ring (focus-visible:outline-none) must still show it. */
+a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible, button[aria-label]:focus-visible {
+  outline: 2px solid var(--bb-accent) !important;
+  outline-offset: 2px !important;
+}
 a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
-  outline: 2px solid var(--bb-accent);
-  outline-offset: 2px;
   box-shadow: none;
 }
 

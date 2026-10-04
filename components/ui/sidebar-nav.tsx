@@ -127,7 +127,7 @@ export function SidebarNav({ items, onNavigate, heading, variant = "full", class
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex h-10 items-center gap-3 rounded-[14px] px-2.5 text-sm font-semibold text-bb-muted",
+              "flex h-10 items-center gap-3 rounded-[14px] px-2.5 text-sm font-semibold text-bb-muted [@media(pointer:coarse)]:h-11",
               "transition-colors duration-bb-micro hover:bg-bb-surface-2 hover:text-bb-text",
               focusRing
             )}

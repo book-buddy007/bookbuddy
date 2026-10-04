@@ -56,7 +56,7 @@ export function LandingNav() {
             type="button"
             onClick={() => setTheme(dark ? "light" : "dark")}
             aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
-            className={`flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/[.14] bg-white/5 ${pill}`}
+            className={`flex h-11 w-11 items-center justify-center rounded-full border border-white/[.14] bg-white/5 ${pill}`}
           >
             <Icon name={dark ? "sun" : "moon"} size={20} />
           </button>
@@ -75,7 +75,7 @@ export function LandingNav() {
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="landing-menu"
-            className={`flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/[.14] bg-white/5 md:hidden ${pill}`}
+            className={`flex h-11 w-11 items-center justify-center rounded-full border border-white/[.14] bg-white/5 md:hidden ${pill}`}
           >
             <Icon name={open ? "close" : "menu"} size={20} tone="line" />
           </button>

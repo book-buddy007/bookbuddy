@@ -84,7 +84,7 @@ export function AskVartaCard({ bookId, index = 0 }: { bookId?: string; index?: n
           <Link
             key={c}
             href={href}
-            className="flex h-[34px] items-center rounded-full border border-white/[.22] bg-white/[.14] px-3.5 text-[13px] font-semibold transition-colors hover:bg-white/[.22] focus-visible:outline-none focus-visible:shadow-focus"
+            className="flex h-[34px] items-center rounded-full border border-white/[.22] bg-white/[.14] px-3.5 text-[13px] font-semibold [@media(pointer:coarse)]:min-h-11 transition-colors hover:bg-white/[.22] focus-visible:outline-none focus-visible:shadow-focus"
           >
             {c}
           </Link>

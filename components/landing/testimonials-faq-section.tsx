@@ -70,11 +70,11 @@ export function TestimonialsFaqSection() {
                 onClick={() => setQ(i)}
                 aria-label={`Show quote from ${item.who}`}
                 aria-current={i === q}
-                className="h-1 flex-1 overflow-hidden rounded bg-bb-border p-0 focus-visible:outline-none focus-visible:shadow-focus [@media(pointer:coarse)]:h-3"
+                className="relative h-1 flex-1 rounded bg-bb-border p-0 before:absolute before:inset-x-0 before:-inset-y-5 before:content-[''] focus-visible:outline-none focus-visible:shadow-focus"
               >
                 <span
                   key={i === q ? `a${q}` : `i${i}`}
-                  className="block h-full bg-[linear-gradient(90deg,#FFB37A,#FF4D00)]"
+                  className="block h-full rounded bg-[linear-gradient(90deg,#FFB37A,#FF4D00)]"
                   style={{
                     width: i <= q || reduced ? "100%" : "0%",
                     animation: i === q && !reduced && !paused ? `bbfill ${ROTATE_MS}ms linear` : undefined,
@@ -83,7 +83,7 @@ export function TestimonialsFaqSection() {
               </button>
             ))}
           </div>
-          <span className="text-[13px] text-bb-faint">Illustrative voices from design-partner interviews.</span>
+          <span className="text-[13px] text-bb-muted">Illustrative voices from design-partner interviews.</span>
         </div>
 
         <div className="flex flex-col">
