@@ -96,7 +96,7 @@ export function ContinueReadingCard({
           <div className="flex items-center gap-3">
             <span className="h-2 flex-1 overflow-hidden rounded-full bg-white/[.12]">
               <span
-                className="block h-full rounded-full bg-[linear-gradient(90deg,#FF8A3D,#FF4D00)] shadow-[0_0_12px_rgba(255,77,0,.7)] transition-[width] duration-[1200ms] delay-300 ease-bb"
+                className="block h-full rounded-full bg-[linear-gradient(90deg,#FF8A3D,#FF4D00)] shadow-[0_0_12px_rgba(255,77,0,.7)] transition-[width] [transition-duration:1200ms] delay-300 ease-bb"
                 style={{ width: entered ? `${pct}%` : "0%" }}
               />
             </span>

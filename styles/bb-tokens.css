@@ -278,17 +278,22 @@ a:focus-visible, [role="tab"]:focus-visible, summary:focus-visible {
   --ic-accent: #FF4D00; --ic-accent-b: #3B5BDB;
   /* overlay */
   --bb-scrim: rgba(10,15,36,.45);
+  /* landing: soft card shadow used over the sky and night sections */
+  --bb-sh1: 0 1px 0 rgba(10,15,36,.06), 0 24px 48px -28px rgba(10,15,36,.38);
 }
 [data-theme="dark"], .dark{
   --bb-shadow-card-hover: 0 1px 0 var(--bb-border), 0 30px 50px -24px rgba(0,0,0,.9);
   --bb-glass-surface: rgba(18,26,51,.72);
   --ic-accent: #FF6A26; --ic-accent-b: #7D97FF;
   --bb-scrim: rgba(3,5,14,.6);
+  --bb-sh1: 0 1px 0 rgba(255,255,255,.04), 0 24px 48px -28px rgba(0,0,0,.8);
 }
 
 @keyframes bbwave { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
 @keyframes bbfadeup { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes bbspin { to { transform: rotate(360deg); } }
+@keyframes bbfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes bbfill { from { width: 0%; } to { width: 100%; } }
 @keyframes bbtype { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 /* Cards enter with a fade-up (18px, 800ms); stagger with style="animation-delay: calc(var(--i) * var(--bb-stagger))". */
 .bb-enter { animation: bbfadeup var(--bb-dur-enter, 800ms) var(--bb-ease, cubic-bezier(.2,.8,.2,1)) backwards; animation-delay: calc(var(--i, 0) * var(--bb-stagger, 60ms)); }

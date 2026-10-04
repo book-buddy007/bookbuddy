@@ -247,7 +247,7 @@ export function AppShellFrame({ children, user, onLogout, section, disableNotifi
           "relative z-[1]",
           chrome && "md:pl-20",
           chrome && (collapsed ? "lg:pl-20" : "lg:pl-[272px]"),
-          chrome && animate && "md:transition-[padding-left] md:duration-[240ms] md:ease-bb"
+          chrome && animate && "md:transition-[padding-left] md:[transition-duration:240ms] md:ease-bb"
         )}
       >
         {chrome && user && (

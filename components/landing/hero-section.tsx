@@ -5,10 +5,9 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { landing } from "@/shared/design/content"
-import { LandingNav } from "@/components/landing/landing-nav"
 import { Hero3D } from "@/components/landing/hero-3d"
 
-/** Navy hero: grid + glow, headline, CTAs, the Read/Listen indicator and the 3D book → headphones scene. */
+/** Navy hero: grid + glow, headline, CTAs, the Read/Listen indicator and the 3D book → headphones scene (kept as-is, re-tinted). */
 export function HeroSection() {
   const [listening, setListening] = React.useState(false)
 
@@ -16,10 +15,9 @@ export function HeroSection() {
     <section
       className="relative overflow-hidden bg-bb-ink text-white [background-image:linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:56px_56px]"
     >
-      <div aria-hidden className="pointer-events-none absolute -right-32 top-20 h-[820px] w-[820px] rounded-full [background:radial-gradient(circle,rgba(255,77,0,0.32)_0%,rgba(30,58,138,0.28)_40%,transparent_70%)]" />
-      <LandingNav />
+      <div aria-hidden className="pointer-events-none absolute -right-40 -top-10 h-[860px] w-[860px] rounded-full [background:radial-gradient(circle,rgba(255,77,0,0.30)_0%,rgba(59,91,219,0.26)_42%,transparent_70%)]" />
 
-      <div className="relative mx-auto grid max-w-[1360px] items-center gap-6 px-5 pb-16 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(724px,54%))] lg:px-16 lg:pb-20 lg:pt-10">
+      <div className="relative mx-auto grid max-w-[1360px] grid-cols-[minmax(0,1fr)] items-center gap-6 px-5 pb-16 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(724px,54%))] lg:px-16 lg:pb-24 lg:pt-14">
         <div className="flex min-w-0 flex-col gap-7">
           <span className="inline-flex h-[34px] items-center gap-2 self-start whitespace-nowrap rounded-full border border-bb-night-line bg-white/[0.04] px-4 text-sm text-bb-dim">
             <span aria-hidden className="h-2 w-2 rounded-full bg-bb-accent shadow-[0_0_12px_var(--bb-blaze)]" />
@@ -34,7 +32,7 @@ export function HeroSection() {
             <Button asChild size="lg" className="h-[58px] px-[30px] text-[17px]">
               <Link href="/register">Book a Demo</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-[58px] border-bb-night-line-2 px-[30px] text-[17px] text-white hover:bg-white/10">
+            <Button asChild size="lg" variant="ghost" className="h-[58px] border border-white/20 bg-white/[0.04] px-[30px] text-[17px] font-semibold text-[#F2F4F8] hover:bg-white/10 hover:text-white">
               <Link href="/catalog">Explore Guest Library</Link>
             </Button>
           </div>

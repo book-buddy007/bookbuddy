@@ -102,7 +102,7 @@ export function SidebarNav({ items, onNavigate, heading, variant = "full", class
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl",
-                "transition-[background-color,box-shadow,transform] duration-[250ms] ease-bb",
+                "transition-[background-color,box-shadow,transform] [transition-duration:250ms] ease-bb",
                 focusRing,
                 active
                   ? cn(item.ai ? NAV_GLOSS.ai : NAV_GLOSS.blaze, "scale-[1.04]")
@@ -156,7 +156,7 @@ export function SidebarNav({ items, onNavigate, heading, variant = "full", class
             aria-current={active ? "page" : undefined}
             className={cn(
               "relative flex h-11 items-center gap-3 rounded-[14px] px-2.5 text-[15px]",
-              "transition-[background-color,box-shadow,color] duration-[250ms] ease-bb",
+              "transition-[background-color,box-shadow,color] [transition-duration:250ms] ease-bb",
               focusRing,
               active
                 ? cn(item.ai ? NAV_GLOSS.ai : NAV_GLOSS.blaze, "font-bold")

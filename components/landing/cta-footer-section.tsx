@@ -1,32 +1,40 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Icon } from "@/components/ui/icon"
 import { HomeFooter } from "@/components/home-footer"
-import { Container } from "@/components/landing/section"
 
-/** Closing CTA band (navy) followed by the footer. */
+/** Closing CTA (navy, with the floating mark) followed by the footer. */
 export function CTAFooterSection() {
   return (
     <>
-      <section className="bg-bb-ink text-white">
-        <Container className="flex flex-wrap items-center justify-between gap-10 py-24">
-          <div className="max-w-2xl">
-            <h2 className="font-display text-[clamp(38px,4.5vw,56px)] font-extrabold leading-[0.98] tracking-[-0.035em] [text-wrap:balance]">
-              Built for Universities, Colleges and Coaching Institutes
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-bb-dim-2">
-              Book a live demo to see how <strong className="text-white">Varta</strong> and our multi-tenant architecture can transform your campus reading experience.
-            </p>
+      <section className="relative overflow-hidden bg-[#0A0F24] py-[120px] text-[#F2F4F8]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(255,77,0,.22),rgba(59,91,219,.2)_45%,transparent)]"
+        />
+        <div className="relative mx-auto flex max-w-[900px] flex-col items-center gap-7 px-[clamp(20px,4vw,56px)] text-center">
+          <div aria-hidden className="relative h-24 w-[150px] [animation:bbfloat_6s_ease-in-out_infinite]">
+            <span className="absolute left-0 top-0 h-24 w-24 rounded-full bg-[linear-gradient(160deg,#4C6FFF_0%,#1E3A8A_60%)] shadow-[inset_0_3px_0_rgba(255,255,255,.5),0_20px_50px_-10px_rgba(59,91,219,.7)]" />
+            <span className="absolute left-[54px] top-0 h-24 w-24 rounded-full bg-[linear-gradient(180deg,#FF8A3D_0%,#FF4D00_52%,#D93A00_100%)] opacity-95 shadow-[inset_0_3px_0_rgba(255,255,255,.65),0_20px_50px_-10px_rgba(255,77,0,.8)]" />
           </div>
-          <div className="flex flex-col gap-3.5 sm:flex-row">
-            <Button asChild size="lg" className="h-[58px] px-[30px] text-[17px]">
-              <Link href="/register">Book a Demo</Link>
-            </Button>
-            {/* Mailto until a contact page ships; the same address the footer publishes. */}
-            <Button asChild size="lg" variant="outline" className="h-[58px] border-bb-night-line-2 px-[30px] text-[17px] text-white hover:bg-white/10">
-              <a href="mailto:support@bookbuddyvpd.com?subject=Talk%20to%20the%20product%20team">Talk to Product Team</a>
-            </Button>
+          <h2 className="font-display text-[clamp(40px,5.6vw,72px)] font-extrabold leading-[0.96] tracking-[-0.045em] [text-wrap:balance]">
+            Start the semester on Book Buddy.
+          </h2>
+          <p className="max-w-[560px] text-[19px] text-[#C5CCDA]">Founding institutions are onboarding now. Bring your PDFs and EPUBs; we handle the rest.</p>
+          <div className="flex flex-wrap justify-center gap-3.5">
+            <Link
+              href="/register"
+              className="flex h-14 items-center gap-2.5 rounded-full bg-bb-primary px-7 text-[17px] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.65),inset_0_-2px_0_rgba(120,30,0,.25),0_14px_30px_-10px_rgba(255,77,0,.75)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:shadow-focus"
+            >
+              Book a demo <Icon name="arrow-right" size={18} tone="onfill" />
+            </Link>
+            <Link
+              href="/catalog"
+              className="flex h-14 items-center rounded-full border border-white/20 bg-white/[.04] px-7 text-[17px] font-semibold text-[#F2F4F8] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:shadow-focus"
+            >
+              Explore guest library
+            </Link>
           </div>
-        </Container>
+        </div>
       </section>
       <HomeFooter />
     </>

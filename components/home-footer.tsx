@@ -8,7 +8,7 @@ const linkCls = "rounded-md transition-colors hover:text-white focus-visible:out
 /** Footer on the navy band: brand, quick links, contact, newsletter, legal identifiers. */
 export function HomeFooter() {
   return (
-    <footer className="border-t border-bb-night-line bg-bb-ink text-bb-dim">
+    <footer className="border-t border-white/[.06] bg-[#070B1C] text-bb-dim">
       <Container className="py-14">
         <div className="grid gap-10 md:grid-cols-4">
           <div>

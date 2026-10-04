@@ -23,7 +23,7 @@ function Disc({ icon, active, ai }: { icon: NavItem["icon"]; active: boolean; ai
     <span
       className={cn(
         "flex shrink-0 items-center justify-center rounded-full",
-        "transition-[transform,background-color,box-shadow,width,height] duration-[350ms] ease-spring",
+        "transition-[transform,background-color,box-shadow,width,height] [transition-duration:350ms] ease-spring",
         "motion-reduce:transition-none",
         active ? cn("h-[50px] w-[50px] -translate-y-3.5", ai ? NAV_GLOSS.ai : NAV_GLOSS.blaze) : "h-[34px] w-[34px] text-bb-muted"
       )}
