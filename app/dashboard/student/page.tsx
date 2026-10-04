@@ -8,25 +8,30 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { PageHeader } from "@/components/ui/page-header"
-import { StatCard } from "@/components/ui/stat-card"
 import { Icon } from "@/components/ui/icon"
 import { TrialExpirationBanner } from "@/components/TrialExpirationBanner"
 import { StartTrialButton,useCanStartTrial } from "@/components/subscription/StartTrialButton"
-import { ContinueLearningRow,type ContinueBook } from "@/components/dashboard/student/continue-learning-row"
-import { StudyStreamsGrid,type StudyStreamsData } from "@/components/dashboard/student/study-streams-grid"
-import { UpcomingPanel,type UpcomingItem } from "@/components/dashboard/student/upcoming-and-activity"
-import { ActivityFeed,type ActivityItem } from "@/components/dashboard/student/upcoming-and-activity"
+import { CardGrid } from "@/components/dashboard/cards/dash-card"
+import { ContinueReadingCard,type ContinueReadingBook } from "@/components/dashboard/cards/continue-reading-card"
+import { GoalRingCard } from "@/components/dashboard/cards/goal-ring-card"
+import { StreakCard } from "@/components/dashboard/cards/streak-card"
+import { AskVartaCard } from "@/components/dashboard/cards/ask-varta-card"
+import { SanchikaCard,type ReviewConcept } from "@/components/dashboard/cards/sanchika-card"
+import { NowListeningCard } from "@/components/dashboard/cards/now-listening-card"
+import { AssignedCard,type DueItem } from "@/components/dashboard/cards/assigned-card"
+import { WeeklyBarsCard,type WeekDay } from "@/components/dashboard/cards/weekly-bars-card"
+import { LatestHighlightCard,type LatestHighlight } from "@/components/dashboard/cards/latest-highlight-card"
 
 export default function StudentDashboard() {
   const { userProfile } = useUserProfile()
 
   // Dynamic Dashboard State
   const [borrowedBooks, setBorrowedBooks] = useState<any[]>([])
-  const [readingHistory, setReadingHistory] = useState<any[]>([])
-  const [, setRecommendations] = useState<any[]>([])
   const [overviewStats, setOverviewStats] = useState<any>(null)
-  const [vartaActivity, setVartaActivity] = useState<any>(null)
-  const [recentBooks, setRecentBooks] = useState<any[]>([])
+  const [history, setHistory] = useState<any[]>([])
+  const [goals, setGoals] = useState<any[]>([])
+  const [reviewQueue, setReviewQueue] = useState<any[]>([])
+  const [highlight, setHighlight] = useState<LatestHighlight | null>(null)
   const [isDataLoading, setIsDataLoading] = useState(true)
 
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuthStore()
@@ -37,20 +42,21 @@ export default function StudentDashboard() {
       if (!isAuthLoading && !isAuthenticated) return;
       setIsDataLoading(true);
       try {
-        const [borrowedRes, historyRes, recsRes, overviewRes, vartaRes] = await Promise.all([
+        const [borrowedRes, overviewRes, historyRes, goalsRes, queueRes] = await Promise.all([
           apiClient.get('/library/borrowed').catch(() => ({ data: [] })),
-          apiClient.get('/library/history').catch(() => ({ data: [] })),
-          apiClient.get('/books/recommendations').catch(() => ({ data: [] })),
           apiClient.get('/analytics/overview').catch(() => ({ data: { totalBooks: 0, totalPages: 0 } })),
-          // Global Varta activity → the "Recent questions" card. Was hardcoded [].
-          apiClient.get('/students/me/varta-activity').catch(() => ({ data: null })),
+          // Pages read per day for the last 7 days (today is the last entry).
+          apiClient.get('/analytics/history').catch(() => ({ data: [] })),
+          apiClient.get('/analytics/goals').catch(() => ({ data: [] })),
+          // Concepts due for a quick revisit (the Sanchika card's flashcard stack).
+          apiClient.get('/students/me/resurfacing-queue').catch(() => ({ data: [] })),
         ]);
 
         setBorrowedBooks(borrowedRes.data || []);
-        setReadingHistory(historyRes.data || []);
-        setRecommendations(recsRes.data || []);
         setOverviewStats(overviewRes.data || null);
-        setVartaActivity(vartaRes.data || null);
+        setHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
+        setGoals(Array.isArray(goalsRes.data) ? goalsRes.data : []);
+        setReviewQueue(Array.isArray(queueRes.data) ? queueRes.data.filter((q: any) => !q.actioned) : []);
       } catch (err) {
         console.error("Dashboard data fetch failed", err);
       } finally {
@@ -61,18 +67,39 @@ export default function StudentDashboard() {
     fetchDashboardData();
   }, [isAuthenticated, isAuthLoading]);
 
-  // Recently-added catalogue books — powers the carousel shown to a student who
-  // hasn't started reading yet (the "Browse Library" empty state). Public
-  // endpoint, so it runs independent of auth.
+  // The book the student read last: most recently opened, else the first one borrowed.
+  const lastBook = [...borrowedBooks]
+    .filter((b: any) => b.progress)
+    .sort((a: any, b: any) => new Date(b.progress.lastReadAt).getTime() - new Date(a.progress.lastReadAt).getTime())[0] ?? borrowedBooks[0]
+  const lastBookId: string | undefined = lastBook?.book?.id ?? lastBook?.bookId
+
+  // Latest highlight from that book.
   useEffect(() => {
-    fetch('/api/v1/books?page=1&limit=12&status=PUBLISHED&sortBy=createdAt&sortOrder=desc')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        const list = d?.data ?? d ?? [];
-        setRecentBooks(Array.isArray(list) ? list : []);
+    if (!lastBookId) {
+      setHighlight(null)
+      return
+    }
+    let cancelled = false
+    apiClient
+      .get(`/annotations/book/${lastBookId}`)
+      .then((res) => {
+        const list: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? []
+        const latest = list
+          .filter((a) => a.type === 'highlight' && typeof a.content === 'string' && a.content.trim())
+          .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())[0]
+        if (!cancelled)
+          setHighlight(
+            latest
+              ? { text: latest.content.trim(), bookId: lastBookId, bookTitle: lastBook?.book?.title, page: latest.position?.page ?? null }
+              : null,
+          )
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => !cancelled && setHighlight(null))
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastBookId])
 
   // ──────── B2B Waiting Room Logic (preserved) ────────
   const isInstitutional = userProfile?.accountType === 'INSTITUTIONAL';
@@ -142,100 +169,75 @@ export default function StudentDashboard() {
   }
 
 
-  // ──────── Map API data → component props ────────
+  // ──────── Map API data → card props ────────
 
-  // Continue-learning cards from borrowed books. Progress is the real
-  // ReadingProgress row the backend attaches per book (null if never opened).
-  const continueBooks: ContinueBook[] = borrowedBooks.slice(0, 5).map((b: any) => {
-    const pct = Math.round(b.progress?.percentComplete ?? 0);
-    return {
-      id: b.id,
-      title: b.book?.title || 'Untitled',
-      author: b.book?.author || 'Unknown',
-      coverUrl: b.book?.coverUrl,
-      progress: b.progress
-        ? `${pct}% complete`
-        : `Borrowed ${new Date(b.borrowedAt).toLocaleDateString()}`,
-      progressPercent: pct,
-      formats: [b.book?.format || 'EPUB', ...(b.book?.hasAudio ? ['Audio'] : []), 'Varta'],
-      hasNotes: true,
-      hasAudio: !!b.book?.hasAudio,
-      hasVartaAI: true,
-      readerHref: '/reader',
-    };
-  });
+  const continueBook: ContinueReadingBook | null = lastBook
+    ? {
+        id: lastBookId as string,
+        title: lastBook.book?.title || 'Untitled',
+        author: lastBook.book?.author,
+        coverUrl: lastBook.book?.coverUrl,
+        subject: lastBook.book?.subject,
+        percent: lastBook.progress?.percentComplete ?? 0,
+        page: lastBook.progress?.currentPage > 0 ? lastBook.progress.currentPage : undefined,
+        hasAudio: !!lastBook.book?.hasAudio,
+      }
+    : null;
 
-  // Books actually opened, most-recently-read first — real progress only.
-  const booksOpened = borrowedBooks
-    .filter((b: any) => b.progress)
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.progress.lastReadAt).getTime() - new Date(a.progress.lastReadAt).getTime(),
-    )
-    .slice(0, 3)
-    .map((b: any) => ({
-      title: b.book?.title || 'Book',
-      chapter: b.progress.currentPage > 0 ? `Page ${b.progress.currentPage}` : 'Started',
-      percent: Math.round(b.progress.percentComplete ?? 0),
-    }));
+  const weekDays: WeekDay[] = history.map((h: any, i: number) => ({
+    label: h.date,
+    pages: h.pages ?? 0,
+    today: i === history.length - 1,
+  }));
+  const pagesToday = history.length ? history[history.length - 1].pages ?? 0 : 0;
+  const minutesToday = overviewStats?.minutesReadToday ?? 0;
+  const goalPages = goals.find((g: any) => g.type === 'pages')?.target ?? 50;
+  const streak = overviewStats?.streak ?? 0;
 
-  // Study streams data
-  const streamsData: StudyStreamsData = {
-    reading: {
-      minutesReadToday: overviewStats?.minutesReadToday ?? 0,
-      booksOpened,
-    },
-    vartaAI: {
-      // Real recent questions the student asked Varta (global scope). recentChats
-      // are role=USER messages, so `preview` is the question text itself.
-      recentQuestions: (vartaActivity?.recentChats ?? [])
-        .slice(0, 3)
-        .map((c: any) => ({ question: c.preview, source: c.bookTitle })),
-    },
-    sanchika: {
-      highlights: overviewStats?.highlights ?? 0,
-      flashcards: overviewStats?.flashcards ?? 0,
-      explanations: overviewStats?.explanations ?? 0,
-    },
-    audio: undefined,
-  };
+  const reviewConcepts: ReviewConcept[] = reviewQueue.slice(0, 5).map((q: any) => ({
+    id: q.id,
+    label: q.conceptLabel,
+    bookTitle: q.bookTitle,
+    page: q.page,
+  }));
 
-  // Upcoming items from due-soon books
-  const upcomingItems: UpcomingItem[] = borrowedBooks
+  // Library due dates, soonest first.
+  const dueItems: DueItem[] = borrowedBooks
     .filter((b: any) => b.dueDate)
     .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-    .slice(0, 4)
     .map((b: any) => {
-      const daysLeft = Math.ceil((new Date(b.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const due = new Date(b.dueDate);
+      const daysLeft = Math.ceil((due.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       return {
         id: b.id,
-        overdue: daysLeft <= 0,
         title: `Return: ${b.book?.title || 'Book'}`,
-        subtitle: daysLeft <= 0 ? 'Overdue!' : daysLeft <= 3 ? `Due in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : `Due ${new Date(b.dueDate).toLocaleDateString()}`,
-        priority: (daysLeft <= 3 ? 'high' : 'normal') as 'high' | 'normal',
+        by: daysLeft <= 0 ? 'Please return it to the library' : `Due ${due.toLocaleDateString()}`,
+        due:
+          daysLeft < 0
+            ? 'Overdue'
+            : daysLeft === 0
+              ? 'Today'
+              : daysLeft === 1
+                ? 'Tomorrow'
+                : daysLeft < 7
+                  ? due.toLocaleDateString('en-US', { weekday: 'short' })
+                  : due.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+        urgent: daysLeft <= 3,
+        icon: 'book-open' as const,
+        href: `/reader?bookId=${b.book?.id ?? b.bookId}`,
       };
     });
-
-  // Activity feed from reading history
-  const activityItems: ActivityItem[] = readingHistory.slice(0, 6).map((r: any, i: number) => ({
-    id: r.id || String(i),
-    message: `Returned "${r.book?.title || 'a book'}" by ${r.book?.author || 'unknown author'}`,
-    type: 'reading' as const,
-    timestamp: r.returnedAt ? new Date(r.returnedAt).toLocaleDateString() : undefined,
-  }));
 
   // Institution name for greeting pill
   const activeMembership = userProfile?.memberships?.find((m: any) => m.status === 'ACTIVE');
   const institutionName = activeMembership?.tenantName;
 
-
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const firstName = user?.name?.split(' ')[0] || 'Student';
-  const streak = overviewStats?.streak ?? 0;
 
   return (
-    <div className="space-y-8 pb-4">
+    <div className="space-y-6 pb-4">
       <TrialExpirationBanner />
 
       {/* Self-serve AI free-trial CTA: only for B2C students without an active
@@ -249,7 +251,7 @@ export default function StudentDashboard() {
         description="Pick up where you left off, listen while you commute, or ask Varta to clear your doubts."
         actions={
           <>
-            <Button asChild variant="outline">
+            <Button asChild variant="soft">
               <Link href="/varta">
                 <Icon name="varta" size={18} /> Ask Varta
               </Link>
@@ -263,48 +265,24 @@ export default function StudentDashboard() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard
-          title="Books borrowed"
-          value={overviewStats?.totalBooks ?? borrowedBooks.length}
-          icon="library"
+      <CardGrid>
+        <ContinueReadingCard book={continueBook} loading={isDataLoading} index={0} />
+        <GoalRingCard pagesToday={pagesToday} goalPages={goalPages} minutesToday={minutesToday} loading={isDataLoading} index={1} />
+        <StreakCard streak={streak} readToday={minutesToday > 0 || pagesToday > 0} loading={isDataLoading} index={2} />
+        <AskVartaCard bookId={lastBookId} index={3} />
+        <SanchikaCard
+          due={reviewConcepts}
+          highlights={overviewStats?.highlights ?? 0}
+          flashcards={overviewStats?.flashcards ?? 0}
+          explanations={overviewStats?.explanations ?? 0}
           loading={isDataLoading}
+          index={4}
         />
-        <StatCard
-          title="Pages read"
-          value={overviewStats?.totalPages ?? 0}
-          icon="read"
-          loading={isDataLoading}
-        />
-        <StatCard
-          variant="featured"
-          title="Reading streak"
-          value={`${streak}d`}
-          icon="streak"
-          loading={isDataLoading}
-        />
-      </div>
-
-      <Card className="rounded-[22px] p-5 sm:p-6">
-        <ContinueLearningRow
-          books={continueBooks}
-          isLoading={isDataLoading}
-          recentBooks={recentBooks.slice(0, 10).map((b: any) => ({
-            id: b.id,
-            title: b.title,
-            author: b.author,
-            coverUrl: b.coverUrl,
-          }))}
-        />
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px]">
-        <StudyStreamsGrid data={streamsData} isLoading={isDataLoading} />
-        <div className="space-y-6">
-          <UpcomingPanel items={upcomingItems} isLoading={isDataLoading} />
-          <ActivityFeed items={activityItems} isLoading={isDataLoading} />
-        </div>
-      </div>
+        <NowListeningCard index={5} />
+        <AssignedCard items={dueItems} loading={isDataLoading} index={6} />
+        <WeeklyBarsCard days={weekDays} loading={isDataLoading} index={7} />
+        <LatestHighlightCard highlight={highlight} loading={isDataLoading} index={8} />
+      </CardGrid>
     </div>
   )
 }

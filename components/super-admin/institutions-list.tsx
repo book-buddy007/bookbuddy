@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AvatarTile } from '@/components/ui/data-table';
 import { Chip } from '@/components/ui/chip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -32,7 +32,7 @@ export function InstitutionsList({ limit }: InstitutionsListProps) {
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex items-center gap-3">
-            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-[42px] w-[42px] rounded-[13px]" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-3.5 w-1/2" />
               <Skeleton className="h-3 w-1/3" />
@@ -51,19 +51,21 @@ export function InstitutionsList({ limit }: InstitutionsListProps) {
     return <p className="py-6 text-center text-sm text-bb-muted">No institutions found</p>;
   }
 
+  const TONES = ['cobalt', 'blaze', 'periwinkle', 'navy'] as const;
+
   return (
-    <div className="space-y-4">
-      {institutions.map((institution: any) => (
-        <div key={institution.id} className="flex items-center justify-between gap-3">
+    <div>
+      {institutions.map((institution: any, i: number) => (
+        <div key={institution.id} className="flex items-center justify-between gap-3 border-t border-bb-border py-2.5">
           <div className="flex min-w-0 items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-bb-navy text-xs font-bold text-white">
-                {institution.name.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <AvatarTile
+              initials={institution.name.substring(0, 2).toUpperCase()}
+              tone={TONES[i % TONES.length]}
+              className="h-[42px] w-[42px] rounded-[13px] font-display shadow-[inset_0_1px_0_rgba(255,255,255,.4)]"
+            />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-none">{institution.name}</p>
-              <p className="mt-1 truncate text-xs text-bb-muted">{institution.domain}</p>
+              <p className="truncate font-bold">{institution.name}</p>
+              <p className="truncate text-xs text-bb-muted">{institution.domain}</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -72,7 +74,7 @@ export function InstitutionsList({ limit }: InstitutionsListProps) {
             ) : (
               <Chip>{institution.subscription?.tier || 'No subscription'}</Chip>
             )}
-            <Button size="sm" variant="outline" asChild>
+            <Button size="sm" variant="soft" asChild>
               <Link href={`/dashboard/super-admin/institution/${institution.id}`}>View</Link>
             </Button>
           </div>

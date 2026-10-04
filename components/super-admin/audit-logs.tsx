@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Icon, type BBIconName } from '@/components/ui/icon';
 import { Chip } from '@/components/ui/chip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
@@ -79,6 +79,14 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
     }
   };
 
+  const ACTION_ICON: Record<string, BBIconName> = {
+    CREATE: 'plus',
+    UPDATE: 'annotate',
+    DELETE: 'trash',
+    LOGIN: 'key',
+    LOGOUT: 'logout',
+  };
+
   const getResourceTypeLabel = (type?: string) => {
     if (!type) return 'Resource';
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
@@ -89,7 +97,7 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex items-start gap-3">
-            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-[34px] w-[34px] rounded-[11px]" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-3.5 w-4/5" />
               <Skeleton className="h-3 w-1/4" />
@@ -109,26 +117,22 @@ export function AuditLogs({ limit, institutionId, userId }: AuditLogsProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div>
       {logs.map((log) => (
-        <div key={log.id} className="flex items-start gap-3 border-b border-bb-border pb-4 last:border-0 last:pb-0">
-          <Avatar className="mt-0.5 h-9 w-9">
-            <AvatarFallback className="bg-bb-accent-soft text-xs font-bold text-bb-accent-ink">
-              {log.user?.name?.substring(0, 2).toUpperCase() || log.userId?.substring(0, 2).toUpperCase() || '??'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1 space-y-1">
-            <p className="text-sm">
-              <span className="font-semibold">{log.user?.name || log.userId || 'System'}</span>{' '}
-              <span className="text-bb-muted">
-                {getActionLabel(log.action)} a {getResourceTypeLabel(log.entityType)}
-              </span>
-              {log.entityId && <Chip className="ml-1.5 h-5 px-2 align-middle text-[11px]">ID: {log.entityId}</Chip>}
-            </p>
-            <p className="text-xs text-bb-muted">
-              {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-            </p>
-          </div>
+        <div key={log.id} className="grid grid-cols-[34px_minmax(0,1fr)_auto] items-center gap-3 border-t border-bb-border py-2.5">
+          <span aria-hidden className="flex h-[34px] w-[34px] items-center justify-center rounded-[11px] bg-bb-surface-2">
+            <Icon name={ACTION_ICON[log.action] ?? 'clock'} size={17} />
+          </span>
+          <p className="min-w-0 truncate text-sm">
+            <span className="font-bold">{log.user?.name || log.userId || 'System'}</span>{' '}
+            <span className="text-bb-muted">
+              {getActionLabel(log.action)} a {getResourceTypeLabel(log.entityType)}
+            </span>
+            {log.entityId && <Chip className="ml-1.5 h-5 px-2 align-middle text-[11px]">ID: {log.entityId}</Chip>}
+          </p>
+          <span className="whitespace-nowrap text-xs text-bb-faint">
+            {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
+          </span>
         </div>
       ))}
 
