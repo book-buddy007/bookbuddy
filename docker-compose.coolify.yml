@@ -128,26 +128,32 @@ services:
       # domain points at. The private bucket above never has a public domain.
       S3_PUBLIC_BUCKET_NAME: bookbuddymedia
       CDN_BASE_URL: https://media.bookbuddy.live
+      # ── AI (Varta) ────────────────────────────────────────────────────────────
+      # What the code actually reads from this block:
+      #   OPENAI_API_KEY                     query embeddings, and the PRIMARY answering model
+      #   CLOUDFLARE_ACCOUNT_ID/_AI_TOKEN    the answering FALLBACK (CF_CHAT_MODEL) and image descriptions
+      #   DAILY_AI_QUERY_LIMIT, VARTA_*      per-user and per-tenant usage limits
+      #   QDRANT_*, EMBEDDING_DIMENSIONS     the vector search (see the warning just below)
+      #
+      # NOT configured here, and required before Varta can answer from a book: Book Buddy no longer
+      # indexes book text itself. Ingestion is handed to the shared DCP "trio" service
+      # (TRIO_INGEST_URL, TRIO_SERVICE_SECRET) and book lookup reads its database
+      # (TRIO_CONTENT_DATABASE_URL); search then queries that service's collection
+      # (trio_content_v1_openai3072, named vectors "dense" and "bm25", 3072 dimensions).
+      # The QDRANT_* values below point at a LOCAL, empty, 768-dimension collection that the search
+      # code does not use by default. They must change to match whichever way this is resolved.
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION_NAME: book_buddy_books_v1
       QDRANT_ALLOW_COLLECTION_CREATE: "true"
       EMBEDDING_DIMENSIONS: "768"
-      # AI features stay off until a provider key is added in Coolify.
-      LLM_PROVIDER: cloudflare
       CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
       CLOUDFLARE_AI_TOKEN: ${CLOUDFLARE_AI_TOKEN:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      CF_EMBED_MODEL: "@cf/google/embeddinggemma-300m"
       CF_CHAT_MODEL: "@cf/google/gemma-4-26b-a4b-it"
-      ENABLE_HYBRID_SEARCH: "false"
-      ENABLE_RERANKING: "true"
-      ENABLE_QUERY_DECOMPOSITION: "false"
-      ENABLE_CHAPTER_VALIDATION: "true"
       DAILY_AI_QUERY_LIMIT: "100"
       VARTA_SOFT_LIMIT_TOKENS: "40000"
       VARTA_HARD_LIMIT_TOKENS: "60000"
       VARTA_MAX_QUERY_TOKENS: "4000"
-      AI_CHAT_RETENTION_DAYS: "365"
       # Email is logged, not sent, until RESEND_API_KEY is set.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       # The sender stays on the domain already verified with Resend; it does not have to match the
