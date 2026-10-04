@@ -87,9 +87,14 @@ Application, **Environment Variables**:
 | `S3_BUCKET_NAME` | `bookbuddy` (the default, so you can leave it unset) |
 | `MEDIA_URL` | leave at `https://media.bookbuddy.vinstitution.com`. It must **not** end in `/book-buddy-media`. |
 
-The deploy stops with a message naming the variable if any required one is missing, so a forgotten
-value never reaches production half-configured. If you previously saved an old `MEDIA_URL`, open it
-and check it matches the table (Coolify keeps stored values over compose defaults).
+If one of these is missing or wrong the app still starts, but uploads and downloads answer "File
+storage is not configured" and the API log names the setting. After saving, **redeploy** and check
+the API log for a line starting `[entrypoint] storage: external r2 store at https://…`: it must show
+your real endpoint.
+
+Coolify keeps stored values over the compose file's defaults, so if a variable already exists with
+placeholder text in it (an earlier version of this change produced that), **replace the value**.
+If you previously saved an old `MEDIA_URL`, open it and check it matches the table.
 
 ### 7. Check it before deploying
 From your machine, with the same values (put them in an untracked file such as `backend/.env.r2`):

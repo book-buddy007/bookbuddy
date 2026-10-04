@@ -1,4 +1,5 @@
-import { S3Service } from './s3.service';
+import { ServiceUnavailableException } from '@nestjs/common';
+import { S3Service, storageConfigProblem } from './s3.service';
 
 /**
  * Production storage is Cloudflare R2 (see docs/storage-r2.md). Signing is done offline, so
@@ -125,6 +126,60 @@ describe('S3Service on Cloudflare R2', () => {
       );
       expect(key).toMatch(/^global\/branding\/inst-1\/[0-9a-f-]{36}\.png$/);
       expect(isPublicPath(key)).toBe(true);
+    });
+  });
+});
+
+describe('storage configuration check', () => {
+  const good = {
+    S3_ENDPOINT: 'https://acct123.r2.cloudflarestorage.com',
+    S3_ACCESS_KEY_ID: 'key-id',
+    S3_SECRET_ACCESS_KEY: 'secret',
+  };
+
+  it('accepts a real R2 configuration and a local MinIO one', () => {
+    expect(storageConfigProblem(good)).toBeNull();
+    expect(storageConfigProblem({ ...good, S3_ENDPOINT: 'http://localhost:9000' })).toBeNull();
+  });
+
+  it('rejects the placeholder text a deploy platform once substituted for the endpoint', () => {
+    const placeholder =
+      'Set S3_ENDPOINT to your R2 endpoint, https://<account-id>.r2.cloudflarestorage.com';
+    expect(storageConfigProblem({ ...good, S3_ENDPOINT: placeholder })).toMatch(/not a web address/);
+  });
+
+  it('rejects missing or placeholder values, and non-web schemes', () => {
+    expect(storageConfigProblem({ ...good, S3_ENDPOINT: '' })).toMatch(/S3_ENDPOINT is not set/);
+    expect(storageConfigProblem({ ...good, S3_ENDPOINT: 'ftp://x.test' })).toMatch(/https/);
+    expect(storageConfigProblem({ ...good, S3_ACCESS_KEY_ID: '' })).toMatch(/S3_ACCESS_KEY_ID is not set/);
+    expect(
+      storageConfigProblem({ ...good, S3_SECRET_ACCESS_KEY: 'Set S3_SECRET_ACCESS_KEY to your R2 API token secret' }),
+    ).toMatch(/placeholder/);
+  });
+
+  describe('S3Service with bad settings', () => {
+    const saved = { ...process.env };
+    afterEach(() => {
+      process.env = { ...saved };
+    });
+
+    it('starts, logs what is wrong, and refuses file operations with a clear 503', async () => {
+      process.env.S3_ENDPOINT = 'Set S3_ENDPOINT to your R2 endpoint';
+      process.env.S3_ACCESS_KEY_ID = 'k';
+      process.env.S3_SECRET_ACCESS_KEY = 's';
+      const logger = { setContext: jest.fn(), log: jest.fn(), error: jest.fn(), warn: jest.fn() };
+      const service = new S3Service({} as any, logger as any);
+
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('File storage is NOT configured'));
+      await expect(
+        service.getPresignedUploadUrl({ key: 'k', mimeType: 'application/pdf', format: 'pdf' }),
+      ).rejects.toBeInstanceOf(ServiceUnavailableException);
+      await expect(service.getPresignedDownloadUrl({ key: 'k' })).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+      await expect(
+        service.generatePresignedUploadUrl('b', 'application/pdf', 'application/pdf'),
+      ).rejects.toThrow(/File storage is not configured/);
     });
   });
 });

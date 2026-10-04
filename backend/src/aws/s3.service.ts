@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from '../logger/logger.service';
 import {
@@ -43,17 +43,51 @@ const FORMAT_MIME_ALLOWLIST: Record<string, string[]> = {
   ],
 };
 
+/**
+ * What is wrong with the storage settings, or null when they look usable. A deploy platform can
+ * hand the app a placeholder instead of a real value (the production compose file once did),
+ * and the AWS SDK then fails later with an obscure error; checking up front says what to fix.
+ */
+export function storageConfigProblem(
+  env: Record<string, string | undefined> = process.env,
+): string | null {
+  const endpoint = (env.S3_ENDPOINT ?? '').trim();
+  if (!endpoint) return 'S3_ENDPOINT is not set';
+  try {
+    const url = new URL(endpoint);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return 'S3_ENDPOINT must start with https:// (or http:// for local MinIO)';
+    }
+  } catch {
+    return `S3_ENDPOINT is not a web address (got "${endpoint.slice(0, 60)}")`;
+  }
+  for (const name of ['S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY']) {
+    const value = (env[name] ?? '').trim();
+    if (!value) return `${name} is not set`;
+    if (/^set\s+s3_/i.test(value)) return `${name} still holds a placeholder instead of a real value`;
+  }
+  return null;
+}
+
 @Injectable()
 export class S3Service {
   private readonly client: S3Client;
   private readonly bucket: string;
   private readonly cdnBaseUrl: string;
+  private readonly configProblem: string | null;
 
   constructor(
     private configService: ConfigService,
     private logger: LoggerService,
   ) {
     this.logger.setContext('S3Service');
+
+    // The app still starts (sign-in and everything else keep working); only file operations are
+    // refused, with this message, until the settings are fixed.
+    this.configProblem = storageConfigProblem();
+    if (this.configProblem) {
+      this.logger.error(`File storage is NOT configured: ${this.configProblem}`);
+    }
 
     this.bucket = process.env.S3_BUCKET_NAME || 'book-buddy-media';
     this.cdnBaseUrl =
@@ -83,6 +117,15 @@ export class S3Service {
 
   // ── NEW ROADMAP METHODS ──────────────────────────────────────────────────
 
+  /** Throws a clear 503 instead of letting the SDK fail obscurely on bad settings. */
+  private assertConfigured(): void {
+    if (this.configProblem) {
+      throw new ServiceUnavailableException(
+        `File storage is not configured: ${this.configProblem}`,
+      );
+    }
+  }
+
   async getPresignedUploadUrl(params: {
     key: string;
     mimeType: string;
@@ -94,6 +137,7 @@ export class S3Service {
     publicUrl: string;
     maxBytes?: number;
   }> {
+    this.assertConfigured();
     const allowed = FORMAT_MIME_ALLOWLIST[params.format.toLowerCase()] ?? [];
     if (allowed.length > 0 && !allowed.includes(params.mimeType)) {
       throw new Error(
@@ -121,6 +165,7 @@ export class S3Service {
     key: string;
     expiresInSeconds?: number;
   }): Promise<string> {
+    this.assertConfigured();
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: params.key,
@@ -238,6 +283,7 @@ export class S3Service {
     expiresIn = 3600,
     options: { keyPrefix?: string; extension?: string } = {},
   ): Promise<{ url: string; key: string }> {
+    this.assertConfigured();
     try {
       const extension = options.extension ?? fileType.split('/').pop();
       const key = `${options.keyPrefix ?? 'uploads'}/${uuidv4()}.${extension}`;
@@ -265,6 +311,7 @@ export class S3Service {
     key: string,
     expiresIn = 3600,
   ): Promise<string> {
+    this.assertConfigured();
     try {
       const command = new GetObjectCommand({
         Bucket: bucket,
