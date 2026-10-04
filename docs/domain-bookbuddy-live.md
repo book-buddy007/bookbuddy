@@ -31,9 +31,14 @@ shared by everyone (see `backend/src/common/client-ip.ts`).
 Do **not** create a `media` record by hand: connecting the R2 bucket (step 5) creates it.
 
 ## 2. Coolify domains
-In the application's configuration, add (keep the old ones for now):
-- web service: `https://bookbuddy.live:3000`
-- api service: `https://api.bookbuddy.live:3333`
+In the application's configuration, add to each service's **Domains** field (keep the old ones for
+now; the field takes a comma-separated list, and the existing entries have no port, so add these
+the same way):
+- web service: `https://bookbuddy.live`
+- api service: `https://api.bookbuddy.live`
+
+Until this is saved and applied, Traefik has no route for the new names and answers with its
+placeholder certificate (`TRAEFIK DEFAULT CERT`). That is how to tell this step is still missing.
 
 The Let's Encrypt certificates are issued automatically once the DNS records resolve.
 
