@@ -25,7 +25,7 @@ iOS/Android.
 | Web | Next.js 15 (App Router), React 19, Tailwind, Radix UI, Zustand, React Query, better-auth |
 | API | NestJS 11, Prisma 6, BullMQ |
 | Mobile | Expo / React Native (`mobile/`) |
-| Data | PostgreSQL 16, Redis, Qdrant (vectors), MinIO / S3-compatible storage |
+| Data | PostgreSQL 16, Redis, Qdrant (vectors), Cloudflare R2 for files in production (MinIO locally, see docs/storage-r2.md) |
 
 ## Quick start (Windows)
 

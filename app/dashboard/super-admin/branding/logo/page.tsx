@@ -59,7 +59,7 @@ export default function LogoManagementPage() {
         return;
       }
 
-      const { uploadUrl, key } = urlRes.data;
+      const { uploadUrl, key, publicUrl } = urlRes.data;
 
       // Step 2: PUT file directly to S3
       const uploadOk = await uploadFileToPresignedUrl(uploadUrl, uploadFile);
@@ -68,11 +68,11 @@ export default function LogoManagementPage() {
         return;
       }
 
-      // Step 3: Save S3 key in branding config
-      // Construct the public URL from the key (the CDN prefix comes from env at render time)
+      // Step 3: Save the logo in the branding config. `logo` is the public URL the site renders
+      // directly; `logoKey` is the storage key, kept for replacing or deleting the file later.
       const payload = {
         ...currentBranding,
-        logo: key, // Store the S3 key — the frontend resolves it via CDN prefix
+        logo: publicUrl,
         logoKey: key,
       };
       const res = await updateBranding(selectedTenantId, payload as any);

@@ -379,7 +379,7 @@ export const getBrandingUploadUrl = async (
   institutionId: string,
   fileType: string,
   contentType: string,
-): Promise<AdminApiResponse<{ uploadUrl: string; key: string; bucket: string }>> => {
+): Promise<AdminApiResponse<{ uploadUrl: string; key: string; bucket: string; publicUrl: string }>> => {
   try {
     const q = new URLSearchParams({ fileType, contentType }).toString();
     const response = await apiClient.get(`/admin/branding/${institutionId}/upload-url?${q}`);

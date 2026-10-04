@@ -11,8 +11,17 @@
 # Domains are assigned per service in Coolify:
 #   web   -> https://bookbuddy.vinstitution.com:3000
 #   api   -> https://api.bookbuddy.vinstitution.com:3333
-#   minio -> https://media.bookbuddy.vinstitution.com:9000
-# APP_URL / API_URL / MEDIA_URL default to those and can be overridden in
+#
+# File storage is Cloudflare R2: there is no storage container in this stack.
+# Set these in Coolify's Environment Variables BEFORE deploying (the deploy stops
+# with a clear message if a required one is missing). Setup steps: docs/storage-r2.md
+#   S3_ENDPOINT           https://<account-id>.r2.cloudflarestorage.com   (required)
+#   S3_ACCESS_KEY_ID      R2 API token: Object Read & Write on the bucket   (required)
+#   S3_SECRET_ACCESS_KEY  the same token's secret                           (required)
+#   S3_BUCKET_NAME        optional, defaults to bookbuddy (the R2 bucket's name)
+#   MEDIA_URL             public base URL of the bucket's custom domain, with NO bucket
+#                         in the path; defaults to https://media.bookbuddy.vinstitution.com
+# APP_URL / API_URL / MEDIA_URL default to the values above and can be overridden in
 # Coolify's Environment Variables (the web app must be redeployed afterwards,
 # because the browser bundle bakes them in at build time).
 
@@ -25,7 +34,7 @@ services:
         NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.vinstitution.com}
         NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.vinstitution.com}
         NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.vinstitution.com}
-        NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}/book-buddy-media
+        NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
         NEXT_PUBLIC_DRM_KEY: ${SERVICE_PASSWORD_64_DRM}
         NEXT_PUBLIC_FEDERATION_ENABLED: "false"
         NEXT_PUBLIC_SENTRY_DSN: ""
@@ -41,9 +50,11 @@ services:
       BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
       JWT_SECRET: ${SERVICE_PASSWORD_64_JWT}
       NEXT_PUBLIC_DRM_KEY: ${SERVICE_PASSWORD_64_DRM}
-      S3_ENDPOINT: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
-      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}/book-buddy-media
-      NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}/book-buddy-media
+      # The reader fetches signed R2 links through /api/proxy-media, which only follows hosts it
+      # knows: the R2 endpoint (S3_ENDPOINT) and the public media domain.
+      S3_ENDPOINT: ${S3_ENDPOINT:?Set S3_ENDPOINT to your R2 endpoint, https://<account-id>.r2.cloudflarestorage.com}
+      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
+      NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
       MEDIA_PROXY_ALLOWED_HOSTS: ${MEDIA_HOST:-media.bookbuddy.vinstitution.com}
       FEDERATION_ENABLED: "false"
       NEXT_PUBLIC_FEDERATION_ENABLED: "false"
@@ -101,14 +112,15 @@ services:
       REDIS_URL: redis://redis:6379
       REDIS_HOST: redis
       REDIS_PORT: "6379"
-      STORAGE_PROVIDER: minio
-      S3_ENDPOINT: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
-      S3_INTERNAL_ENDPOINT: http://minio:9000
-      S3_REGION: us-east-1
-      S3_ACCESS_KEY_ID: ${SERVICE_USER_MINIO}
-      S3_SECRET_ACCESS_KEY: ${SERVICE_PASSWORD_MINIO}
-      S3_BUCKET_NAME: book-buddy-media
-      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}/book-buddy-media
+      # Cloudflare R2. Presigned upload/download links are signed for S3_ENDPOINT; CDN_BASE_URL is
+      # the public custom domain used only for covers and free samples.
+      STORAGE_PROVIDER: r2
+      S3_ENDPOINT: ${S3_ENDPOINT:?Set S3_ENDPOINT to your R2 endpoint, https://<account-id>.r2.cloudflarestorage.com}
+      S3_REGION: auto
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?Set S3_ACCESS_KEY_ID to your R2 API token key id}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?Set S3_SECRET_ACCESS_KEY to your R2 API token secret}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-bookbuddy}
+      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION_NAME: book_buddy_books_v1
       QDRANT_ALLOW_COLLECTION_CREATE: "true"
@@ -139,8 +151,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
-        condition: service_started
       qdrant:
         condition: service_started
     healthcheck:
@@ -180,17 +190,7 @@ services:
     volumes:
       - qdrant-data:/qdrant/storage
 
-  minio:
-    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${SERVICE_USER_MINIO}
-      MINIO_ROOT_PASSWORD: ${SERVICE_PASSWORD_MINIO}
-    volumes:
-      - minio-data:/data
-
 volumes:
   postgres-data:
   redis-data:
   qdrant-data:
-  minio-data:

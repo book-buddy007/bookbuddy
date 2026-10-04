@@ -225,14 +225,22 @@ export class S3Service {
 
   // ── LEGACY METHODS (Required for backward compatibility) ──────────────────
 
+  /** The public (custom-domain) URL for an object key. Only covers, samples and branding are
+   *  reachable there; everything else is read through presigned links. */
+  publicUrlFor(key: string): string {
+    return `${this.cdnBaseUrl}/${key}`;
+  }
+
   async generatePresignedUploadUrl(
     bucket: string,
     fileType: string,
     contentType: string,
     expiresIn = 3600,
+    options: { keyPrefix?: string; extension?: string } = {},
   ): Promise<{ url: string; key: string }> {
     try {
-      const key = `uploads/${uuidv4()}.${fileType.split('/').pop()}`;
+      const extension = options.extension ?? fileType.split('/').pop();
+      const key = `${options.keyPrefix ?? 'uploads'}/${uuidv4()}.${extension}`;
       const command = new PutObjectCommand({
         Bucket: bucket,
         Key: key,

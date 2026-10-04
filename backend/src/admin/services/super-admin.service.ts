@@ -14,6 +14,14 @@ import { Cache } from 'cache-manager';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 
+/** Image types accepted for branding uploads, and the file extension each is stored with. */
+const BRANDING_IMAGE_TYPES: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/svg+xml': 'svg',
+};
+
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -31,23 +39,42 @@ export class SuperAdminService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
+  /**
+   * Presigned upload for a branding image. It lives in the main media bucket under
+   * `global/branding/<institution>/`, one of the few public prefixes (logos are shown to
+   * signed-out visitors), and the response carries the public URL to store.
+   */
   async getBrandingUploadUrl(
     institutionId: string,
     fileType: string,
     contentType: string,
   ) {
-    const bucket = this.configService.get<string>(
-      'AWS_S3_BUCKET',
-      'book-buddy-branding-assets',
-    );
+    const extension = BRANDING_IMAGE_TYPES[contentType];
+    if (!extension) {
+      throw new BadRequestException(
+        'Branding images must be PNG, JPEG, WebP or SVG',
+      );
+    }
+    const bucket =
+      this.configService.get<string>('S3_BUCKET_NAME') ||
+      this.configService.get<string>('AWS_S3_BUCKET') ||
+      'book-buddy-media';
+    const owner = institutionId.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!owner) throw new BadRequestException('Invalid institution id');
+
     const { url, key } = await this.s3Service.generatePresignedUploadUrl(
       bucket,
       fileType, // ex: logo
       contentType, // ex: image/png
       3600, // expires in 1h
+      { keyPrefix: `global/branding/${owner}`, extension },
     );
-    // You could also track this in a MediaUpload table if needed, similar to user uploads
-    return { uploadUrl: url, key, bucket };
+    return {
+      uploadUrl: url,
+      key,
+      bucket,
+      publicUrl: this.s3Service.publicUrlFor(key),
+    };
   }
 
   // Tenant methods (formerly Institution)

@@ -55,7 +55,9 @@ export class MediaService {
 
     // Use default bucket
     const bucket: string =
-      this.configService.get('AWS_S3_BUCKET') || 'book-buddy-media';
+      this.configService.get('S3_BUCKET_NAME') ||
+      this.configService.get('AWS_S3_BUCKET') ||
+      'book-buddy-media';
 
     // Check file type against allowed formats
     if (mediaSettings?.allowedFormats) {
@@ -121,7 +123,9 @@ export class MediaService {
       const mediaSettings: any = null;
 
       const bucket: string =
-        this.configService.get('AWS_S3_BUCKET') || 'book-buddy-media';
+        this.configService.get('S3_BUCKET_NAME') ||
+        this.configService.get('AWS_S3_BUCKET') ||
+        'book-buddy-media';
 
       // Create a media file record
       const mediaFile = await this.prisma.mediaFile.create({
