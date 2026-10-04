@@ -337,7 +337,7 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
                 <button
                   key={hit.nodeId}
                   onClick={() => openEntity(hit.nodeId)}
-                  className="w-full text-left p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors flex items-start gap-2"
+                  className="w-full text-left p-3 rounded-[22px] border border-slate-200 dark:border-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors flex items-start gap-2"
                 >
                   <EntityIcon type={hit.type} className="h-4 w-4 mt-0.5 text-indigo-500 shrink-0" />
                   <div className="min-w-0">
@@ -390,7 +390,7 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
                     <h5 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Connections</h5>
                     <div className="space-y-2">
                       {selectedEntity.relations.map((rel) => (
-                        <div key={rel.edgeId} className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-sm">
+                        <div key={rel.edgeId} className="p-2.5 rounded-[22px] border border-slate-200 dark:border-slate-800 text-sm">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {rel.direction === "outgoing" ? (
                               <>
@@ -433,22 +433,22 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
         </div>
       ) : (
         <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "map" | "entities" | "summary")} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <TabsList className="grid grid-cols-3 mx-4 mt-4 mb-2 p-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm min-h-[44px]">
+          <TabsList className="grid grid-cols-3 mx-4 mt-4 mb-2 h-11 rounded-full bg-bb-surface-2 p-1 shadow-none">
             <TabsTrigger
               value="map"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white flex items-center gap-1.5"
+              className="rounded-full text-sm font-semibold flex items-center gap-1.5"
             >
               <Waypoints className="h-3.5 w-3.5" /> Map
             </TabsTrigger>
             <TabsTrigger
               value="entities"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white"
+              className="rounded-full text-sm font-semibold"
             >
               Entities
             </TabsTrigger>
             <TabsTrigger
               value="summary"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white"
+              className="rounded-full text-sm font-semibold"
             >
               Throughlines
             </TabsTrigger>
@@ -568,7 +568,7 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
                     <button
                       key={entity.id}
                       onClick={() => openEntity(entity.id)}
-                      className="w-full text-left p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors flex items-start gap-2"
+                      className="w-full text-left p-3 rounded-[22px] border border-slate-200 dark:border-slate-800 hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors flex items-start gap-2"
                     >
                       <EntityIcon type={entity.type} className="h-4 w-4 mt-0.5 text-indigo-500 shrink-0" />
                       <div className="min-w-0">
@@ -623,7 +623,7 @@ export function GraphSidebar({ bookId, isOpen, onClose, isDarkMode = false, embe
                   </div>
                 ) : summaries.length > 0 ? (
                   summaries.map((community) => (
-                    <div key={community.id} className="p-3.5 rounded-lg border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-900/10">
+                    <div key={community.id} className="p-3.5 rounded-[22px] border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-900/10">
                       <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-2.5">{community.summary}</p>
                       <div className="flex flex-wrap gap-1">
                         {community.members.slice(0, 6).map((m) => (

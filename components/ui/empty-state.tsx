@@ -2,6 +2,24 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Icon, type BBIconName } from "@/components/ui/icon"
 
+/** The empty-state halo on its own (blaze glow, dashed ring, 52px tile): for panels with bespoke empty copy. */
+export function EmptyHalo({ icon, className, hue }: { icon: BBIconName; className?: string; hue?: "a" | "b" }) {
+  return (
+    <span aria-hidden className={cn("relative flex h-[88px] w-[88px] items-center justify-center", className)}>
+      <span
+        className={cn(
+          "absolute inset-0 rounded-full",
+          hue === "b" ? "bg-[radial-gradient(circle,rgba(59,91,219,.16),transparent_70%)]" : "bg-[radial-gradient(circle,rgba(255,77,0,.16),transparent_70%)]"
+        )}
+      />
+      <span className="absolute inset-2.5 rounded-full border-[1.5px] border-dashed border-bb-border" />
+      <span className="relative flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-bb-surface shadow-e1">
+        <Icon name={icon} size={26} hue={hue} />
+      </span>
+    </span>
+  )
+}
+
 export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   icon?: BBIconName
   title: React.ReactNode

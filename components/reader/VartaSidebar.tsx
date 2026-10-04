@@ -168,7 +168,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                   <button
                     onClick={() => handleCitationClick(String(cite.pageNumber))}
                     title={cite.textPreview ? `Page ${cite.pageNumber} — ${cite.textPreview}` : `Jump to page ${cite.pageNumber}`}
-                    className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 mx-0.5 rounded-sm bg-[var(--accent-soft)] text-[var(--accent-contrast)] hover:bg-[var(--accent-primary)]/20 dark:bg-[var(--bb-amber)]/15 dark:text-[var(--bb-amber)] dark:hover:bg-[var(--bb-amber)]/25 transition-colors"
+                    className="inline-flex items-center text-xs font-semibold px-1.5 py-0.5 mx-0.5 rounded-full bg-bb-grad-cobalt text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4)] hover:brightness-110 transition-colors"
                   >
                     <BookOpen className="w-3 h-3 mr-1 inline" />
                     Pg. {cite.pageNumber}
@@ -176,7 +176,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                 );
               }
             }
-            return <a {...props} className="text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)] hover:underline" />;
+            return <a {...props} className="text-[#3B5BDB] dark:text-[#7D97FF] hover:underline" />;
           }
         }}
       >
@@ -241,14 +241,14 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                  book and cost nothing. */
               <div className="flex flex-col justify-center h-full px-1 py-8">
                 <div className="flex flex-col items-center text-center mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10 flex items-center justify-center mb-3 shadow-sm border border-[var(--accent-primary)]/25 dark:border-[var(--bb-amber)]/20">
-                    <Bot className="h-7 w-7 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+                  <div className="w-14 h-14 rounded-2xl bg-[var(--bb-info-soft)] dark:bg-[#7D97FF]/10 flex items-center justify-center mb-3 shadow-sm border border-[#3B5BDB]/25 dark:border-[#7D97FF]/20">
+                    <Bot className="h-7 w-7 text-[#3B5BDB] dark:text-[#7D97FF]" />
                   </div>
                   <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">
                     {greetingName ? `Namaste, ${greetingName}!` : 'Namaste!'}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-[19rem]">
-                    I&apos;m <span className="font-semibold text-[var(--accent-contrast)] dark:text-[var(--accent-primary-dark)]">Varta</span>.
+                    I&apos;m <span className="font-semibold text-[var(--bb-info-ink)] dark:text-[#7D97FF]">Varta</span>.
                     I&apos;ve read this whole book — ask me anything about it, and I&apos;ll point you to the page.
                   </p>
                 </div>
@@ -264,9 +264,9 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                         key={s.text}
                         type="button"
                         onClick={() => setInput(s.text)}
-                        className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all duration-150 dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04] dark:hover:bg-[var(--bb-amber)]/10"
+                        className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[#3B5BDB]/20 bg-[var(--bb-info-soft)]/40 hover:bg-[var(--bb-info-soft)] hover:border-[#3B5BDB]/40 active:scale-[0.99] transition-all duration-150 dark:border-[#7D97FF]/15 dark:bg-[#7D97FF]/[0.04] dark:hover:bg-[#7D97FF]/10"
                       >
-                        <span className="mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]">
+                        <span className="mt-0.5 shrink-0 text-[#3B5BDB] dark:text-[#7D97FF]">
                           <Icon className="w-4 h-4" />
                         </span>
                         {/* min-w-0 + flex-1 is what lets these wrap inside a
@@ -289,14 +289,14 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
             ) : (
               messages.map((m) => (
                 <div key={m.id} className={`flex gap-3 ${m.role === 'USER' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center ${m.role === 'USER' ? 'bg-slate-200 dark:bg-slate-800' : 'bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-strong)]'}`}>
-                    {m.role === 'USER' ? <User className="w-4 h-4 text-slate-600 dark:text-slate-300" /> : <Bot className="w-4 h-4 text-white" />}
+                  <div className={`w-8 h-8 rounded-full flex shrink-0 items-center justify-center ${m.role === 'USER' ? 'bg-slate-200 dark:bg-slate-800' : 'bg-bb-orb shadow-[0_0_14px_rgba(91,124,255,.55)]'}`}>
+                    {m.role === 'USER' ? <User className="w-4 h-4 text-slate-600 dark:text-slate-300" /> : null}
                   </div>
                   <div className={`flex flex-col gap-1 ${m.role === 'USER' ? 'max-w-[80%]' : 'max-w-[88%]'}`}>
                     <div className={`px-3.5 py-3 rounded-2xl text-sm ${
                       m.role === 'USER'
-                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tr-sm whitespace-pre-wrap break-words'
-                        : 'bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/[0.07] border border-[var(--accent-primary)]/20 dark:border-[var(--bb-amber)]/15 text-slate-800 dark:text-slate-200 rounded-tl-sm break-words prose prose-sm max-w-none dark:prose-invert prose-p:my-2.5 prose-p:leading-relaxed prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-semibold prose-h1:text-base prose-h2:text-[15px] prose-h3:text-sm prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-li:marker:text-[var(--accent-strong)] dark:prose-li:marker:text-[var(--bb-amber)] prose-strong:font-semibold prose-strong:text-slate-900 dark:prose-strong:text-white prose-code:text-[var(--accent-contrast)] dark:prose-code:text-[var(--bb-amber)] prose-code:bg-black/[0.06] dark:prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-[""] prose-code:after:content-[""] prose-pre:bg-slate-800 prose-pre:text-white prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto prose-table:text-xs prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-blockquote:border-l-[var(--accent-strong)] prose-blockquote:not-italic prose-hr:my-3 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-1'
+                        ? 'bg-bb-navy text-white rounded-tr-sm whitespace-pre-wrap break-words'
+                        : 'bg-[var(--bb-info-soft)] dark:bg-[#7D97FF]/[0.07] border border-[#3B5BDB]/20 dark:border-[#7D97FF]/15 text-slate-800 dark:text-slate-200 rounded-tl-sm break-words prose prose-sm max-w-none dark:prose-invert prose-p:my-2.5 prose-p:leading-relaxed prose-headings:mt-4 prose-headings:mb-2 prose-headings:font-semibold prose-h1:text-base prose-h2:text-[15px] prose-h3:text-sm prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-li:marker:text-[#3B5BDB] dark:prose-li:marker:text-[#7D97FF] prose-strong:font-semibold prose-strong:text-slate-900 dark:prose-strong:text-white prose-code:text-[var(--bb-info-ink)] dark:prose-code:text-[#7D97FF] prose-code:bg-black/[0.06] dark:prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-[""] prose-code:after:content-[""] prose-pre:bg-slate-800 prose-pre:text-white prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto prose-table:text-xs prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1 prose-blockquote:border-l-[#3B5BDB] prose-blockquote:not-italic prose-hr:my-3 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-1'
                     }`}>
                       {m.role === 'ASSISTANT' ? renderMessageContent(m) : m.content}
                     </div>
@@ -326,7 +326,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
               ))
             )}
             {trialRequired ? (
-              <div className="p-4 rounded-xl border border-[var(--accent-primary)]/25 bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/[0.06]">
+              <div className="p-4 rounded-xl border border-[#3B5BDB]/25 bg-[var(--bb-info-soft)] dark:bg-[#7D97FF]/[0.06]">
                 <StartTrialButton variant="inline" />
               </div>
             ) : error && (
@@ -364,7 +364,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask Varta about the text..."
-                className="pr-12 bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800 focus-visible:ring-[var(--accent-strong)] rounded-full h-11"
+                className="pr-12 bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800 focus-visible:ring-[#3B5BDB] rounded-full h-11"
                 disabled={isLoading}
               />
               <div className="absolute right-1">
@@ -373,7 +373,7 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
                     <StopCircle className="h-5 w-5" />
                   </Button>
                 ) : (
-                  <Button type="submit" size="icon" disabled={!input.trim()} className="h-9 w-9 rounded-full bg-[var(--accent-strong)] hover:bg-[var(--accent-contrast)] text-white shadow-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
+                  <Button type="submit" size="icon" variant="cobalt" disabled={!input.trim()} className="h-9 w-9 rounded-full transition-all hover:scale-105 active:scale-95 disabled:opacity-50">
                     <Send className="h-4 w-4 ml-0.5" />
                   </Button>
                 )}
@@ -394,10 +394,10 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
 
   return (
     <div className={panelShellClass({ isOpen, width: 'w-96' })}>
-      <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex flex-col gap-3 shrink-0">
+      <div className="p-4 border-b border-[#3B5BDB]/15 dark:border-[#7D97FF]/10 flex flex-col gap-3 shrink-0">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
-            <WandSparkles className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+          <h3 className="text-xl font-bold tracking-tight text-[var(--bb-info-ink)] dark:text-[#7D97FF] flex items-center gap-2">
+            <WandSparkles className="h-5 w-5 text-[#3B5BDB] dark:text-[#7D97FF]" />
             Varta
           </h3>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close Varta" className="rounded-full">
@@ -411,11 +411,11 @@ export function VartaSidebar({ bookId, isOpen, onClose, isDarkMode = false, init
 
       <Tabs value={panelTab} onValueChange={(v) => setPanelTab(v as PanelTab)} className="flex-1 flex flex-col min-h-0">
         <TabsList className="grid grid-cols-3 mx-4 mt-3 mb-0 p-1 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm shrink-0 h-10">
-          <TabsTrigger value="ask" className="rounded-lg text-xs font-semibold data-[state=active]:bg-[var(--accent-strong)] data-[state=active]:text-white">Ask</TabsTrigger>
-          <TabsTrigger value="recap" className="rounded-lg text-xs font-semibold flex items-center gap-1 data-[state=active]:bg-[var(--accent-strong)] data-[state=active]:text-white">
+          <TabsTrigger value="ask" className="rounded-lg text-xs font-semibold data-[state=active]:bg-[#3B5BDB] data-[state=active]:text-white">Ask</TabsTrigger>
+          <TabsTrigger value="recap" className="rounded-lg text-xs font-semibold flex items-center gap-1 data-[state=active]:bg-[#3B5BDB] data-[state=active]:text-white">
             <AudioLines className="w-3 h-3" /> Recap
           </TabsTrigger>
-          <TabsTrigger value="simplify" className="rounded-lg text-xs font-semibold flex items-center gap-1 data-[state=active]:bg-[var(--accent-strong)] data-[state=active]:text-white">
+          <TabsTrigger value="simplify" className="rounded-lg text-xs font-semibold flex items-center gap-1 data-[state=active]:bg-[#3B5BDB] data-[state=active]:text-white">
             <Wand2 className="w-3 h-3" /> Simplify
           </TabsTrigger>
         </TabsList>

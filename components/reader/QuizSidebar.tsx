@@ -371,9 +371,9 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
               Pages read this session still offer themselves as a one-tap fill
               when that mapping happens to resolve — a convenience when it
               works, no longer a precondition for the feature existing. */}
-          <div className="rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04] px-3 py-2.5">
+          <div className="rounded-[22px] border border-[#3B5BDB]/20 bg-[var(--bb-info-soft)]/40 dark:border-[#7D97FF]/15 dark:bg-[#7D97FF]/[0.04] px-3 py-2.5">
             <div className="flex items-start gap-3">
-              <HistoryIcon className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+              <HistoryIcon className="w-4 h-4 mt-0.5 shrink-0 text-[#3B5BDB] dark:text-[#7D97FF]" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                   From specific pages
@@ -397,7 +397,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
             {sessionPrintedPages.length > 0 && (
               <button
                 onClick={() => setPageSpec(formatPages(sessionPrintedPages))}
-                className="mt-1.5 text-[11px] text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)] underline"
+                className="mt-1.5 text-[11px] text-[#3B5BDB] dark:text-[#7D97FF] underline"
               >
                 Use what I just read ({formatPages(sessionPrintedPages)})
               </button>
@@ -405,7 +405,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
             <Button
               disabled={!pageSpec.trim()}
               onClick={() => startQuiz("session", undefined, pageSpec.trim())}
-              className="w-full mt-2 h-8 text-xs bg-[var(--accent-strong)] hover:bg-[var(--accent-contrast)] text-white disabled:opacity-50"
+              className="w-full mt-2 h-8 text-xs bg-[#3B5BDB] hover:bg-[var(--bb-info-ink)] text-white disabled:opacity-50"
             >
               Quiz me on these pages
             </Button>
@@ -415,9 +415,9 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
             type="button"
             disabled={loadingChapters || chapters.length === 0}
             onClick={() => setScope("chapter")}
-            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all disabled:opacity-50 dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04]"
+            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-[22px] border border-[#3B5BDB]/20 bg-[var(--bb-info-soft)]/40 hover:bg-[var(--bb-info-soft)] hover:border-[#3B5BDB]/40 active:scale-[0.99] transition-all disabled:opacity-50 dark:border-[#7D97FF]/15 dark:bg-[#7D97FF]/[0.04]"
           >
-            <BookOpen className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+            <BookOpen className="w-4 h-4 mt-0.5 shrink-0 text-[#3B5BDB] dark:text-[#7D97FF]" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                 From a chapter
@@ -433,9 +433,9 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
           <button
             type="button"
             onClick={() => startQuiz("book")}
-            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-xl border border-[var(--accent-primary)]/20 bg-[var(--accent-soft)]/40 hover:bg-[var(--accent-soft)] hover:border-[var(--accent-primary)]/40 active:scale-[0.99] transition-all dark:border-[var(--bb-amber)]/15 dark:bg-[var(--bb-amber)]/[0.04]"
+            className="flex items-start gap-3 w-full text-left px-3 py-2.5 rounded-[22px] border border-[#3B5BDB]/20 bg-[var(--bb-info-soft)]/40 hover:bg-[var(--bb-info-soft)] hover:border-[#3B5BDB]/40 active:scale-[0.99] transition-all dark:border-[#7D97FF]/15 dark:bg-[#7D97FF]/[0.04]"
           >
-            <Library className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+            <Library className="w-4 h-4 mt-0.5 shrink-0 text-[#3B5BDB] dark:text-[#7D97FF]" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                 Whole book
@@ -461,7 +461,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
       <div className="flex-1 overflow-y-auto p-4">
         <button
           onClick={() => setScope(null)}
-          className="text-xs text-slate-500 hover:text-[var(--accent-strong)] mb-3"
+          className="text-xs text-slate-500 hover:text-[#3B5BDB] mb-3"
         >
           ← Back
         </button>
@@ -470,7 +470,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
             <button
               key={ch}
               onClick={() => startQuiz("chapter", ch)}
-              className="text-left text-sm font-medium px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-[var(--accent-strong)] hover:bg-[var(--accent-soft)]/50 transition-colors text-slate-700 dark:text-slate-300"
+              className="text-left text-sm font-medium px-3 py-2.5 rounded-[22px] border border-slate-200 dark:border-slate-700 hover:border-[#3B5BDB] hover:bg-[var(--bb-info-soft)]/50 transition-colors text-slate-700 dark:text-slate-300"
             >
               {ch}
             </button>
@@ -492,8 +492,8 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
     const pct = score.total > 0 ? Math.round((score.right / score.total) * 100) : 0;
     return (
       <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center text-center">
-        <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] dark:bg-[var(--bb-amber)]/10 flex items-center justify-center mb-3 border border-[var(--accent-primary)]/25">
-          <Trophy className="h-7 w-7 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+        <div className="w-14 h-14 rounded-2xl bg-[var(--bb-info-soft)] dark:bg-[#7D97FF]/10 flex items-center justify-center mb-3 border border-[#3B5BDB]/25">
+          <Trophy className="h-7 w-7 text-[#3B5BDB] dark:text-[#7D97FF]" />
         </div>
         <p className="text-2xl font-bold text-slate-800 dark:text-slate-200 tabular-nums">
           {score.right} / {score.total}
@@ -502,7 +502,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
           {pct >= 80 ? "Strong round." : pct >= 50 ? "Solid — worth another go." : "Worth re-reading this one."}
         </p>
         <div className="flex flex-col gap-2 mt-5 w-full max-w-[15rem]">
-          <Button onClick={restart} className="bg-[var(--accent-strong)] hover:bg-[var(--accent-contrast)] text-white">
+          <Button onClick={restart} className="bg-[#3B5BDB] hover:bg-[var(--bb-info-ink)] text-white">
             <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Ask me again
           </Button>
           <Button variant="ghost" onClick={() => { resetRun(); setScope(null); }} className="text-slate-500">
@@ -569,15 +569,15 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
                   key={choice}
                   disabled={!!verdict || grading}
                   onClick={() => choose(choice)}
-                  className={`w-full text-left text-sm px-3 py-2.5 rounded-xl border transition-colors flex items-start gap-2.5 ${
+                  className={`w-full text-left text-sm px-3 py-2.5 rounded-[22px] border transition-colors flex items-start gap-2.5 ${
                     state === "correct"
                       ? "bg-green-50 dark:bg-green-950/30 border-green-400 text-green-800 dark:text-green-300"
                       : state === "wrong"
                       ? "bg-red-50 dark:bg-red-950/30 border-red-400 text-red-800 dark:text-red-300"
                       : state === "picked"
-                      ? "bg-[var(--accent-soft)] border-[var(--accent-strong)] text-slate-800 dark:text-slate-200"
+                      ? "bg-[var(--bb-info-soft)] border-[#3B5BDB] text-slate-800 dark:text-slate-200"
                       : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                  } ${verdict ? "cursor-default" : "hover:border-[var(--accent-strong)] active:scale-[0.99]"}`}
+                  } ${verdict ? "cursor-default" : "hover:border-[#3B5BDB] active:scale-[0.99]"}`}
                 >
                   {verdict && (state === "correct" || state === "wrong") && (
                     <span className="mt-0.5 shrink-0">
@@ -606,7 +606,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
                 <button
                   onClick={handleExplain}
                   disabled={assisting !== null}
-                  className="inline-flex items-center gap-1 rounded-full border border-[var(--accent-primary)]/30 px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-contrast)] dark:text-[var(--accent-primary-dark)] hover:border-[var(--accent-strong)] disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#3B5BDB]/30 px-2.5 py-1 text-[11px] font-semibold text-[var(--bb-info-ink)] dark:text-[#7D97FF] hover:border-[#3B5BDB] disabled:opacity-50"
                 >
                   {assisting === "explain" ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -618,7 +618,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
                 <button
                   onClick={handleTranslate}
                   disabled={assisting !== null}
-                  className="inline-flex items-center gap-1 rounded-full border border-[var(--accent-primary)]/30 px-2.5 py-1 text-[11px] font-semibold text-[var(--accent-contrast)] dark:text-[var(--accent-primary-dark)] hover:border-[var(--accent-strong)] disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-full border border-[#3B5BDB]/30 px-2.5 py-1 text-[11px] font-semibold text-[var(--bb-info-ink)] dark:text-[#7D97FF] hover:border-[#3B5BDB] disabled:opacity-50"
                 >
                   {assisting === "translate" ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -637,7 +637,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
               </div>
 
               {explanation && (
-                <div className="mt-3 p-3 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/10">
+                <div className="mt-3 p-3 rounded-[22px] border border-amber-200 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/10">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400 mb-1">
                     Why
                   </p>
@@ -648,7 +648,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
               )}
 
               {translation && showTranslation && (
-                <div className="mt-2 p-3 rounded-xl border border-sky-200 dark:border-sky-900/50 bg-sky-50/60 dark:bg-sky-950/10">
+                <div className="mt-2 p-3 rounded-[22px] border border-sky-200 dark:border-sky-900/50 bg-sky-50/60 dark:bg-sky-950/10">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-400 mb-1">
                     {translation.label}
                   </p>
@@ -660,7 +660,7 @@ export function ChapterQuizContent({ bookId }: ChapterQuizContentProps) {
 
               <Button
                 onClick={next}
-                className="w-full mt-3 bg-[var(--accent-strong)] hover:bg-[var(--accent-contrast)] text-white"
+                className="w-full mt-3 bg-[#3B5BDB] hover:bg-[var(--bb-info-ink)] text-white"
               >
                 {index + 1 >= items.length ? "See result" : "Next question"}
                 <ArrowRight className="w-3.5 h-3.5 ml-1.5" />

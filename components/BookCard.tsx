@@ -66,7 +66,7 @@ export function BookCard({
 
   return (
     <article
-      className="bb-lift group relative flex h-full cursor-pointer flex-col rounded-[18px] bg-bb-surface p-4 shadow-e1 focus-visible:outline-none focus-visible:shadow-focus"
+      className="bb-lift group relative flex h-full cursor-pointer flex-col rounded-[24px] bg-bb-surface p-4 shadow-e1 focus-visible:outline-none focus-visible:shadow-focus"
       onClick={() => onView(book)}
       tabIndex={0}
       onKeyDown={(e) => {
@@ -111,10 +111,18 @@ export function BookCard({
         <div className="flex flex-wrap gap-1.5">
           {formats.map((fmt, idx) => {
             const info = FORMAT_CHIP[fmt.toUpperCase()] ?? { label: fmt, icon: 'read' as BBIconName };
+            const ai = fmt.toUpperCase() === 'AI_EMBED';
             return (
-              <Chip key={`${fmt}-${idx}`} icon={info.icon} className="text-xs">
+              <span
+                key={`${fmt}-${idx}`}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold',
+                  ai ? 'bg-bb-info-soft text-bb-info-ink' : 'bg-bb-surface-2 text-bb-text'
+                )}
+              >
+                <Icon name={info.icon} size={12} hue={ai ? 'b' : undefined} />
                 {info.label}
-              </Chip>
+              </span>
             );
           })}
           {(book.genre ?? []).slice(0, 2).map((g) => (

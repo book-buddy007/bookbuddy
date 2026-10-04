@@ -286,14 +286,14 @@ export function AnnotationSidebar({ bookId, currentPage, isOpen, onClose, isDark
             `mainTab` prop. Radix still needs the Tabs root itself for the
             value plumbing, so only the trigger row goes. */}
         {!controlledMainTab && (
-        <TabsList className="grid grid-cols-2 mx-4 mt-4 mb-2 p-1.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800/50 shadow-sm min-h-[44px]">
+        <TabsList className="grid grid-cols-2 mx-4 mt-4 mb-2 h-11 rounded-full bg-bb-surface-2 p-1 shadow-none">
             <TabsTrigger
               value="notes"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
+              className="rounded-full text-sm font-semibold"
             >Notes</TabsTrigger>
             <TabsTrigger
               value="vocab"
-              className="rounded-lg text-sm font-medium transition-all duration-300 data-[state=active]:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50 dark:data-[state=inactive]:text-slate-400"
+              className="rounded-full text-sm font-semibold"
             >Vocabulary</TabsTrigger>
         </TabsList>
         )}

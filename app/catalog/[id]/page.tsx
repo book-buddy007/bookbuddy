@@ -6,6 +6,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import apiClient from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Icon, type BBIconName } from '@/components/ui/icon';
 import { BookCover } from '@/components/ui/book-cover';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -243,7 +244,8 @@ export default function BookDetailPage() {
         )}
       </div>
 
-      <article className="mt-4 flex flex-col gap-8 rounded-bb-xl bg-bb-surface p-6 shadow-e1 md:flex-row md:gap-12 md:p-10">
+      <article className="mt-4 space-y-5">
+      <Card variant="stage" className="flex flex-col gap-8 rounded-[28px] p-6 md:flex-row md:gap-12 md:p-10">
         <div className="relative mx-auto shrink-0 md:mx-0">
           <BookCover title={book.title} subject={book.genre[0]} coverUrl={book.coverUrl} width={260} className="max-md:!w-[220px] max-md:!h-[325px]" />
           <span className={cn('absolute left-3 top-3 inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-xs font-bold uppercase tracking-[0.06em] shadow-e1', TIER_CHIP[book.accessTier] ?? TIER_CHIP.FREE)}>
@@ -253,25 +255,80 @@ export default function BookDetailPage() {
         </div>
 
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-[-0.03em] text-bb-text lg:text-[38px]">
+          <h1 className="font-display text-[30px] font-extrabold leading-tight tracking-[-0.03em] text-[#F2F4F8] lg:text-[38px]">
             {book.title}
           </h1>
-          <p className="mt-2 text-lg text-bb-muted">
-            by <span className="font-semibold text-bb-text">{book.author}</span>
+          <p className="mt-2 text-lg text-[#A9B4D0]">
+            by <span className="font-semibold text-[#F2F4F8]">{book.author}</span>
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <StatusBadge status={book.available ? 'returned' : 'reserved'} label={book.available ? 'Available' : 'All copies on loan'} />
             {book.formats.map((fmt) => (
-              <span key={fmt} className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-bb-border px-2.5 text-[13px] font-semibold text-bb-text">
+              <span key={fmt} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-white/20 bg-white/5 px-3 text-[13px] font-semibold text-[#F2F4F8]">
                 <Icon name={FORMAT_META[fmt]?.icon ?? 'read'} size={14} />
                 {FORMAT_META[fmt]?.label ?? fmt}
               </span>
             ))}
           </div>
 
+          <div className="mt-7 flex flex-wrap gap-3">
+            {free ? (
+              <>
+                {book.formats.includes('EPUB') && (
+                  <Button size="lg" onClick={() => router.push(getReaderRoute(book.id, 'EPUB'))}>
+                    <Icon name="read" fillLayer={false} />
+                    Read eBook
+                  </Button>
+                )}
+                {book.formats.includes('PDF') && (
+                  <Button size="lg" variant={book.formats.includes('EPUB') ? 'soft' : 'default'} onClick={() => router.push(getReaderRoute(book.id, 'PDF'))}>
+                    <Icon name="pdf" fillLayer={false} />
+                    Read PDF
+                  </Button>
+                )}
+                {hasAudio(book) && (
+                  <Button size="lg" variant="soft" onClick={() => router.push(getReaderRoute(book.id, 'AUDIOBOOK'))}>
+                    <Icon name="audiobook" fillLayer={false} />
+                    Listen
+                  </Button>
+                )}
+                {hasAiEmbed(book) && (
+                  <Button size="lg" variant="cobalt" onClick={() => router.push(getReaderRoute(book.id, 'AI_EMBED'))}>
+                    <Icon name="varta" fillLayer={false} />
+                    Ask Varta
+                  </Button>
+                )}
+                {book.formats.length === 0 && (
+                  <p className="text-sm text-[#A9B4D0]">No digital edition has been uploaded for this title yet.</p>
+                )}
+              </>
+            ) : book.available ? (
+              <Button size="lg" onClick={handleBorrow} disabled={borrowing}>
+                {borrowing ? <Icon name="loader" fillLayer={false} className="animate-spin" /> : <Icon name="library" fillLayer={false} />}
+                {borrowing ? 'Borrowing…' : 'Borrow book'}
+              </Button>
+            ) : (
+              <Button size="lg" disabled>
+                <Icon name="overdue" fillLayer={false} />
+                All copies on loan
+              </Button>
+            )}
+          </div>
+
+          {!free && (
+            <p className="mt-4 text-[13px] text-[#A9B4D0]">
+              {titleCase(book.accessTier)} title.{' '}
+              <Link href="/subscription/compare" className="font-semibold text-[#FF8A3D] hover:underline">
+                Compare plans
+              </Link>
+            </p>
+          )}
+        </div>
+      </Card>
+      <section className="rounded-bb-card bg-bb-surface p-6 shadow-e1 md:p-8">
           {meta.length > 0 && (
-            <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-4 rounded-bb-lg bg-bb-surface-2 p-5 text-sm sm:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-bb-lg bg-bb-surface-2 p-5 text-sm sm:grid-cols-3">
               {meta.map((m) => (
                 <div key={m.k} className="min-w-0">
                   <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-bb-faint">{m.k}</dt>
@@ -290,65 +347,13 @@ export default function BookDetailPage() {
           )}
 
           {book.description && (
-            <section className="mt-8">
+            <section className="mt-6">
               <h2 className="font-display text-lg font-bold text-bb-text">About this book</h2>
               <p className="mt-2 whitespace-pre-line font-reading text-[16px] leading-relaxed text-bb-muted">{book.description}</p>
             </section>
           )}
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            {free ? (
-              <>
-                {book.formats.includes('EPUB') && (
-                  <Button size="lg" onClick={() => router.push(getReaderRoute(book.id, 'EPUB'))}>
-                    <Icon name="read" fillLayer={false} />
-                    Read eBook
-                  </Button>
-                )}
-                {book.formats.includes('PDF') && (
-                  <Button size="lg" variant={book.formats.includes('EPUB') ? 'outline' : 'default'} onClick={() => router.push(getReaderRoute(book.id, 'PDF'))}>
-                    <Icon name="pdf" fillLayer={false} />
-                    Read PDF
-                  </Button>
-                )}
-                {hasAudio(book) && (
-                  <Button size="lg" variant="secondary" onClick={() => router.push(getReaderRoute(book.id, 'AUDIOBOOK'))}>
-                    <Icon name="audiobook" fillLayer={false} />
-                    Listen
-                  </Button>
-                )}
-                {hasAiEmbed(book) && (
-                  <Button size="lg" variant="outline" onClick={() => router.push(getReaderRoute(book.id, 'AI_EMBED'))}>
-                    <Icon name="varta" fillLayer={false} />
-                    Ask Varta
-                  </Button>
-                )}
-                {book.formats.length === 0 && (
-                  <p className="text-sm text-bb-muted">No digital edition has been uploaded for this title yet.</p>
-                )}
-              </>
-            ) : book.available ? (
-              <Button size="lg" onClick={handleBorrow} disabled={borrowing}>
-                {borrowing ? <Icon name="loader" fillLayer={false} className="animate-spin" /> : <Icon name="library" fillLayer={false} />}
-                {borrowing ? 'Borrowing…' : 'Borrow book'}
-              </Button>
-            ) : (
-              <Button size="lg" disabled>
-                <Icon name="overdue" fillLayer={false} />
-                All copies on loan
-              </Button>
-            )}
-          </div>
-
-          {!free && (
-            <p className="mt-4 text-[13px] text-bb-muted">
-              {titleCase(book.accessTier)} title.{' '}
-              <Link href="/subscription/compare" className="font-semibold text-bb-accent-ink hover:underline">
-                Compare plans
-              </Link>
-            </p>
-          )}
-        </div>
+      </section>
       </article>
     </>,
   );

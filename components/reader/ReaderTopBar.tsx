@@ -82,9 +82,9 @@ export function ReaderTopBar({
         <button
           type="button"
           onClick={onVarta}
-          className="ml-1 hidden h-10 items-center gap-2 rounded-full bg-bb-primary px-4 text-sm font-semibold text-white shadow-gloss focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
+          className="ml-1 hidden h-10 items-center gap-2 rounded-full bg-bb-grad-cobalt px-4 text-sm font-semibold text-white shadow-glow-cobalt focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
         >
-          <Icon name="varta" size={18} fillLayer={false} /> Ask Varta
+          <Icon name="varta" size={18} tone="onfill" /> Ask Varta
         </button>
       </div>
     </header>

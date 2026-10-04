@@ -152,9 +152,8 @@ export function VartaChat({ chat, mode, onModeChange, bookId, book, books, onSel
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-bb-info-soft px-3 text-[13px] font-semibold text-bb-info-ink">
-            <Icon name="admin" size={16} />
-            Answers only from your textbook
+          <span className="inline-flex h-9 items-center rounded-full bg-bb-info-soft px-3 text-xs font-bold text-bb-info-ink">
+            Strict · from this book
           </span>
         </div>
       </header>
@@ -270,7 +269,7 @@ export function VartaChat({ chat, mode, onModeChange, bookId, book, books, onSel
               </button>
             )}
           </div>
-          <form ref={formRef} onSubmit={sendMessage} className="flex items-end gap-2 rounded-[22px] border-[1.5px] border-bb-border bg-bb-surface p-2 pl-4 transition-[border-color,box-shadow] focus-within:border-bb-accent focus-within:shadow-focus">
+          <form ref={formRef} onSubmit={sendMessage} className="flex items-end gap-2 rounded-[26px] border-[1.5px] border-transparent bg-bb-surface-2 p-1.5 pl-4 transition-[border-color,box-shadow] focus-within:border-bb-cobalt-light focus-within:shadow-focus">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -304,8 +303,8 @@ export function VartaChat({ chat, mode, onModeChange, bookId, book, books, onSel
                 <Icon name="square" size={18} fillLayer={false} />
               </Button>
             ) : (
-              <Button type="submit" size="icon-md" disabled={!input.trim()} aria-label="Send">
-                <Icon name="send" size={20} fillLayer={false} />
+              <Button type="submit" variant="cobalt" size="icon-md" disabled={!input.trim()} aria-label="Send">
+                <Icon name="arrow-right" size={18} />
               </Button>
             )}
           </form>

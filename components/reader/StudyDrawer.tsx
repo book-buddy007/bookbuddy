@@ -266,7 +266,7 @@ export function StudyDrawer({
                 'hit-target flex shrink-0 items-center gap-1.5 rounded-full px-3',
                 'text-xs font-semibold transition-colors',
                 active
-                  ? 'bg-bb-accent-soft text-bb-accent-ink'
+                  ? 'bg-bb-surface text-bb-text shadow-[0_1px_0_var(--bb-border),0_6px_14px_-8px_rgba(10,15,36,.4)]'
                   : 'text-[color:var(--rd-sub)] hover:bg-[color:var(--rd-track)] hover:text-[color:var(--rd-ink)]',
               ].join(' ')}
             >

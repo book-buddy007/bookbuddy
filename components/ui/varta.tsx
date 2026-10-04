@@ -6,7 +6,7 @@ export function VartaOrb({ size = 32, className }: { size?: number; className?: 
   return (
     <span
       aria-hidden
-      className={cn("inline-block shrink-0 rounded-full bg-bb-orb shadow-[0_0_14px_rgba(255,138,61,.5)]", className)}
+      className={cn("inline-block shrink-0 rounded-full bg-bb-orb shadow-[0_0_18px_rgba(91,124,255,.6)]", className)}
       style={{ width: size, height: size }}
     />
   )
@@ -19,18 +19,17 @@ export interface CitationChipProps extends React.ButtonHTMLAttributes<HTMLButton
   active?: boolean
 }
 
-/** Citation pill under an answer. Active = accent-soft with a 1.5px blaze ring; otherwise cloud. */
+/** Citation pill under an answer: cobalt gloss (it is AI), with a spring pop on entry. Active adds a ring. */
 export function CitationChip({ label, active, className, type = "button", ...props }: CitationChipProps) {
   return (
     <button
       type={type}
       aria-pressed={!!active}
       className={cn(
-        "inline-flex h-7 items-center rounded-full px-3 text-[13px] font-semibold transition-colors duration-bb-micro",
+        "inline-flex h-[26px] items-center rounded-full bg-bb-grad-cobalt px-2.5 text-xs font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4)]",
+        "transition-[filter,box-shadow] duration-bb-micro [animation:bbpop_.5s_var(--bb-spring)_backwards] motion-reduce:animate-none hover:brightness-110",
         "focus-visible:outline-none focus-visible:shadow-focus [@media(pointer:coarse)]:min-h-9",
-        active
-          ? "bg-bb-accent-soft text-bb-accent-ink ring-[1.5px] ring-bb-accent"
-          : "bg-bb-bg text-bb-text hover:bg-bb-surface-2",
+        active && "ring-2 ring-bb-cobalt-light ring-offset-2 ring-offset-bb-info-soft",
         className
       )}
       {...props}
@@ -47,15 +46,15 @@ export interface VartaMessageProps extends React.HTMLAttributes<HTMLDivElement> 
 }
 
 /**
- * Chat bubble. User = navy gradient, white, radius 20/20/6/20, right-aligned. Answer =
- * surface with e0, radius 6/20/20/20, with the orb avatar and optional citation row.
+ * Chat bubble. User = navy gradient, white, radius 18/18/4/18, right-aligned. Answer =
+ * info-soft, radius 4/18/18/18, with the orb avatar and optional citation row.
  */
 export function VartaMessage({ role = "assistant", citations, className, children, ...props }: VartaMessageProps) {
   if (role === "user") {
     return (
       <div
         className={cn(
-          "ml-auto max-w-[85%] rounded-[20px_20px_6px_20px] bg-bb-navy px-[18px] py-[13px] text-base leading-normal text-white shadow-[var(--bb-shadow-navy)] md:max-w-[72%]",
+          "ml-auto max-w-[85%] rounded-[18px_18px_4px_18px] bg-bb-navy px-4 py-3 text-[15px] leading-normal text-white shadow-navy md:max-w-[72%]",
           className
         )}
         {...props}
@@ -68,7 +67,7 @@ export function VartaMessage({ role = "assistant", citations, className, childre
     <div className={cn("flex max-w-[92%] items-start gap-3 md:max-w-[80%]", className)} {...props}>
       <VartaOrb size={32} className="mt-1" />
       <div className="min-w-0">
-        <div className="rounded-[6px_20px_20px_20px] bg-bb-surface px-[18px] py-[14px] text-base leading-relaxed shadow-e0">
+        <div className="rounded-[4px_18px_18px_18px] bg-bb-info-soft px-4 py-3.5 text-[15px] leading-relaxed text-bb-text">
           {children}
         </div>
         {citations && <div className="mt-2 flex flex-wrap gap-2">{citations}</div>}

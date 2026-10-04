@@ -82,16 +82,16 @@ export function SanchikaSidebar({
         isOpen,
         embedded,
         surface:
-          "bg-[var(--bb-surface)]/97 dark:bg-[var(--bb-ink)]/97 border-[var(--accent-primary)]/20 dark:border-[var(--bb-amber)]/12",
+          "bg-[var(--bb-surface)]/97 dark:bg-[var(--bb-ink)]/97 border-[#3B5BDB]/20 dark:border-[#7D97FF]/12",
       })}
     >
       {/* Embedded in the Study drawer, the drawer draws the title and the
           close button — a second header inside a tab is just noise. */}
       {!embedded && (
-        <div className="p-4 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex flex-col gap-3 shrink-0">
+        <div className="p-4 border-b border-[#3B5BDB]/15 dark:border-[#7D97FF]/10 flex flex-col gap-3 shrink-0">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold tracking-tight text-[var(--accent-contrast)] dark:text-[var(--bb-amber)] flex items-center gap-2">
-              <NotebookPen className="h-5 w-5 text-[var(--accent-strong)] dark:text-[var(--accent-primary-dark)]" />
+            <h3 className="text-xl font-bold tracking-tight text-[var(--bb-info-ink)] dark:text-[#7D97FF] flex items-center gap-2">
+              <NotebookPen className="h-5 w-5 text-[#3B5BDB] dark:text-[#7D97FF]" />
               Sanchika Notes
             </h3>
             <Button
@@ -108,11 +108,11 @@ export function SanchikaSidebar({
       )}
 
       {/* ── Scope + freshness ──────────────────────────────────────── */}
-      <div className="px-3 py-2.5 border-b border-[var(--accent-primary)]/15 dark:border-[var(--bb-amber)]/10 flex items-center gap-2 shrink-0">
+      <div className="px-3 py-2.5 border-b border-[#3B5BDB]/15 dark:border-[#7D97FF]/10 flex items-center gap-2 shrink-0">
         <div
           role="tablist"
           aria-label="Which notes to show"
-          className="flex items-center gap-1 p-0.5 rounded-lg bg-[var(--accent-primary)]/8 dark:bg-white/5"
+          className="flex items-center gap-1 rounded-full bg-bb-surface-2 p-0.5"
         >
           <ScopeTab
             active={scope === "book"}
@@ -220,7 +220,7 @@ export function SanchikaSidebar({
           {notes.map((note) => (
             <article
               key={note.id}
-              className="p-3 rounded-lg border border-amber-200/50 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm"
+              className="p-3 rounded-[22px] border border-bb-border bg-bb-surface shadow-e1"
             >
               <header className="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-amber-100 dark:border-slate-800">
                 <span className="text-xs font-semibold text-amber-700 dark:text-amber-500 flex items-center gap-1.5 min-w-0">
@@ -329,10 +329,10 @@ function ScopeTab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+      className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
         active
-          ? "bg-white dark:bg-slate-800 shadow-sm text-amber-700 dark:text-amber-400"
-          : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+          ? "bg-bb-surface text-bb-text shadow-[0_1px_0_var(--bb-border),0_6px_14px_-8px_rgba(10,15,36,.4)]"
+          : "text-bb-muted hover:text-bb-text"
       }`}
     >
       {label}
@@ -345,27 +345,22 @@ function EmptyState({
   title,
   body,
   action,
-  tone,
 }: {
   icon: React.ReactNode;
   title: string;
   body: string;
   action?: React.ReactNode;
-  tone: "amber" | "slate" | "red";
+  /** Kept for existing call sites; every empty state shares the halo look. */
+  tone?: "amber" | "slate" | "red";
 }) {
-  const ring = {
-    amber:
-      "bg-amber-100 dark:bg-amber-900/20 border-amber-200/50 dark:border-amber-800/50",
-    slate: "bg-slate-100 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/50",
-    red: "bg-red-50 dark:bg-red-900/20 border-red-200/50 dark:border-red-800/50",
-  }[tone];
+
 
   return (
     <div className="flex flex-col items-center justify-center py-14 px-4 text-center">
-      <div
-        className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm border ${ring}`}
-      >
-        {icon}
+      <div className="mb-3 flex h-[88px] w-[88px] items-center justify-center rounded-full bg-[radial-gradient(circle,rgba(59,91,219,.16),transparent_70%)]">
+        <div className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-bb-surface shadow-e1">
+          {icon}
+        </div>
       </div>
       <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-1">{title}</h3>
       <p className="text-sm text-slate-500 dark:text-slate-400 max-w-[36ch] leading-relaxed">
