@@ -24,7 +24,11 @@ function resolveBaseUrl(): string {
   // In development mode (__DEV__), avoid defaulting to the production domain
   if (__DEV__) {
     // If env var is set to a local URL (or LAN IP), use it directly
-    if (fromEnv && !fromEnv.includes('api.bookbuddy.vinstitution.com')) {
+    if (
+      fromEnv &&
+      !fromEnv.includes('api.bookbuddy.live') &&
+      !fromEnv.includes('api.bookbuddy.vinstitution.com')
+    ) {
       return fromEnv.replace(/\/$/, '');
     }
 
@@ -55,7 +59,7 @@ function resolveBaseUrl(): string {
     return fromExtra.replace(/\/$/, '');
   }
 
-  return 'https://api.bookbuddy.vinstitution.com';
+  return 'https://api.bookbuddy.live';
 }
 
 export const API_BASE_URL = resolveBaseUrl();

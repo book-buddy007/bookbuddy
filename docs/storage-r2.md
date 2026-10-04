@@ -8,7 +8,7 @@ on the server. Local development still uses MinIO from `docker-compose.yml`, wit
 | Bucket | Holds | Who can read it |
 |---|---|---|
 | `bookbuddy` (private) | Book files (PDF, EPUB), audiobook audio, personal uploads, join-request proofs | Only the app, through short-lived signed links (5 to 15 minutes), and only after the API has checked the person may read the book. **No public domain, ever.** |
-| `bookbuddy-public` (public) | Covers, free samples, branding logos | Anyone with the link, from `https://media.bookbuddy.vinstitution.com` |
+| `bookbuddymedia` (public) | Covers, free samples, branding logos | Anyone with the link, from `https://media.bookbuddy.live` |
 
 Which bucket an object goes to is decided by its key alone (`global/books/<id>/covers/…`,
 `…/sample/…` and `global/branding/…` are public; everything else is private), so a book file can
@@ -19,7 +19,7 @@ Two hosts are involved:
 - `S3_ENDPOINT` = `https://<account-id>.r2.cloudflarestorage.com` is the private S3 API. The app
   uses it with its keys, and signed upload and download links point here. Nothing is readable from it
   without a signature.
-- `MEDIA_URL` = `https://media.bookbuddy.vinstitution.com` is the custom domain of the **public**
+- `MEDIA_URL` = `https://media.bookbuddy.live` is the custom domain of the **public**
   bucket only, used for covers, samples and branding.
 
 ## One-time setup
@@ -30,7 +30,7 @@ only: never in git, chat or a ticket.
 ### 1. Create the two buckets
 Cloudflare dashboard, R2, **Create bucket**:
 - `bookbuddy`: private (already created).
-- `bookbuddy-public`: public. Pick the same location as the first.
+- `bookbuddymedia`: public. Pick the same location as the first.
 
 Cloudflare shows each bucket's S3 address as `https://<account-id>.r2.cloudflarestorage.com/<bucket>`.
 The app needs only the part **before** the bucket name as its endpoint; bucket names are separate
@@ -39,15 +39,16 @@ settings.
 ### 2. Create the app's API token
 R2, **Manage API tokens**, **Create API token**:
 - Permission: **Object Read & Write**
-- Scope: **both buckets** (`bookbuddy` and `bookbuddy-public`)
+- Scope: **both buckets** (`bookbuddy` and `bookbuddymedia`)
 
 Save the **Access Key ID** and the **Secret Access Key**. The token cannot change bucket settings or
 delete a bucket, which is why the app no longer tries to create buckets on start.
 
 ### 3. Connect the public domain to the PUBLIC bucket only
-`bookbuddy-public`, **Settings**, **Custom Domains**, **Connect domain**:
-`media.bookbuddy.vinstitution.com`. `vinstitution.com` is already on Cloudflare, so the DNS record
-and certificate are created for you.
+`bookbuddymedia`, **Settings**, **Custom Domains**, **Connect domain**:
+`media.bookbuddy.live`. `bookbuddy.live` is on Cloudflare, so the DNS record and certificate are
+created for you. The `bookbuddy.live` zone must be in the **same Cloudflare account** as the R2
+buckets, or the domain cannot be connected.
 
 - Do **not** connect any domain to `bookbuddy` (the private bucket).
 - Do **not** enable the `r2.dev` public URL on either bucket.
@@ -60,7 +61,7 @@ The browser uploads straight to the buckets (books and audio to the private one,
 one) and the reader streams with range requests. Print the policy:
 
 ```bash
-cd backend && APP_ORIGIN=https://bookbuddy.vinstitution.com node scripts/setup-r2-cors.js --print
+cd backend && APP_ORIGIN=https://bookbuddy.live node scripts/setup-r2-cors.js --print
 ```
 
 Paste the JSON into **each** bucket: **Settings**, **CORS Policy**. (`node scripts/setup-r2-cors.js`
@@ -75,8 +76,8 @@ Application, **Environment Variables**:
 | `S3_ACCESS_KEY_ID` | the token's Access Key ID |
 | `S3_SECRET_ACCESS_KEY` | the token's secret |
 | `S3_BUCKET_NAME` | `bookbuddy` (the default, so you can leave it unset) |
-| `S3_PUBLIC_BUCKET_NAME` | `bookbuddy-public` (the default, so you can leave it unset) |
-| `MEDIA_URL` | leave at `https://media.bookbuddy.vinstitution.com`. It must **not** end in a bucket name. |
+| `S3_PUBLIC_BUCKET_NAME` | `bookbuddymedia` (the default, so you can leave it unset) |
+| `MEDIA_URL` | leave at `https://media.bookbuddy.live`. It must **not** end in a bucket name. |
 
 If one of the first three is missing or wrong the app still starts, but uploads and downloads answer
 "File storage is not configured" and the API log names the setting. After saving, **redeploy** and
@@ -107,19 +108,19 @@ audiobook MP3, open each in the reader or player, and upload a branding logo.
 
 ## Files already uploaded
 Uploads made while everything lived in the single `bookbuddy` bucket have their covers, samples and
-logos in the wrong bucket now: the app looks for them in `bookbuddy-public`. Either re-upload them,
+logos in the wrong bucket now: the app looks for them in `bookbuddymedia`. Either re-upload them,
 or copy them across (nothing else needs moving):
 
 ```bash
-rclone copy r2:bookbuddy/global/branding r2:bookbuddy-public/global/branding
-rclone copy r2:bookbuddy r2:bookbuddy-public --include "global/books/*/covers/**" --include "global/books/*/sample/**"
+rclone copy r2:bookbuddy/global/branding r2:bookbuddymedia/global/branding
+rclone copy r2:bookbuddy r2:bookbuddymedia --include "global/books/*/covers/**" --include "global/books/*/sample/**"
 ```
 
 Then delete the copies from `bookbuddy` so nothing public-looking stays in the private bucket.
 Before this change the media domain had no DNS record, so very little can have been stored.
 
 If anything was uploaded to the old MinIO, copy it with `rclone copy minio:book-buddy-media r2:bookbuddy`
-(and the public parts to `bookbuddy-public` as above) **before** removing the volume. Only after
+(and the public parts to `bookbuddymedia` as above) **before** removing the volume. Only after
 everything checks out: remove the `minio` container and the `minio-data` volume on the server to
 reclaim the disk.
 

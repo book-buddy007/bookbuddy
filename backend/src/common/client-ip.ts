@@ -16,7 +16,7 @@
  * `app.set('trust proxy', true)` trusts the ENTIRE X-Forwarded-For chain. Any
  * caller could then send `X-Forwarded-For: <random>` and mint themselves a fresh,
  * private, effectively unlimited bucket per request. That trades a self-DoS for a
- * total bypass, which is strictly worse. `api.bookbuddy.vinstitution.com` answers
+ * total bypass, which is strictly worse. The API domain (api.bookbuddy.live) answers
  * directly from the origin (finding BB-006), so there is no upstream filter to
  * catch a spoofed header.
  *

@@ -65,7 +65,7 @@ module.exports = ({ config }) => {
     },
     extra: {
       apiBaseUrl: isProduction
-        ? 'https://api.bookbuddy.vinstitution.com'
+        ? 'https://api.bookbuddy.live'
         : (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3333'),
       // New app: no EAS project yet. Run `npx eas init` in mobile/ once and put
       // the id it prints in EAS_PROJECT_ID (or paste it here).

@@ -375,6 +375,8 @@ export const auth = betterAuth({
     "https://vinstitution.com",
     "https://bookbuddy.vinstitution.com",
     "https://api.bookbuddy.vinstitution.com",
+    "https://bookbuddy.live",
+    "https://api.bookbuddy.live",
     ...(process.env.VIDYAVERSE_ISSUER ? [process.env.VIDYAVERSE_ISSUER] : []),
     ...(process.env.VDL_ISSUER ? [process.env.VDL_ISSUER] : []),
   ],

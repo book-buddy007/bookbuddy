@@ -9,8 +9,8 @@
 # this file or in git.
 #
 # Domains are assigned per service in Coolify:
-#   web   -> https://bookbuddy.vinstitution.com:3000
-#   api   -> https://api.bookbuddy.vinstitution.com:3333
+#   web   -> https://bookbuddy.live:3000
+#   api   -> https://api.bookbuddy.live:3333
 #
 # File storage is Cloudflare R2: there is no storage container in this stack.
 # Set these in Coolify's Environment Variables. Setup steps: docs/storage-r2.md
@@ -22,9 +22,9 @@
 #   S3_ACCESS_KEY_ID      R2 API token: Object Read & Write on the bucket
 #   S3_SECRET_ACCESS_KEY  the same token's secret
 #   S3_BUCKET_NAME        optional, defaults to bookbuddy: the PRIVATE bucket (book files, audio, personal uploads)
-#   S3_PUBLIC_BUCKET_NAME optional, defaults to bookbuddy-public: the PUBLIC bucket (covers, samples, branding)
+#   S3_PUBLIC_BUCKET_NAME optional, defaults to bookbuddymedia: the PUBLIC bucket (covers, samples, branding)
 #   MEDIA_URL             public base URL of the PUBLIC bucket's custom domain, with NO bucket
-#                         in the path; defaults to https://media.bookbuddy.vinstitution.com
+#                         in the path; defaults to https://media.bookbuddy.live
 # APP_URL / API_URL / MEDIA_URL default to the values above and can be overridden in
 # Coolify's Environment Variables (the web app must be redeployed afterwards,
 # because the browser bundle bakes them in at build time).
@@ -35,31 +35,31 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.vinstitution.com}
-        NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.vinstitution.com}
-        NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.vinstitution.com}
-        NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
+        NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.live}
+        NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.live}
+        NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.live}
+        NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
         NEXT_PUBLIC_DRM_KEY: ${SERVICE_PASSWORD_64_DRM}
         NEXT_PUBLIC_FEDERATION_ENABLED: "false"
         NEXT_PUBLIC_SENTRY_DSN: ""
     environment:
       NODE_ENV: production
       PORT: "3000"
-      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.vinstitution.com}
-      NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.vinstitution.com}
-      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.vinstitution.com}
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.live}
+      NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.live}
+      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.live}
       BACKEND_INTERNAL_URL: http://api:3333
       DATABASE_URL: postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/book_buddy
-      BETTER_AUTH_URL: ${APP_URL:-https://bookbuddy.vinstitution.com}
+      BETTER_AUTH_URL: ${APP_URL:-https://bookbuddy.live}
       BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
       JWT_SECRET: ${SERVICE_PASSWORD_64_JWT}
       NEXT_PUBLIC_DRM_KEY: ${SERVICE_PASSWORD_64_DRM}
       # The reader fetches signed R2 links through /api/proxy-media, which only follows hosts it
       # knows: the R2 endpoint (S3_ENDPOINT) and the public media domain.
       S3_ENDPOINT: ${S3_ENDPOINT:-}
-      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
-      NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
-      MEDIA_PROXY_ALLOWED_HOSTS: ${MEDIA_HOST:-media.bookbuddy.vinstitution.com}
+      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
+      NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
+      MEDIA_PROXY_ALLOWED_HOSTS: ${MEDIA_HOST:-media.bookbuddy.live}
       FEDERATION_ENABLED: "false"
       NEXT_PUBLIC_FEDERATION_ENABLED: "false"
       # Google sign-in: inert until both are set in Coolify (callback: <APP_URL>/api/auth/callback/google).
@@ -90,9 +90,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3333"
-      APP_ORIGIN: ${APP_URL:-https://bookbuddy.vinstitution.com}
-      FRONTEND_URL: ${APP_URL:-https://bookbuddy.vinstitution.com}
-      CORS_ORIGINS: ${APP_URL:-https://bookbuddy.vinstitution.com}
+      APP_ORIGIN: ${APP_URL:-https://bookbuddy.live}
+      FRONTEND_URL: ${APP_URL:-https://bookbuddy.live}
+      CORS_ORIGINS: ${APP_URL:-https://bookbuddy.live}
       SWAGGER_ENABLED: "false"
       LOG_LEVEL: info
       DATABASE_URL: postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/book_buddy
@@ -126,8 +126,8 @@ services:
       S3_BUCKET_NAME: ${S3_BUCKET_NAME:-bookbuddy}
       # Covers, samples and branding go in this second bucket, the only one the public media
       # domain points at. The private bucket above never has a public domain.
-      S3_PUBLIC_BUCKET_NAME: ${S3_PUBLIC_BUCKET_NAME:-bookbuddy-public}
-      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
+      S3_PUBLIC_BUCKET_NAME: ${S3_PUBLIC_BUCKET_NAME:-bookbuddymedia}
+      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION_NAME: book_buddy_books_v1
       QDRANT_ALLOW_COLLECTION_CREATE: "true"
@@ -150,6 +150,8 @@ services:
       AI_CHAT_RETENTION_DAYS: "365"
       # Email is logged, not sent, until RESEND_API_KEY is set.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
+      # The sender stays on the domain already verified with Resend; it does not have to match the
+      # app's address. Change it only after verifying the new domain in Resend.
       EMAIL_FROM: ${EMAIL_FROM:-Book Buddy <noreply@bookbuddy.vinstitution.com>}
       WHATSAPP_OTP_TEMPLATE_NAME: book_buddy_otp
       WHATSAPP_API_VERSION: v25.0
