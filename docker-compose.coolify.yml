@@ -8,26 +8,26 @@
 # shows it under the resource's Environment Variables. Nothing secret lives in
 # this file or in git.
 #
-# Domains are assigned per service in Coolify:
-#   web   -> https://bookbuddy.live:3000
-#   api   -> https://api.bookbuddy.live:3333
+# Domains are assigned per service in Coolify (Domains field, no port):
+#   web -> https://bookbuddy.live
+#   api -> https://api.bookbuddy.live
 #
-# File storage is Cloudflare R2: there is no storage container in this stack.
-# Set these in Coolify's Environment Variables. Setup steps: docs/storage-r2.md
-# They are written as ${VAR:-} on purpose: Coolify does NOT enforce the "required"
-# ${VAR:?message} form, it stores the message text as the value instead. If one is missing
-# the app still starts, but file uploads and downloads answer "File storage is not
-# configured" and the API log says which setting is wrong.
+# The app's addresses and the two bucket names are written directly in this file, NOT read from
+# Coolify variables. Coolify keeps the last value ever stored for a variable and that value
+# overrides any default here, so a stale or mistyped APP_URL once broke sign-in and CORS.
+# To move to another domain or bucket, change them here (search for bookbuddy.live) and redeploy.
+#
+# File storage is Cloudflare R2: there is no storage container in this stack. Only the secrets
+# and the account endpoint come from Coolify's Environment Variables. They are written as
+# ${VAR:-} on purpose: Coolify does NOT enforce the "required" ${VAR:?message} form, it stores the
+# message text as the value instead. If one is missing the app still starts, but file uploads and
+# downloads answer "File storage is not configured" and the API log says which setting is wrong.
 #   S3_ENDPOINT           https://<account-id>.r2.cloudflarestorage.com   (no bucket name on the end)
-#   S3_ACCESS_KEY_ID      R2 API token: Object Read & Write on the bucket
+#   S3_ACCESS_KEY_ID      R2 API token: Object Read & Write on both buckets
 #   S3_SECRET_ACCESS_KEY  the same token's secret
-#   S3_BUCKET_NAME        optional, defaults to bookbuddy: the PRIVATE bucket (book files, audio, personal uploads)
-#   S3_PUBLIC_BUCKET_NAME optional, defaults to bookbuddymedia: the PUBLIC bucket (covers, samples, branding)
-#   MEDIA_URL             public base URL of the PUBLIC bucket's custom domain, with NO bucket
-#                         in the path; defaults to https://media.bookbuddy.live
-# APP_URL / API_URL / MEDIA_URL default to the values above and can be overridden in
-# Coolify's Environment Variables (the web app must be redeployed afterwards,
-# because the browser bundle bakes them in at build time).
+# Buckets: bookbuddy (private: book files, audio, personal uploads) and bookbuddymedia (public:
+# covers, samples, branding; the only bucket media.bookbuddy.live points at). Setup: docs/storage-r2.md
+# The sender of emails stays on the domain already verified with Resend (see EMAIL_FROM below).
 
 services:
   web:
@@ -35,31 +35,31 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.live}
-        NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.live}
-        NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.live}
-        NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
+        NEXT_PUBLIC_APP_URL: https://bookbuddy.live
+        NEXT_PUBLIC_BACKEND_URL: https://api.bookbuddy.live
+        NEXT_PUBLIC_API_URL: https://api.bookbuddy.live
+        NEXT_PUBLIC_CDN_BASE_URL: https://media.bookbuddy.live
         NEXT_PUBLIC_DRM_KEY: ${SERVICE_PASSWORD_64_DRM}
         NEXT_PUBLIC_FEDERATION_ENABLED: "false"
         NEXT_PUBLIC_SENTRY_DSN: ""
     environment:
       NODE_ENV: production
       PORT: "3000"
-      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://bookbuddy.live}
-      NEXT_PUBLIC_BACKEND_URL: ${API_URL:-https://api.bookbuddy.live}
-      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.bookbuddy.live}
+      NEXT_PUBLIC_APP_URL: https://bookbuddy.live
+      NEXT_PUBLIC_BACKEND_URL: https://api.bookbuddy.live
+      NEXT_PUBLIC_API_URL: https://api.bookbuddy.live
       BACKEND_INTERNAL_URL: http://api:3333
       DATABASE_URL: postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/book_buddy
-      BETTER_AUTH_URL: ${APP_URL:-https://bookbuddy.live}
+      BETTER_AUTH_URL: https://bookbuddy.live
       BETTER_AUTH_SECRET: ${SERVICE_PASSWORD_64_BETTERAUTH}
       JWT_SECRET: ${SERVICE_PASSWORD_64_JWT}
       NEXT_PUBLIC_DRM_KEY: ${SERVICE_PASSWORD_64_DRM}
       # The reader fetches signed R2 links through /api/proxy-media, which only follows hosts it
       # knows: the R2 endpoint (S3_ENDPOINT) and the public media domain.
       S3_ENDPOINT: ${S3_ENDPOINT:-}
-      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
-      NEXT_PUBLIC_CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
-      MEDIA_PROXY_ALLOWED_HOSTS: ${MEDIA_HOST:-media.bookbuddy.live}
+      CDN_BASE_URL: https://media.bookbuddy.live
+      NEXT_PUBLIC_CDN_BASE_URL: https://media.bookbuddy.live
+      MEDIA_PROXY_ALLOWED_HOSTS: media.bookbuddy.live
       FEDERATION_ENABLED: "false"
       NEXT_PUBLIC_FEDERATION_ENABLED: "false"
       # Google sign-in: inert until both are set in Coolify (callback: <APP_URL>/api/auth/callback/google).
@@ -90,9 +90,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3333"
-      APP_ORIGIN: ${APP_URL:-https://bookbuddy.live}
-      FRONTEND_URL: ${APP_URL:-https://bookbuddy.live}
-      CORS_ORIGINS: ${APP_URL:-https://bookbuddy.live}
+      APP_ORIGIN: https://bookbuddy.live
+      FRONTEND_URL: https://bookbuddy.live
+      CORS_ORIGINS: https://bookbuddy.live
       SWAGGER_ENABLED: "false"
       LOG_LEVEL: info
       DATABASE_URL: postgresql://${SERVICE_USER_POSTGRES}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/book_buddy
@@ -123,11 +123,11 @@ services:
       S3_REGION: auto
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-bookbuddy}
+      S3_BUCKET_NAME: bookbuddy
       # Covers, samples and branding go in this second bucket, the only one the public media
       # domain points at. The private bucket above never has a public domain.
-      S3_PUBLIC_BUCKET_NAME: ${S3_PUBLIC_BUCKET_NAME:-bookbuddymedia}
-      CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.live}
+      S3_PUBLIC_BUCKET_NAME: bookbuddymedia
+      CDN_BASE_URL: https://media.bookbuddy.live
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION_NAME: book_buddy_books_v1
       QDRANT_ALLOW_COLLECTION_CREATE: "true"

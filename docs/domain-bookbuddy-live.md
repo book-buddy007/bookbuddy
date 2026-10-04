@@ -10,9 +10,7 @@ The code, the compose defaults, the sign-in trusted origins and the mobile app's
 already point at the new addresses. Everything below is what only you can do, in order. Keep the old
 domains configured until step 8.
 
-Order matters in one place: **do steps 1 to 5 first, then redeploy once (step 6)**. The web app
-bakes its addresses into the build, so a deploy before the DNS and Coolify values are ready would
-publish a site that points at addresses that do not exist yet.
+Do steps 1 to 5, then redeploy once (step 6).
 
 ## 1. DNS, in the `bookbuddy.live` zone on Cloudflare
 
@@ -43,20 +41,21 @@ placeholder certificate (`TRAEFIK DEFAULT CERT`). That is how to tell this step 
 The Let's Encrypt certificates are issued automatically once the DNS records resolve.
 
 ## 3. Coolify environment variables
-Coolify keeps the values it stored from earlier deploys and they win over the compose file's
-defaults, so **open each of these and replace the value**:
+Nothing to change for the addresses. The app's addresses and the two bucket names are written
+directly in `docker-compose.coolify.yml`, not read from Coolify variables, because Coolify keeps the
+last stored value of a variable and that value overrides the file. A stale or mistyped `APP_URL`
+once made Better Auth answer 404 on `/api/auth/*` (so no sign-in at all) and made the API refuse every
+browser origin. `APP_URL`, `API_URL`, `MEDIA_URL`, `MEDIA_HOST`, `S3_BUCKET_NAME` and
+`S3_PUBLIC_BUCKET_NAME` are no longer read, so you can delete them in Coolify.
 
-| Variable | New value |
-|---|---|
-| `APP_URL` | `https://bookbuddy.live` |
-| `API_URL` | `https://api.bookbuddy.live` |
-| `MEDIA_URL` | `https://media.bookbuddy.live` |
-| `MEDIA_HOST` | `media.bookbuddy.live` (if it exists) |
-| `S3_PUBLIC_BUCKET_NAME` | `bookbuddymedia` (if it exists) |
+Only these stay in Coolify: `S3_ENDPOINT`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` (the R2
+account address and the token), plus the usual secrets.
 
-Leave `EMAIL_FROM` alone. The sender address is on `vinstitution.com`, which is already verified with
-Resend, and it does not have to match the app's address. If you later want mail to come from
-`bookbuddy.live`, verify that domain in Resend first.
+To move to a different domain or bucket later, change the values in the compose file (search for
+`bookbuddy.live`) and `CANONICAL_ORIGIN` in `middleware.ts`, then redeploy.
+
+`EMAIL_FROM` stays on the domain already verified with Resend; it does not have to match the app's
+address. If you later want mail to come from `bookbuddy.live`, verify that domain in Resend first.
 
 ## 4. Google sign-in
 Google Cloud Console, **APIs & Services**, **Credentials**, your OAuth client:

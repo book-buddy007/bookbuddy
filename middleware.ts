@@ -85,8 +85,24 @@ function getDashboardForRole(role: string): string {
   }
 }
 
+// The app lives at one address. Visitors who arrive on www are sent there, keeping the path and query,
+// because sign-in cookies and the API's allowed origin belong to the bare domain.
+const CANONICAL_ORIGIN = 'https://bookbuddy.live';
+const REDIRECT_HOSTS = new Set(['www.bookbuddy.live']);
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+  if (REDIRECT_HOSTS.has(host)) {
+    return NextResponse.redirect(
+      new URL(`${pathname}${request.nextUrl.search}`, CANONICAL_ORIGIN),
+      308,
+    );
+  }
 
   // ── 1. HARD EXCLUSIONS — never touch these ─────────────────────────────
   if (
