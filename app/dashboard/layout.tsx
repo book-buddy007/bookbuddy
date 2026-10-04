@@ -4,7 +4,6 @@ import type React from "react"
 
 import { SidebarProvider } from "@/components/sidebar-provider"
 import { AppShell } from "@/components/shell/app-shell"
-import { AdminStateProvider } from "@/hooks/use-admin-state"
 import { useAuthStore } from "@/store/useAuthStore"
 import { Icon } from "@/components/ui/icon"
 
@@ -38,9 +37,7 @@ export default function DashboardLayout({
   // section in the URL (see lib/nav.ts).
   return (
     <SidebarProvider>
-      <AdminStateProvider>
-        <AppShell>{children}</AppShell>
-      </AdminStateProvider>
+      <AppShell>{children}</AppShell>
     </SidebarProvider>
   )
 }

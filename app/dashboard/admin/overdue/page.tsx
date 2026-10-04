@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Chip } from '@/components/ui/chip';
 import { DataTable, type DataColumn } from '@/components/ui/data-table';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icon } from '@/components/ui/icon';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
@@ -23,67 +24,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-// Sample overdue items. There is no overdue endpoint behind this page yet.
-const mockOverdueItems = [
-  {
-    id: 1,
-    title: "The Great Gatsby",
-    student: "Emily Davis",
-    email: "e.davis@example.edu",
-    dueDate: "2023-04-10",
-    daysOverdue: 15,
-    fine: 7.50,
-    remindersSent: 2,
-    lastReminder: "2023-04-17"
-  },
-  {
-    id: 2,
-    title: "To Kill a Mockingbird",
-    student: "James Wilson",
-    email: "jwilson@example.edu",
-    dueDate: "2023-04-15",
-    daysOverdue: 10,
-    fine: 5.00,
-    remindersSent: 1,
-    lastReminder: "2023-04-18"
-  },
-  {
-    id: 3,
-    title: "1984",
-    student: "Sophia Martinez",
-    email: "smartinez@example.edu",
-    dueDate: "2023-04-18",
-    daysOverdue: 7,
-    fine: 3.50,
-    remindersSent: 1,
-    lastReminder: "2023-04-20"
-  },
-  {
-    id: 4,
-    title: "Pride and Prejudice",
-    student: "Alex Johnson",
-    email: "ajohnson@example.edu",
-    dueDate: "2023-04-20",
-    daysOverdue: 5,
-    fine: 2.50,
-    remindersSent: 0,
-    lastReminder: null
-  },
-  {
-    id: 5,
-    title: "The Catcher in the Rye",
-    student: "Lisa Wang",
-    email: "lwang@example.edu",
-    dueDate: "2023-04-21",
-    daysOverdue: 4,
-    fine: 2.00,
-    remindersSent: 0,
-    lastReminder: null
-  }
-];
-
-type OverdueItem = (typeof mockOverdueItems)[number];
+import { NoInstitution } from '@/components/admin/NoInstitution';
+import { useAdminTenant } from '@/hooks/use-admin-tenant';
+import { useAdminOverdue } from '@/hooks/use-admin-data';
+import { sendOverdueReminders, type OverdueItem } from '@/lib/tenant-admin';
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
@@ -106,37 +50,24 @@ const severity = (days: number): { status: BBStatus; label: string } =>
 const SORTERS: Record<string, (a: OverdueItem, b: OverdueItem) => number> = {
   daysOverdue: (a, b) => b.daysOverdue - a.daysOverdue,
   fine: (a, b) => b.fine - a.fine,
-  borrower: (a, b) => a.student.localeCompare(b.student),
+  borrower: (a, b) => a.borrower.name.localeCompare(b.borrower.name),
   title: (a, b) => a.title.localeCompare(b.title),
 };
 
 export default function OverduePage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
-  const [sortBy, setSortBy] = useState("daysOverdue");
-  const [overdueItems, setOverdueItems] = useState<OverdueItem[]>([]);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [isSendingReminders, setIsSendingReminders] = useState(false);
-  const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
+  const { tenantId, loading: tenantLoading } = useAdminTenant();
+  const { data, isLoading, isError, error, refetch } = useAdminOverdue();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Stats for the dashboard
-  const totalOverdue = overdueItems.length;
-  const totalFines = overdueItems.reduce((sum, item) => sum + item.fine, 0);
-  const avgDaysOverdue = totalOverdue
-    ? Math.round(overdueItems.reduce((sum, item) => sum + item.daysOverdue, 0) / totalOverdue)
-    : 0;
-  const noReminderCount = overdueItems.filter(item => item.remindersSent === 0).length;
+  const [activeTab, setActiveTab] = useState("all");
+  const [sortBy, setSortBy] = useState("daysOverdue");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isSendingReminders, setIsSendingReminders] = useState(false);
+  const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
 
-  // Simulate loading data from API
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      setOverdueItems(mockOverdueItems);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const overdueItems = data?.items ?? [];
+  const summary = data?.summary;
 
   const tabFiltered = (() => {
     switch (activeTab) {
@@ -152,34 +83,38 @@ export default function OverduePage() {
   })();
   const filteredItems = [...tabFiltered].sort(SORTERS[sortBy] ?? SORTERS.daysOverdue);
 
-  const toggleSelection = (id: number) => {
+  const toggleSelection = (id: string) => {
     setSelectedItems(prev => (prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]));
   };
 
-  const allSelected = selectedItems.length === filteredItems.length && filteredItems.length > 0;
+  const allSelected = filteredItems.length > 0 && filteredItems.every(item => selectedItems.includes(item.id));
   const toggleSelectAll = () => {
     setSelectedItems(allSelected ? [] : filteredItems.map(item => item.id));
   };
 
-  // Send reminders to selected items (simulated)
-  const sendReminders = () => {
+  const sendReminders = async () => {
+    if (!tenantId) return;
     setIsSendingReminders(true);
-
-    setTimeout(() => {
-      setOverdueItems(overdueItems.map(item =>
-        selectedItems.includes(item.id)
-          ? { ...item, remindersSent: item.remindersSent + 1, lastReminder: new Date().toISOString().split('T')[0] }
-          : item
-      ));
-      setSelectedItems([]);
-      setIsSendingReminders(false);
-      setReminderDialogOpen(false);
-
+    try {
+      const result = await sendOverdueReminders(tenantId, selectedItems);
+      const parts = [
+        result.sent > 0 && `${result.sent} sent`,
+        result.skipped.length > 0 && `${result.skipped.length} skipped (${result.skipped[0].reason.toLowerCase()})`,
+        result.failed.length > 0 && `${result.failed.length} failed to send`,
+      ].filter(Boolean);
       toast({
-        title: "Reminders recorded (sample)",
-        description: `${selectedItems.length} reminder(s) were marked as sent in this sample view. No email was sent.`
+        title: result.sent > 0 ? "Reminders sent" : "No reminders sent",
+        description: parts.join(", "),
+        variant: result.sent === 0 && result.failed.length > 0 ? "destructive" : undefined,
       });
-    }, 1500);
+      setSelectedItems([]);
+      setReminderDialogOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ["tenant-admin", tenantId, "overdue"] });
+    } catch (err: any) {
+      toast({ title: "Couldn't send reminders", description: err?.message, variant: "destructive" });
+    } finally {
+      setIsSendingReminders(false);
+    }
   };
 
   const columns: DataColumn<OverdueItem>[] = [
@@ -198,11 +133,11 @@ export default function OverduePage() {
     { key: 'title', header: 'Title', cell: (item) => <span className="font-semibold">{item.title}</span> },
     {
       key: 'student',
-      header: 'Student',
+      header: 'Borrower',
       cell: (item) => (
         <>
-          <div>{item.student}</div>
-          <div className="text-xs text-bb-muted">{item.email}</div>
+          <div>{item.borrower.name}</div>
+          <div className="text-xs text-bb-muted">{item.borrower.email}</div>
         </>
       ),
     },
@@ -218,81 +153,111 @@ export default function OverduePage() {
     },
     { key: 'fine', header: 'Fine', cell: (item) => <span className="tabular-nums">{formatCurrency(item.fine)}</span> },
     { key: 'reminders', header: 'Reminders', cell: (item) => <span className="tabular-nums">{item.remindersSent}</span> },
-    { key: 'last', header: 'Last reminder', cell: (item) => formatDate(item.lastReminder), className: 'whitespace-nowrap text-bb-muted' },
+    { key: 'last', header: 'Last reminder', cell: (item) => formatDate(item.lastReminderAt), className: 'whitespace-nowrap text-bb-muted' },
   ];
+
+  const header = (
+    <PageHeader
+      className="mb-0"
+      eyebrow="Admin"
+      title="Overdue management"
+      description="Track overdue items and email reminders to borrowers."
+    />
+  );
+
+  if (!tenantLoading && !tenantId) {
+    return (
+      <div className="space-y-8">
+        {header}
+        <NoInstitution />
+      </div>
+    );
+  }
+
+  const loading = tenantLoading || isLoading;
+  const selectedRows = overdueItems.filter(item => selectedItems.includes(item.id));
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        className="mb-0"
-        eyebrow="Admin"
-        title="Overdue management"
-        description="Track and manage overdue items and send reminders."
-        actions={<Chip icon="info">Sample data</Chip>}
-      />
+      {header}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard variant="featured" title="Total overdue items" value={totalOverdue} description="Across all borrowers" icon="overdue" loading={isLoading} />
-        <StatCard title="Total fines accrued" value={formatCurrency(totalFines)} description="Outstanding fines" icon="subscription" loading={isLoading} />
-        <StatCard title="Average days overdue" value={avgDaysOverdue} description="Days past due date" icon="calendar" loading={isLoading} />
-        <StatCard title="No reminders sent" value={noReminderCount} description="Items needing attention" icon="mail" loading={isLoading} />
-      </div>
+      {isError ? (
+        <EmptyState
+          icon="alert-circle"
+          title="Couldn't load overdue items"
+          description={(error as Error)?.message}
+          action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard variant="featured" title="Total overdue items" value={summary?.count ?? 0} description="Across all borrowers" icon="overdue" loading={loading} />
+            <StatCard title="Total fines accrued" value={formatCurrency(summary?.totalFines ?? 0)} description="Under your fine policy" icon="subscription" loading={loading} />
+            <StatCard title="Average days overdue" value={summary?.averageDaysOverdue ?? 0} description="Days past due date" icon="calendar" loading={loading} />
+            <StatCard title="No reminders sent" value={summary?.withoutReminders ?? 0} description="Items needing attention" icon="mail" loading={loading} />
+          </div>
 
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-          <TabsList>
-            <TabsTrigger value="all">All overdue</TabsTrigger>
-            <TabsTrigger value="recent">Recent (≤7 days)</TabsTrigger>
-            <TabsTrigger value="severe">Severe (&gt;7 days)</TabsTrigger>
-            <TabsTrigger value="noreminder">No reminders</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          {data?.truncated && (
+            <p role="status" className="rounded-xl bg-bb-warning-soft px-4 py-3 text-sm text-bb-warning-ink">
+              Showing the {overdueItems.length} longest-overdue items. Resolve some to see the rest.
+            </p>
+          )}
 
-        <div className="flex items-center gap-3">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-48" aria-label="Sort by">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daysOverdue">Days overdue</SelectItem>
-              <SelectItem value="fine">Fine amount</SelectItem>
-              <SelectItem value="borrower">Borrower name</SelectItem>
-              <SelectItem value="title">Book title</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button size="sm" disabled={selectedItems.length === 0} onClick={() => setReminderDialogOpen(true)}>
-            <Icon name="send" size={16} /> Send reminders{selectedItems.length > 0 ? ` (${selectedItems.length})` : ''}
-          </Button>
-        </div>
-      </div>
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedItems([]); }} className="w-full md:w-auto">
+              <TabsList>
+                <TabsTrigger value="all">All overdue</TabsTrigger>
+                <TabsTrigger value="recent">Recent (≤7 days)</TabsTrigger>
+                <TabsTrigger value="severe">Severe (&gt;7 days)</TabsTrigger>
+                <TabsTrigger value="noreminder">No reminders</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-      <DataTable
-        columns={columns}
-        rows={filteredItems}
-        rowKey={(item) => item.id}
-        loading={isLoading}
-        emptyIcon="check-circle"
-        emptyTitle="No overdue items found"
-        emptyDescription="Nothing matches this filter."
-      />
+            <div className="flex items-center gap-3">
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48" aria-label="Sort by">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daysOverdue">Days overdue</SelectItem>
+                  <SelectItem value="fine">Fine amount</SelectItem>
+                  <SelectItem value="borrower">Borrower name</SelectItem>
+                  <SelectItem value="title">Book title</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button size="sm" disabled={selectedItems.length === 0} onClick={() => setReminderDialogOpen(true)}>
+                <Icon name="send" size={16} /> Send reminders{selectedItems.length > 0 ? ` (${selectedItems.length})` : ''}
+              </Button>
+            </div>
+          </div>
+
+          <DataTable
+            columns={columns}
+            rows={filteredItems}
+            rowKey={(item) => item.id}
+            loading={loading}
+            emptyIcon="check-circle"
+            emptyTitle={overdueItems.length === 0 ? "Nothing is overdue" : "No overdue items found"}
+            emptyDescription={overdueItems.length === 0 ? "Every loan is on time." : "Nothing matches this filter."}
+          />
+        </>
+      )}
 
       <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Send overdue reminders</DialogTitle>
             <DialogDescription>
-              This sample view will mark reminders as sent for {selectedItems.length} student(s). No email is delivered.
+              This emails {selectedRows.length} borrower(s) about the items below. Anyone reminded in the last 24 hours is skipped.
             </DialogDescription>
           </DialogHeader>
-          <ul className="space-y-1.5 text-sm">
-            {overdueItems
-              .filter(item => selectedItems.includes(item.id))
-              .map(item => (
-                <li key={item.id} className="flex items-center gap-2">
-                  <Icon name="read" size={16} />
-                  {item.title} <span className="text-bb-muted">({item.student})</span>
-                </li>
-              ))}
+          <ul className="max-h-64 space-y-1.5 overflow-y-auto text-sm">
+            {selectedRows.map(item => (
+              <li key={item.id} className="flex items-center gap-2">
+                <Icon name="read" size={16} />
+                {item.title} <span className="text-bb-muted">({item.borrower.name})</span>
+              </li>
+            ))}
           </ul>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setReminderDialogOpen(false)}>

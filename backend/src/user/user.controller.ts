@@ -32,6 +32,14 @@ export class UserController {
     return this.userService.getProfile(user.id);
   }
 
+  /** The caller's own institution memberships, and nothing else. */
+  @UseGuards(BetterAuthGuard)
+  @Get('memberships')
+  async getMemberships(@Req() req: Request) {
+    const user = req.user as { id: string };
+    return this.userService.getMemberships(user.id);
+  }
+
   @UseGuards(BetterAuthGuard)
   @Put('profile')
   async updateProfile(@Req() req: Request, @Body() data: any) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useAdminTenant } from "@/hooks/use-admin-tenant";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -54,7 +55,8 @@ interface JoinRequest {
 
 export default function AdminJoinRequestsPage() {
   const router = useRouter();
-  const { user, currentTenantId } = useAuthStore();
+  const { user } = useAuthStore();
+  const { tenantId: currentTenantId } = useAdminTenant();
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);

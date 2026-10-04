@@ -121,6 +121,27 @@ export class UserService {
     };
   }
 
+  async getMemberships(userId: string) {
+    const memberships = await this.prisma.userTenantMembership.findMany({
+      where: { userId },
+      select: {
+        tenantId: true,
+        role: true,
+        status: true,
+        tenant: { select: { name: true, type: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return memberships.map((m) => ({
+      tenantId: m.tenantId,
+      tenantName: m.tenant.name,
+      tenantType: m.tenant.type,
+      role: m.role,
+      status: m.status,
+    }));
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

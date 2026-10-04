@@ -23,6 +23,8 @@ import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { InstitutionsModule } from './institutions/institutions.module';
 import { JoinRequestsModule } from './join-requests/join-requests.module';
+import { TenantUsersModule } from './tenant-users/tenant-users.module';
+import { TenantAdminModule } from './tenant-admin/tenant-admin.module';
 import { LibraryModule } from './library/library.module';
 import { ReaderModule } from './reader/reader.module';
 import { ProgressModule } from './progress/progress.module';
@@ -129,6 +131,8 @@ import { BookAccessModule } from './common/book-access.module';
     AdminModule,
     InstitutionsModule,
     JoinRequestsModule,
+    TenantUsersModule,
+    TenantAdminModule,
     LibraryModule,
     ReaderModule,
     ProgressModule,

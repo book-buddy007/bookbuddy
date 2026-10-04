@@ -582,10 +582,13 @@ model TenantSettings {
   allowSharing       Boolean @default(true)
 
   // Borrowing rules
-  maxBorrowDays   Int     @default(14)
-  maxBooksPerUser Int     @default(5)
-  allowRenewals   Boolean @default(true)
-  maxRenewals     Int     @default(2)
+  maxBorrowDays     Int     @default(14)
+  maxBooksPerUser   Int     @default(5)
+  allowRenewals     Boolean @default(true)
+  maxRenewals       Int     @default(2)
+  // Admin-edited policy set: { limits, fines, periods }. Validated and read by the
+  // tenant-admin module; null means the built-in defaults apply.
+  borrowingPolicies Json?
 
   // Customization
   customDomain String?
@@ -660,8 +663,8 @@ model Book {
   // (BookCategory, below) which is general reading-genre classification, not
   // curriculum board/class/subject scoping — the two are orthogonal, not
   // duplicates, so this does not replace `categories`.
-  taxonomyNodeIds        String[] @default([]) // every tagged node id (primary + cross-listed)
-  taxonomyPrimaryNodeId  String? // the primary shelf-path leaf node, for browsing
+  taxonomyNodeIds       String[] @default([]) // every tagged node id (primary + cross-listed)
+  taxonomyPrimaryNodeId String? // the primary shelf-path leaf node, for browsing
 
   // Approval tracking for global publish workflow
   globalPublishRequestedAt   DateTime?
@@ -844,13 +847,13 @@ model GraphNode {
   firstPage    Int?
   firstChapter String? // chapter title of the earliest passage this entity was found in — powers chapter-level community grouping without a second clustering pass
 
-  outgoingEdges GraphEdge[]            @relation("EdgeSource")
-  incomingEdges GraphEdge[]            @relation("EdgeTarget")
-  memberships   GraphCommunityMember[]
-  quizItems     QuizItem[]
-  masteries     ConceptMastery[]
+  outgoingEdges     GraphEdge[]            @relation("EdgeSource")
+  incomingEdges     GraphEdge[]            @relation("EdgeTarget")
+  memberships       GraphCommunityMember[]
+  quizItems         QuizItem[]
+  masteries         ConceptMastery[]
   resurfacingEvents ResurfacingEvent[]
-  embedding     GraphNodeEmbedding?
+  embedding         GraphNodeEmbedding?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1032,11 +1035,11 @@ model ConceptMastery {
 // persisted field, since it's only meaningful at the moment it's computed.
 // ============================================================================
 model ResurfacingEvent {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
-  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  bookId String
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId    String
   concept   GraphNode @relation(fields: [conceptId], references: [id], onDelete: Cascade)
   conceptId String
 
@@ -1082,15 +1085,15 @@ model SimplifiedParagraph {
 // still useful review content on its own, so it isn't gated on that.
 // ============================================================================
 model ChapterDigest {
-  id           String   @id @default(cuid())
-  book         Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  id           String @id @default(cuid())
+  book         Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
   bookId       String
   chapterTitle String // matches GraphNode.firstChapter / QuizItem.chapterTitle's grouping key, not a FK
-  voicePair    String   @default("default") // which two-voice preset this was (to be) rendered with
+  voicePair    String @default("default") // which two-voice preset this was (to be) rendered with
 
   scriptJson Json // [{ speaker: "A"|"B", line: string, citedPage?: number }]
   audioUri   String? // R2 object key once (if) TTS renders it — null means script-only
-  status     String   @default("SCRIPT_READY") // SCRIPT_READY | AUDIO_READY | AUDIO_FAILED
+  status     String  @default("SCRIPT_READY") // SCRIPT_READY | AUDIO_READY | AUDIO_FAILED
 
   generatedAt DateTime @default(now())
 

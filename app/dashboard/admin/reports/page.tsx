@@ -1,10 +1,7 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { StatCard } from "@/components/ui/stat-card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Chip } from "@/components/ui/chip";
-import { DataTable, type DataColumn } from "@/components/ui/data-table";
 import { FormField } from "@/components/ui/form-field";
 import { Icon, type BBIconName } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -14,43 +11,47 @@ import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue
 } from "@/components/ui/select";
+import { NoInstitution } from "@/components/admin/NoInstitution";
+import { useAdminTenant } from "@/hooks/use-admin-tenant";
+import { downloadReport, type ReportType } from "@/lib/tenant-admin";
 
 interface ReportTemplate {
-  id: number;
+  type: ReportType;
   name: string;
   description: string;
   icon: BBIconName;
-  type: string;
+  /** Only circulation is about a period; the others are a snapshot of right now. */
+  usesDateRange: boolean;
 }
 
-interface GeneratedReport {
-  id: number;
-  name: string;
-  type: string;
-  format: string;
-  generatedAt: string;
-  size: string;
-}
-
-// Report templates
 const reportTemplates: ReportTemplate[] = [
-  { id: 1, name: "Circulation Summary", description: "Overview of all borrowing activity", icon: "library", type: "circulation" },
-  { id: 2, name: "User Activity", description: "User registration and engagement metrics", icon: "user-check", type: "users" },
-  { id: 3, name: "Overdue Items", description: "List of all currently overdue materials", icon: "overdue", type: "overdue" },
-  { id: 4, name: "Fine Collections", description: "Summary of fines issued and collected", icon: "analytics", type: "fines" },
+  { type: "circulation", name: "Circulation", description: "Every loan borrowed in the period you choose", icon: "library", usesDateRange: true },
+  { type: "users", name: "Members", description: "Everyone in your institution with role, status and last sign-in", icon: "user-check", usesDateRange: false },
+  { type: "overdue", name: "Overdue items", description: "Everything overdue right now, with fines and reminders sent", icon: "overdue", usesDateRange: false },
+  { type: "fines", name: "Fines accrued", description: "Fines accrued on overdue items under your fine policy", icon: "analytics", usesDateRange: false },
 ];
 
-// Sample reports. No report-generation backend exists yet.
-const recentReports: GeneratedReport[] = [
-  { id: 1, name: "Monthly Circulation - March 2023", type: "circulation", format: "PDF", generatedAt: "2023-04-01T10:23:45Z", size: "1.2 MB" },
-  { id: 2, name: "User Activity Q1 2023", type: "users", format: "Excel", generatedAt: "2023-04-02T14:15:30Z", size: "3.4 MB" },
-  { id: 3, name: "Overdue Report - March 28, 2023", type: "overdue", format: "PDF", generatedAt: "2023-03-28T09:10:22Z", size: "0.9 MB" },
-];
+/** YYYY-MM-DD for a local calendar date (not UTC, so "today" is the admin's today). */
+const ymd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-const formatDate = (dateString: string) =>
-  new Intl.DateTimeFormat('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-  }).format(new Date(dateString));
+const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+/** Resolves a preset to inclusive from/to dates. */
+function presetRange(preset: string, today = new Date()): { from: string; to: string } {
+  const y = today.getFullYear();
+  const m = today.getMonth();
+  switch (preset) {
+    case "today": return { from: ymd(today), to: ymd(today) };
+    case "yesterday": return { from: ymd(addDays(today, -1)), to: ymd(addDays(today, -1)) };
+    case "last-7": return { from: ymd(addDays(today, -6)), to: ymd(today) };
+    case "this-month": return { from: ymd(new Date(y, m, 1)), to: ymd(today) };
+    case "last-month": return { from: ymd(new Date(y, m - 1, 1)), to: ymd(new Date(y, m, 0)) };
+    case "this-quarter": return { from: ymd(new Date(y, Math.floor(m / 3) * 3, 1)), to: ymd(today) };
+    case "this-year": return { from: ymd(new Date(y, 0, 1)), to: ymd(today) };
+    default: return { from: ymd(addDays(today, -29)), to: ymd(today) }; // last-30
+  }
+}
 
 const ReportTemplateGrid = ({ templates, onSelect }: {
   templates: ReportTemplate[];
@@ -59,7 +60,7 @@ const ReportTemplateGrid = ({ templates, onSelect }: {
   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
     {templates.map((template) => (
       <button
-        key={template.id}
+        key={template.type}
         type="button"
         onClick={() => onSelect(template)}
         className="bb-lift flex flex-col items-center rounded-[18px] bg-bb-surface p-6 text-center shadow-e1 focus-visible:outline-none focus-visible:shadow-focus"
@@ -74,12 +75,12 @@ const ReportTemplateGrid = ({ templates, onSelect }: {
   </div>
 );
 
-const ReportGenerationForm = ({ template, onGenerate, onCancel }: {
+const ReportGenerationForm = ({ template, generating, onGenerate, onCancel }: {
   template: ReportTemplate;
-  onGenerate: (formData: any) => void;
+  generating: boolean;
+  onGenerate: (range?: { from: string; to: string }) => void;
   onCancel: () => void;
 }) => {
-  const [format, setFormat] = useState("pdf");
   const [dateRange, setDateRange] = useState("last-30");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
@@ -88,12 +89,8 @@ const ReportGenerationForm = ({ template, onGenerate, onCancel }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onGenerate({
-      templateId: template.id,
-      format,
-      dateRange,
-      ...(isCustomRange && { startDate: customStartDate, endDate: customEndDate })
-    });
+    if (!template.usesDateRange) return onGenerate();
+    onGenerate(isCustomRange ? { from: customStartDate, to: customEndDate } : presetRange(dateRange));
   };
 
   return (
@@ -102,79 +99,53 @@ const ReportGenerationForm = ({ template, onGenerate, onCancel }: {
         <Icon name={template.icon} size={26} /> {template.name} report
       </h2>
 
-      <FormField label="Report format" htmlFor="format">
-        <Select value={format} onValueChange={setFormat}>
-          <SelectTrigger id="format"><SelectValue placeholder="Select format" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="pdf">PDF document</SelectItem>
-            <SelectItem value="excel">Excel spreadsheet</SelectItem>
-            <SelectItem value="csv">CSV file</SelectItem>
-          </SelectContent>
-        </Select>
-      </FormField>
+      <p className="text-sm text-bb-muted">
+        Downloads as a CSV file, which opens in Excel, Numbers and Google Sheets.
+      </p>
 
-      <FormField label="Date range" htmlFor="date-range">
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger id="date-range"><SelectValue placeholder="Select date range" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="yesterday">Yesterday</SelectItem>
-            <SelectItem value="last-7">Last 7 days</SelectItem>
-            <SelectItem value="last-30">Last 30 days</SelectItem>
-            <SelectItem value="this-month">This month</SelectItem>
-            <SelectItem value="last-month">Last month</SelectItem>
-            <SelectItem value="this-quarter">This quarter</SelectItem>
-            <SelectItem value="this-year">This year</SelectItem>
-            <SelectItem value="custom">Custom range</SelectItem>
-          </SelectContent>
-        </Select>
-      </FormField>
-
-      {isCustomRange && (
-        <div className="grid gap-5 md:grid-cols-2">
-          <FormField label="Start date" htmlFor="start-date">
-            <Input id="start-date" type="date" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} required />
+      {template.usesDateRange ? (
+        <>
+          <FormField label="Date range" htmlFor="date-range">
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger id="date-range"><SelectValue placeholder="Select date range" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="last-7">Last 7 days</SelectItem>
+                <SelectItem value="last-30">Last 30 days</SelectItem>
+                <SelectItem value="this-month">This month</SelectItem>
+                <SelectItem value="last-month">Last month</SelectItem>
+                <SelectItem value="this-quarter">This quarter</SelectItem>
+                <SelectItem value="this-year">This year</SelectItem>
+                <SelectItem value="custom">Custom range</SelectItem>
+              </SelectContent>
+            </Select>
           </FormField>
-          <FormField label="End date" htmlFor="end-date">
-            <Input id="end-date" type="date" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} required />
-          </FormField>
-        </div>
-      )}
 
-      {template.type === "users" && (
-        <FormField label="User segments" htmlFor="user-segments">
-          <Select defaultValue="all">
-            <SelectTrigger id="user-segments"><SelectValue placeholder="Select user segments" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All users</SelectItem>
-              <SelectItem value="ACTIVE">Active users</SelectItem>
-              <SelectItem value="INACTIVE">Inactive users</SelectItem>
-              <SelectItem value="new">New registrations</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-      )}
-
-      {template.type === "circulation" && (
-        <FormField label="Material type" htmlFor="material-type">
-          <Select defaultValue="all">
-            <SelectTrigger id="material-type"><SelectValue placeholder="Select material type" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All materials</SelectItem>
-              <SelectItem value="books">Physical books</SelectItem>
-              <SelectItem value="ebooks">E-books</SelectItem>
-              <SelectItem value="audiobooks">Audiobooks</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
+          {isCustomRange && (
+            <div className="grid gap-5 md:grid-cols-2">
+              <FormField label="Start date" htmlFor="start-date" hint="At most one year">
+                <Input id="start-date" type="date" value={customStartDate} max={customEndDate || undefined} onChange={(e) => setCustomStartDate(e.target.value)} required />
+              </FormField>
+              <FormField label="End date" htmlFor="end-date">
+                <Input id="end-date" type="date" value={customEndDate} min={customStartDate || undefined} onChange={(e) => setCustomEndDate(e.target.value)} required />
+              </FormField>
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="rounded-xl bg-bb-surface-2 px-4 py-3 text-sm">
+          This report is a snapshot of your institution as it is right now.
+        </p>
       )}
 
       <div className="flex justify-between gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={generating}>
           Cancel
         </Button>
-        <Button type="submit">
-          <Icon name="printer" size={18} /> Generate report
+        <Button type="submit" disabled={generating}>
+          <Icon name={generating ? "loader" : "download"} size={18} className={generating ? "animate-spin" : undefined} />
+          {generating ? "Preparing…" : "Download report"}
         </Button>
       </div>
     </form>
@@ -182,67 +153,24 @@ const ReportGenerationForm = ({ template, onGenerate, onCancel }: {
 };
 
 export default function ReportsPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { tenantId, loading: tenantLoading } = useAdminTenant();
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
-  const [reports, setReports] = useState<GeneratedReport[]>([]);
+  const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
 
-  // Simulate loading data from API
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      setReports(recentReports);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleGenerateReport = (formData: any) => {
-    const template = reportTemplates.find(t => t.id === formData.templateId);
-    if (!template) return;
-
-    toast({
-      title: "Generating sample report",
-      description: `${template.name}: this adds a sample row. No file is produced.`
-    });
-
-    // Simulate delay and then add to reports
-    setTimeout(() => {
-      const newReport: GeneratedReport = {
-        id: Date.now(),
-        name: `${template.name} - ${new Date().toLocaleDateString()}`,
-        type: template.type,
-        format: formData.format === 'excel' ? 'Excel' : 'PDF',
-        generatedAt: new Date().toISOString(),
-        size: `${(Math.random() * 2 + 0.5).toFixed(1)} MB`
-      };
-
-      setReports((prev) => [newReport, ...prev]);
-      toast({ title: "Sample report added", description: `${template.name} now appears under recent reports.` });
+  const handleGenerate = async (range?: { from: string; to: string }) => {
+    if (!tenantId || !selectedTemplate) return;
+    setGenerating(true);
+    try {
+      const filename = await downloadReport(tenantId, selectedTemplate.type, range);
+      toast({ title: "Report downloaded", description: filename });
       setSelectedTemplate(null);
-    }, 2500);
+    } catch (err: any) {
+      toast({ title: "Couldn't generate the report", description: err?.message, variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
   };
-
-  const handleDownloadReport = (report: GeneratedReport) => {
-    toast({
-      title: "Nothing to download yet",
-      description: `${report.name} is a sample entry. Report files aren't generated yet.`
-    });
-  };
-
-  const columns: DataColumn<GeneratedReport>[] = [
-    { key: "name", header: "Report name", cell: (r) => <span className="font-semibold">{r.name}</span> },
-    { key: "type", header: "Type", cell: (r) => <span className="capitalize">{r.type}</span> },
-    {
-      key: "format",
-      header: "Format",
-      cell: (r) => <Chip icon={r.format === "Excel" ? "analytics" : "pdf"}>{r.format}</Chip>,
-    },
-    { key: "generated", header: "Generated", cell: (r) => formatDate(r.generatedAt), className: "whitespace-nowrap text-bb-muted" },
-    { key: "size", header: "Size", cell: (r) => r.size, className: "whitespace-nowrap text-bb-muted" },
-  ];
-
-  const thisMonth = reports.filter(r => new Date(r.generatedAt).getMonth() === new Date().getMonth()).length;
 
   return (
     <div className="space-y-8">
@@ -250,42 +178,21 @@ export default function ReportsPage() {
         className="mb-0"
         eyebrow="Admin"
         title="Reports"
-        description="Generate and manage library management system reports."
-        actions={<Chip icon="info">Sample data</Chip>}
+        description="Download circulation, member, overdue and fine reports for your institution."
       />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <StatCard variant="featured" title="Report templates" value={reportTemplates.length} description="Available report types" icon="pdf" loading={isLoading} />
-        <StatCard title="Generated reports" value={reports.length} description="Total reports created" icon="analytics" loading={isLoading} />
-        <StatCard title="This month" value={thisMonth} description="Reports generated this month" icon="calendar" loading={isLoading} />
-      </div>
-
-      {!selectedTemplate ? (
-        <>
-          <section className="space-y-4">
-            <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Report templates</h2>
-            <ReportTemplateGrid templates={reportTemplates} onSelect={setSelectedTemplate} />
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Recent reports</h2>
-            <DataTable
-              columns={columns}
-              rows={reports}
-              rowKey={(r) => r.id}
-              loading={isLoading}
-              emptyIcon="pdf"
-              emptyTitle="No reports generated yet"
-              emptyDescription="Pick a template above to generate your first report."
-              actionsHeader="Actions"
-              renderActions={(r) => <button onClick={() => handleDownloadReport(r)}>Download</button>}
-            />
-          </section>
-        </>
+      {!tenantLoading && !tenantId ? (
+        <NoInstitution />
+      ) : !selectedTemplate ? (
+        <section className="space-y-4">
+          <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Choose a report</h2>
+          <ReportTemplateGrid templates={reportTemplates} onSelect={setSelectedTemplate} />
+        </section>
       ) : (
         <ReportGenerationForm
           template={selectedTemplate}
-          onGenerate={handleGenerateReport}
+          generating={generating}
+          onGenerate={handleGenerate}
           onCancel={() => setSelectedTemplate(null)}
         />
       )}

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
-import { Chip } from "@/components/ui/chip";
 import { FormField } from "@/components/ui/form-field";
 import { Icon } from "@/components/ui/icon";
 import { PageHeader } from "@/components/ui/page-header";
@@ -14,7 +14,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
-import { useAdminState, Policies } from "@/hooks/use-admin-state";
+import { NoInstitution } from "@/components/admin/NoInstitution";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useAdminTenant } from "@/hooks/use-admin-tenant";
+import { useAdminPolicies } from "@/hooks/use-admin-data";
+import { savePolicies, type BorrowingPolicies as Policies } from "@/lib/tenant-admin";
 import { useToast } from "@/components/ui/use-toast";
 
 const PolicySectionAccordion = ({
@@ -98,20 +102,21 @@ const ComplianceChecker = ({ policies }: { policies: Policies }) => {
 };
 
 export default function BorrowingPage() {
-  const { policies, setPolicies } = useAdminState();
+  const { tenantId, loading: tenantLoading } = useAdminTenant();
+  const { data, isLoading: policiesLoading, isError, error, refetch } = useAdminPolicies();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [localPolicies, setLocalPolicies] = useState<Policies>(policies);
-  const [isLoading, setIsLoading] = useState(true);
+  const [localPolicies, setLocalPolicies] = useState<Policies | null>(null);
+  const [saving, setSaving] = useState(false);
   const [daysOverdue, setDaysOverdue] = useState(5);
 
-  // Simulate loading policies from API
+  // Start the form from what the server has; later refetches don't overwrite unsaved edits.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    if (data && !localPolicies) setLocalPolicies(data.policies);
+  }, [data, localPolicies]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  const isLoading = tenantLoading || policiesLoading || (!!tenantId && !isError && !localPolicies);
+  const dirty = !!data && !!localPolicies && JSON.stringify(data.policies) !== JSON.stringify(localPolicies);
 
   const handleInputChange = (
     section: keyof Policies,
@@ -120,7 +125,7 @@ export default function BorrowingPage() {
   ) => {
     const numericValue = parseFloat(value);
 
-    if (!isNaN(numericValue)) {
+    if (!isNaN(numericValue) && localPolicies) {
       setLocalPolicies({
         ...localPolicies,
         [section]: {
@@ -131,12 +136,24 @@ export default function BorrowingPage() {
     }
   };
 
-  const handleSave = () => {
-    setPolicies(localPolicies);
-    toast({
-      title: "Policies updated",
-      description: "Saved for this session. Policies aren't stored on the server yet."
-    });
+  const handleSave = async () => {
+    if (!tenantId || !localPolicies) return;
+    setSaving(true);
+    try {
+      const saved = await savePolicies(tenantId, localPolicies);
+      setLocalPolicies(saved.policies);
+      queryClient.setQueryData(["tenant-admin", tenantId, "policies"], saved);
+      // Fines on the overdue list depend on these numbers.
+      queryClient.invalidateQueries({ queryKey: ["tenant-admin", tenantId, "overdue"] });
+      toast({
+        title: "Policies saved",
+        description: "Fines on the overdue page now use these rates."
+      });
+    } catch (err: any) {
+      toast({ title: "Couldn't save policies", description: err?.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const numberField = (
@@ -152,7 +169,7 @@ export default function BorrowingPage() {
         id={id}
         type="number"
         step={step}
-        value={(localPolicies[section] as any)[field]}
+        value={(localPolicies?.[section] as any)?.[field] ?? ''}
         onChange={(e) => handleInputChange(section, field, e.target.value)}
       />
     </FormField>
@@ -167,15 +184,23 @@ export default function BorrowingPage() {
         description="Configure borrowing limits, fines, and periods."
         actions={
           <>
-            <Chip icon="info">Not saved to server</Chip>
-            <Button onClick={handleSave}>
-              <Icon name="save" size={18} /> Save changes
+            <Button onClick={handleSave} disabled={!dirty || saving || !tenantId}>
+              <Icon name={saving ? "loader" : "save"} size={18} className={saving ? "animate-spin" : undefined} /> {saving ? "Saving…" : "Save changes"}
             </Button>
           </>
         }
       />
 
-      {isLoading ? (
+      {!tenantLoading && !tenantId ? (
+        <NoInstitution />
+      ) : isError ? (
+        <EmptyState
+          icon="alert-circle"
+          title="Couldn't load policies"
+          description={(error as Error)?.message}
+          action={<Button variant="outline" onClick={() => refetch()}>Try again</Button>}
+        />
+      ) : isLoading || !localPolicies ? (
         <Skeleton className="h-96 rounded-[22px]" />
       ) : (
         <>

@@ -1,9 +1,8 @@
 'use client';
 
 import { QuickStats } from "@/components/admin/dashboard/QuickStats";
+import { LoanActivity } from "@/components/admin/dashboard/LoanActivity";
 import { NavigationCards } from "@/components/admin/dashboard/NavigationCards";
-import { Chip } from "@/components/ui/chip";
-import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 
 export default function AdminDashboard() {
@@ -14,7 +13,6 @@ export default function AdminDashboard() {
         eyebrow="Admin"
         title="Dashboard"
         description="Overview of your library management system."
-        actions={<Chip icon="info">Sample data</Chip>}
       />
 
       <QuickStats />
@@ -25,8 +23,8 @@ export default function AdminDashboard() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Activity overview</h2>
-        <EmptyState icon="analytics" title="No recent activity" description="Borrowing and approval activity will appear here." />
+        <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]">Loan activity</h2>
+        <LoanActivity />
       </section>
     </div>
   );

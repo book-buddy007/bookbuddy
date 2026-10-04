@@ -85,6 +85,44 @@ export class EmailService {
     }
   }
 
+  /** Overdue-loan reminder sent by an institution admin. */
+  async sendOverdueReminderEmail(
+    email: string,
+    details: {
+      userName: string;
+      bookTitle: string;
+      institutionName: string;
+      dueDate: Date;
+      daysOverdue: number;
+      fine: number;
+    },
+  ): Promise<boolean> {
+    if (!this.isConfigured) {
+      this.logger.warn(`Email not configured. Skipping overdue reminder to ${email}`);
+      return false;
+    }
+
+    try {
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `Reminder: "${details.bookTitle.replace(/\s+/g, ' ')}" is overdue`,
+        html: this.getOverdueReminderTemplate(details),
+      });
+
+      if (error) {
+        this.logger.error(`Failed to send overdue reminder to ${email}: ${error.message}`);
+        return false;
+      }
+
+      this.logger.log(`Overdue reminder sent to ${email}. Email ID: ${data?.id}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Error sending overdue reminder: ${error.message}`, error.stack);
+      return false;
+    }
+  }
+
   /** Link to the confirmation page for a signed account-deletion token. */
   accountDeletionLink(token: string): string {
     return `${this.frontendUrl}/delete-account/confirm?token=${encodeURIComponent(token)}`;
@@ -300,6 +338,74 @@ export class EmailService {
   /**
    * Password Reset Email Template
    */
+  private getOverdueReminderTemplate(details: {
+    userName: string;
+    bookTitle: string;
+    institutionName: string;
+    dueDate: Date;
+    daysOverdue: number;
+    fine: number;
+  }): string {
+    // Names and titles are user/admin-entered, so they are escaped before going into HTML.
+    const esc = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    const due = details.dueDate.toISOString().slice(0, 10);
+    const days = `${details.daysOverdue} day${details.daysOverdue === 1 ? '' : 's'}`;
+    const fineLine =
+      details.fine > 0
+        ? `<p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">A late fee of <strong>${details.fine.toFixed(2)}</strong> has accrued so far.</p>`
+        : '';
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overdue reminder</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f1f5f9;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 16px; overflow: hidden; max-width: 100%;">
+          <tr>
+            <td style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #06b6d4 100%); padding: 32px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 800;">Book Buddy</h1>
+              <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 15px; font-weight: 600;">Overdue reminder</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 36px 30px;">
+              <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 22px; font-weight: 700;">Hello ${esc(details.userName)},</h2>
+              <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                <strong>${esc(details.bookTitle)}</strong> from ${esc(details.institutionName)} was due on ${due} and is now ${days} overdue. Please return it as soon as you can.
+              </p>
+              ${fineLine}
+              <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">
+                If you have already returned it, you can ignore this message.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0; color: #94a3b8; font-size: 12px;">This is an automated email from ${esc(details.institutionName)} via Book Buddy. Please do not reply.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+  }
+
   private getPasswordResetTemplate(
     userName: string,
     resetLink: string,
