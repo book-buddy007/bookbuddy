@@ -18,6 +18,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import { LoggerService } from './logger/logger.service';
+import { omitSensitiveUserFields } from './auth/safe-user';
 import { EmailService } from './email/email.service';
 import {
   EmailNotVerifiedException,
@@ -173,9 +174,8 @@ export class AuthService {
         `User registered successfully: ${user.email}. Verification email sent.`,
       );
 
-      // Return user data excluding the password
-      const { password: _, ...result } = user;
-      return result;
+      // Return user data without the password or other sensitive fields
+      return omitSensitiveUserFields(user);
     } catch (error) {
       // Use the directly imported error type from runtime
       if (error instanceof PrismaClientKnownRequestError) {
@@ -187,6 +187,70 @@ export class AuthService {
       this.logger.error(`Registration Error: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Could not register user');
     }
+  }
+
+  /**
+   * The signed-in user's own profile, as an explicit allow-list. Same shape as the `user`
+   * in the login response, plus the contact and onboarding fields the web and mobile
+   * clients read. Memberships are the active ones in active institutions.
+   */
+  async getSessionProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        accountType: true,
+        subscriptionTier: true,
+        subscriptionStatus: true,
+        trialEndsAt: true,
+        subscriptionEndsAt: true,
+        gradeLevel: true,
+        isActive: true,
+        emailVerified: true,
+        image: true,
+        profilePicture: true,
+        phone: true,
+        phoneVerified: true,
+        pendingPhone: true,
+        pendingEmail: true,
+        onboardingCompleted: true,
+        onboardingStep: true,
+        lastLoginAt: true,
+        createdAt: true,
+        tenantMemberships: {
+          where: { status: 'ACTIVE', tenant: { isActive: true } },
+          select: {
+            tenantId: true,
+            role: true,
+            status: true,
+            tenant: { select: { name: true, type: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        // Only the latest, which is what the waiting-room screen shows.
+        joinRequests: {
+          select: { id: true, status: true, tenant: { select: { name: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const { tenantMemberships, ...rest } = user;
+    return {
+      ...rest,
+      tenantMemberships: tenantMemberships.map((m) => ({
+        tenantId: m.tenantId,
+        tenantName: m.tenant.name,
+        tenantType: m.tenant.type,
+        role: m.role,
+        status: m.status,
+      })),
+    };
   }
 
   async validateUser(email: string, pass: string): Promise<any> {

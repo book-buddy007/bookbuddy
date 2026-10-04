@@ -65,10 +65,16 @@ export class AuthController {
   // Token refresh is handled by Better Auth's session management
   // The old JWT refresh endpoint has been removed
 
+  /**
+   * The signed-in user's own session profile. `req.user` is the whole database row, so it is
+   * never returned directly: the service builds an explicit shape without credentials or
+   * lockout state.
+   */
   @UseGuards(BetterAuthGuard)
   @Get('profile')
   getProfile(@Req() req: Request) {
-    return req.user;
+    const user = req.user as { id: string };
+    return this.authService.getSessionProfile(user.id);
   }
 
   @Post('forgot-password') // Route: POST /auth/forgot-password
