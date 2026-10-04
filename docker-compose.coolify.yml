@@ -21,8 +21,9 @@
 #   S3_ENDPOINT           https://<account-id>.r2.cloudflarestorage.com   (no bucket name on the end)
 #   S3_ACCESS_KEY_ID      R2 API token: Object Read & Write on the bucket
 #   S3_SECRET_ACCESS_KEY  the same token's secret
-#   S3_BUCKET_NAME        optional, defaults to bookbuddy (the R2 bucket's name)
-#   MEDIA_URL             public base URL of the bucket's custom domain, with NO bucket
+#   S3_BUCKET_NAME        optional, defaults to bookbuddy: the PRIVATE bucket (book files, audio, personal uploads)
+#   S3_PUBLIC_BUCKET_NAME optional, defaults to bookbuddy-public: the PUBLIC bucket (covers, samples, branding)
+#   MEDIA_URL             public base URL of the PUBLIC bucket's custom domain, with NO bucket
 #                         in the path; defaults to https://media.bookbuddy.vinstitution.com
 # APP_URL / API_URL / MEDIA_URL default to the values above and can be overridden in
 # Coolify's Environment Variables (the web app must be redeployed afterwards,
@@ -123,6 +124,9 @@ services:
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME:-bookbuddy}
+      # Covers, samples and branding go in this second bucket, the only one the public media
+      # domain points at. The private bucket above never has a public domain.
+      S3_PUBLIC_BUCKET_NAME: ${S3_PUBLIC_BUCKET_NAME:-bookbuddy-public}
       CDN_BASE_URL: ${MEDIA_URL:-https://media.bookbuddy.vinstitution.com}
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION_NAME: book_buddy_books_v1

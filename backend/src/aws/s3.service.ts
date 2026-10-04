@@ -69,10 +69,26 @@ export function storageConfigProblem(
   return null;
 }
 
+/**
+ * Objects that are meant to be seen by anyone with the link: book covers, free samples and
+ * branding images. Everything else (book files, audio, personal uploads, join-request proofs)
+ * is private and only ever read through short-lived signed links.
+ *
+ * The rule is anchored at the start of the key and every path segment is checked, so a filename
+ * (which is sanitised to letters, digits, dot, dash and underscore) can never make a private key
+ * look public.
+ */
+const PUBLIC_KEY_PATTERN = /^global\/(books\/[^/]+\/(covers|sample)|branding)\//;
+
+export const isPublicStorageKey = (key: string): boolean => PUBLIC_KEY_PATTERN.test(key);
+
 @Injectable()
 export class S3Service {
   private readonly client: S3Client;
+  /** Private bucket: book files, audio, personal uploads, proofs. Never behind a public domain. */
   private readonly bucket: string;
+  /** Public bucket: covers, samples, branding. The only bucket the public media domain points at. */
+  private readonly publicBucket: string;
   private readonly cdnBaseUrl: string;
   private readonly configProblem: string | null;
 
@@ -90,8 +106,23 @@ export class S3Service {
     }
 
     this.bucket = process.env.S3_BUCKET_NAME || 'book-buddy-media';
+    // Unset means one shared bucket, which is how local MinIO runs. In production the two must be
+    // different buckets, or the public domain would expose the private files too.
+    this.publicBucket = process.env.S3_PUBLIC_BUCKET_NAME?.trim() || this.bucket;
     this.cdnBaseUrl =
-      process.env.CDN_BASE_URL || `${process.env.S3_ENDPOINT}/${this.bucket}`;
+      process.env.CDN_BASE_URL ||
+      `${process.env.S3_ENDPOINT}/${this.publicBucket}`;
+
+    if (
+      !this.configProblem &&
+      process.env.STORAGE_PROVIDER === 'r2' &&
+      this.publicBucket === this.bucket
+    ) {
+      this.logger.warn(
+        'S3_PUBLIC_BUCKET_NAME is not set (or equals S3_BUCKET_NAME): public and private files share one bucket. ' +
+          'Do not connect a public domain to it; set a separate public bucket.',
+      );
+    }
 
     this.client = new S3Client({
       region: process.env.S3_REGION ?? 'auto',
@@ -126,6 +157,24 @@ export class S3Service {
     }
   }
 
+  get bucketName(): string {
+    return this.bucket;
+  }
+
+  get publicBucketName(): string {
+    return this.publicBucket;
+  }
+
+  /** True for covers, samples and branding: the only keys that live in the public bucket. */
+  isPublicKey(key: string): boolean {
+    return isPublicStorageKey(key);
+  }
+
+  /** The bucket an object lives in, decided by its key alone. */
+  bucketFor(key: string): string {
+    return isPublicStorageKey(key) ? this.publicBucket : this.bucket;
+  }
+
   async getPresignedUploadUrl(params: {
     key: string;
     mimeType: string;
@@ -146,7 +195,7 @@ export class S3Service {
     }
 
     const command = new PutObjectCommand({
-      Bucket: this.bucket,
+      Bucket: this.bucketFor(params.key),
       Key: params.key,
       ContentType: params.mimeType,
     });
@@ -167,7 +216,7 @@ export class S3Service {
   }): Promise<string> {
     this.assertConfigured();
     const command = new GetObjectCommand({
-      Bucket: this.bucket,
+      Bucket: this.bucketFor(params.key),
       Key: params.key,
       ResponseContentDisposition: 'inline',
       ResponseContentType: params.key.endsWith('.pdf')
@@ -184,7 +233,7 @@ export class S3Service {
   async deleteFile(key: string): Promise<void> {
     try {
       await this.client.send(
-        new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+        new DeleteObjectCommand({ Bucket: this.bucketFor(key), Key: key }),
       );
       this.logger.log(`Deleted file from storage: ${key}`);
     } catch (err: any) {
@@ -208,7 +257,7 @@ export class S3Service {
    */
   async deleteFileOrThrow(key: string): Promise<void> {
     await this.client.send(
-      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+      new DeleteObjectCommand({ Bucket: this.bucketFor(key), Key: key }),
     );
     this.logger.log(`Deleted file from storage: ${key}`);
   }
@@ -216,24 +265,33 @@ export class S3Service {
   async deleteMany(keys: string[]): Promise<void> {
     if (!keys || keys.length === 0) return;
 
+    // Keys live in two buckets, and one DeleteObjects request targets one bucket.
+    const byBucket = new Map<string, string[]>();
+    for (const key of keys) {
+      const bucket = this.bucketFor(key);
+      byBucket.set(bucket, [...(byBucket.get(bucket) ?? []), key]);
+    }
+
     // AWS S3 DeleteObjects allows max 1000 keys per request
     const CHUNK_SIZE = 1000;
-    for (let i = 0; i < keys.length; i += CHUNK_SIZE) {
-      const chunk = keys.slice(i, i + CHUNK_SIZE);
-      try {
-        await this.client.send(
-          new DeleteObjectsCommand({
-            Bucket: this.bucket,
-            Delete: {
-              Objects: chunk.map((Key) => ({ Key })),
-              Quiet: true,
-            },
-          }),
-        );
-        this.logger.log(`Bulk deleted ${chunk.length} files from storage`);
-      } catch (err: any) {
-        this.logger.error(`Failed to bulk delete files`, err.stack);
-        throw err;
+    for (const [bucket, bucketKeys] of byBucket) {
+      for (let i = 0; i < bucketKeys.length; i += CHUNK_SIZE) {
+        const chunk = bucketKeys.slice(i, i + CHUNK_SIZE);
+        try {
+          await this.client.send(
+            new DeleteObjectsCommand({
+              Bucket: bucket,
+              Delete: {
+                Objects: chunk.map((Key) => ({ Key })),
+                Quiet: true,
+              },
+            }),
+          );
+          this.logger.log(`Bulk deleted ${chunk.length} files from storage`);
+        } catch (err: any) {
+          this.logger.error(`Failed to bulk delete files`, err.stack);
+          throw err;
+        }
       }
     }
   }
@@ -270,8 +328,8 @@ export class S3Service {
 
   // ── LEGACY METHODS (Required for backward compatibility) ──────────────────
 
-  /** The public (custom-domain) URL for an object key. Only covers, samples and branding are
-   *  reachable there; everything else is read through presigned links. */
+  /** The public (custom-domain) URL for an object key. Only keys in the public bucket (covers,
+   *  samples, branding) are reachable there; everything else is read through presigned links. */
   publicUrlFor(key: string): string {
     return `${this.cdnBaseUrl}/${key}`;
   }

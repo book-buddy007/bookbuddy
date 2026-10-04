@@ -40,9 +40,8 @@ export class SuperAdminService {
   ) {}
 
   /**
-   * Presigned upload for a branding image. It lives in the main media bucket under
-   * `global/branding/<institution>/`, one of the few public prefixes (logos are shown to
-   * signed-out visitors), and the response carries the public URL to store.
+   * Presigned upload for a branding image. It lives in the public bucket under
+   * `global/branding/<institution>/`, and the response carries the public URL to store.
    */
   async getBrandingUploadUrl(
     institutionId: string,
@@ -55,10 +54,8 @@ export class SuperAdminService {
         'Branding images must be PNG, JPEG, WebP or SVG',
       );
     }
-    const bucket =
-      this.configService.get<string>('S3_BUCKET_NAME') ||
-      this.configService.get<string>('AWS_S3_BUCKET') ||
-      'book-buddy-media';
+    // Logos are shown to signed-out visitors, so they go in the public bucket.
+    const bucket = this.s3Service.publicBucketName;
     const owner = institutionId.replace(/[^a-zA-Z0-9_-]/g, '');
     if (!owner) throw new BadRequestException('Invalid institution id');
 

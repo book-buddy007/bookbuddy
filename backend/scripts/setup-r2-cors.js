@@ -12,8 +12,10 @@
  * create an admin token, use --print and paste the JSON into
  * Cloudflare dashboard -> R2 -> your bucket -> Settings -> CORS Policy.
  *
- * Reads S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_BUCKET_NAME and the allowed origins from
- * CORS_ORIGINS (comma-separated) or APP_ORIGIN, from the environment or backend/.env.
+ * The policy goes on BOTH buckets: books and audio upload to the private one, covers, samples and
+ * branding to the public one. Reads S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_BUCKET_NAME,
+ * S3_PUBLIC_BUCKET_NAME and the allowed origins from CORS_ORIGINS (comma-separated) or APP_ORIGIN,
+ * from the environment or backend/.env.
  */
 try { require('dotenv').config(); } catch { /* optional */ }
 const { GetBucketCorsCommand, PutBucketCorsCommand, S3Client } = require('@aws-sdk/client-s3');
@@ -25,6 +27,7 @@ const origins = (process.env.CORS_ORIGINS || process.env.APP_ORIGIN || 'http://l
   .map((o) => o.trim().replace(/\/+$/, ''))
   .filter(Boolean);
 
+// Paste the same policy into each bucket's Settings -> CORS Policy.
 // PUT for uploads, GET/HEAD for the reader, Range for pdf.js and audio seeking.
 const corsRules = [
   {
@@ -50,7 +53,7 @@ async function main() {
     process.exit(1);
   }
 
-  const bucket = process.env.S3_BUCKET_NAME;
+  const buckets = [...new Set([process.env.S3_BUCKET_NAME, process.env.S3_PUBLIC_BUCKET_NAME].filter(Boolean))];
   const client = new S3Client({
     region: process.env.S3_REGION || 'auto',
     endpoint: process.env.S3_ENDPOINT,
@@ -63,16 +66,18 @@ async function main() {
     responseChecksumValidation: 'WHEN_REQUIRED',
   });
 
-  console.log(`Applying CORS to "${bucket}" at ${process.env.S3_ENDPOINT} for: ${origins.join(', ')}`);
-  await client.send(new PutBucketCorsCommand({ Bucket: bucket, CORSConfiguration: { CORSRules: corsRules } }));
+  for (const bucket of buckets) {
+    console.log(`Applying CORS to "${bucket}" at ${process.env.S3_ENDPOINT} for: ${origins.join(', ')}`);
+    await client.send(new PutBucketCorsCommand({ Bucket: bucket, CORSConfiguration: { CORSRules: corsRules } }));
 
-  const readBack = await client.send(new GetBucketCorsCommand({ Bucket: bucket }));
-  const applied = (readBack.CORSRules || []).flatMap((r) => r.AllowedOrigins || []);
-  const missingOrigins = origins.filter((o) => !applied.includes(o));
-  if (missingOrigins.length) {
-    throw new Error(`Policy was accepted but did not read back with: ${missingOrigins.join(', ')}`);
+    const readBack = await client.send(new GetBucketCorsCommand({ Bucket: bucket }));
+    const applied = (readBack.CORSRules || []).flatMap((r) => r.AllowedOrigins || []);
+    const missingOrigins = origins.filter((o) => !applied.includes(o));
+    if (missingOrigins.length) {
+      throw new Error(`Policy was accepted on "${bucket}" but did not read back with: ${missingOrigins.join(', ')}`);
+    }
   }
-  console.log('CORS policy applied and verified.');
+  console.log(`CORS policy applied and verified on: ${buckets.join(', ')}.`);
 }
 
 main().catch((err) => {
