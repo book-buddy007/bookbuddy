@@ -1,6 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IEmbeddingProvider } from '../interfaces/embedding.provider.interface';
+import {
+  OpenAiHttpError,
+  isRetryable,
+  openAiBaseUrl,
+  toOpenAiHttpError,
+} from './openai-http';
+
+const MAX_RETRIES = 3;
+/** OpenAI accepts up to 2048 inputs per request; smaller batches keep one failure cheap. */
+const BATCH_SIZE = 100;
 
 @Injectable()
 export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
@@ -9,6 +19,10 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
 
   private readonly logger = new Logger(OpenAiEmbeddingProvider.name);
   private readonly apiKey: string;
+  private readonly baseUrl: string;
+  private readonly retryBaseMs: number;
+  /** Only the text-embedding-3 models accept a `dimensions` argument. */
+  private readonly sendsDimensions: boolean;
   private readonly headers: Record<string, string>;
 
   constructor(private config: ConfigService) {
@@ -17,7 +31,13 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
       'text-embedding-3-large',
     );
     this.dimensions = parseInt(
-      this.config.get<string>('EMBEDDING_DIMENSIONS', '3072'),
+      this.config.get<string>('EMBEDDING_DIMENSIONS', '1024'),
+      10,
+    );
+    this.sendsDimensions = /^text-embedding-3/.test(this.modelId);
+    this.baseUrl = openAiBaseUrl(this.config);
+    this.retryBaseMs = parseInt(
+      this.config.get<string>('OPENAI_RETRY_BASE_MS', '1000'),
       10,
     );
     // .get, not .getOrThrow — without a key, embedding requests fail with a
@@ -38,7 +58,6 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
     if (!this.apiKey) {
       throw new Error('Embeddings are not configured: set OPENAI_API_KEY.');
     }
-    const BATCH_SIZE = 100;
     const results: number[][] = [];
 
     for (let i = 0; i < texts.length; i += BATCH_SIZE) {
@@ -54,43 +73,47 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
     attempt = 0,
   ): Promise<number[][]> {
     try {
-      const res = await fetch('https://api.openai.com/v1/embeddings', {
+      const res = await fetch(`${this.baseUrl}/embeddings`, {
         method: 'POST',
         headers: this.headers,
         body: JSON.stringify({
           model: this.modelId,
           input: texts,
-          dimensions: this.dimensions,
+          ...(this.sendsDimensions ? { dimensions: this.dimensions } : {}),
         }),
-        signal: AbortSignal.timeout(30_000), // 30s timeout
+        signal: AbortSignal.timeout(60_000),
       });
 
-      if (res.status === 429) {
-        if (attempt >= 3)
-          throw new Error(
-            'OpenAI embedding rate limit exceeded after 3 retries',
-          );
-        const delay = Math.pow(2, attempt) * 1000; // exponential backoff: 1s, 2s, 4s
-        await new Promise((r) => setTimeout(r, delay));
-        return this.embedWithRetry(texts, attempt + 1);
-      }
-
       if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`OpenAI embedding failed: ${res.status} ${body}`);
+        throw await toOpenAiHttpError(res, 'OpenAI embedding', this.modelId);
       }
 
       const json = await res.json();
+      if (!Array.isArray(json?.data) || json.data.length !== texts.length) {
+        throw new Error(
+          `OpenAI returned ${json?.data?.length ?? 0} embedding(s) for ${texts.length} input(s).`,
+        );
+      }
       // OpenAI returns data items in the same order as input, but sorted by `index`
       // just in case — a shuffled batch would silently mis-pair chunks with vectors.
       const sorted = [...json.data].sort((a, b) => a.index - b.index);
-      return sorted.map((d) => d.embedding as number[]);
+      const vectors = sorted.map((d) => d.embedding as number[]);
+
+      // A wrong width would be rejected by Qdrant later with a far less helpful message, or
+      // (for a model that ignores `dimensions`) silently stored in the wrong collection.
+      const width = vectors[0]?.length ?? 0;
+      if (width !== this.dimensions) {
+        throw new Error(
+          `${this.modelId} returned ${width}-dimension vectors but EMBEDDING_DIMENSIONS is ${this.dimensions}.`,
+        );
+      }
+      return vectors;
     } catch (err) {
-      if (
-        attempt < 3 &&
-        !(err instanceof Error && err.message.includes('rate limit'))
-      ) {
-        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      if (attempt < MAX_RETRIES && isRetryable(err)) {
+        const wait =
+          (err instanceof OpenAiHttpError && err.retryAfterMs) ||
+          this.retryBaseMs * 2 ** attempt;
+        await new Promise((r) => setTimeout(r, wait));
         return this.embedWithRetry(texts, attempt + 1);
       }
       throw err;

@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { QdrantInitService } from './qdrant-init.service';
 import { EmbeddingService } from './embedding.service';
 import { FileService } from './file.service';
+import { LocalIndexerService } from './local/local-indexer.service';
 import { EmbeddingController } from './embedding.controller';
 import { IngestionProcessor } from './ingestion.processor';
 import { EmbeddingRecoveryCron } from './embedding-recovery.cron';
@@ -80,6 +81,7 @@ import { PDFExtractKitAdapter } from './providers/pdf-extract-kit.adapter';
     ResilientLlmProvider,
     QdrantInitService,
     EmbeddingService,
+    LocalIndexerService,
     FileService,
     PDFExtractKitAdapter,
     IngestionProcessor,

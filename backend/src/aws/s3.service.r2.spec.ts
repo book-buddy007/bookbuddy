@@ -195,6 +195,87 @@ describe('S3Service on Cloudflare R2, two buckets', () => {
   });
 });
 
+describe('reading our own files back (server side)', () => {
+  const ENV = {
+    S3_ENDPOINT: 'https://acct123.r2.cloudflarestorage.com',
+    S3_REGION: 'auto',
+    S3_ACCESS_KEY_ID: 'test-key-id',
+    S3_SECRET_ACCESS_KEY: 'test-secret',
+    S3_BUCKET_NAME: 'priv-bucket',
+    S3_PUBLIC_BUCKET_NAME: 'pub-bucket',
+    CDN_BASE_URL: 'https://media.example.test/',
+  };
+  const saved = { ...process.env };
+  let service: S3Service;
+
+  beforeAll(() => {
+    Object.assign(process.env, ENV);
+    const logger = { setContext: jest.fn(), log: jest.fn(), error: jest.fn(), warn: jest.fn() };
+    service = new S3Service({} as any, logger as any);
+  });
+  afterAll(() => {
+    process.env = { ...saved };
+  });
+
+  describe('keyFromUrl', () => {
+    it('recovers the key from a stored URL, tolerating a trailing slash on the base', () => {
+      expect(service.keyFromUrl('https://media.example.test/global/books/b1/formats/pdf/1-book.pdf')).toBe(
+        'global/books/b1/formats/pdf/1-book.pdf',
+      );
+    });
+
+    it('decodes encoded characters and drops any query or fragment', () => {
+      expect(service.keyFromUrl('https://media.example.test/tenants/t1/a%20b.md?x=1#top')).toBe('tenants/t1/a b.md');
+    });
+
+    it('returns null for URLs that are not ours, including look-alike hosts', () => {
+      expect(service.keyFromUrl('https://elsewhere.test/global/x.md')).toBeNull();
+      expect(service.keyFromUrl('https://media.example.test.evil.test/x.md')).toBeNull();
+      expect(service.keyFromUrl('https://media.example.test/')).toBeNull();
+      expect(service.keyFromUrl('/var/data/chapter.md')).toBeNull();
+    });
+
+    it('returns null rather than throwing on a malformed escape', () => {
+      expect(service.keyFromUrl('https://media.example.test/bad%E0%A4%A.md')).toBeNull();
+    });
+  });
+
+  describe('getObjectBuffer', () => {
+    const stub = (result: unknown) => {
+      const fn = jest.fn().mockResolvedValue(result);
+      (service as any).client.send = fn;
+      return fn;
+    };
+
+    it('reads a private file from the private bucket and returns its bytes', async () => {
+      const fn = stub({ Body: { transformToByteArray: async () => new TextEncoder().encode('# Chapter') } });
+      const buf = await service.getObjectBuffer('global/books/b1/formats/ai-embed/1-ch.md');
+
+      expect(buf.toString('utf8')).toBe('# Chapter');
+      expect(fn.mock.calls[0][0].input).toEqual({
+        Bucket: 'priv-bucket',
+        Key: 'global/books/b1/formats/ai-embed/1-ch.md',
+      });
+    });
+
+    it('picks the public bucket for a public key', async () => {
+      const fn = stub({ Body: { transformToByteArray: async () => new Uint8Array([1]) } });
+      await service.getObjectBuffer('global/books/b1/covers/front/1-c.png');
+      expect(fn.mock.calls[0][0].input.Bucket).toBe('pub-bucket');
+    });
+
+    it('fails clearly when storage answers with no body', async () => {
+      stub({});
+      await expect(service.getObjectBuffer('k')).rejects.toThrow(/no content for "k"/);
+    });
+
+    it('lets a storage error through so the caller can report it', async () => {
+      (service as any).client.send = jest.fn().mockRejectedValue(new Error('NoSuchKey'));
+      await expect(service.getObjectBuffer('k')).rejects.toThrow('NoSuchKey');
+    });
+  });
+});
+
 describe('single-bucket mode (local MinIO)', () => {
   const saved = { ...process.env };
   afterEach(() => {

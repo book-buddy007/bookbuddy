@@ -28,6 +28,15 @@ export class EmbeddingService {
     }
   }
 
+  /** Which model and vector width are in use, for status rows and sanity checks. */
+  get modelId(): string {
+    return this.provider.modelId;
+  }
+
+  get dimensions(): number {
+    return this.provider.dimensions;
+  }
+
   /** Embed a single text (convenience wrapper) */
   async embedOne(text: string): Promise<number[]> {
     const [embedding] = await this.embedBatch([text]);

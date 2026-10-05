@@ -1,6 +1,14 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import {
+  INTEGER_PAYLOAD_FIELDS,
+  KEYWORD_PAYLOAD_FIELDS,
+  denseVectorName,
+  isLocalIndexing,
+  qdrantCollectionName,
+  sparseVectorName,
+} from './local/index-config';
 
 interface CollectionInspection {
   exists: boolean;
@@ -50,9 +58,10 @@ export class QdrantInitService implements OnModuleInit {
     const qdrantUrl =
       this.configService.get('QDRANT_URL') || 'http://localhost:6333';
     const collectionName =
-      this.configService.get('QDRANT_COLLECTION_NAME') || 'book_buddy_books_v1';
+      this.configService.get('QDRANT_COLLECTION_NAME') ||
+      qdrantCollectionName();
     const dimensions = parseInt(
-      this.configService.get('EMBEDDING_DIMENSIONS') || '768',
+      this.configService.get('EMBEDDING_DIMENSIONS') || '1024',
       10,
     );
 
@@ -191,7 +200,22 @@ export class QdrantInitService implements OnModuleInit {
     const size = entry?.size;
     const distance = entry?.distance;
     const label = vectorName ? `vector '${vectorName}'` : 'unnamed vector';
-    const matches = size === dimensions && distance === 'Cosine';
+    let matches = size === dimensions && distance === 'Cosine';
+
+    // When Book Buddy writes the index itself it also writes a keyword (sparse) vector on every
+    // point, and Qdrant rejects a point carrying a vector name the collection does not declare.
+    // Catch that here, at boot, rather than on the first book that is indexed.
+    if (matches && isLocalIndexing()) {
+      const sparseName = sparseVectorName();
+      const sparseConfig = info?.config?.params?.sparse_vectors ?? {};
+      if (!Object.prototype.hasOwnProperty.call(sparseConfig, sparseName)) {
+        return {
+          exists: true,
+          matches: false,
+          detail: `${label}: ${size}d ${distance}, but no sparse vector '${sparseName}' (the keyword half of search)`,
+        };
+      }
+    }
 
     return {
       exists: true,
@@ -207,18 +231,21 @@ export class QdrantInitService implements OnModuleInit {
     dimensions: number,
   ): Promise<void> {
     this.logger.log(
-      `Creating collection "${collectionName}" with ${dimensions} dimensions...`,
+      `Creating collection "${collectionName}" (${dimensions}d dense + sparse keyword vector)...`,
     );
 
+    // Named dense vector plus a named sparse (keyword) vector with IDF weighting, which is the
+    // shape rag-search queries: hybrid search fuses the two with reciprocal rank fusion.
     await this.client.createCollection(collectionName, {
-      vectors: { size: dimensions, distance: 'Cosine' },
+      vectors: { [denseVectorName()]: { size: dimensions, distance: 'Cosine' } },
+      sparse_vectors: { [sparseVectorName()]: { modifier: 'idf' } },
       optimizers_config: { default_segment_number: 2 },
     });
 
     await this.ensurePayloadIndexes(collectionName);
 
     this.logger.log(
-      `✅ Initialized Qdrant: "${collectionName}" (${dimensions}d) with payload indexes.`,
+      `✅ Initialized Qdrant: "${collectionName}" (${dimensions}d dense + keyword) with payload indexes.`,
     );
   }
 
@@ -232,31 +259,21 @@ export class QdrantInitService implements OnModuleInit {
    */
   private async ensurePayloadIndexes(collectionName: string): Promise<void> {
     this.logger.log(
-      `Ensuring payload indexes for tenant isolation, queries, and taxonomy scoping on "${collectionName}"...`,
+      `Ensuring payload indexes on "${collectionName}" for the fields every search filters by...`,
     );
 
-    await this.client.createPayloadIndex(collectionName, {
-      field_name: 'tenant_id',
-      field_schema: 'keyword',
-    });
-
-    await this.client.createPayloadIndex(collectionName, {
-      field_name: 'book_id',
-      field_schema: 'keyword',
-    });
-
-    await this.client.createPayloadIndex(collectionName, {
-      field_name: 'page_number',
-      field_schema: 'integer',
-    });
-
-    // Shared cross-repo curriculum taxonomy — every node a chunk's book is tagged
-    // onto (primary + cross-listed), so retrieval can filter by institute scope
-    // without weakening the must-have tenant_id filter. See rag-search.service.ts.
-    await this.client.createPayloadIndex(collectionName, {
-      field_name: 'taxonomy_node_ids',
-      field_schema: 'keyword',
-    });
+    for (const field of KEYWORD_PAYLOAD_FIELDS) {
+      await this.client.createPayloadIndex(collectionName, {
+        field_name: field,
+        field_schema: 'keyword',
+      });
+    }
+    for (const field of INTEGER_PAYLOAD_FIELDS) {
+      await this.client.createPayloadIndex(collectionName, {
+        field_name: field,
+        field_schema: 'integer',
+      });
+    }
   }
 
   getClient(): QdrantClient {

@@ -10,12 +10,13 @@ import {
   bookAnswerLanguage,
   contentLanguageDirective,
 } from '../common/language/answer-language';
+import { qdrantCollectionName } from '../rag/local/index-config';
 
 // Shared trio collection — same as Varta (rag-search.service.ts). Adaptation
 // retrieves a paragraph's text by its trio point id (from BookChunkMapping), so
 // it must read from this collection; `book_buddy_books_v1` was deleted in the reset.
 const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+  qdrantCollectionName();
 
 // Same bar §2/§7 use for "not yet mastered" — kept as one constant per
 // service rather than importing across modules, since each already documents

@@ -5,11 +5,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { FileService } from './file.service';
 import { ContentSpineService } from './content-spine.service';
 import { QdrantInitService } from './qdrant-init.service';
+import { EmbeddingService } from './embedding.service';
+import { LocalIndexerService } from './local/local-indexer.service';
+import { isLocalIndexing, qdrantCollectionName } from './local/index-config';
 
-const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+const COLLECTION = qdrantCollectionName();
 
 /**
+ * Two ingestion modes, chosen by INGESTION_MODE (see local/index-config.ts):
+ *
+ *   local (default)  Book Buddy indexes the book itself: it reads each chapter's enriched
+ *                    markdown from storage, chunks it (local/enriched-markdown.ts), embeds it with
+ *                    OpenAI and writes it to its own Qdrant collection (local/local-indexer.service.ts).
+ *   trio             The interim path described next: a thin proxy to DCP's ingestion service.
+ *
  * Trio interim path: DCP's enhanced-rag-pipeline is the sole ingestion writer
  * against the shared `trio_content_v1_openai3072` collection + `content.*`
  * schema (see TRIO_RESET_PROGRESS.md §5.5-5.6). This processor is now a thin
@@ -36,6 +45,8 @@ export class IngestionProcessor extends WorkerHost {
     private fileService: FileService,
     private contentSpine: ContentSpineService,
     private qdrantInit: QdrantInitService,
+    private embedding: EmbeddingService,
+    private localIndexer: LocalIndexerService,
     @InjectQueue('book-graph-extraction') private graphQueue: Queue,
   ) {
     super();
@@ -148,11 +159,105 @@ export class IngestionProcessor extends WorkerHost {
     }
   }
 
+  /**
+   * Local mode, steps 2 to 5: index the whole book and finish the bookkeeping.
+   *
+   * All-or-nothing by design. A book missing half its chapters still answers confidently from
+   * the half it has, and neither the tutor nor the student can tell the rest is absent, so a
+   * chapter that cannot be read fails the whole run. The indexer itself keeps the previous
+   * index in place until the new one is complete, so a failed re-index changes nothing.
+   */
+  private async ingestLocally(
+    job: Job<IngestJobData>,
+    book: { id: string; title: string; tenantId: string },
+    chapters: { id: string; partIndex: number; fileUrl: string | null }[],
+    startTime: number,
+  ) {
+    const bookId = book.id;
+    const inputs: { assetId: string; partIndex: number; markdown: string }[] = [];
+
+    for (const [i, fmt] of chapters.entries()) {
+      let buffer: Buffer;
+      try {
+        buffer = await this.fileService.getFileBuffer(fmt.fileUrl!);
+      } catch (err: any) {
+        throw new Error(
+          `Could not read chapter ${fmt.partIndex} from storage: ${err.message}. Nothing was indexed.`,
+        );
+      }
+      inputs.push({
+        assetId: fmt.id,
+        partIndex: fmt.partIndex,
+        markdown: buffer.toString('utf8'),
+      });
+      this.logger.log(
+        `📝 Chapter ${fmt.partIndex}: ${(buffer.length / 1024).toFixed(1)} KB (${i + 1}/${chapters.length})`,
+      );
+    }
+    await job.updateProgress(20);
+
+    const result = await this.localIndexer.indexBook({
+      bookId,
+      tenantId: book.tenantId,
+      bookTitle: book.title,
+      chapters: inputs,
+      requireApproved: process.env.INGEST_REQUIRE_APPROVED === 'true',
+      onProgress: (pct) => job.updateProgress(20 + Math.round(pct * 0.65)),
+    });
+    await job.updateProgress(90);
+
+    // The book may have been queried before this run; drop any cached negative lookup.
+    this.contentSpine.invalidate(bookId);
+
+    // Citations, the chapter list, Chapter Recap and the adaptation features read this table.
+    // Not fatal if it fails: the book is indexed and the chat works without it.
+    try {
+      const mapped = await this.rebuildChunkMapping(bookId, bookId);
+      this.logger.log(`🔗 Chunk mapping rebuilt for book ${bookId}: ${mapped} row(s)`);
+    } catch (mapErr: any) {
+      this.logger.error(
+        `Chunk mapping rebuild FAILED for book ${bookId}: ${mapErr.message}. The book is indexed ` +
+          `and chat works, but citation links, the chapter list and Chapter Recap will not resolve ` +
+          `until this is rebuilt.`,
+      );
+    }
+
+    await this.prisma.bookEmbeddingStatus.update({
+      where: { bookId },
+      data: {
+        status: 'READY',
+        totalChunks: result.totalChunks,
+        embeddedChunks: result.totalChunks,
+        embeddingModel: this.embedding.modelId,
+      },
+    });
+    await this.prisma.book.update({
+      where: { id: bookId },
+      data: { embeddingStatus: 'READY', vectorCollectionId: qdrantCollectionName() },
+    });
+    await job.updateProgress(100);
+
+    // Pre-generate the entity graph, chapter by chapter, as the trio path does. A separate job:
+    // an extraction failure never fails indexing, and the book is searchable meanwhile.
+    await this.graphQueue.add(
+      'extract-graph',
+      { bookId },
+      { jobId: `graph-ingest-${bookId}`, removeOnComplete: true, removeOnFail: true },
+    );
+
+    this.logger.log(
+      `✅ Indexed "${book.title}" (${bookId}) locally: ${result.totalChunks} chunks in ` +
+        `${((Date.now() - startTime) / 1000).toFixed(1)}s`,
+    );
+  }
+
   private async handleIngestion(job: Job<IngestJobData>) {
     const { bookId, force = false } = job.data;
     const startTime = Date.now();
 
-    this.logger.log(`🚀 Starting trio-ingest proxy for book ${bookId}`);
+    this.logger.log(
+      `🚀 Starting ${isLocalIndexing() ? 'local indexing' : 'trio-ingest proxy'} for book ${bookId}`,
+    );
 
     const book = await this.prisma.book.findUnique({
       where: { id: bookId },
@@ -198,14 +303,14 @@ export class IngestionProcessor extends WorkerHost {
           status: 'PROCESSING',
           totalChunks: 0,
           embeddedChunks: 0,
-          embeddingModel: 'text-embedding-3-large',
+          embeddingModel: this.embedding.modelId,
         },
         update: {
           status: 'PROCESSING',
           totalChunks: 0,
           embeddedChunks: 0,
           errorMessage: null,
-          embeddingModel: 'text-embedding-3-large',
+          embeddingModel: this.embedding.modelId,
         },
       });
 
@@ -214,6 +319,12 @@ export class IngestionProcessor extends WorkerHost {
         data: { embeddingStatus: 'PROCESSING', embeddingStartedAt: new Date() },
       });
       await job.updateProgress(10);
+
+      // Book Buddy's own pipeline: read, chunk, embed, index, all in this process.
+      if (isLocalIndexing()) {
+        await this.ingestLocally(job, book, chapters, startTime);
+        return;
+      }
 
       // ── Steps 2-3: every chapter, in order ───────────────────────────
       const ingestUrl = process.env.TRIO_INGEST_URL;

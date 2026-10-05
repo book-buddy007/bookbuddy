@@ -23,6 +23,7 @@ import {
   BookFormatType,
   Prisma,
 } from '@prisma/client';
+import { isLocalIndexing, qdrantCollectionName } from '../../rag/local/index-config';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const SYSTEM_TENANT_ID = '__SYSTEM__';
@@ -518,14 +519,15 @@ export class SuperAdminCatalogService {
         contentItemId: null,
         ok: true,
         detail:
-          'Book was never ingested into the shared spine — no embeddings to remove.',
+          'Book was never indexed — no embeddings to remove.',
       };
     }
 
     // Preferred: ask DCP (the spine's owner) to fully purge the work, mirroring
     // how ingestion proxies to DCP. This also clears the spine's Postgres rows,
     // which Book Buddy's read-only connection cannot touch.
-    const purgeUrl = process.env.TRIO_PURGE_URL;
+    // Not in self-contained mode: the index is Book Buddy's own, so there is no one to ask.
+    const purgeUrl = isLocalIndexing() ? undefined : process.env.TRIO_PURGE_URL;
     const secret = process.env.TRIO_SERVICE_SECRET;
     if (purgeUrl && secret) {
       try {
@@ -570,7 +572,7 @@ export class SuperAdminCatalogService {
     // remove those — so this is reported as partial.
     try {
       const collection =
-        process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+        qdrantCollectionName();
       const client = this.qdrantInit.getClient();
       await client.delete(collection, {
         filter: {
@@ -582,9 +584,10 @@ export class SuperAdminCatalogService {
         method: 'qdrant',
         contentItemId,
         ok: true,
-        detail:
-          "Deleted this book's vectors directly from the shared collection. " +
-          'Spine metadata rows (owned by DCP) were left intact; set TRIO_PURGE_URL for a full flush.',
+        detail: isLocalIndexing()
+          ? "Deleted this book's passages from Book Buddy's search index."
+          : "Deleted this book's vectors directly from the shared collection. " +
+            'Spine metadata rows (owned by DCP) were left intact; set TRIO_PURGE_URL for a full flush.',
       };
     } catch (err: any) {
       return {

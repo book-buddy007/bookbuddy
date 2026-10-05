@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ILlmProvider } from '../interfaces/llm.provider.interface';
+import { openAiBaseUrl, toOpenAiHttpError } from './openai-http';
 
 @Injectable()
 export class OpenAiLlmProvider implements ILlmProvider {
   private readonly apiKey: string;
   private readonly model: string;
+  private readonly baseUrl: string;
 
   constructor(private config: ConfigService) {
     // .get, not .getOrThrow — a missing key must fail the one request that
@@ -14,7 +16,9 @@ export class OpenAiLlmProvider implements ILlmProvider {
     // PRIMARY: if OPENAI_API_KEY is ever unset, requests degrade to the
     // Cloudflare fallback instead of the whole backend refusing to boot.
     this.apiKey = this.config.get<string>('OPENAI_API_KEY', '');
+    // Switchable without a code change. Set OPENAI_CHAT_MODEL to move Varta to another model.
     this.model = this.config.get<string>('OPENAI_CHAT_MODEL', 'gpt-4o-mini');
+    this.baseUrl = openAiBaseUrl(this.config);
   }
 
   async chatStream(
@@ -24,11 +28,11 @@ export class OpenAiLlmProvider implements ILlmProvider {
   ): Promise<void> {
     if (!this.apiKey) {
       throw new Error(
-        'OpenAI fallback is not configured — set OPENAI_API_KEY.',
+        'OpenAI chat is not configured — set OPENAI_API_KEY.',
       );
     }
 
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
@@ -39,8 +43,7 @@ export class OpenAiLlmProvider implements ILlmProvider {
     });
 
     if (!res.ok || !res.body) {
-      const body = await res.text();
-      throw new Error(`OpenAI chat failed: ${res.status} ${body}`);
+      throw await toOpenAiHttpError(res, 'OpenAI chat', this.model);
     }
 
     const reader = res.body.getReader();

@@ -2,6 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QdrantInitService } from './qdrant-init.service';
 import { EmbeddingService } from './embedding.service';
 import { buildSparseVector } from './sparse-tokenizer';
+import {
+  denseVectorName,
+  isLocalIndexing,
+  qdrantCollectionName,
+  sparseVectorName,
+} from './local/index-config';
 
 /**
  * Retrieval against the SHARED trio content collection.
@@ -36,13 +42,12 @@ import { buildSparseVector } from './sparse-tokenizer';
  *   textbook's own discussion prompt almost perfectly, and without the
  *   exclusion the tutor answers the question by quoting the question back.
  */
-const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
-const VECTOR_NAME = process.env.QDRANT_VECTOR_NAME || 'dense';
+const COLLECTION = qdrantCollectionName();
+const VECTOR_NAME = denseVectorName();
 // The collection declares this sparse vector with `modifier: idf`; DCP writes it
 // on every point at ingest. Named, not positional, because the collection uses
 // named vectors throughout.
-const SPARSE_VECTOR_NAME = process.env.QDRANT_SPARSE_VECTOR_NAME || 'bm25';
+const SPARSE_VECTOR_NAME = sparseVectorName();
 
 /** Default candidate pool handed to the reranker — see `overFetch` below. */
 const RETRIEVAL_CANDIDATES = Number(process.env.RAG_CANDIDATES) || 50;
@@ -122,6 +127,13 @@ export class RagSearchService {
         key: 'content_item_id',
         match: { value: contentItemId },
       });
+    }
+
+    // Book Buddy's own index writes `tenant_id` on every point. Filtering on it is a second lock
+    // behind the per-book scoping above: even a search that somehow lost its book id could
+    // never return another tenant's text. (The shared trio collection has no such field.)
+    if (isLocalIndexing()) {
+      filterMust.push({ key: 'tenant_id', match: { value: tenantId } });
     }
 
     // Institute curriculum scope. A nested `should`, so it narrows within the
@@ -355,7 +367,12 @@ export class RagSearchService {
     // surrounding prose answered fine. That is the "figure 8.3 works, 8.5
     // fails" inconsistency. Practice content is still excluded.
     const filter = {
-      must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+      must: [
+        { key: 'content_item_id', match: { value: contentItemId } },
+        ...(isLocalIndexing()
+          ? [{ key: 'tenant_id', match: { value: options.tenantId } }]
+          : []),
+      ],
       must_not: [{ key: 'retrieval_class', match: { value: 'practice' } }],
     };
 

@@ -1,5 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Pool } from 'pg';
+import { QdrantInitService } from './qdrant-init.service';
+import { isLocalIndexing, qdrantCollectionName } from './local/index-config';
 
 /**
  * Book Buddy's read-only window into the shared `trio` content spine.
@@ -39,6 +41,8 @@ export class ContentSpineService implements OnModuleDestroy {
     { contentItemId: string | null; at: number }
   >();
   private static readonly TTL_MS = 5 * 60 * 1000;
+
+  constructor(private readonly qdrantInit: QdrantInitService) {}
 
   private getPool(): Pool | null {
     if (this.pool) return this.pool;
@@ -95,6 +99,10 @@ export class ContentSpineService implements OnModuleDestroy {
     const contentItemId = await this.resolveContentItemId(bookId);
     if (!contentItemId) return null;
 
+    // Book Buddy's own index: the extent is simply the lowest and highest printed page of
+    // the book's chunks, read from the chunks themselves.
+    if (isLocalIndexing()) return this.localPrintedPageSpan(contentItemId);
+
     const pool = this.getPool();
     if (!pool) return null;
 
@@ -126,7 +134,48 @@ export class ContentSpineService implements OnModuleDestroy {
     }
   }
 
+  /** Page extent from the local index (practice chunks included, as in the shared spine). */
+  private async localPrintedPageSpan(
+    bookId: string,
+  ): Promise<{ minPrinted: number; maxPrinted: number; span: number } | null> {
+    try {
+      const qdrant = this.qdrantInit.getClient();
+      let min = Infinity;
+      let max = -Infinity;
+      let offset: any = undefined;
+      do {
+        const page: any = await qdrant.scroll(qdrantCollectionName(), {
+          filter: { must: [{ key: 'content_item_id', match: { value: bookId } }] },
+          with_payload: { include: ['page_start', 'page_end'] },
+          with_vector: false,
+          limit: 512,
+          offset,
+        });
+        for (const pt of page.points ?? []) {
+          const start = pt.payload?.page_start;
+          const end = pt.payload?.page_end ?? start;
+          if (Number.isFinite(start)) min = Math.min(min, start);
+          if (Number.isFinite(end)) max = Math.max(max, end);
+        }
+        offset = page.next_page_offset ?? undefined;
+      } while (offset);
+      if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+      return { minPrinted: min, maxPrinted: max, span: max - min + 1 };
+    } catch (err: any) {
+      // Fail closed, as the shared-spine version does: no extent means no page mapping.
+      this.logger.error(
+        `Could not read printed page span for book ${bookId}: ${err.message}`,
+      );
+      return null;
+    }
+  }
+
   async resolveContentItemId(bookId: string): Promise<string | null> {
+    // In Book Buddy's own index a book is its own work: every point carries
+    // content_item_id = the book id, so there is nothing to look up and nothing that can be
+    // missing. (A book that was never indexed simply has no points to find.)
+    if (isLocalIndexing()) return bookId || null;
+
     const hit = this.cache.get(bookId);
     if (hit && Date.now() - hit.at < ContentSpineService.TTL_MS)
       return hit.contentItemId;

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ILlmProvider } from '../interfaces/llm.provider.interface';
 import { CloudflareLlmProvider } from './cloudflare.llm.provider';
 import { OpenAiLlmProvider } from './openai.llm.provider';
@@ -21,6 +21,8 @@ import { OpenAiLlmProvider } from './openai.llm.provider';
  */
 @Injectable()
 export class ResilientLlmProvider implements ILlmProvider {
+  private readonly logger = new Logger(ResilientLlmProvider.name);
+
   constructor(
     private primary: OpenAiLlmProvider,
     private fallback: CloudflareLlmProvider,
@@ -41,7 +43,19 @@ export class ResilientLlmProvider implements ILlmProvider {
       await this.primary.chatStream(messages, trackedChunk, signal);
     } catch (err) {
       if (emitted) throw err; // mid-stream failure — do not fall back
-      await this.fallback.chatStream(messages, onChunk, signal);
+      this.logger.warn(
+        `Primary model failed before answering (${(err as Error)?.message}); trying the fallback.`,
+      );
+      try {
+        await this.fallback.chatStream(messages, onChunk, signal);
+      } catch (fallbackErr) {
+        // An unconfigured fallback only says "not configured", which would hide the real
+        // problem (a wrong key, an unknown model). Report the primary's error in that case.
+        if (/not configured/i.test((fallbackErr as Error)?.message ?? '')) {
+          throw err;
+        }
+        throw fallbackErr;
+      }
     }
   }
 }

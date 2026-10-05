@@ -4,6 +4,7 @@ import { GraphService } from '../graph/graph.service';
 import { MasteryService } from '../quiz/mastery.service';
 import { QdrantInitService } from './qdrant-init.service';
 import { RankedChunk } from './interfaces/reranker.provider.interface';
+import { qdrantCollectionName } from './local/index-config';
 
 // The shared trio collection — same as Varta retrieval (rag-search.service.ts),
 // graph extraction and digest. The anchor point ids come from
@@ -11,7 +12,7 @@ import { RankedChunk } from './interfaces/reranker.provider.interface';
 // collection, so anchors must be retrieved from here; `book_buddy_books_v1` was
 // deleted in the platform reset and held nothing.
 const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+  qdrantCollectionName();
 
 // Below this, a concept counts as "weak" for scaffolding purposes — the BKT
 // prior is 0.3, so anything that hasn't climbed meaningfully past it is

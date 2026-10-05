@@ -12,12 +12,13 @@ import {
   LANGUAGE_LABEL,
 } from '../common/language/answer-language';
 import { detectScript } from '../common/language/script-detect';
+import { qdrantCollectionName } from '../rag/local/index-config';
 
 // Shared trio collection — same as Varta (rag-search.service.ts). Quiz retrieves
 // chunk text by the trio point ids stored in BookChunkMapping (see below), so it
 // must read from this collection; `book_buddy_books_v1` was deleted in the reset.
 const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+  qdrantCollectionName();
 /**
  * Chunks per generation window. A chapter is split into windows and each one
  * is asked for its own questions, which is what spreads them across the

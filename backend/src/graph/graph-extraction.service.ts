@@ -8,6 +8,7 @@ import {
 } from '../rag/interfaces/llm.provider.interface';
 import { CommunityDetectionService } from './community-detection.service';
 import { GraphEmbeddingService } from './graph-embedding.service';
+import { qdrantCollectionName } from '../rag/local/index-config';
 
 // The book's chunks live in the SHARED trio collection that DigiClassroom
 // writes and Varta reads (rag-search.service.ts) — not Book Buddy's old
@@ -16,7 +17,7 @@ import { GraphEmbeddingService } from './graph-embedding.service';
 // and silently produced no graph ("Nothing to map yet"). This matches the
 // collection every other live reader feature uses.
 const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+  qdrantCollectionName();
 
 /** A page-range scope for extraction. Absent/empty ⇒ the whole book. */
 export interface ExtractScope {

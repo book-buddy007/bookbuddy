@@ -210,6 +210,36 @@ export class S3Service {
     };
   }
 
+  /**
+   * The storage key behind a URL we stored earlier (`<CDN_BASE_URL>/<key>`), or null when the
+   * URL is not one of ours. Book files keep their public-looking URL in the database even when
+   * the object itself is private, so server-side reads go back through the key.
+   */
+  keyFromUrl(url: string): string | null {
+    const base = this.cdnBaseUrl.replace(/\/+$/, '');
+    if (!url.startsWith(`${base}/`)) return null;
+    const key = url.slice(base.length + 1).split(/[?#]/)[0];
+    try {
+      return key ? decodeURIComponent(key) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Reads an object with the app's own credentials. Needed for anything private (book files,
+   * enriched markdown): the public media domain only serves the public bucket, so a plain
+   * HTTP fetch of a private file's stored URL can never work.
+   */
+  async getObjectBuffer(key: string): Promise<Buffer> {
+    this.assertConfigured();
+    const res = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucketFor(key), Key: key }),
+    );
+    if (!res.Body) throw new Error(`Storage returned no content for "${key}".`);
+    return Buffer.from(await res.Body.transformToByteArray());
+  }
+
   async getPresignedDownloadUrl(params: {
     key: string;
     expiresInSeconds?: number;

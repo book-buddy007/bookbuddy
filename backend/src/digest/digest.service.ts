@@ -13,12 +13,13 @@ import {
   ITtsProvider,
   TTS_PROVIDER,
 } from '../rag/interfaces/tts.provider.interface';
+import { qdrantCollectionName } from '../rag/local/index-config';
 
 // The shared trio collection — same as graph extraction and Varta retrieval.
 // The point ids in BookChunkMapping are this collection's ids, so the recap
 // fallback must retrieve from here; `book_buddy_books_v1` was deleted in the reset.
 const COLLECTION =
-  process.env.QDRANT_COLLECTION_NAME || 'trio_content_v1_openai3072';
+  qdrantCollectionName();
 const FALLBACK_CHUNK_SAMPLE = 6; // when there's no §3 community summary to ground on
 
 export interface DigestLine {

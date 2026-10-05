@@ -25,6 +25,7 @@ import {
   referenceNotFoundMessage,
 } from '../common/language/answer-language';
 import { ContentSpineService } from './content-spine.service';
+import { clientMessageForAiError } from './ai-client-errors';
 import { CurriculumScopeClientService } from './curriculum-scope-client.service';
 import {
   IRerankerProvider,
@@ -480,9 +481,17 @@ export class BookChatController {
         )
         .catch((err) => console.error('Failed to save chat message:', err));
     } catch (err) {
-      // Stream-safe error: send as SSE event, then close
+      // Stream-safe error: send as SSE event, then close.
+      //
+      // The full error goes to the log; the student gets a short message that says what they
+      // can do. A raw provider error can name the model, the account's billing state or a
+      // masked key, and tells a student nothing they can act on.
+      this.logger.error(
+        `Varta chat failed for book ${bookId}: ${err?.message}`,
+        err?.stack,
+      );
       res.write(
-        `data: ${JSON.stringify({ error: err.message, done: true })}\n\n`,
+        `data: ${JSON.stringify({ error: clientMessageForAiError(err), done: true })}\n\n`,
       );
       res.end();
     }
