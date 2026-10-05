@@ -89,9 +89,9 @@ npm run check:ai                 # real OpenAI key, models and Qdrant; spends a 
 from `docker-compose.yml` on port 6335) with OpenAI faked; it skips with a notice when Qdrant is not
 running.
 
-## Legacy: `INGESTION_MODE=trio`
+## Shared index: `INGESTION_MODE=trio`
 
-Sends chapters to DCP's ingestion service and searches its shared collection
-(`trio_content_v1_openai3072`, 3072 dimensions). It needs `TRIO_INGEST_URL`, `TRIO_SERVICE_SECRET`,
-`TRIO_PURGE_URL` and that collection. It is not configured in production and is kept only so the
-older setup can still be run.
+Book Buddy can instead hand chapters to DigiClassroom and search the index shared with PDLMS and
+DigiClassroom, so each book is embedded once for all apps. It needs changes on the DigiClassroom side
+first; the steps and the trade-offs are in [shared-spine.md](shared-spine.md). Local mode stays the
+default and keeps working untouched.

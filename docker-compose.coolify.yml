@@ -133,15 +133,26 @@ services:
       # markdown from storage, chunks it, embeds it with OpenAI and stores it in the Qdrant below.
       # Questions are embedded with the SAME model and searched here, then answered by the chat
       # model. See docs/ai-architecture.md.
-      INGESTION_MODE: local
-      QDRANT_URL: http://qdrant:6333
-      QDRANT_COLLECTION_NAME: book_buddy_chunks_v1
-      QDRANT_ALLOW_COLLECTION_CREATE: "true"
+      #
+      # To use the books and embeddings shared with DigiClassroom and PDLMS instead, set these in
+      # Coolify (no code change): INGESTION_MODE=trio, QDRANT_URL=http://trio-content-qdrant:6333,
+      # QDRANT_COLLECTION_NAME=trio_content_v1_openai3072, EMBEDDING_DIMENSIONS=3072,
+      # QDRANT_ALLOW_COLLECTION_CREATE=false, and the four TRIO_* values below.
+      # See docs/shared-spine.md before doing so.
+      INGESTION_MODE: ${INGESTION_MODE:-local}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-book_buddy_chunks_v1}
+      QDRANT_ALLOW_COLLECTION_CREATE: ${QDRANT_ALLOW_COLLECTION_CREATE:-true}
+      # Shared-spine connection (trio mode only; ignored otherwise).
+      TRIO_INGEST_URL: ${TRIO_INGEST_URL:-}
+      TRIO_PURGE_URL: ${TRIO_PURGE_URL:-}
+      TRIO_SERVICE_SECRET: ${TRIO_SERVICE_SECRET:-}
+      TRIO_CONTENT_DATABASE_URL: ${TRIO_CONTENT_DATABASE_URL:-}
       # The embedding model and its vector width are fixed together and stored with every passage.
       # Changing either means a NEW collection name above and re-indexing every book: a question
       # embedded one way cannot be compared with passages embedded another.
       OPENAI_EMBED_MODEL: text-embedding-3-large
-      EMBEDDING_DIMENSIONS: "1024"
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1024}
       # The secret. Without it the app runs but Varta and book indexing report "not configured".
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       # The answering model. Unlike the embedding model it can be changed any time: edit
