@@ -89,9 +89,9 @@ npm run check:ai                 # real OpenAI key, models and Qdrant; spends a 
 from `docker-compose.yml` on port 6335) with OpenAI faked; it skips with a notice when Qdrant is not
 running.
 
-## Shared index: `INGESTION_MODE=trio`
+## The shared library
 
-Book Buddy can instead hand chapters to DigiClassroom and search the index shared with PDLMS and
-DigiClassroom, so each book is embedded once for all apps. It needs changes on the DigiClassroom side
-first; the steps and the trade-offs are in [shared-spine.md](shared-spine.md). Local mode stays the
-default and keeps working untouched.
+A book can instead live in the library shared with DigiClassroom and PDLMS, so it is embedded once for
+all apps. Each book lives in exactly one of the two indexes and is routed automatically; private books
+stay here. See [shared-spine.md](shared-spine.md). Everything above describes Book Buddy's own index,
+which stays the default and keeps working untouched.

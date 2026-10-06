@@ -14,8 +14,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BetterAuthGuard } from '../guards/better-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { isLocalIndexing } from './local/index-config';
-import { sharedIndexBlocker } from './local/shared-index-policy';
 
 @Controller('api/books')
 @UseGuards(BetterAuthGuard, RolesGuard)
@@ -122,13 +120,6 @@ export class EmbeddingController {
           'in Edit Metadata, then trigger indexing again. (Separate from the licence: ' +
           'Licence says whether you MAY index this book, this switch says whether you want it indexed.)',
       );
-    }
-
-    // SHARED INDEX GATE: in shared-index mode the book becomes readable by every app, so only a
-    // global, AI-licensed book may go in. The job checks again; this gives the admin the reason now.
-    if (!isLocalIndexing()) {
-      const blocker = sharedIndexBlocker(book);
-      if (blocker) throw new ForbiddenException(blocker);
     }
 
     // ENRICHED-MARKDOWN FORMAT CHECK

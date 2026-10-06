@@ -1,6 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { QdrantInitService } from '../rag/qdrant-init.service';
 import { ContentSpineService } from '../rag/content-spine.service';
 import {
   ILlmProvider,
@@ -8,7 +7,6 @@ import {
 } from '../rag/interfaces/llm.provider.interface';
 import { CommunityDetectionService } from './community-detection.service';
 import { GraphEmbeddingService } from './graph-embedding.service';
-import { qdrantCollectionName } from '../rag/local/index-config';
 
 // The book's chunks live in the SHARED trio collection that DigiClassroom
 // writes and Varta reads (rag-search.service.ts) — not Book Buddy's old
@@ -16,8 +14,6 @@ import { qdrantCollectionName } from '../rag/local/index-config';
 // Extraction pointed at the dead collection found zero chunks for every book
 // and silently produced no graph ("Nothing to map yet"). This matches the
 // collection every other live reader feature uses.
-const COLLECTION =
-  qdrantCollectionName();
 
 /** A page-range scope for extraction. Absent/empty ⇒ the whole book. */
 export interface ExtractScope {
@@ -99,7 +95,6 @@ export class GraphExtractionService {
 
   constructor(
     private prisma: PrismaService,
-    private qdrantInit: QdrantInitService,
     private contentSpine: ContentSpineService,
     @Inject(LLM_PROVIDER) private llmProvider: ILlmProvider,
     private communityDetection: CommunityDetectionService,
@@ -474,7 +469,14 @@ export class GraphExtractionService {
     bookId: string,
     scope?: ExtractScope,
   ): Promise<RawChunk[]> {
-    const contentItemId = await this.contentSpine.resolveContentItemId(bookId);
+    let index;
+    try {
+      index = await this.contentSpine.resolveIndex(bookId);
+    } catch (err: any) {
+      this.logger.warn(`Cannot locate the passages of book ${bookId} (${err.message}). Skipping graph extraction.`);
+      return [];
+    }
+    const contentItemId = index.contentItemId;
     if (!contentItemId) {
       this.logger.warn(
         `No content_item_id for book ${bookId} — it is not linked to the shared spine, so its ` +
@@ -483,14 +485,14 @@ export class GraphExtractionService {
       return [];
     }
 
-    const qdrant = this.qdrantInit.getClient();
+    const qdrant = index.client;
     const points: any[] = [];
     let offset: string | number | undefined = undefined;
 
     do {
-      const page: any = await qdrant.scroll(COLLECTION, {
+      const page: any = await qdrant.scroll(index.collection, {
         filter: {
-          must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+          must: [{ key: 'content_item_id', match: { value: contentItemId } }, ...index.guard],
         },
         limit: 256,
         offset,

@@ -15,11 +15,11 @@ export class EmbeddingService {
   /**
    * Batch embed via the configured provider
    */
-  async embedBatch(texts: string[]): Promise<number[][]> {
+  async embedBatch(texts: string[], options?: { dimensions?: number }): Promise<number[][]> {
     try {
-      const embeddings = await this.provider.embedBatch(texts);
+      const embeddings = await this.provider.embedBatch(texts, options);
       this.logger.log(
-        `✅ Embedded ${texts.length} texts with ${this.provider.modelId} (${this.provider.dimensions}d)`,
+        `✅ Embedded ${texts.length} texts with ${this.provider.modelId} (${options?.dimensions ?? this.provider.dimensions}d)`,
       );
       return embeddings;
     } catch (err) {
@@ -38,8 +38,8 @@ export class EmbeddingService {
   }
 
   /** Embed a single text (convenience wrapper) */
-  async embedOne(text: string): Promise<number[]> {
-    const [embedding] = await this.embedBatch([text]);
+  async embedOne(text: string, options?: { dimensions?: number }): Promise<number[]> {
+    const [embedding] = await this.embedBatch([text], options);
     return embedding;
   }
 }

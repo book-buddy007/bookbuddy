@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { QdrantInitService } from '../rag/qdrant-init.service';
+import { ContentSpineService, readablePoints } from '../rag/content-spine.service';
 import {
   ILlmProvider,
   LLM_PROVIDER,
@@ -12,13 +12,10 @@ import {
   LANGUAGE_LABEL,
 } from '../common/language/answer-language';
 import { detectScript } from '../common/language/script-detect';
-import { qdrantCollectionName } from '../rag/local/index-config';
 
 // Shared trio collection — same as Varta (rag-search.service.ts). Quiz retrieves
 // chunk text by the trio point ids stored in BookChunkMapping (see below), so it
 // must read from this collection; `book_buddy_books_v1` was deleted in the reset.
-const COLLECTION =
-  qdrantCollectionName();
 /**
  * Chunks per generation window. A chapter is split into windows and each one
  * is asked for its own questions, which is what spreads them across the
@@ -83,7 +80,7 @@ export class QuizSynthesisService {
 
   constructor(
     private prisma: PrismaService,
-    private qdrantInit: QdrantInitService,
+    private spine: ContentSpineService,
     @Inject(LLM_PROVIDER) private llmProvider: ILlmProvider,
   ) {}
 
@@ -486,11 +483,14 @@ export class QuizSynthesisService {
     });
     if (mappings.length === 0) return { chunks: [], chapterTitle: null };
 
-    const qdrant = this.qdrantInit.getClient();
-    const points = await qdrant.retrieve(COLLECTION, {
-      ids: mappings.map((m) => m.qdrantPointId),
-      with_payload: true,
-    });
+    const index = await this.spine.resolveIndex(bookId);
+    const points = readablePoints(
+      index,
+      await index.client.retrieve(index.collection, {
+        ids: mappings.map((m) => m.qdrantPointId),
+        with_payload: true,
+      }),
+    );
     const textById = new Map(
       points.map((p) => [
         String(p.id),
@@ -763,11 +763,14 @@ export class QuizSynthesisService {
     });
     if (mappings.length === 0) return [];
 
-    const qdrant = this.qdrantInit.getClient();
-    const points = await qdrant.retrieve(COLLECTION, {
-      ids: mappings.map((m) => m.qdrantPointId),
-      with_payload: true,
-    });
+    const index = await this.spine.resolveIndex(bookId);
+    const points = readablePoints(
+      index,
+      await index.client.retrieve(index.collection, {
+        ids: mappings.map((m) => m.qdrantPointId),
+        with_payload: true,
+      }),
+    );
     const textById = new Map(
       points.map((p) => [
         String(p.id),

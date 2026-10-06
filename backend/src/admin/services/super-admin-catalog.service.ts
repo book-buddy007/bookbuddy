@@ -23,7 +23,6 @@ import {
   BookFormatType,
   Prisma,
 } from '@prisma/client';
-import { isLocalIndexing, qdrantCollectionName } from '../../rag/local/index-config';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const SYSTEM_TENANT_ID = '__SYSTEM__';
@@ -499,8 +498,8 @@ export class SuperAdminCatalogService {
   }
 
   /**
-   * Remove this book's embeddings from Book Buddy's own index; in shared-index mode leave the
-   * shared index alone (see below). Non-fatal: a failure here is reported, never thrown,
+   * Remove this book's embeddings from Book Buddy's own index; a book held in the shared library
+   * leaves it alone (see below). Non-fatal: a failure here is reported, never thrown,
    * so a storage/index hiccup cannot strand a book half-deleted in the Bin — the
    * DB delete still proceeds and the operator sees exactly what was left behind.
    */
@@ -510,51 +509,47 @@ export class SuperAdminCatalogService {
     ok: boolean;
     detail: string;
   }> {
-    const contentItemId = await this.contentSpine.resolveContentItemId(bookId);
-    if (!contentItemId) {
-      return {
-        method: 'none',
-        contentItemId: null,
-        ok: true,
-        detail:
-          'Book was never indexed — no embeddings to remove.',
-      };
-    }
+    // Which index the book lives in is recorded on the book itself.
+    const record = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { spineContentItemId: true },
+    });
 
     // Shared index: never touched from here. The work in it is read by DigiClassroom and PDLMS
     // as well, so deleting its passages because ONE app dropped its copy of the book would take
-    // the book away from the others, and Book Buddy's login is read-only by design. Removing a
-    // work from the shared spine is DigiClassroom's decision, made there.
-    if (!isLocalIndexing()) {
+    // the book away from the others, and Book Buddy's key there is read-only by design. Removing
+    // a work from the shared library is DigiClassroom's decision, made there.
+    if (record?.spineContentItemId) {
       return {
         method: 'none',
-        contentItemId,
+        contentItemId: record.spineContentItemId,
         ok: true,
         detail:
-          'Shared index left intact: this book is also used by DigiClassroom and PDLMS. ' +
+          'Shared library left intact: this book is also used by DigiClassroom and PDLMS. ' +
           'Book Buddy only removed its own record; remove the work from DigiClassroom if it ' +
           'should disappear everywhere.',
       };
     }
 
     // Book Buddy's own index: delete this book's passages. Only this book's points match.
+    const index = this.contentSpine.localIndex(bookId);
     try {
-      await this.qdrantInit.getClient().delete(qdrantCollectionName(), {
+      await index.client.delete(index.collection, {
         filter: {
-          must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+          must: [{ key: 'content_item_id', match: { value: index.contentItemId } }],
         },
         wait: true,
       });
       return {
         method: 'qdrant',
-        contentItemId,
+        contentItemId: index.contentItemId,
         ok: true,
         detail: "Deleted this book's passages from Book Buddy's search index.",
       };
     } catch (err: any) {
       return {
         method: 'qdrant',
-        contentItemId,
+        contentItemId: index.contentItemId,
         ok: false,
         detail: `Deleting from the search index failed (${err?.message ?? 'unknown'}). Passages for this book may remain.`,
       };

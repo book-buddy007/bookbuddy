@@ -3,15 +3,14 @@ import { Logger } from '@nestjs/common';
 import { Job, Queue, UnrecoverableError } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileService } from './file.service';
-import { ContentSpineService } from './content-spine.service';
+import { BookIndex, ContentSpineService, SharedIndexUnavailableError } from './content-spine.service';
 import { QdrantInitService } from './qdrant-init.service';
 import { EmbeddingService } from './embedding.service';
 import { LocalIndexerService } from './local/local-indexer.service';
-import { isLocalIndexing, qdrantCollectionName } from './local/index-config';
+import { handsNewBooksToShared, qdrantCollectionName, sharedIndexConfig } from './local/index-config';
 import { sharedIndexBlocker } from './local/shared-index-policy';
 import { SharedLibraryError, SharedLibraryService } from './shared-library.service';
 
-const COLLECTION = qdrantCollectionName();
 
 /**
  * Two ingestion modes, chosen by INGESTION_MODE (see local/index-config.ts):
@@ -86,9 +85,10 @@ export class IngestionProcessor extends WorkerHost {
    */
   private async rebuildChunkMapping(
     bookId: string,
-    contentItemId: string,
+    index: BookIndex,
   ): Promise<number> {
-    const qdrant = this.qdrantInit.getClient();
+    const qdrant = index.client;
+    const contentItemId = index.contentItemId;
 
     type Row = {
       bookId: string;
@@ -107,7 +107,7 @@ export class IngestionProcessor extends WorkerHost {
     // though retrieval never returns it.
     let offset: any = undefined;
     do {
-      const page = await qdrant.scroll(COLLECTION, {
+      const page = await qdrant.scroll(index.collection, {
         filter: {
           must: [
             { key: 'content_item_id', match: { value: contentItemId } },
@@ -146,7 +146,7 @@ export class IngestionProcessor extends WorkerHost {
       // content), but it does mean citations will not resolve — say so rather
       // than reporting a silent success.
       this.logger.warn(
-        `No points found in "${COLLECTION}" for work ${contentItemId} — citation links for ` +
+        `No points found in "${index.collection}" for work ${contentItemId} — citation links for ` +
           `book ${bookId} will not resolve.`,
       );
       return 0;
@@ -228,7 +228,7 @@ export class IngestionProcessor extends WorkerHost {
     // Citations, the chapter list, Chapter Recap and the adaptation features read this table.
     // Not fatal if it fails: the book is indexed and the chat works without it.
     try {
-      const mapped = await this.rebuildChunkMapping(bookId, bookId);
+      const mapped = await this.rebuildChunkMapping(bookId, this.contentSpine.localIndex(bookId));
       this.logger.log(`🔗 Chunk mapping rebuilt for book ${bookId}: ${mapped} row(s)`);
     } catch (mapErr: any) {
       this.logger.error(
@@ -249,7 +249,12 @@ export class IngestionProcessor extends WorkerHost {
     });
     await this.prisma.book.update({
       where: { id: bookId },
-      data: { embeddingStatus: 'READY', vectorCollectionId: qdrantCollectionName() },
+      data: {
+        embeddingStatus: 'READY',
+        vectorCollectionId: qdrantCollectionName(),
+        // This book now lives in Book Buddy's own index, wherever it lived before.
+        spineContentItemId: null,
+      },
     });
     await job.updateProgress(100);
 
@@ -313,7 +318,14 @@ export class IngestionProcessor extends WorkerHost {
       }
       await job.updateProgress(40);
 
-      const mapped = await this.rebuildChunkMapping(bookId, contentItemId);
+      let index: BookIndex;
+      try {
+        index = this.contentSpine.sharedIndex(contentItemId);
+      } catch (err) {
+        if (err instanceof SharedIndexUnavailableError) throw new UnrecoverableError(err.message);
+        throw err;
+      }
+      const mapped = await this.rebuildChunkMapping(bookId, index);
       if (mapped === 0) {
         throw new UnrecoverableError(
           'The shared work was linked, but no public passages of it could be read from the shared index. ' +
@@ -327,7 +339,7 @@ export class IngestionProcessor extends WorkerHost {
         data: {
           spineContentItemId: contentItemId,
           embeddingStatus: 'READY',
-          vectorCollectionId: qdrantCollectionName(),
+          vectorCollectionId: index.collection,
         },
       });
       this.contentSpine.invalidate(bookId);
@@ -335,6 +347,19 @@ export class IngestionProcessor extends WorkerHost {
         where: { bookId },
         data: { status: 'READY', totalChunks: mapped, embeddedChunks: mapped },
       });
+
+      // The book now reads from the shared library, so any passages it had in Book Buddy's own index
+      // are unused. Removed (only this book's, only there) so they cannot go stale or be paid for.
+      // Best effort: leftovers are harmless, search never looks at them.
+      try {
+        const own = this.contentSpine.localIndex(bookId);
+        await own.client.delete(own.collection, {
+          filter: { must: [{ key: 'content_item_id', match: { value: own.contentItemId } }] },
+          wait: true,
+        });
+      } catch (cleanupErr: any) {
+        this.logger.warn(`Could not clear the old local passages of book ${bookId}: ${cleanupErr.message}`);
+      }
       await job.updateProgress(100);
 
       await this.graphQueue.add(
@@ -362,7 +387,7 @@ export class IngestionProcessor extends WorkerHost {
     const startTime = Date.now();
 
     this.logger.log(
-      `🚀 Starting ${isLocalIndexing() ? 'local indexing' : 'trio-ingest proxy'} for book ${bookId}`,
+      `🚀 Starting indexing for book ${bookId}`,
     );
 
     const book = await this.prisma.book.findUnique({
@@ -426,17 +451,24 @@ export class IngestionProcessor extends WorkerHost {
       });
       await job.updateProgress(10);
 
-      // Book Buddy's own pipeline: read, chunk, embed, index, all in this process.
-      if (isLocalIndexing()) {
+      // Where this book goes. The shared library takes only books meant for everyone, because
+      // nothing in it can keep a book private; every other book (an institution's own, or any book
+      // while INGESTION_MODE is local) is embedded here, into Book Buddy's own index. Decided here,
+      // where the job runs, because the shared library is the one place a mistake cannot be undone.
+      const toShared = handsNewBooksToShared() && sharedIndexBlocker(book) === null;
+      if (!toShared) {
         await this.ingestLocally(job, book, chapters, startTime);
         return;
       }
 
-      // Shared index: nothing in it can stay private, so only books meant for everyone go in.
-      // Checked here, where the job runs, and not only in the controller, because the shared
-      // index is the one place a mistake cannot be taken back. Retrying cannot fix it.
-      const blocker = sharedIndexBlocker(book);
-      if (blocker) throw new UnrecoverableError(blocker);
+      // The book will be read back from the shared library, so refuse before sending anything if
+      // that is not set up: otherwise DigiClassroom would embed it and Book Buddy could not use it.
+      if (!sharedIndexConfig()) {
+        throw new UnrecoverableError(
+          'This book is meant for the shared library, but reading from it is not set up: set SHARED_QDRANT_URL ' +
+            '(and a read-only SHARED_QDRANT_API_KEY). Nothing was sent.',
+        );
+      }
 
       // ── Steps 2-3: every chapter, in order ───────────────────────────
       const ingestUrl = process.env.TRIO_INGEST_URL;
@@ -608,9 +640,9 @@ export class IngestionProcessor extends WorkerHost {
         });
         this.contentSpine.invalidate(bookId);
         if (contentItemId) {
-          await this.rebuildChunkMapping(bookId, contentItemId).catch((e) =>
-            this.logger.error(`Chunk-mapping rebuild failed: ${e.message}`),
-          );
+          await Promise.resolve()
+            .then(() => this.rebuildChunkMapping(bookId, this.contentSpine.sharedIndex(contentItemId!)))
+            .catch((e) => this.logger.error(`Chunk-mapping rebuild failed: ${e.message}`));
         }
         throw new Error(detail);
       }
@@ -638,7 +670,7 @@ export class IngestionProcessor extends WorkerHost {
         try {
           mappedChunks = await this.rebuildChunkMapping(
             bookId,
-            result.contentItemId,
+            this.contentSpine.sharedIndex(result.contentItemId),
           );
           this.logger.log(
             `🔗 Chunk mapping rebuilt for book ${bookId}: ${mappedChunks} row(s)`,
@@ -666,7 +698,7 @@ export class IngestionProcessor extends WorkerHost {
         where: { id: bookId },
         data: {
           embeddingStatus: 'READY',
-          vectorCollectionId: qdrantCollectionName(),
+          vectorCollectionId: sharedIndexConfig()?.collection ?? null,
           // Recorded from DigiClassroom's answer, so later lookups need no shared database.
           ...(result.contentItemId ? { spineContentItemId: result.contentItemId } : {}),
         },

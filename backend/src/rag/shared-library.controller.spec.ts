@@ -5,10 +5,10 @@ import { SharedLibraryError } from './shared-library.service';
 const WORK = '5f0c1d2e-3a4b-4c5d-8e6f-7a8b9c0d1e2f';
 
 describe('SharedLibraryController', () => {
-  const saved = process.env.INGESTION_MODE;
+  const saved = process.env.SHARED_QDRANT_URL;
   afterEach(() => {
-    if (saved === undefined) delete process.env.INGESTION_MODE;
-    else process.env.INGESTION_MODE = saved;
+    if (saved === undefined) delete process.env.SHARED_QDRANT_URL;
+    else process.env.SHARED_QDRANT_URL = saved;
   });
 
   function make(overrides: { book?: any; job?: any } = {}) {
@@ -26,11 +26,11 @@ describe('SharedLibraryController', () => {
     return { controller, prisma, library, queue };
   }
 
-  describe('with Book Buddy using its own index', () => {
+  describe('with no shared library configured', () => {
     beforeEach(() => {
-      delete process.env.INGESTION_MODE;
+      delete process.env.SHARED_QDRANT_URL;
     });
-    it('refuses both calls, since there is no shared library to use', async () => {
+    it('refuses both calls, since there is nothing to link to', async () => {
       const { controller, queue } = make();
       await expect(controller.works()).rejects.toBeInstanceOf(ConflictException);
       await expect(controller.link('b1', { contentItemId: WORK })).rejects.toBeInstanceOf(ConflictException);
@@ -38,9 +38,9 @@ describe('SharedLibraryController', () => {
     });
   });
 
-  describe('in shared-index mode', () => {
+  describe('with the shared library configured', () => {
     beforeEach(() => {
-      process.env.INGESTION_MODE = 'trio';
+      process.env.SHARED_QDRANT_URL = 'http://shared:6333';
     });
 
     it('lists the works', async () => {

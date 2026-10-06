@@ -50,6 +50,26 @@ describe('OpenAI providers against a fake OpenAI server', () => {
       expect(fake.requests.map((r) => r.body.input.length)).toEqual([100, 100, 50]);
     });
 
+    it('embeds to the width asked for in one call without changing the default', async () => {
+      const provider = new OpenAiEmbeddingProvider(config(baseEnv()));
+      const [wide] = await provider.embedBatch(['x'], { dimensions: 128 });
+      expect(wide).toHaveLength(128);
+      expect(fake.requests[0].body).toMatchObject({ dimensions: 128 });
+
+      const [normal] = await provider.embedBatch(['x']);
+      expect(normal).toHaveLength(64);
+      expect(fake.requests[1].body).toMatchObject({ dimensions: 64 });
+    });
+
+    it('refuses a per-call width a fixed-width model cannot produce, before spending anything', async () => {
+      const provider = new OpenAiEmbeddingProvider(
+        config({ ...baseEnv(), OPENAI_EMBED_MODEL: 'text-embedding-ada-002', EMBEDDING_DIMENSIONS: '3072' }),
+      );
+      const before = fake.requests.length;
+      await expect(provider.embedBatch(['x'], { dimensions: 1024 })).rejects.toThrow(/cannot produce 1024-dimension/);
+      expect(fake.requests.length).toBe(before);
+    });
+
     it('omits `dimensions` for a model that does not support it', async () => {
       const provider = new OpenAiEmbeddingProvider(
         config({ ...baseEnv(), OPENAI_EMBED_MODEL: 'text-embedding-ada-002', EMBEDDING_DIMENSIONS: '3072' }),
@@ -113,7 +133,7 @@ describe('OpenAI providers against a fake OpenAI server', () => {
         config({ ...baseEnv(), OPENAI_EMBED_MODEL: 'text-embedding-ada-002', EMBEDDING_DIMENSIONS: '999' }),
       );
       // The fake honours no `dimensions` for ada and answers 3072-wide vectors.
-      await expect(provider.embedBatch(['x'])).rejects.toThrow(/3072-dimension vectors but EMBEDDING_DIMENSIONS is 999/);
+      await expect(provider.embedBatch(['x'])).rejects.toThrow(/3072-dimension vectors but 999 were expected/);
     });
 
     it('rejects a response with the wrong number of embeddings', async () => {

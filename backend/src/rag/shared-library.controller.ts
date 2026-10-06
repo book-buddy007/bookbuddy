@@ -17,7 +17,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BetterAuthGuard } from '../guards/better-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { isLocalIndexing } from './local/index-config';
+import { sharedIndexConfig } from './local/index-config';
 import { SharedLibraryError, SharedLibraryService, isUuid } from './shared-library.service';
 
 /**
@@ -34,10 +34,10 @@ export class SharedLibraryController {
   ) {}
 
   private requireSharedMode() {
-    if (isLocalIndexing()) {
+    if (!sharedIndexConfig()) {
       throw new ConflictException(
-        "Book Buddy is using its own index (INGESTION_MODE=local), so there is no shared library to use. " +
-          'See docs/shared-spine.md to switch.',
+        'The shared library is not set up for this deployment (SHARED_QDRANT_URL is empty), so there is nothing to link to. ' +
+          'See docs/shared-spine.md.',
       );
     }
   }

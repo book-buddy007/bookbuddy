@@ -54,15 +54,24 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
     };
   }
 
-  async embedBatch(texts: string[]): Promise<number[][]> {
+  async embedBatch(
+    texts: string[],
+    options: { dimensions?: number } = {},
+  ): Promise<number[][]> {
     if (!this.apiKey) {
       throw new Error('Embeddings are not configured: set OPENAI_API_KEY.');
+    }
+    const dimensions = options.dimensions ?? this.dimensions;
+    if (!this.sendsDimensions && dimensions !== this.dimensions) {
+      throw new Error(
+        `${this.modelId} cannot produce ${dimensions}-dimension vectors; it only produces ${this.dimensions}.`,
+      );
     }
     const results: number[][] = [];
 
     for (let i = 0; i < texts.length; i += BATCH_SIZE) {
       const batch = texts.slice(i, i + BATCH_SIZE);
-      const vectors = await this.embedWithRetry(batch);
+      const vectors = await this.embedWithRetry(batch, dimensions);
       results.push(...vectors);
     }
     return results;
@@ -70,6 +79,7 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
 
   private async embedWithRetry(
     texts: string[],
+    dimensions: number,
     attempt = 0,
   ): Promise<number[][]> {
     try {
@@ -79,7 +89,7 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
         body: JSON.stringify({
           model: this.modelId,
           input: texts,
-          ...(this.sendsDimensions ? { dimensions: this.dimensions } : {}),
+          ...(this.sendsDimensions ? { dimensions } : {}),
         }),
         signal: AbortSignal.timeout(60_000),
       });
@@ -102,9 +112,9 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
       // A wrong width would be rejected by Qdrant later with a far less helpful message, or
       // (for a model that ignores `dimensions`) silently stored in the wrong collection.
       const width = vectors[0]?.length ?? 0;
-      if (width !== this.dimensions) {
+      if (width !== dimensions) {
         throw new Error(
-          `${this.modelId} returned ${width}-dimension vectors but EMBEDDING_DIMENSIONS is ${this.dimensions}.`,
+          `${this.modelId} returned ${width}-dimension vectors but ${dimensions} were expected (EMBEDDING_DIMENSIONS or the shared index width).`,
         );
       }
       return vectors;
@@ -114,7 +124,7 @@ export class OpenAiEmbeddingProvider implements IEmbeddingProvider {
           (err instanceof OpenAiHttpError && err.retryAfterMs) ||
           this.retryBaseMs * 2 ** attempt;
         await new Promise((r) => setTimeout(r, wait));
-        return this.embedWithRetry(texts, attempt + 1);
+        return this.embedWithRetry(texts, dimensions, attempt + 1);
       }
       throw err;
     }

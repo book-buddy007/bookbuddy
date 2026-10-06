@@ -3,8 +3,10 @@ import { join } from 'path';
 import { OpenAiEmbeddingProvider } from '../providers/openai.embedding.provider';
 import { EmbeddingService } from '../embedding.service';
 import { QdrantInitService } from '../qdrant-init.service';
+import { ContentSpineService } from '../content-spine.service';
 import { LocalIndexerService } from './local-indexer.service';
-import { FakeOpenAi, startFakeOpenAi } from './test-support/fake-openai';
+import { FakeOpenAi, fakeEmbedding, startFakeOpenAi } from './test-support/fake-openai';
+import { buildSparseVector } from '../sparse-tokenizer';
 
 /**
  * End to end, with everything real except OpenAI: the real indexer, embedding provider, collection
@@ -19,6 +21,9 @@ import { FakeOpenAi, startFakeOpenAi } from './test-support/fake-openai';
 const QDRANT_URL = process.env.QDRANT_TEST_URL || 'http://127.0.0.1:6335';
 const COLLECTION = `bb_it_${Date.now()}`;
 const DIMS = 256;
+// A second collection, with a different width, stands in for the library shared with other apps.
+const SHARED_COLLECTION = `bb_it_shared_${Date.now()}`;
+const SHARED_DIMS = 128;
 
 const sample = readFileSync(join(__dirname, '__fixtures__', 'sample-chapter.md'), 'utf8');
 
@@ -65,13 +70,41 @@ beforeAll(async () => {
     OPENAI_API_KEY: 'sk-test-key',
     OPENAI_BASE_URL: fake.url,
     OPENAI_RETRY_BASE_MS: '1',
+    SHARED_QDRANT_URL: QDRANT_URL,
+    SHARED_QDRANT_COLLECTION: SHARED_COLLECTION,
+    SHARED_EMBEDDING_DIMENSIONS: String(SHARED_DIMS),
   });
   delete process.env.INGESTION_MODE; // the default: Book Buddy indexes itself
   delete process.env.QDRANT_API_KEY;
 
   const config = configFor({});
   qdrantInit = new QdrantInitService(config);
-  await qdrantInit.onModuleInit(); // creates the collection
+
+  // The shared library is owned by another app, so it exists before Book Buddy boots. Built here the
+  // way DigiClassroom builds it: a dense vector plus the keyword vector, no tenant field.
+  const sharedClient = qdrantInit.getSharedClient()!;
+  await sharedClient.createCollection(SHARED_COLLECTION, {
+    vectors: { dense: { size: SHARED_DIMS, distance: 'Cosine' } },
+    sparse_vectors: { bm25: { modifier: 'idf' } },
+  });
+  const sharedPassages = [
+    { id: '11111111-1111-4111-8111-111111111111', text: 'Inflation is a sustained rise in the general price level of an economy.', visibility: 'public', retrieval_class: 'reference', page: 21 },
+    { id: '22222222-2222-4222-8222-222222222222', text: 'Inflation targeting is the secret restricted briefing of one institution only.', visibility: 'restricted', retrieval_class: 'reference', page: 22 },
+    { id: '33333333-3333-4333-8333-333333333333', text: 'Why does inflation matter? Discuss in your notebook.', visibility: 'public', retrieval_class: 'practice', page: 23 },
+  ];
+  await sharedClient.upsert(SHARED_COLLECTION, {
+    wait: true,
+    points: sharedPassages.map((pt, i) => ({
+      id: pt.id,
+      vector: { dense: fakeEmbedding(pt.text, SHARED_DIMS), bm25: buildSparseVector(pt.text) },
+      payload: {
+        level: 0, visibility: pt.visibility, retrieval_class: pt.retrieval_class, content_item_id: 'work-S',
+        content_asset_id: 'asset-S', chunk_index: i, page_start: pt.page, page_end: pt.page, chapter: 'Money', text: pt.text,
+      },
+    })),
+  });
+
+  await qdrantInit.onModuleInit(); // creates the own collection and checks the shared one
 
   const embedding = new EmbeddingService(new OpenAiEmbeddingProvider(config));
   indexer = new LocalIndexerService(embedding, qdrantInit);
@@ -79,8 +112,13 @@ beforeAll(async () => {
   // These read the collection name at import time, so they are loaded only now.
   const { RagSearchService } = require('../rag-search.service');
   const { ContentSpineService } = require('../content-spine.service');
-  search = new RagSearchService(qdrantInit, embedding);
-  spine = new ContentSpineService(qdrantInit, {} as any); // local mode never reads the book record
+  // Every book here is in Book Buddy's own index (no linked shared work).
+  // book-S is linked to a work in the shared library; every other book is in Book Buddy's own index.
+  const prismaStub = {
+    book: { findUnique: async ({ where }: any) => ({ spineContentItemId: where.id === 'book-S' ? 'work-S' : null }) },
+  } as any;
+  spine = new ContentSpineService(qdrantInit, prismaStub);
+  search = new RagSearchService(qdrantInit, embedding, spine);
 
   await indexer.indexBook({
     bookId: 'book-A',
@@ -99,6 +137,7 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!available) return;
   await qdrantInit.getClient().deleteCollection(COLLECTION).catch(() => undefined);
+  await qdrantInit.getSharedClient()?.deleteCollection(SHARED_COLLECTION).catch(() => undefined);
   await fake.close();
 });
 
@@ -292,5 +331,41 @@ describe('Book Buddy indexes and searches a book by itself (real Qdrant)', () =>
     });
     expect(await idsFor('book-B')).toHaveLength(0);
     expect((await idsFor('book-A')).length).toBeGreaterThan(5);
+  });
+
+  live('answers a shared-library book from the shared index: public reference passages only, own books untouched', async () => {
+    const results = await search.search('what is inflation', { tenantId: 'tenant-1', bookId: 'book-S', contentItemId: 'work-S' });
+    expect(results.length).toBeGreaterThan(0);
+    // Public reference prose is found, with its page for the citation...
+    const hit = results.find((r: any) => r.text.startsWith('Inflation is a sustained rise'));
+    expect(hit).toMatchObject({ pageNumber: 21, chapterTitle: 'Money', retrievalClass: 'reference', bookId: 'book-S' });
+    // ...a restricted passage and a practice prompt are never returned, though they match the question...
+    expect(results.some((r: any) => /restricted briefing/.test(r.text))).toBe(false);
+    expect(results.some((r: any) => /notebook/.test(r.text))).toBe(false);
+    // ...and nothing from Book Buddy's own books leaks in.
+    expect(results.every((r: any) => r.contentItemId === 'work-S')).toBe(true);
+  });
+
+  live('asks each index in its own width: the shared 128 and the own 256 never cross', async () => {
+    // Would be rejected by Qdrant (wrong vector size) if either question used the other width.
+    await expect(search.search('what is inflation', { tenantId: 'tenant-1', bookId: 'book-S', contentItemId: 'work-S' })).resolves.toBeDefined();
+    await expect(search.search('What is opportunity cost?', { tenantId: 'tenant-1', bookId: 'book-A', contentItemId: 'book-A' })).resolves.toBeDefined();
+  });
+
+  live('finds a figure in a shared book without ever returning a restricted passage', async () => {
+    const found = await search.findByReference('what does table 9 say?', { tenantId: 'tenant-1', bookId: 'book-S', contentItemId: 'work-S' });
+    expect(found).toEqual([]); // no such label, but the lookup ran against the shared index without error
+    await expect(spine.getPrintedPageSpan('book-S')).resolves.toEqual({ minPrinted: 21, maxPrinted: 23, span: 3 });
+  });
+
+  live('refuses a shared book when the shared library has a problem, rather than using the own index', async () => {
+    const down = new QdrantInitService(configFor({}));
+    (down as any).sharedProblemText = 'it could not be reached';
+    const brokenSpine = new ContentSpineService(down, { book: { findUnique: async () => ({ spineContentItemId: 'work-S' }) } } as any);
+    const { RagSearchService: Search } = require('../rag-search.service');
+    const broken = new Search(down, new EmbeddingService(new OpenAiEmbeddingProvider(configFor({}))), brokenSpine);
+    await expect(broken.search('what is inflation', { tenantId: 'tenant-1', bookId: 'book-S', contentItemId: 'work-S' })).rejects.toThrow(
+      /shared library, which is not available/,
+    );
   });
 });

@@ -35,5 +35,7 @@ export function clientMessageForAiError(err: unknown): string {
     return AI_MESSAGES.unavailable;
   }
   if (/Retrieval is unavailable/i.test(message)) return AI_MESSAGES.search;
+  // The book lives in the shared library and it cannot be reached: the cause is for the log.
+  if (name === 'SharedIndexUnavailableError') return AI_MESSAGES.search;
   return AI_MESSAGES.generic;
 }

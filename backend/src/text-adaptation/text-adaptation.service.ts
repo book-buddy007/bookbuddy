@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MasteryService } from '../quiz/mastery.service';
-import { QdrantInitService } from '../rag/qdrant-init.service';
+import { ContentSpineService, readablePoints } from '../rag/content-spine.service';
 import {
   ILlmProvider,
   LLM_PROVIDER,
@@ -10,13 +10,10 @@ import {
   bookAnswerLanguage,
   contentLanguageDirective,
 } from '../common/language/answer-language';
-import { qdrantCollectionName } from '../rag/local/index-config';
 
 // Shared trio collection — same as Varta (rag-search.service.ts). Adaptation
 // retrieves a paragraph's text by its trio point id (from BookChunkMapping), so
 // it must read from this collection; `book_buddy_books_v1` was deleted in the reset.
-const COLLECTION =
-  qdrantCollectionName();
 
 // Same bar §2/§7 use for "not yet mastered" — kept as one constant per
 // service rather than importing across modules, since each already documents
@@ -73,7 +70,7 @@ export class TextAdaptationService {
   constructor(
     private prisma: PrismaService,
     private masteryService: MasteryService,
-    private qdrantInit: QdrantInitService,
+    private spine: ContentSpineService,
     @Inject(LLM_PROVIDER) private llmProvider: ILlmProvider,
   ) {}
 
@@ -203,11 +200,14 @@ export class TextAdaptationService {
       return { content: existing.content, cached: true };
     }
 
-    const qdrant = this.qdrantInit.getClient();
-    const points = await qdrant.retrieve(COLLECTION, {
-      ids: [paragraphId],
-      with_payload: true,
-    });
+    const index = await this.spine.resolveIndex(bookId);
+    const points = readablePoints(
+      index,
+      await index.client.retrieve(index.collection, {
+        ids: [paragraphId],
+        with_payload: true,
+      }),
+    );
     const originalText = (points[0]?.payload as any)?.text as
       | string
       | undefined;

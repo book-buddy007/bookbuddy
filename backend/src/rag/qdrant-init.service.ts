@@ -5,8 +5,8 @@ import {
   INTEGER_PAYLOAD_FIELDS,
   KEYWORD_PAYLOAD_FIELDS,
   denseVectorName,
-  isLocalIndexing,
   qdrantCollectionName,
+  sharedIndexConfig,
   sparseVectorName,
 } from './local/index-config';
 
@@ -43,6 +43,9 @@ interface CollectionInspection {
 export class QdrantInitService implements OnModuleInit {
   private readonly logger = new Logger(QdrantInitService.name);
   private client: QdrantClient;
+  /** Read-only view of the index shared with DigiClassroom and PDLMS; null when not configured. */
+  private sharedClient: QdrantClient | null = null;
+  private sharedProblemText: string | null = null;
 
   constructor(private readonly configService: ConfigService) {
     const urlToUse = process.env.QDRANT_URL || 'http://localhost:6333';
@@ -52,9 +55,26 @@ export class QdrantInitService implements OnModuleInit {
       apiKey: process.env.QDRANT_API_KEY,
       checkCompatibility: false,
     });
+
+    const shared = sharedIndexConfig();
+    if (shared) {
+      this.sharedClient = new QdrantClient({
+        url: shared.url,
+        apiKey: shared.apiKey,
+        checkCompatibility: false,
+      });
+    }
   }
 
   async onModuleInit() {
+    await this.initLocal();
+    await this.inspectShared();
+  }
+
+  /**
+   * Book Buddy's own index: created when allowed, never deleted, refuses to start on a mismatch.
+   */
+  private async initLocal() {
     const qdrantUrl =
       this.configService.get('QDRANT_URL') || 'http://localhost:6333';
     const collectionName =
@@ -205,7 +225,7 @@ export class QdrantInitService implements OnModuleInit {
     // When Book Buddy writes the index itself it also writes a keyword (sparse) vector on every
     // point, and Qdrant rejects a point carrying a vector name the collection does not declare.
     // Catch that here, at boot, rather than on the first book that is indexed.
-    if (matches && isLocalIndexing()) {
+    if (matches) {
       const sparseName = sparseVectorName();
       const sparseConfig = info?.config?.params?.sparse_vectors ?? {};
       if (!Object.prototype.hasOwnProperty.call(sparseConfig, sparseName)) {
@@ -276,7 +296,61 @@ export class QdrantInitService implements OnModuleInit {
     }
   }
 
+  /** Book Buddy's own index. */
   getClient(): QdrantClient {
     return this.client;
+  }
+
+  /**
+   * The shared index, READ ONLY by convention and, with a read-only key, by the server.
+   * Null when this deployment does not use it. Nothing in this class ever creates, alters or
+   * deletes anything through it.
+   */
+  getSharedClient(): QdrantClient | null {
+    return this.sharedClient;
+  }
+
+  /** Why the shared index cannot be used right now, or null when it can (or is not configured). */
+  sharedProblem(): string | null {
+    return this.sharedProblemText;
+  }
+
+  /**
+   * Checks the shared collection at boot, read-only, and NEVER fails the boot: books in Book
+   * Buddy's own index must keep working when the shared index is down or misconfigured. A
+   * problem is remembered, and a book that needs the shared index is then refused with this
+   * reason instead of being answered from nothing.
+   */
+  private async inspectShared() {
+    const cfg = sharedIndexConfig();
+    if (!cfg || !this.sharedClient) return;
+    try {
+      const info: any = await this.sharedClient.getCollection(cfg.collection);
+      const dense = info?.config?.params?.vectors?.[denseVectorName()];
+      const sparse = info?.config?.params?.sparse_vectors ?? {};
+      if (!dense || dense.size !== cfg.dimensions) {
+        this.sharedProblemText =
+          `the shared collection "${cfg.collection}" has ${dense?.size ?? 'no'}-dimension vectors but ` +
+          `SHARED_EMBEDDING_DIMENSIONS is ${cfg.dimensions}`;
+      } else if (!Object.prototype.hasOwnProperty.call(sparse, sparseVectorName())) {
+        this.sharedProblemText = `the shared collection "${cfg.collection}" has no '${sparseVectorName()}' keyword vector`;
+      } else {
+        this.sharedProblemText = null;
+        this.logger.log(
+          `✅ Shared index "${cfg.collection}" reachable (${dense.size}d, read-only use).`,
+        );
+        return;
+      }
+    } catch (err: any) {
+      const status = err?.status ?? err?.response?.status;
+      this.sharedProblemText =
+        status === 404
+          ? `the shared collection "${cfg.collection}" does not exist`
+          : `the shared index could not be reached (${err?.response?.data?.status?.error || err?.message})`;
+    }
+    this.logger.error(
+      `Shared index unusable: ${this.sharedProblemText}. Books that live in it will be refused ` +
+        `until this is fixed; books in Book Buddy's own index are unaffected.`,
+    );
   }
 }

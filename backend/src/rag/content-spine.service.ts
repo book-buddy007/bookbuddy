@@ -1,157 +1,185 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable, Logger } from '@nestjs/common';
+import type { QdrantClient } from '@qdrant/js-client-rest';
 import { PrismaService } from '../prisma/prisma.service';
 import { QdrantInitService } from './qdrant-init.service';
-import { isLocalIndexing, qdrantCollectionName } from './local/index-config';
+import { qdrantCollectionName, sharedIndexConfig } from './local/index-config';
+
+/** Where one book's passages live, and everything needed to read them safely. */
+export interface BookIndex {
+  kind: 'local' | 'shared';
+  client: QdrantClient;
+  collection: string;
+  /** Width a question must be embedded to, to be compared with this index's vectors. */
+  dimensions: number;
+  /** The `content_item_id` of this book's passages in that index. */
+  contentItemId: string;
+  /** Book Buddy's own passages carry `tenant_id`; a search also locks on it. */
+  tenantLock: boolean;
+  /**
+   * Conditions EVERY read of this index must include. For the shared index that is public-only:
+   * nothing in it can hide a restricted passage from an app that is handed its id, so each reader
+   * has to ask for public explicitly.
+   */
+  guard: Array<{ key: string; match: { value: string } }>;
+}
 
 /**
- * Book Buddy's read-only window into the shared `trio` content spine.
+ * Points of a book that may be read from its index. Reads by point id carry no filter, so for the
+ * shared index each point is checked to be public here; Book Buddy's own points are always readable.
+ */
+export function readablePoints<T extends { payload?: any }>(index: BookIndex, points: T[]): T[] {
+  if (index.guard.length === 0) return points;
+  return points.filter((p) => p.payload?.visibility === 'public');
+}
+
+/** The book needs the shared index and it cannot be used. Fails closed: never answers from nothing. */
+export class SharedIndexUnavailableError extends Error {
+  constructor(reason: string) {
+    super(
+      `This book is held in the shared library, which is not available right now (${reason}). ` +
+        `It was not answered from anywhere else.`,
+    );
+    this.name = 'SharedIndexUnavailableError';
+  }
+}
+
+/**
+ * Which index a book lives in, and which work it is there.
  *
- * Book Buddy owns its `Book` rows and DCP owns the spine; the two are joined by
- * `content.content_source_ref (app, local_id) -> content_item_id`, written by
- * DCP when it ingests on Book Buddy's behalf. This service resolves that join and
- * nothing else — it is deliberately read-only, connecting as
- * `book_buddy_content_reader`, which has SELECT and no more (a write attempt gets
- * `permission denied`, verified).
+ * Every book is in exactly one of Book Buddy's own index or the shared index, and that is a fact
+ * recorded on the book (`Book.spineContentItemId`: set = shared). It is written by the server
+ * only after DigiClassroom has confirmed the work, so reading it needs no connection to any
+ * other app's database.
  *
- * Why this exists at all: Varta's retrieval filters `content_item_id`, and a
- * Book Buddy `bookId` means nothing to the shared collection. Without the translation
- * a book-scoped question either matches nothing or, worse, gets answered from
- * the whole corpus and cites a different book entirely. `rag-search.service.ts`
- * refuses rather than guess; this is what stops that refusal being permanent.
- *
- * A SEPARATE POOL from Prisma on purpose: Prisma points at the `book_buddy` database
- * and Postgres has no cross-database join, so this is a second connection to a
- * different database on the same cluster — the same shape as the entitlements
- * and taxonomy integrations.
+ * Fails closed throughout. A book that cannot be resolved is refused, not searched across the
+ * library; a book that needs the shared index while it is down is refused, not answered from
+ * Book Buddy's own (empty) index.
  */
 @Injectable()
-export class ContentSpineService implements OnModuleDestroy {
+export class ContentSpineService {
   private readonly logger = new Logger(ContentSpineService.name);
-  private pool: Pool | null = null;
-  private warnedUnconfigured = false;
 
   /**
-   * Short-lived cache. The mapping only changes when a book is (re-)ingested,
-   * and a book-chat turn resolves it on every message; a cold lookup per message
-   * would put a Postgres round-trip in front of every question for a value that
-   * is stable for the life of the book.
+   * Short-lived cache of each book's shared work id (null = Book Buddy's own index). A chat turn
+   * resolves it on every message, and the value only changes when a book is indexed or linked,
+   * which also calls `invalidate`.
    */
-  private readonly cache = new Map<
-    string,
-    { contentItemId: string | null; at: number }
-  >();
-  private static readonly TTL_MS = 5 * 60 * 1000;
+  private readonly cache = new Map<string, { work: string | null; at: number }>();
+  private static readonly TTL_MS = 60 * 1000;
 
   constructor(
     private readonly qdrantInit: QdrantInitService,
     private readonly prisma: PrismaService,
   ) {}
 
-  private getPool(): Pool | null {
-    if (this.pool) return this.pool;
-    const connectionString = process.env.TRIO_CONTENT_DATABASE_URL;
-    if (!connectionString) {
-      if (!this.warnedUnconfigured) {
-        this.warnedUnconfigured = true;
-        this.logger.warn(
-          'TRIO_CONTENT_DATABASE_URL is not set — book-scoped Varta chat cannot resolve which ' +
-            'shared work a book is, so it will refuse rather than search the whole corpus.',
-        );
-      }
-      return null;
+  /** Book Buddy's own index, where a book's work id is the book id itself. */
+  localIndex(bookId: string): BookIndex {
+    return {
+      kind: 'local',
+      client: this.qdrantInit.getClient(),
+      collection: qdrantCollectionName(),
+      dimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || '1024', 10),
+      contentItemId: bookId,
+      tenantLock: true,
+      guard: [],
+    };
+  }
+
+  /** The shared index, for one work in it. Throws SharedIndexUnavailableError if it cannot be used. */
+  sharedIndex(contentItemId: string): BookIndex {
+    const cfg = sharedIndexConfig();
+    const client = this.qdrantInit.getSharedClient();
+    if (!cfg || !client) {
+      throw new SharedIndexUnavailableError('SHARED_QDRANT_URL is not configured');
     }
-    // Small: this pool serves one lookup, and Book Buddy should not hold a large
-    // share of the shared cluster's connections for it.
-    this.pool = new Pool({
-      connectionString,
-      max: 3,
-      idleTimeoutMillis: 30_000,
+    const problem = this.qdrantInit.sharedProblem();
+    if (problem) throw new SharedIndexUnavailableError(problem);
+    return {
+      kind: 'shared',
+      client,
+      collection: cfg.collection,
+      dimensions: cfg.dimensions,
+      contentItemId,
+      tenantLock: false,
+      guard: [{ key: 'visibility', match: { value: 'public' } }],
+    };
+  }
+
+  /** Reads which work the book is, from the book's own record. Throws if that cannot be read. */
+  private async lookup(bookId: string): Promise<{ found: boolean; work: string | null }> {
+    const hit = this.cache.get(bookId);
+    if (hit && Date.now() - hit.at < ContentSpineService.TTL_MS) {
+      return { found: true, work: hit.work };
+    }
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { spineContentItemId: true },
     });
-    this.pool.on('error', (err) =>
-      this.logger.error(`content spine pool error: ${err.message}`),
-    );
-    return this.pool;
+    if (!book) return { found: false, work: null };
+    this.cache.set(bookId, { work: book.spineContentItemId ?? null, at: Date.now() });
+    return { found: true, work: book.spineContentItemId ?? null };
   }
 
   /**
-   * The canonical work this Book Buddy book is, or null if it was never ingested
-   * into the spine.
-   *
-   * Null is a real answer, not an error: a book whose PDF is in the catalogue
-   * but whose chapters were never ingested genuinely has no work, and the
-   * caller must treat that as "cannot scope" rather than "search everything".
+   * The index this book lives in. Throws for a book that does not exist, for a record that cannot
+   * be read, and (SharedIndexUnavailableError) for a shared book while the shared index is down.
    */
+  async resolveIndex(bookId: string): Promise<BookIndex> {
+    let found: { found: boolean; work: string | null };
+    try {
+      found = await this.lookup(bookId);
+    } catch (err: any) {
+      this.logger.error(`Could not read which index book ${bookId} lives in: ${err.message}`);
+      throw new Error(`Could not tell which index book ${bookId} lives in; refusing to guess.`);
+    }
+    if (!found.found) throw new Error(`Book ${bookId} not found.`);
+    return found.work ? this.sharedIndex(found.work) : this.localIndex(bookId);
+  }
+
   /**
-   * The full printed page extent of a work, from the spine.
+   * The id this book's passages carry in the index it lives in: the shared work id, or the book id
+   * for Book Buddy's own index. Null when the book does not exist or the record cannot be read, so
+   * a caller treats it as "cannot scope" rather than searching without a book.
+   */
+  async resolveContentItemId(bookId: string): Promise<string | null> {
+    if (!bookId) return null;
+    try {
+      const { found, work } = await this.lookup(bookId);
+      if (!found) return null;
+      return work ?? bookId;
+    } catch (err: any) {
+      this.logger.error(`Could not resolve the work for book ${bookId}: ${err.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * The printed page extent of a book, from its own passages: the lowest and highest page any
+   * passage covers. Null when the book has none, or the index cannot be read, so a caller refuses
+   * to map pages rather than mapping them wrongly.
    *
-   * Needed because Book Buddy's own `BookChunkMapping` holds only the chunks that
-   * were vectorised — reference content — while the PDF a student reads also
-   * contains the practice pages. For the one embedded book that is 183-209
-   * locally against 183-213 in the spine: a four page difference, entirely at
-   * the end, which is enough to make a page-count comparison disagree with the
-   * file and disable page-scoped quizzing for a book where the mapping is
-   * actually perfectly determined.
-   *
-   * `content_chunk` is readable by the reader role; `content_asset`, which
-   * carries the authoritative per-file `page_count`, is not — so the extent is
-   * taken from the chunks' own page bounds instead.
+   * Practice passages are included, as they are real pages of the book.
    */
   async getPrintedPageSpan(
     bookId: string,
   ): Promise<{ minPrinted: number; maxPrinted: number; span: number } | null> {
-    const contentItemId = await this.resolveContentItemId(bookId);
-    if (!contentItemId) return null;
-
-    // Book Buddy's own index: the extent is simply the lowest and highest printed page of
-    // the book's chunks, read from the chunks themselves.
-    // Also when there is no connection to the shared database: the passages carry their own pages.
-    if (isLocalIndexing() || !process.env.TRIO_CONTENT_DATABASE_URL)
-      return this.localPrintedPageSpan(contentItemId);
-
-    const pool = this.getPool();
-    if (!pool) return null;
-
+    let index: BookIndex;
     try {
-      const res = await pool.query<{
-        min_printed: number;
-        max_printed: number;
-      }>(
-        `SELECT MIN(page_start)::int AS min_printed, MAX(page_end)::int AS max_printed
-           FROM content.content_chunk
-          WHERE content_item_id = $1`,
-        [contentItemId],
-      );
-      const row = res.rows[0];
-      if (!row || row.min_printed == null || row.max_printed == null)
-        return null;
-      return {
-        minPrinted: row.min_printed,
-        maxPrinted: row.max_printed,
-        span: row.max_printed - row.min_printed + 1,
-      };
+      index = await this.resolveIndex(bookId);
     } catch (err: any) {
-      // Same fail-closed posture as resolveContentItemId: a null here makes the
-      // caller refuse to map pages rather than map them wrongly.
-      this.logger.error(
-        `Could not read printed page span for book ${bookId}: ${err.message}`,
-      );
+      this.logger.error(`Could not read printed page span for book ${bookId}: ${err.message}`);
       return null;
     }
-  }
 
-  /** Page extent from the local index (practice chunks included, as in the shared spine). */
-  private async localPrintedPageSpan(
-    bookId: string,
-  ): Promise<{ minPrinted: number; maxPrinted: number; span: number } | null> {
     try {
-      const qdrant = this.qdrantInit.getClient();
       let min = Infinity;
       let max = -Infinity;
       let offset: any = undefined;
       do {
-        const page: any = await qdrant.scroll(qdrantCollectionName(), {
-          filter: { must: [{ key: 'content_item_id', match: { value: bookId } }] },
+        const page: any = await index.client.scroll(index.collection, {
+          filter: {
+            must: [{ key: 'content_item_id', match: { value: index.contentItemId } }, ...index.guard],
+          },
           with_payload: { include: ['page_start', 'page_end'] },
           with_vector: false,
           limit: 512,
@@ -168,76 +196,13 @@ export class ContentSpineService implements OnModuleDestroy {
       if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
       return { minPrinted: min, maxPrinted: max, span: max - min + 1 };
     } catch (err: any) {
-      // Fail closed, as the shared-spine version does: no extent means no page mapping.
-      this.logger.error(
-        `Could not read printed page span for book ${bookId}: ${err.message}`,
-      );
+      this.logger.error(`Could not read printed page span for book ${bookId}: ${err.message}`);
       return null;
     }
   }
 
-  async resolveContentItemId(bookId: string): Promise<string | null> {
-    // In Book Buddy's own index a book is its own work: every point carries
-    // content_item_id = the book id, so there is nothing to look up and nothing that can be
-    // missing. (A book that was never indexed simply has no points to find.)
-    if (isLocalIndexing()) return bookId || null;
-
-    const hit = this.cache.get(bookId);
-    if (hit && Date.now() - hit.at < ContentSpineService.TTL_MS)
-      return hit.contentItemId;
-
-    // The book's own record first: the server writes it only after DigiClassroom has confirmed
-    // the work, so no connection to the shared database is needed to answer. Anything it cannot
-    // answer falls through to the spine lookup below, which stays for deployments that have it.
-    try {
-      const book = await this.prisma.book.findUnique({
-        where: { id: bookId },
-        select: { spineContentItemId: true },
-      });
-      if (book?.spineContentItemId) {
-        this.cache.set(bookId, { contentItemId: book.spineContentItemId, at: Date.now() });
-        return book.spineContentItemId;
-      }
-    } catch (err: any) {
-      // Fail closed: an unreadable record is not a reason to search without a book scope.
-      this.logger.error(
-        `Could not read the work for book ${bookId}: ${err.message}`,
-      );
-      return null;
-    }
-
-    const pool = this.getPool();
-    if (!pool) return null;
-
-    try {
-      const res = await pool.query<{ content_item_id: string }>(
-        `SELECT content_item_id
-           FROM content.content_source_ref
-          WHERE app = 'bookbuddy' AND local_id = $1
-          LIMIT 1`,
-        [bookId],
-      );
-      const contentItemId = res.rows[0]?.content_item_id ?? null;
-      this.cache.set(bookId, { contentItemId, at: Date.now() });
-      return contentItemId;
-    } catch (err: any) {
-      // Fail CLOSED by returning null: the caller refuses a book-scoped question
-      // it cannot scope. Returning "no filter" on a database hiccup would answer
-      // from the whole library and cite the wrong book, which is worse than an
-      // error because nothing about it looks wrong.
-      this.logger.error(
-        `Could not resolve content_item for book ${bookId}: ${err.message}`,
-      );
-      return null;
-    }
-  }
-
-  /** Drop a cached mapping — call after a (re-)ingest so the next turn sees it. */
+  /** Drop a cached answer. Call after a book is (re-)indexed or linked so the next turn sees it. */
   invalidate(bookId: string): void {
     this.cache.delete(bookId);
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    if (this.pool) await this.pool.end().catch(() => undefined);
   }
 }

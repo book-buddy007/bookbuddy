@@ -1,5 +1,6 @@
 import { IngestionProcessor } from './ingestion.processor';
 import { SharedLibraryError } from './shared-library.service';
+import { SharedIndexUnavailableError } from './content-spine.service';
 
 /**
  * The local-mode bookkeeping around the indexer: what gets read, what the book's status says at
@@ -48,8 +49,8 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
         return Buffer.from(v);
       }),
     };
-    const contentSpine = { invalidate: jest.fn() };
-    const qdrant = {
+    const qdrant: any = {
+      delete: jest.fn().mockResolvedValue({}),
       scroll: jest.fn().mockResolvedValue({
         points: [
           { id: 'p1', payload: { chunk_index: 0, page_start: 183, chapter: 'Choice', text: 'x'.repeat(300), run_id: 'r1' } },
@@ -57,6 +58,16 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
         ],
         next_page_offset: null,
       }),
+    };
+    const contentSpine = {
+      invalidate: jest.fn(),
+      localIndex: jest.fn((bookId: string) => ({
+        kind: 'local', client: qdrant, collection: 'own_index', dimensions: 1024, contentItemId: bookId, tenantLock: true, guard: [],
+      })),
+      sharedIndex: jest.fn((work: string) => ({
+        kind: 'shared', client: qdrant, collection: 'shared_index', dimensions: 3072, contentItemId: work, tenantLock: false,
+        guard: [{ key: 'visibility', match: { value: 'public' } }],
+      })),
     };
     const embedding = { modelId: 'text-embedding-3-large' };
     const localIndexer = {
@@ -73,7 +84,7 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
       prisma,
       fileService as any,
       contentSpine as any,
-      { getClient: () => qdrant } as any,
+      {} as any,
       embedding as any,
       localIndexer as any,
       sharedLibrary as any,
@@ -114,7 +125,7 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
     });
     expect(s.prisma.book.update).toHaveBeenLastCalledWith({
       where: { id: 'book-1' },
-      data: { embeddingStatus: 'READY', vectorCollectionId: expect.any(String) },
+      data: { embeddingStatus: 'READY', vectorCollectionId: expect.any(String), spineContentItemId: null },
     });
     expect(s.contentSpine.invalidate).toHaveBeenCalledWith('book-1');
     expect(s.graphQueue.add).toHaveBeenCalledWith(
@@ -139,6 +150,7 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
     const s = setup();
     await s.processor.process(s.job);
 
+    expect(s.qdrant.scroll.mock.calls[0][0]).toBe('own_index');
     expect(s.qdrant.scroll.mock.calls[0][1].filter).toEqual({
       must: [
         { key: 'content_item_id', match: { value: 'book-1' } },
@@ -211,8 +223,10 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
       process.env.INGESTION_MODE = 'trio';
       process.env.TRIO_INGEST_URL = 'https://dcp.test/api/internal/trio-ingest';
       process.env.TRIO_SERVICE_SECRET = 'service-secret';
+      process.env.SHARED_QDRANT_URL = 'http://shared:6333';
     });
     afterEach(() => {
+      delete process.env.SHARED_QDRANT_URL;
       delete process.env.INGESTION_MODE;
       delete process.env.TRIO_INGEST_URL;
       delete process.env.TRIO_SERVICE_SECRET;
@@ -228,19 +242,32 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
     });
 
     it.each([
-      ['an institutional book', { catalogScope: 'INSTITUTIONAL' }, /belongs to an institution/],
-      ['a book without an AI licence', { licenseType: 'UNKNOWN' }, /not licensed for AI use/],
-    ])('refuses %s before reading or sending anything, and does not retry', async (_name, over, message) => {
+      ['an institutional book', { catalogScope: 'INSTITUTIONAL' }],
+      ['a book without an AI licence', { licenseType: 'UNKNOWN' }],
+    ])("keeps %s in Book Buddy's own index: nothing is sent to DigiClassroom", async (_name, over) => {
       const fetchSpy = jest.spyOn(global, 'fetch' as any);
       const s = setup({ book: sharedBook(over) });
+      await s.processor.process(s.job);
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(s.localIndexer.indexBook).toHaveBeenCalledTimes(1);
+      expect(s.prisma.book.update).toHaveBeenLastCalledWith({
+        where: { id: 'book-1' },
+        // Wherever it lived before, it lives here now.
+        data: expect.objectContaining({ embeddingStatus: 'READY', spineContentItemId: null }),
+      });
+    });
+
+    it('refuses before sending anything when reading back from the shared library is not set up', async () => {
+      delete process.env.SHARED_QDRANT_URL;
+      const fetchSpy = jest.spyOn(global, 'fetch' as any);
+      const s = setup({ book: sharedBook() });
       const err: any = await s.processor.process(s.job).catch((e) => e);
 
-      expect(err.message).toMatch(message);
       expect(err.name).toBe('UnrecoverableError');
+      expect(err.message).toMatch(/SHARED_QDRANT_URL/);
       expect(fetchSpy).not.toHaveBeenCalled();
       expect(s.fileService.getFileBuffer).not.toHaveBeenCalled();
-      // The reason is recorded where an admin will see it.
-      expect(JSON.stringify(s.prisma.bookEmbeddingStatus.upsert.mock.calls)).toMatch(/FAILED/);
     });
 
     it('sends an eligible book to DigiClassroom as bookbuddy, and records the work it returns', async () => {
@@ -266,6 +293,17 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
         data: expect.objectContaining({ embeddingStatus: 'READY', spineContentItemId: 'work-9' }),
       });
       expect(s.localIndexer.indexBook).not.toHaveBeenCalled();
+      expect(s.contentSpine.sharedIndex).toHaveBeenCalledWith('work-9');
+      expect(s.qdrant.scroll.mock.calls[0][0]).toBe('shared_index');
+    });
+
+    it('embeds an eligible book here when INGESTION_MODE is local', async () => {
+      process.env.INGESTION_MODE = 'local';
+      const fetchSpy = jest.spyOn(global, 'fetch' as any);
+      const s = setup({ book: sharedBook() });
+      await s.processor.process(s.job);
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(s.localIndexer.indexBook).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -289,6 +327,24 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
       });
       expect(s.contentSpine.invalidate).toHaveBeenCalledWith('book-1');
       expect(s.graphQueue.add).toHaveBeenCalled();
+      expect(s.qdrant.scroll.mock.calls[0][0]).toBe('shared_index');
+      // The unused local passages of this book, and only this book's, are removed.
+      expect(s.qdrant.delete).toHaveBeenCalledWith('own_index', {
+        filter: { must: [{ key: 'content_item_id', match: { value: 'book-1' } }] },
+        wait: true,
+      });
+    });
+
+    it('stops, without saving anything, when the shared library cannot be used', async () => {
+      const s = setup({ book: linkBook });
+      s.contentSpine.sharedIndex.mockImplementation(() => {
+        throw new SharedIndexUnavailableError('it could not be reached');
+      });
+      const err: any = await s.processor.process(linkJob(s)).catch((e) => e);
+      expect(err.name).toBe('UnrecoverableError');
+      expect(err.message).toMatch(/could not be reached/);
+      expect(JSON.stringify(s.prisma.book.update.mock.calls)).not.toMatch(/spineContentItemId/);
+      expect(s.qdrant.delete).not.toHaveBeenCalled();
     });
 
     it('does not save the work or claim READY when no public passages can be read', async () => {

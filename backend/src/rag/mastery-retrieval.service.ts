@@ -2,17 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GraphService } from '../graph/graph.service';
 import { MasteryService } from '../quiz/mastery.service';
-import { QdrantInitService } from './qdrant-init.service';
+import { ContentSpineService, readablePoints } from './content-spine.service';
 import { RankedChunk } from './interfaces/reranker.provider.interface';
-import { qdrantCollectionName } from './local/index-config';
 
 // The shared trio collection — same as Varta retrieval (rag-search.service.ts),
 // graph extraction and digest. The anchor point ids come from
 // GraphEdge.qdrantPointId, which extraction now captures against this
 // collection, so anchors must be retrieved from here; `book_buddy_books_v1` was
 // deleted in the platform reset and held nothing.
-const COLLECTION =
-  qdrantCollectionName();
 
 // Below this, a concept counts as "weak" for scaffolding purposes — the BKT
 // prior is 0.3, so anything that hasn't climbed meaningfully past it is
@@ -91,7 +88,7 @@ export class MasteryAwareRetrievalService {
     private prisma: PrismaService,
     private graphService: GraphService,
     private masteryService: MasteryService,
-    private qdrantInit: QdrantInitService,
+    private spine: ContentSpineService,
   ) {}
 
   get enabled(): boolean {
@@ -216,11 +213,14 @@ export class MasteryAwareRetrievalService {
     }
     if (candidateIds.length === 0) return [];
 
-    const qdrant = this.qdrantInit.getClient();
-    const points = await qdrant.retrieve(COLLECTION, {
-      ids: candidateIds,
-      with_payload: true,
-    });
+    const index = await this.spine.resolveIndex(bookId);
+    const points = readablePoints(
+      index,
+      await index.client.retrieve(index.collection, {
+        ids: candidateIds,
+        with_payload: true,
+      }),
+    );
 
     // Shared-collection payload vocabulary, matching rag-search.mapQdrantResults:
     // page_start / chapter|section_title / text, and a citation id built from

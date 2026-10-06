@@ -4,7 +4,7 @@ import {
   bookAnswerLanguage,
   contentLanguageDirective,
 } from '../common/language/answer-language';
-import { QdrantInitService } from '../rag/qdrant-init.service';
+import { ContentSpineService, readablePoints } from '../rag/content-spine.service';
 import {
   ILlmProvider,
   LLM_PROVIDER,
@@ -13,13 +13,10 @@ import {
   ITtsProvider,
   TTS_PROVIDER,
 } from '../rag/interfaces/tts.provider.interface';
-import { qdrantCollectionName } from '../rag/local/index-config';
 
 // The shared trio collection — same as graph extraction and Varta retrieval.
 // The point ids in BookChunkMapping are this collection's ids, so the recap
 // fallback must retrieve from here; `book_buddy_books_v1` was deleted in the reset.
-const COLLECTION =
-  qdrantCollectionName();
 const FALLBACK_CHUNK_SAMPLE = 6; // when there's no §3 community summary to ground on
 
 export interface DigestLine {
@@ -44,7 +41,7 @@ export class DigestService {
 
   constructor(
     private prisma: PrismaService,
-    private qdrantInit: QdrantInitService,
+    private spine: ContentSpineService,
     @Inject(LLM_PROVIDER) private llmProvider: ILlmProvider,
     @Inject(TTS_PROVIDER) private ttsProvider: ITtsProvider,
   ) {}
@@ -220,11 +217,14 @@ export class DigestService {
     });
     if (chunks.length === 0) return null;
 
-    const qdrant = this.qdrantInit.getClient();
-    const points = await qdrant.retrieve(COLLECTION, {
-      ids: chunks.map((c) => c.qdrantPointId),
-      with_payload: true,
-    });
+    const index = await this.spine.resolveIndex(bookId);
+    const points = readablePoints(
+      index,
+      await index.client.retrieve(index.collection, {
+        ids: chunks.map((c) => c.qdrantPointId),
+        with_payload: true,
+      }),
+    );
     const texts = points.map((p) => (p.payload as any)?.text).filter(Boolean);
     if (texts.length === 0) return null;
     return texts.join('\n\n');

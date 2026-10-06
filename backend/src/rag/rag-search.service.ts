@@ -2,12 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QdrantInitService } from './qdrant-init.service';
 import { EmbeddingService } from './embedding.service';
 import { buildSparseVector } from './sparse-tokenizer';
-import {
-  denseVectorName,
-  isLocalIndexing,
-  qdrantCollectionName,
-  sparseVectorName,
-} from './local/index-config';
+import { denseVectorName, sparseVectorName } from './local/index-config';
+import { ContentSpineService } from './content-spine.service';
 
 /**
  * Retrieval against the SHARED trio content collection.
@@ -42,7 +38,6 @@ import {
  *   textbook's own discussion prompt almost perfectly, and without the
  *   exclusion the tutor answers the question by quoting the question back.
  */
-const COLLECTION = qdrantCollectionName();
 const VECTOR_NAME = denseVectorName();
 // The collection declares this sparse vector with `modifier: idf`; DCP writes it
 // on every point at ingest. Named, not positional, because the collection uses
@@ -88,11 +83,11 @@ export class RagSearchService {
   constructor(
     private qdrantInit: QdrantInitService,
     private embeddingService: EmbeddingService,
+    private spine: ContentSpineService,
   ) {}
 
   async search(query: string, options: RagSearchOptions) {
     const { tenantId, bookId, contentItemId, topK = 5, scopeNodeIds } = options;
-    const qdrant = this.qdrantInit.getClient();
 
     // A book-scoped question that cannot be scoped must not become a
     // whole-library question. Searching the entire shared corpus and citing
@@ -104,6 +99,16 @@ export class RagSearchService {
           `question cannot be scoped to it. Refusing to search the whole corpus instead — ` +
           `an unscoped answer here would cite the wrong book without anything looking wrong.`,
       );
+    }
+
+    // The index THIS book lives in: Book Buddy's own, or the shared library. A search without a book
+    // can only ever use Book Buddy's own index, locked to the tenant.
+    const index = bookId ? await this.spine.resolveIndex(bookId) : this.spine.localIndex('');
+    const qdrant = index.client;
+    if (bookId && contentItemId !== index.contentItemId) {
+      // The caller resolved a different work than the book's own record says. Searching either is a
+      // guess, so refuse.
+      throw new Error(`Book ${bookId} was asked about as work ${contentItemId}, which is not the work it is linked to.`);
     }
 
     const filterMust: any[] = [
@@ -132,7 +137,7 @@ export class RagSearchService {
     // Book Buddy's own index writes `tenant_id` on every point. Filtering on it is a second lock
     // behind the per-book scoping above: even a search that somehow lost its book id could
     // never return another tenant's text. (The shared trio collection has no such field.)
-    if (isLocalIndexing()) {
+    if (index.tenantLock) {
       filterMust.push({ key: 'tenant_id', match: { value: tenantId } });
     }
 
@@ -165,7 +170,7 @@ export class RagSearchService {
     // that looks like an answer.
     let queryVector: number[];
     try {
-      queryVector = await this.embeddingService.embedOne(query);
+      queryVector = await this.embeddingService.embedOne(query, { dimensions: index.dimensions });
     } catch (e: any) {
       this.logger.error(`Query embedding failed: ${e.message}`);
       throw new Error(
@@ -201,7 +206,7 @@ export class RagSearchService {
         if (mode === 'sparse') {
           const sparse = buildSparseVector(query);
           if (sparse.indices.length === 0) return []; // no lexical terms to match
-          const res = await qdrant.query(COLLECTION, {
+          const res = await qdrant.query(index.collection, {
             query: sparse,
             using: SPARSE_VECTOR_NAME,
             filter,
@@ -210,7 +215,7 @@ export class RagSearchService {
           });
           return this.mapQdrantResults(res.points ?? [], options);
         }
-        const res = await qdrant.query(COLLECTION, {
+        const res = await qdrant.query(index.collection, {
           query: queryVector,
           using: VECTOR_NAME,
           filter,
@@ -221,7 +226,7 @@ export class RagSearchService {
       } catch (e: any) {
         const detail = e?.response?.data?.status?.error || e.message;
         this.logger.error(
-          `${mode}-only search failed on "${COLLECTION}": ${detail}`,
+          `${mode}-only search failed on "${index.collection}": ${detail}`,
         );
         throw new Error(`Retrieval is unavailable: ${detail}`);
       }
@@ -263,7 +268,7 @@ export class RagSearchService {
         });
       }
 
-      const res = await qdrant.query(COLLECTION, {
+      const res = await qdrant.query(index.collection, {
         prefetch,
         query: { fusion: 'rrf' },
         filter,
@@ -272,7 +277,7 @@ export class RagSearchService {
       });
       const results = res.points ?? [];
       this.logger.debug(
-        `hybrid search on "${COLLECTION}" (${VECTOR_NAME}${sparse.indices.length ? ` + ${SPARSE_VECTOR_NAME}` : ' only — no lexical terms in query'})` +
+        `hybrid search on "${index.collection}" (${VECTOR_NAME}${sparse.indices.length ? ` + ${SPARSE_VECTOR_NAME}` : ' only — no lexical terms in query'})` +
           ` for tenant ${tenantId}${contentItemId ? ` scoped to work ${contentItemId}` : ''}` +
           ` -> ${results.length} hit(s)`,
       );
@@ -282,7 +287,7 @@ export class RagSearchService {
       // Deliberately NOT falling back to dense-only. A silent fallback would
       // turn "the lexical half of retrieval is broken" into "answers got a bit
       // worse", which is the failure mode this file exists to avoid.
-      this.logger.error(`Hybrid search failed on "${COLLECTION}": ${detail}`);
+      this.logger.error(`Hybrid search failed on "${index.collection}": ${detail}`);
       throw new Error(`Retrieval is unavailable: ${detail}`);
     }
   }
@@ -348,11 +353,13 @@ export class RagSearchService {
     query: string,
     options: RagSearchOptions,
   ): Promise<any[]> {
-    const { contentItemId } = options;
+    const { contentItemId, bookId } = options;
     const refs = parseReferences(query);
     if (refs.length === 0) return [];
-    // A reference lookup MUST be bound to one work — never scan the whole corpus.
-    if (!contentItemId) return [];
+    // A reference lookup MUST be bound to one book and its work — never scan the whole corpus.
+    if (!contentItemId || !bookId) return [];
+    const index = await this.spine.resolveIndex(bookId);
+    if (contentItemId !== index.contentItemId) return [];
 
     // Scope by content_item_id ONLY.
     //
@@ -368,15 +375,17 @@ export class RagSearchService {
     // fails" inconsistency. Practice content is still excluded.
     const filter = {
       must: [
-        { key: 'content_item_id', match: { value: contentItemId } },
-        ...(isLocalIndexing()
+        { key: 'content_item_id', match: { value: index.contentItemId } },
+        ...(index.tenantLock
           ? [{ key: 'tenant_id', match: { value: options.tenantId } }]
           : []),
+        // The shared index can hold restricted passages for other apps: ask for public explicitly.
+        ...index.guard,
       ],
       must_not: [{ key: 'retrieval_class', match: { value: 'practice' } }],
     };
 
-    const qdrant = this.qdrantInit.getClient();
+    const qdrant = index.client;
     const matched: any[] = [];
     let offset: any = undefined;
     let pagesScanned = 0;
@@ -386,7 +395,7 @@ export class RagSearchService {
 
     try {
       do {
-        const page: any = await qdrant.scroll(COLLECTION, {
+        const page: any = await qdrant.scroll(index.collection, {
           filter,
           with_payload: true,
           with_vector: false,
