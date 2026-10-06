@@ -178,6 +178,11 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
                   bookId={book.id}
                   bookTitle={book.title}
                   onRequestDelete={setDeleteTarget}
+                  deleteLockedReason={
+                    book.spineContentItemId
+                      ? 'This book belongs to the shared library, which DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in DigiClassroom.'
+                      : undefined
+                  }
                 />
               </div>
 

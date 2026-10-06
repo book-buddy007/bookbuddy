@@ -64,6 +64,11 @@ interface FormatFileListProps {
   bookId: string;
   bookTitle: string;
   onRequestDelete: (target: FormatFileTarget) => void;
+  /**
+   * Set when this book's files are not Book Buddy's to delete (it lives in the shared library).
+   * The delete buttons are not shown, and this is said once above the list instead.
+   */
+  deleteLockedReason?: string;
 }
 
 /**
@@ -76,7 +81,7 @@ interface FormatFileListProps {
  * version keyed on `type` alone and printed no filename, which meant several
  * markdown rows collapsed into what looked like a single entry.
  */
-export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: FormatFileListProps) {
+export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete, deleteLockedReason }: FormatFileListProps) {
   if (!formats || formats.length === 0) {
     return (
       <div className="py-8 text-center bg-bb-surface-2/50 rounded-xl border border-dashed border-bb-border">
@@ -88,6 +93,11 @@ export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: 
 
   return (
     <div className="grid gap-3">
+      {deleteLockedReason && (
+        <p data-testid="format-delete-locked" className="rounded-xl border border-bb-border bg-bb-surface-2/70 p-3 text-xs leading-relaxed text-bb-muted">
+          {deleteLockedReason}
+        </p>
+      )}
       {formats.map((fmt) => {
         const Icon = FORMAT_ICONS[fmt.type] || FileText;
         const color = FORMAT_COLORS[fmt.type] || FORMAT_COLORS.PDF;
@@ -143,6 +153,7 @@ export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: 
                 {/* Disabled without a row id: the delete endpoint addresses a
                     single format by id, and guessing one would delete a file
                     the operator did not choose. */}
+                {!deleteLockedReason && (
                 <button
                   type="button"
                   title={fmt.id ? 'Delete this file from the server' : 'This row cannot be deleted individually'}
@@ -163,6 +174,7 @@ export function FormatFileList({ formats, bookId, bookTitle, onRequestDelete }: 
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3 text-xs mt-2 pl-[52px]">

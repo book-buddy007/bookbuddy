@@ -4,6 +4,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { bookRemovalBlocker } from '../book-deletion-policy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { S3Service } from '../../aws/s3.service';
 import { QdrantInitService } from '../../rag/qdrant-init.service';
@@ -395,9 +396,12 @@ export class SuperAdminCatalogService {
   async deleteBook(id: string, deletedBy?: string) {
     const book = await this.prisma.book.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, title: true, spineContentItemId: true },
     });
     if (!book) throw new NotFoundException('Book not found');
+    // A book in the shared library is DigiClassroom's to remove, not Book Buddy's.
+    const blocked = bookRemovalBlocker(book, 'bin');
+    if (blocked) throw new ForbiddenException(blocked);
 
     return this.prisma.book.update({
       where: { id },
@@ -447,6 +451,10 @@ export class SuperAdminCatalogService {
       include: { bookFormats: { select: { metadata: true, fileUrl: true } } },
     });
     if (!book) throw new NotFoundException('Book not found');
+    // The purge below deletes this book's files from storage by key, so it must never run for a
+    // book whose files and embeddings belong to the shared library.
+    const blocked = bookRemovalBlocker(book, 'purge');
+    if (blocked) throw new ForbiddenException(blocked);
     if (!book.deletedAt) {
       throw new BadRequestException(
         'A book must be in the Bin before it can be permanently deleted. Delete it first, then purge from the Bin.',
@@ -935,6 +943,21 @@ export class SuperAdminCatalogService {
       select: { metadata: true },
     });
 
+    // Replacing a file deletes the old one, so a shared-library book's files are held to the same
+    // rule as deleting them. The object that was just uploaded is ours and is removed again, so
+    // the refusal leaves nothing behind. Adding a file to an empty slot is still allowed.
+    if (superseded) {
+      const blocked = bookRemovalBlocker(book, 'replace-file');
+      if (blocked) {
+        try {
+          await this.s3Service.deleteFile(data.s3Key);
+        } catch {
+          /* best effort: the refusal matters more than the cleanup */
+        }
+        throw new ForbiddenException(blocked);
+      }
+    }
+
     // Upsert per (book, format, part): one PDF, and one markdown per chapter.
     const saved = await this.prisma.bookFormat.upsert({
       where: { bookId_type_partIndex: { bookId, type: formatType, partIndex } },
@@ -993,6 +1016,14 @@ export class SuperAdminCatalogService {
     if (!format || format.bookId !== bookId) {
       throw new NotFoundException('Format file not found on this book');
     }
+
+    // Files of a shared-library book are not Book Buddy's to delete.
+    const owner = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { title: true, spineContentItemId: true },
+    });
+    const blocked = owner ? bookRemovalBlocker(owner, 'delete-file') : null;
+    if (blocked) throw new ForbiddenException(blocked);
 
     // metadata.s3Key is what every upload records, but rows written by earlier
     // versions may not have it. The public URL contains the key, so derive it

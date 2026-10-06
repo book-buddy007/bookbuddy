@@ -561,12 +561,19 @@ export default function SuperAdminCatalogPage() {
                           <FilePlus className="h-4 w-4 mr-2 text-bb-success-ink" /> Add Format
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        {book.spineContentItemId ? (
+                          // A shared-library book is DigiClassroom's to remove; Book Buddy has no way to.
+                          <DropdownMenuItem disabled title="This book belongs to the shared library, which DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in DigiClassroom.">
+                            <Globe className="h-4 w-4 mr-2" /> Remove in DigiClassroom
+                          </DropdownMenuItem>
+                        ) : (
                         <DropdownMenuItem
                           onSelect={() => setTimeout(() => { setDeleteBook({ id: book.id, title: book.title, author: book.author }); setIsDeleteOpen(true); }, 100)}
                           className="text-bb-danger-ink focus:text-bb-danger-ink focus:bg-bb-danger-soft"
                         >
                           <Trash2 className="h-4 w-4 mr-2" /> Move to Bin
                         </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -771,12 +778,19 @@ export default function SuperAdminCatalogPage() {
                                   <Globe className="h-4 w-4 mr-2 text-bb-info-ink" /> Link to shared library
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
+                                {book.spineContentItemId ? (
+                                  // A shared-library book is DigiClassroom's to remove; Book Buddy has no way to.
+                                  <DropdownMenuItem disabled title="This book belongs to the shared library, which DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in DigiClassroom.">
+                                    <Globe className="h-4 w-4 mr-2" /> Remove in DigiClassroom
+                                  </DropdownMenuItem>
+                                ) : (
                                 <DropdownMenuItem
                                   onSelect={() => setTimeout(() => { setDeleteBook({ id: book.id, title: book.title, author: book.author }); setIsDeleteOpen(true); }, 100)}
                                   className="text-bb-danger-ink focus:text-bb-danger-ink focus:bg-bb-danger-soft"
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" /> Move to Bin
                                 </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>

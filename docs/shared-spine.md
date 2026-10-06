@@ -34,7 +34,7 @@ lives (`ContentSpineService.resolveIndex`) and use that index, at that index's v
 | Book Buddy's access | read and write | read-only key |
 | Search locked to | the book and its tenant | the book's work, public passages only |
 | Used for | institution-private books, and anything not shared | books meant for everyone |
-| Deleting a book | removes its passages | removes nothing (other apps use them) |
+| Deleting a book | removes its passages and files | not possible from Book Buddy: only DigiClassroom can remove it |
 
 Nothing is decided per request from an environment flag, and nothing falls back from one index to
 the other: a shared book while the shared library is unreachable is refused, never answered from
@@ -48,7 +48,7 @@ library.
 | Only PUBLIC works can be listed or linked. A work with any restricted grant is invisible. | DCP `content-sharing.ts` |
 | Only global-catalogue, AI-licensed books are handed to DigiClassroom. Every other book is embedded into Book Buddy's own index instead, so an institution's book can never become readable by every app. | `shared-index-policy.ts`, decided in the ingestion job |
 | Linking refuses a work whose ISBN differs from the book's, and refuses to repoint a record already linked to another work. | DCP `trio-link` |
-| Deleting a book in Book Buddy never deletes anything from the shared library. | catalogue service |
+| A shared-library book cannot be moved to the Bin, purged, or have a file deleted or replaced from Book Buddy; the catalogue hides those controls and the backend refuses the calls. Only DigiClassroom removes a shared book. | `book-deletion-policy.ts`, catalogue service |
 | Every read of the shared library asks for `visibility: public` (searches, figure lookup, page map, graph, citation table, and reads by id are re-checked). | `ContentSpineService`, `readablePoints` |
 | Book Buddy's connection to the shared library is read-only by key, and `npm run check:ai` proves it by attempting a write that must be refused. | server side, below |
 | Book Buddy's own and the shared Qdrant use separate settings, so a wrong `QDRANT_URL` can never point Book Buddy's writes at the shared library. | `index-config.ts` |
@@ -121,7 +121,10 @@ everything: leave `SHARED_QDRANT_URL` empty; own-index books are untouched eithe
 - **DigiClassroom's own search does not filter by `visibility` or `grant_org_ids` at query time**
   (the fields are written but nothing reads them). That is why only fully public works are shared
   from Book Buddy. Fixing it in DCP would let restricted books be shared safely later.
-- **Removing a work** from the shared library is done in DCP; Book Buddy only drops its own record.
+- **Removing a shared book** is done only in DigiClassroom. Book Buddy cannot even drop its own record of it; to stop
+  showing it, make it unavailable. That rule is enforced in Book Buddy's code. If the three apps share one R2 bucket, also
+  give PDLMS and Book Buddy an R2 key that is **Object Read only** on it, so the rule holds at the storage level too and a
+  bug or a leaked key in either app still cannot delete a file. Annotations stay in each app's own database and bucket.
 - **PDLMS** deletes shared points directly when its own purge URL is unset (its audit finding
   PDLMS-018); that is PDLMS's to fix and applies equally to books Book Buddy has linked.
 - Unlinking a book from the shared library has no button: it needs `INGESTION_MODE=local` and a re-embed from the
