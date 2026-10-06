@@ -137,7 +137,7 @@ services:
       # To use the books and embeddings shared with DigiClassroom and PDLMS instead, set these in
       # Coolify (no code change): INGESTION_MODE=trio, QDRANT_URL=http://trio-content-qdrant:6333,
       # QDRANT_COLLECTION_NAME=trio_content_v1_openai3072, EMBEDDING_DIMENSIONS=3072,
-      # QDRANT_ALLOW_COLLECTION_CREATE=false, and the four TRIO_* values below.
+      # QDRANT_ALLOW_COLLECTION_CREATE=false, a READ-ONLY QDRANT_API_KEY and the TRIO_* values below.
       # See docs/shared-spine.md before doing so.
       INGESTION_MODE: ${INGESTION_MODE:-local}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
@@ -145,9 +145,10 @@ services:
       QDRANT_ALLOW_COLLECTION_CREATE: ${QDRANT_ALLOW_COLLECTION_CREATE:-true}
       # Shared-spine connection (trio mode only; ignored otherwise).
       TRIO_INGEST_URL: ${TRIO_INGEST_URL:-}
-      TRIO_PURGE_URL: ${TRIO_PURGE_URL:-}
+      TRIO_API_BASE: ${TRIO_API_BASE:-}
       TRIO_SERVICE_SECRET: ${TRIO_SERVICE_SECRET:-}
-      TRIO_CONTENT_DATABASE_URL: ${TRIO_CONTENT_DATABASE_URL:-}
+      # Use a READ-ONLY key for the shared Qdrant. Book Buddy never writes there.
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
       # The embedding model and its vector width are fixed together and stored with every passage.
       # Changing either means a NEW collection name above and re-indexing every book: a question
       # embedded one way cannot be compared with passages embedded another.

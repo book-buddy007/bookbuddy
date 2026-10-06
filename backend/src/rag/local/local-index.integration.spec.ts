@@ -80,7 +80,7 @@ beforeAll(async () => {
   const { RagSearchService } = require('../rag-search.service');
   const { ContentSpineService } = require('../content-spine.service');
   search = new RagSearchService(qdrantInit, embedding);
-  spine = new ContentSpineService(qdrantInit);
+  spine = new ContentSpineService(qdrantInit, {} as any); // local mode never reads the book record
 
   await indexer.indexBook({
     bookId: 'book-A',

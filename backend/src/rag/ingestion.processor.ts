@@ -1,6 +1,6 @@
 import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job, Queue } from 'bullmq';
+import { Job, Queue, UnrecoverableError } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileService } from './file.service';
 import { ContentSpineService } from './content-spine.service';
@@ -8,6 +8,8 @@ import { QdrantInitService } from './qdrant-init.service';
 import { EmbeddingService } from './embedding.service';
 import { LocalIndexerService } from './local/local-indexer.service';
 import { isLocalIndexing, qdrantCollectionName } from './local/index-config';
+import { sharedIndexBlocker } from './local/shared-index-policy';
+import { SharedLibraryError, SharedLibraryService } from './shared-library.service';
 
 const COLLECTION = qdrantCollectionName();
 
@@ -31,6 +33,12 @@ const COLLECTION = qdrantCollectionName();
  * endpoint creates server-side.
  */
 /** Payload of a `book-ingestion` job. `force` is set only by an operator re-embed. */
+/** Payload of a `link-work` job: use an existing shared-library work instead of embedding. */
+export interface LinkJobData {
+  bookId: string;
+  contentItemId: string;
+}
+
 export interface IngestJobData {
   bookId: string;
   force?: boolean;
@@ -47,6 +55,7 @@ export class IngestionProcessor extends WorkerHost {
     private qdrantInit: QdrantInitService,
     private embedding: EmbeddingService,
     private localIndexer: LocalIndexerService,
+    private sharedLibrary: SharedLibraryService,
     @InjectQueue('book-graph-extraction') private graphQueue: Queue,
   ) {
     super();
@@ -100,7 +109,12 @@ export class IngestionProcessor extends WorkerHost {
     do {
       const page = await qdrant.scroll(COLLECTION, {
         filter: {
-          must: [{ key: 'content_item_id', match: { value: contentItemId } }],
+          must: [
+            { key: 'content_item_id', match: { value: contentItemId } },
+            // Only what is public: a citation table must never list a passage the search itself
+            // would refuse to return.
+            { key: 'visibility', match: { value: 'public' } },
+          ],
         },
         with_payload: true,
         with_vector: false,
@@ -150,10 +164,12 @@ export class IngestionProcessor extends WorkerHost {
   }
 
   /** @nestjs/bullmq entry point — dispatches by job.name */
-  async process(job: Job<IngestJobData>): Promise<void> {
+  async process(job: Job<any>): Promise<void> {
     switch (job.name) {
       case 'ingest-book':
         return this.handleIngestion(job);
+      case 'link-work':
+        return this.handleLink(job);
       default:
         throw new Error(`Unknown job name: ${job.name}`);
     }
@@ -251,6 +267,96 @@ export class IngestionProcessor extends WorkerHost {
     );
   }
 
+  /**
+   * Use a work that is already embedded in the shared library, rather than embedding the book
+   * again. Nothing is written to the shared index: DigiClassroom records the link, and this
+   * only reads the passages back to build Book Buddy's citation table.
+   *
+   * The order matters. The work id is saved on the book, and the book marked READY, only after
+   * the passages were actually found; saving it first would leave a book that claims to be
+   * ready and answers from nothing.
+   */
+  private async handleLink(job: Job<LinkJobData>) {
+    const { bookId, contentItemId } = job.data;
+    this.logger.log(`🔗 Linking book ${bookId} to shared work ${contentItemId}`);
+
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true, title: true, isbn: true },
+    });
+    if (!book) {
+      this.logger.warn(`Book ${bookId} deleted before linking started. Skipping.`);
+      return;
+    }
+
+    try {
+      await this.prisma.bookEmbeddingStatus.upsert({
+        where: { bookId },
+        create: { bookId, status: 'PROCESSING', totalChunks: 0, embeddedChunks: 0, embeddingModel: this.embedding.modelId },
+        update: { status: 'PROCESSING', totalChunks: 0, embeddedChunks: 0, errorMessage: null, embeddingModel: this.embedding.modelId },
+      });
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: { embeddingStatus: 'PROCESSING', embeddingStartedAt: new Date() },
+      });
+      await job.updateProgress(10);
+
+      // DigiClassroom checks the work is public, the ISBNs agree and the record is not already
+      // attached to a different work, and answers with a reason a person can act on if not.
+      try {
+        await this.sharedLibrary.linkWork({ contentItemId, bookId, isbn: book.isbn });
+      } catch (err) {
+        if (err instanceof SharedLibraryError && !err.retryable) {
+          throw new UnrecoverableError(err.message);
+        }
+        throw err;
+      }
+      await job.updateProgress(40);
+
+      const mapped = await this.rebuildChunkMapping(bookId, contentItemId);
+      if (mapped === 0) {
+        throw new UnrecoverableError(
+          'The shared work was linked, but no public passages of it could be read from the shared index. ' +
+            'Check that it has been embedded and that QDRANT_URL and the collection name are correct.',
+        );
+      }
+      await job.updateProgress(80);
+
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: {
+          spineContentItemId: contentItemId,
+          embeddingStatus: 'READY',
+          vectorCollectionId: qdrantCollectionName(),
+        },
+      });
+      this.contentSpine.invalidate(bookId);
+      await this.prisma.bookEmbeddingStatus.update({
+        where: { bookId },
+        data: { status: 'READY', totalChunks: mapped, embeddedChunks: mapped },
+      });
+      await job.updateProgress(100);
+
+      await this.graphQueue.add(
+        'extract-graph',
+        { bookId },
+        { jobId: `graph-ingest-${bookId}`, removeOnComplete: true, removeOnFail: true },
+      );
+      this.logger.log(
+        `✅ Book "${book.title}" (${bookId}) now uses shared work ${contentItemId}: ${mapped} passages`,
+      );
+    } catch (err: any) {
+      this.logger.error(`❌ Linking failed for ${bookId}: ${err.message}`);
+      await this.prisma.bookEmbeddingStatus.upsert({
+        where: { bookId },
+        create: { bookId, status: 'FAILED', errorMessage: err.message },
+        update: { status: 'FAILED', errorMessage: err.message },
+      });
+      await this.prisma.book.update({ where: { id: bookId }, data: { embeddingStatus: 'FAILED' } });
+      throw err;
+    }
+  }
+
   private async handleIngestion(job: Job<IngestJobData>) {
     const { bookId, force = false } = job.data;
     const startTime = Date.now();
@@ -325,6 +431,12 @@ export class IngestionProcessor extends WorkerHost {
         await this.ingestLocally(job, book, chapters, startTime);
         return;
       }
+
+      // Shared index: nothing in it can stay private, so only books meant for everyone go in.
+      // Checked here, where the job runs, and not only in the controller, because the shared
+      // index is the one place a mistake cannot be taken back. Retrying cannot fix it.
+      const blocker = sharedIndexBlocker(book);
+      if (blocker) throw new UnrecoverableError(blocker);
 
       // ── Steps 2-3: every chapter, in order ───────────────────────────
       const ingestUrl = process.env.TRIO_INGEST_URL;
@@ -554,7 +666,9 @@ export class IngestionProcessor extends WorkerHost {
         where: { id: bookId },
         data: {
           embeddingStatus: 'READY',
-          vectorCollectionId: 'trio_content_v1_openai3072',
+          vectorCollectionId: qdrantCollectionName(),
+          // Recorded from DigiClassroom's answer, so later lookups need no shared database.
+          ...(result.contentItemId ? { spineContentItemId: result.contentItemId } : {}),
         },
       });
 

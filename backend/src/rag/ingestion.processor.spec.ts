@@ -1,4 +1,5 @@
 import { IngestionProcessor } from './ingestion.processor';
+import { SharedLibraryError } from './shared-library.service';
 
 /**
  * The local-mode bookkeeping around the indexer: what gets read, what the book's status says at
@@ -67,6 +68,7 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
           }),
     };
     const graphQueue = { add: jest.fn().mockResolvedValue({}) };
+    const sharedLibrary = { linkWork: jest.fn().mockResolvedValue(undefined) };
     const processor = new IngestionProcessor(
       prisma,
       fileService as any,
@@ -74,10 +76,11 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
       { getClient: () => qdrant } as any,
       embedding as any,
       localIndexer as any,
+      sharedLibrary as any,
       graphQueue as any,
     );
     const job: any = { name: 'ingest-book', data: { bookId: 'book-1' }, updateProgress: jest.fn().mockResolvedValue(undefined) };
-    return { processor, prisma, fileService, contentSpine, localIndexer, graphQueue, qdrant, job };
+    return { processor, prisma, fileService, contentSpine, localIndexer, graphQueue, qdrant, job, sharedLibrary };
   }
 
   it('reads every chapter in order, indexes them together and marks the book READY', async () => {
@@ -137,7 +140,10 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
     await s.processor.process(s.job);
 
     expect(s.qdrant.scroll.mock.calls[0][1].filter).toEqual({
-      must: [{ key: 'content_item_id', match: { value: 'book-1' } }],
+      must: [
+        { key: 'content_item_id', match: { value: 'book-1' } },
+        { key: 'visibility', match: { value: 'public' } },
+      ],
     });
     const { data } = s.prisma.bookChunkMapping.createMany.mock.calls[0][0];
     expect(data).toEqual([
@@ -198,5 +204,130 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
   it('rejects job names it does not know', async () => {
     const s = setup();
     await expect(s.processor.process({ ...s.job, name: 'nope' })).rejects.toThrow(/Unknown job name/);
+  });
+
+  describe('shared index (INGESTION_MODE=trio)', () => {
+    beforeEach(() => {
+      process.env.INGESTION_MODE = 'trio';
+      process.env.TRIO_INGEST_URL = 'https://dcp.test/api/internal/trio-ingest';
+      process.env.TRIO_SERVICE_SECRET = 'service-secret';
+    });
+    afterEach(() => {
+      delete process.env.INGESTION_MODE;
+      delete process.env.TRIO_INGEST_URL;
+      delete process.env.TRIO_SERVICE_SECRET;
+      jest.restoreAllMocks();
+    });
+
+    const sharedBook = (over: object = {}) => ({
+      ...book([fmt(1)]),
+      catalogScope: 'GLOBAL',
+      licenseType: 'AI_PERMITTED',
+      isbn: null,
+      ...over,
+    });
+
+    it.each([
+      ['an institutional book', { catalogScope: 'INSTITUTIONAL' }, /belongs to an institution/],
+      ['a book without an AI licence', { licenseType: 'UNKNOWN' }, /not licensed for AI use/],
+    ])('refuses %s before reading or sending anything, and does not retry', async (_name, over, message) => {
+      const fetchSpy = jest.spyOn(global, 'fetch' as any);
+      const s = setup({ book: sharedBook(over) });
+      const err: any = await s.processor.process(s.job).catch((e) => e);
+
+      expect(err.message).toMatch(message);
+      expect(err.name).toBe('UnrecoverableError');
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(s.fileService.getFileBuffer).not.toHaveBeenCalled();
+      // The reason is recorded where an admin will see it.
+      expect(JSON.stringify(s.prisma.bookEmbeddingStatus.upsert.mock.calls)).toMatch(/FAILED/);
+    });
+
+    it('sends an eligible book to DigiClassroom as bookbuddy, and records the work it returns', async () => {
+      const fetchMock = jest.spyOn(global, 'fetch' as any).mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ success: true, contentItemId: 'work-9', chunksIndexed: 12 }),
+      } as any);
+      const s = setup({ book: sharedBook() });
+      s.qdrant.scroll.mockResolvedValue({ points: [], next_page_offset: null });
+      await s.processor.process(s.job);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init]: any = fetchMock.mock.calls[0];
+      expect(url).toBe('https://dcp.test/api/internal/trio-ingest');
+      expect(init.headers).toEqual({ 'X-Trio-Service-Secret': 'service-secret' });
+      expect(init.body.get('sourceApp')).toBe('bookbuddy');
+      expect(init.body.get('sourceLocalId')).toBe('book-1');
+      // No organisation is sent: the work is public by design, which is why the policy exists.
+      expect(init.body.get('organizationId')).toBeNull();
+      expect(s.prisma.book.update).toHaveBeenLastCalledWith({
+        where: { id: 'book-1' },
+        data: expect.objectContaining({ embeddingStatus: 'READY', spineContentItemId: 'work-9' }),
+      });
+      expect(s.localIndexer.indexBook).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('linking to a work already in the shared library (link-work)', () => {
+    const linkJob = (s: ReturnType<typeof setup>) => ({ ...s.job, name: 'link-work', data: { bookId: 'book-1', contentItemId: 'work-1' } });
+    const linkBook = { id: 'book-1', title: 'Understanding Society', isbn: '978-93-5729-100-2' };
+
+    it('links at DigiClassroom, finds the passages, then records the work and marks READY', async () => {
+      const s = setup({ book: linkBook });
+      await s.processor.process(linkJob(s));
+
+      expect(s.sharedLibrary.linkWork).toHaveBeenCalledWith({ contentItemId: 'work-1', bookId: 'book-1', isbn: '978-93-5729-100-2' });
+      expect(s.localIndexer.indexBook).not.toHaveBeenCalled();
+      expect(s.prisma.book.update).toHaveBeenLastCalledWith({
+        where: { id: 'book-1' },
+        data: expect.objectContaining({ spineContentItemId: 'work-1', embeddingStatus: 'READY' }),
+      });
+      expect(s.prisma.bookEmbeddingStatus.update).toHaveBeenCalledWith({
+        where: { bookId: 'book-1' },
+        data: { status: 'READY', totalChunks: 2, embeddedChunks: 2 },
+      });
+      expect(s.contentSpine.invalidate).toHaveBeenCalledWith('book-1');
+      expect(s.graphQueue.add).toHaveBeenCalled();
+    });
+
+    it('does not save the work or claim READY when no public passages can be read', async () => {
+      const s = setup({ book: linkBook });
+      s.qdrant.scroll.mockResolvedValue({ points: [], next_page_offset: null });
+      const err: any = await s.processor.process(linkJob(s)).catch((e) => e);
+
+      expect(err.name).toBe('UnrecoverableError');
+      expect(err.message).toMatch(/no public passages/);
+      const saved = JSON.stringify(s.prisma.book.update.mock.calls);
+      expect(saved).not.toMatch(/spineContentItemId/);
+      expect(saved).not.toMatch(/READY/);
+      expect(s.graphQueue.add).not.toHaveBeenCalled();
+    });
+
+    it('turns a refusal from DigiClassroom into a failure that is not retried, with its reason recorded', async () => {
+      const s = setup({ book: linkBook });
+      s.sharedLibrary.linkWork.mockRejectedValue(new SharedLibraryError(422, 'ISBN mismatch: the record says 1 but the work is 2.'));
+      const err: any = await s.processor.process(linkJob(s)).catch((e) => e);
+
+      expect(err.name).toBe('UnrecoverableError');
+      expect(err.message).toMatch(/ISBN mismatch/);
+      const recorded = JSON.stringify(s.prisma.bookEmbeddingStatus.upsert.mock.calls);
+      expect(recorded).toMatch(/FAILED/);
+      expect(recorded).toMatch(/ISBN mismatch/);
+      expect(s.qdrant.scroll).not.toHaveBeenCalled();
+    });
+
+    it('lets a network or server failure through to be retried', async () => {
+      const s = setup({ book: linkBook });
+      s.sharedLibrary.linkWork.mockRejectedValue(new SharedLibraryError(0, 'Could not reach the shared library.'));
+      const err: any = await s.processor.process(linkJob(s)).catch((e) => e);
+      expect(err.name).toBe('SharedLibraryError');
+    });
+
+    it('skips quietly when the book was deleted', async () => {
+      const s = setup({ book: null });
+      await expect(s.processor.process(linkJob(s))).resolves.toBeUndefined();
+      expect(s.sharedLibrary.linkWork).not.toHaveBeenCalled();
+    });
   });
 });

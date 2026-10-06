@@ -655,6 +655,9 @@ model Book {
   aiEmbedEnabled     Boolean         @default(false)
   embeddingStatus    EmbeddingStatus @default(NONE)
   vectorCollectionId String? // Qdrant collection reference (shared collection, used for payload filtering)
+  // The canonical work in the shared DigiClassroom spine this book is indexed as (shared index mode
+  // only). Written by the server after DigiClassroom confirms it, never from client input.
+  spineContentItemId String?
 
   // Shared cross-repo curriculum taxonomy (Vidyaverse-hosted Taxonomy Service).
   // Denormalized local read cache: the taxonomy service's BookTaxonomyLink table is
@@ -718,6 +721,7 @@ model Book {
   @@index([catalogScope])
   @@index([globalPublishStatus])
   @@index([deletedAt])
+  @@index([spineContentItemId])
 }
 
 // BookPage Model - For Server-Side Full-Text Search

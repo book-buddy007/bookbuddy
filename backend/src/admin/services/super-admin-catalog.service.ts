@@ -431,11 +431,9 @@ export class SuperAdminCatalogService {
    * What it flushes, scoped strictly to this book:
    *  1. Cloudflare R2 objects: front/back cover, sample, and every format file
    *     (PDF/EPUB/audio/markdown) — by their exact storage keys.
-   *  2. The shared trio index (embeddings): the book's canonical work is resolved
-   *     to a content_item_id and only that work's vectors are removed. Preferred
-   *     path is DCP's purge endpoint (TRIO_PURGE_URL, symmetric to ingestion),
-   *     which also clears the spine's Postgres rows DCP owns; if unconfigured we
-   *     fall back to deleting the Qdrant points directly by content_item_id.
+   *  2. The search index (embeddings): in Book Buddy's own index the book's passages are
+   *     deleted by content_item_id. In shared-index mode nothing is deleted: the work is
+   *     also used by DigiClassroom and PDLMS, so only DigiClassroom may remove it.
    *  3. All Book Buddy-owned rows: the Book row and everything that cascades from it —
    *     formats, chunk mappings, quizzes, digests, annotations, chat, and the
    *     WHOLE graph (nodes, edges, communities, embeddings) via onDelete: Cascade.
@@ -501,8 +499,8 @@ export class SuperAdminCatalogService {
   }
 
   /**
-   * Remove this book's embeddings from the shared trio index. See purgeBook for
-   * why the two paths exist. Non-fatal: a failure here is reported, never thrown,
+   * Remove this book's embeddings from Book Buddy's own index; in shared-index mode leave the
+   * shared index alone (see below). Non-fatal: a failure here is reported, never thrown,
    * so a storage/index hiccup cannot strand a book half-deleted in the Bin — the
    * DB delete still proceeds and the operator sees exactly what was left behind.
    */
@@ -523,58 +521,25 @@ export class SuperAdminCatalogService {
       };
     }
 
-    // Preferred: ask DCP (the spine's owner) to fully purge the work, mirroring
-    // how ingestion proxies to DCP. This also clears the spine's Postgres rows,
-    // which Book Buddy's read-only connection cannot touch.
-    // Not in self-contained mode: the index is Book Buddy's own, so there is no one to ask.
-    const purgeUrl = isLocalIndexing() ? undefined : process.env.TRIO_PURGE_URL;
-    const secret = process.env.TRIO_SERVICE_SECRET;
-    if (purgeUrl && secret) {
-      try {
-        const res = await fetch(purgeUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Service-Secret': secret,
-          },
-          body: JSON.stringify({
-            app: 'bookbuddy',
-            localId: bookId,
-            contentItemId,
-          }),
-        });
-        if (!res.ok) {
-          const body = await res.text().catch(() => '');
-          throw new Error(
-            `DCP purge returned ${res.status}: ${body.slice(0, 200)}`,
-          );
-        }
-        return {
-          method: 'dcp',
-          contentItemId,
-          ok: true,
-          detail:
-            'Requested full purge from DCP (vectors + spine rows removed).',
-        };
-      } catch (err: any) {
-        return {
-          method: 'dcp',
-          contentItemId,
-          ok: false,
-          detail: `DCP purge failed (${err?.message ?? 'unknown'}). Vectors may remain in the shared index; ask DCP to purge content_item ${contentItemId}.`,
-        };
-      }
+    // Shared index: never touched from here. The work in it is read by DigiClassroom and PDLMS
+    // as well, so deleting its passages because ONE app dropped its copy of the book would take
+    // the book away from the others, and Book Buddy's login is read-only by design. Removing a
+    // work from the shared spine is DigiClassroom's decision, made there.
+    if (!isLocalIndexing()) {
+      return {
+        method: 'none',
+        contentItemId,
+        ok: true,
+        detail:
+          'Shared index left intact: this book is also used by DigiClassroom and PDLMS. ' +
+          'Book Buddy only removed its own record; remove the work from DigiClassroom if it ' +
+          'should disappear everywhere.',
+      };
     }
 
-    // Fallback: delete this work's Qdrant points directly by content_item_id.
-    // Only this content_item is matched, so no other book is affected. The
-    // spine's Postgres rows (content_item/content_chunk) remain — only DCP can
-    // remove those — so this is reported as partial.
+    // Book Buddy's own index: delete this book's passages. Only this book's points match.
     try {
-      const collection =
-        qdrantCollectionName();
-      const client = this.qdrantInit.getClient();
-      await client.delete(collection, {
+      await this.qdrantInit.getClient().delete(qdrantCollectionName(), {
         filter: {
           must: [{ key: 'content_item_id', match: { value: contentItemId } }],
         },
@@ -584,17 +549,14 @@ export class SuperAdminCatalogService {
         method: 'qdrant',
         contentItemId,
         ok: true,
-        detail: isLocalIndexing()
-          ? "Deleted this book's passages from Book Buddy's search index."
-          : "Deleted this book's vectors directly from the shared collection. " +
-            'Spine metadata rows (owned by DCP) were left intact; set TRIO_PURGE_URL for a full flush.',
+        detail: "Deleted this book's passages from Book Buddy's search index.",
       };
     } catch (err: any) {
       return {
         method: 'qdrant',
         contentItemId,
         ok: false,
-        detail: `Direct Qdrant delete failed (${err?.message ?? 'unknown'}). Vectors for content_item ${contentItemId} may remain.`,
+        detail: `Deleting from the search index failed (${err?.message ?? 'unknown'}). Passages for this book may remain.`,
       };
     }
   }

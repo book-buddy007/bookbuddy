@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Pool } from 'pg';
+import { PrismaService } from '../prisma/prisma.service';
 import { QdrantInitService } from './qdrant-init.service';
 import { isLocalIndexing, qdrantCollectionName } from './local/index-config';
 
@@ -42,7 +43,10 @@ export class ContentSpineService implements OnModuleDestroy {
   >();
   private static readonly TTL_MS = 5 * 60 * 1000;
 
-  constructor(private readonly qdrantInit: QdrantInitService) {}
+  constructor(
+    private readonly qdrantInit: QdrantInitService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   private getPool(): Pool | null {
     if (this.pool) return this.pool;
@@ -101,7 +105,9 @@ export class ContentSpineService implements OnModuleDestroy {
 
     // Book Buddy's own index: the extent is simply the lowest and highest printed page of
     // the book's chunks, read from the chunks themselves.
-    if (isLocalIndexing()) return this.localPrintedPageSpan(contentItemId);
+    // Also when there is no connection to the shared database: the passages carry their own pages.
+    if (isLocalIndexing() || !process.env.TRIO_CONTENT_DATABASE_URL)
+      return this.localPrintedPageSpan(contentItemId);
 
     const pool = this.getPool();
     if (!pool) return null;
@@ -179,6 +185,26 @@ export class ContentSpineService implements OnModuleDestroy {
     const hit = this.cache.get(bookId);
     if (hit && Date.now() - hit.at < ContentSpineService.TTL_MS)
       return hit.contentItemId;
+
+    // The book's own record first: the server writes it only after DigiClassroom has confirmed
+    // the work, so no connection to the shared database is needed to answer. Anything it cannot
+    // answer falls through to the spine lookup below, which stays for deployments that have it.
+    try {
+      const book = await this.prisma.book.findUnique({
+        where: { id: bookId },
+        select: { spineContentItemId: true },
+      });
+      if (book?.spineContentItemId) {
+        this.cache.set(bookId, { contentItemId: book.spineContentItemId, at: Date.now() });
+        return book.spineContentItemId;
+      }
+    } catch (err: any) {
+      // Fail closed: an unreadable record is not a reason to search without a book scope.
+      this.logger.error(
+        `Could not read the work for book ${bookId}: ${err.message}`,
+      );
+      return null;
+    }
 
     const pool = this.getPool();
     if (!pool) return null;

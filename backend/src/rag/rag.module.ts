@@ -6,6 +6,8 @@ import { EmbeddingService } from './embedding.service';
 import { FileService } from './file.service';
 import { LocalIndexerService } from './local/local-indexer.service';
 import { EmbeddingController } from './embedding.controller';
+import { SharedLibraryController } from './shared-library.controller';
+import { SharedLibraryService } from './shared-library.service';
 import { IngestionProcessor } from './ingestion.processor';
 import { EmbeddingRecoveryCron } from './embedding-recovery.cron';
 import { RagSearchService } from './rag-search.service';
@@ -50,7 +52,7 @@ import { PDFExtractKitAdapter } from './providers/pdf-extract-kit.adapter';
     // Read the learner's saved answer-language preference at prompt-build time.
     UserPreferencesModule,
   ],
-  controllers: [EmbeddingController, BookChatController],
+  controllers: [EmbeddingController, BookChatController, SharedLibraryController],
   providers: [
     {
       // OpenAI text-embedding-3-large, 3072d — NOT a preference, a requirement.
@@ -82,6 +84,7 @@ import { PDFExtractKitAdapter } from './providers/pdf-extract-kit.adapter';
     QdrantInitService,
     EmbeddingService,
     LocalIndexerService,
+    SharedLibraryService,
     FileService,
     PDFExtractKitAdapter,
     IngestionProcessor,
