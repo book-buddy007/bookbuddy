@@ -773,6 +773,33 @@ export const linkBookToSharedWork = async (bookId: string, contentItemId: string
   }
 };
 
+/**
+ * Create a catalogue book from a shared work and queue its link. The author is required (the shared
+ * library does not hold one); the title and language default to the work's. Returns the new book's id
+ * and title so the caller can follow the link's progress.
+ */
+export const createBookFromSharedWork = async (input: {
+  contentItemId: string;
+  author: string;
+  title?: string;
+  language?: string;
+}) => {
+  try {
+    const res = await fetch('/api/shared-library/create-book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { success: false, error: extractErrorMessage(body) };
+    }
+    return { success: true, data: body as { status: string; bookId: string; title: string } };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Could not reach the library service.' };
+  }
+};
+
 // ── Catalog Metadata & Multi-Step Wizard ─────────────────────────────────────
 
 export const getCatalogCategories = async (type?: string) => {

@@ -43,6 +43,31 @@ export function describeWork(w: Pick<SharedWork, 'isbn' | 'edition' | 'pageStart
   return parts.join(' · ');
 }
 
+/** The languages the catalogue offers, as `value` (code) and `label`, matching Edit Metadata. */
+export const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'English' },
+  { value: 'hi', label: 'Hindi' },
+  { value: 'mr', label: 'Marathi' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'fr', label: 'French' },
+  { value: 'de', label: 'German' },
+  { value: 'ta', label: 'Tamil' },
+  { value: 'te', label: 'Telugu' },
+] as const;
+
+/**
+ * A shared work's language as one of the catalogue's codes. The work stores whatever the chapter's
+ * frontmatter said ("Hindi", "English", "hi"); anything unknown is English, as on the backend.
+ */
+export function languageFromWork(lang?: string | null): string {
+  const raw = (lang ?? '').trim().toLowerCase();
+  const hit = LANGUAGE_OPTIONS.find((o) => o.value === raw || o.label.toLowerCase() === raw);
+  return hit ? hit.value : 'en';
+}
+
+/** Whether Book Buddy already has a book for this work (DigiClassroom reports which apps hold one). */
+export const inBookBuddy = (w: Pick<SharedWork, 'linkedApps'>): boolean => (w.linkedApps ?? []).includes('bookbuddy');
+
 export type LinkBlock = 'already-linked' | 'isbn-mismatch' | null;
 
 /**

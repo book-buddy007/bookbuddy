@@ -112,6 +112,26 @@ export class SharedLibraryService {
     return Array.isArray(json.works) ? json.works : [];
   }
 
+  /**
+   * One public work, confirmed by DigiClassroom (it must exist and be public). Used before Book
+   * Buddy creates a record for it, so a typo or a restricted work is refused up front.
+   *
+   * Asks for the single work by id; if DigiClassroom has not been updated to understand that, it
+   * answers with its list instead, and the work is picked out of that, never assumed.
+   */
+  async getWork(contentItemId: string): Promise<SharedWork> {
+    if (!isUuid(contentItemId)) {
+      throw new SharedLibraryError(400, 'That is not a valid work id.');
+    }
+    const json = await this.call(`/trio-works?id=${encodeURIComponent(contentItemId)}&limit=100`, { method: 'GET' });
+    const works: SharedWork[] = Array.isArray(json.works) ? json.works : [];
+    const work = works.find((w) => w.contentItemId === contentItemId);
+    if (!work) {
+      throw new SharedLibraryError(404, 'That work is not in the shared library, or it is not public.');
+    }
+    return work;
+  }
+
   /** Links this book to an existing public work. Safe to repeat. */
   async linkWork(input: { contentItemId: string; bookId: string; isbn?: string | null }): Promise<void> {
     if (!isUuid(input.contentItemId)) {

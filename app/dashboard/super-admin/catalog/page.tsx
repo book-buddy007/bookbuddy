@@ -166,6 +166,8 @@ export default function SuperAdminCatalogPage() {
   // "Link to shared library": the book being linked, and whether its dialog is open.
   const [linkBook, setLinkBook] = useState<{ id: string; title: string; isbn?: string | null; spineContentItemId?: string | null } | null>(null);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
+  // "Add from shared library": make a new book from a work already embedded in DigiClassroom.
+  const [isCreateFromSharedOpen, setIsCreateFromSharedOpen] = useState(false);
   const [isEmbedProgressOpen, setIsEmbedProgressOpen] = useState(false);
 
   // Edit Dialog
@@ -370,6 +372,9 @@ export default function SuperAdminCatalogPage() {
                 <><Icon name="layers" size={18} /> Backfill maps</>
               )}
             </Button>
+            <Button size="lg" variant="outline" onClick={() => setIsCreateFromSharedOpen(true)}>
+              <Icon name="globe" size={18} /> Add from shared library
+            </Button>
             <Button size="lg" onClick={() => setIsAddBookOpen(true)}>
               <Icon name="plus" size={18} /> Add book to library
             </Button>
@@ -407,6 +412,17 @@ export default function SuperAdminCatalogPage() {
         onOpenChange={setIsEmbedProgressOpen}
         bookId={embedBook?.id ?? null}
         bookTitle={embedBook?.title}
+      />
+      <LinkSharedWorkDialog
+        mode="create"
+        open={isCreateFromSharedOpen}
+        onOpenChange={setIsCreateFromSharedOpen}
+        book={null}
+        onLinked={(b) => {
+          // The new book's link is queued: follow it, as for linking an existing book.
+          setEmbedBook(b);
+          setIsEmbedProgressOpen(true);
+        }}
       />
       <LinkSharedWorkDialog
         open={isLinkOpen}

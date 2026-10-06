@@ -69,6 +69,18 @@ library.
    cost beyond questions and answers.
 4. Varta in Book Buddy now answers from the same passages as PDLMS and the DCP tutor.
 
+**Shortcut: create the Book Buddy book from the work.** For a book that exists in DigiClassroom or PDLMS
+but not yet in Book Buddy, skip steps 2–3: on Super Admin > Catalogue press **Add from shared library**, pick
+the work, type the author (the shared library holds none), check the title and language, and press
+**Create and link**. Book Buddy confirms the work with DigiClassroom (it must be public), creates the book in
+the global catalogue with the work's ISBN, and queues the link; if the link cannot be queued the new book is
+removed again. A work Book Buddy already has a book for cannot be picked twice. The PDF/EPUB and cover are
+**not** copied (they live in the other app's storage): upload them to the new book afterwards. The new book
+is visible in the catalogue as soon as it is created, like any book made with the wizard.
+(`POST /api/shared-library/create-book {"contentItemId", "author", "title"?, "language"?}`.)
+Looking up a single work by id uses DigiClassroom's `trio-works?id=`, from the same DigiClassroom branch;
+against a DigiClassroom without it, Book Buddy picks the work out of the list instead.
+
 Pressing **Embed** on a book in Book Buddy:
 - `INGESTION_MODE=local` (default): always embedded here.
 - `INGESTION_MODE=trio`: a global, AI-licensed book is handed to DCP (embedded once for all apps);

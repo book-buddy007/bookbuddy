@@ -9,6 +9,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -19,6 +20,9 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { sharedIndexConfig } from './local/index-config';
 import { SharedLibraryError, SharedLibraryService, isUuid } from './shared-library.service';
+import { newBookFromWork } from './shared-work-book';
+
+const SYSTEM_TENANT_ID = '__SYSTEM__';
 
 /**
  * Super-admin: use a book that is already embedded in the shared library (DigiClassroom)
@@ -74,6 +78,96 @@ export class SharedLibraryController {
     });
     if (!book || book.deletedAt) throw new NotFoundException('Book not found');
 
+    await this.queueLink(bookId, body.contentItemId);
+    return { status: 'QUEUED', bookId };
+  }
+
+  /**
+   * Create a Book Buddy book from a work already in the shared library, and link it.
+   *
+   * The book is made in the global catalogue from what the shared library knows (title, ISBN,
+   * language); the author is supplied because the library does not hold one. The work is confirmed
+   * with DigiClassroom first, so a typo or a restricted work creates nothing. A work already used by
+   * another Book Buddy book is refused rather than duplicated. If the link cannot be queued, the
+   * book just created is removed again: it has no files and no link, so nothing else depends on it.
+   *
+   * The PDF/EPUB and cover are not copied: they live in the other app's storage. Upload them to the
+   * new book afterwards.
+   */
+  @Post('shared-library/create-book')
+  @Roles('super-admin')
+  async createBook(
+    @Body() body: { contentItemId?: string; author?: string; title?: string; language?: string },
+    @Req() req: any,
+  ) {
+    this.requireSharedMode();
+    if (!isUuid(body?.contentItemId)) {
+      throw new BadRequestException('contentItemId must be the id of a work in the shared library.');
+    }
+    const contentItemId = body.contentItemId;
+
+    let work;
+    try {
+      work = await this.library.getWork(contentItemId);
+    } catch (err) {
+      this.rethrow(err);
+    }
+    const fields = newBookFromWork(work, body);
+
+    // One Book Buddy book per work: two records of the same book would split its readers, notes and
+    // chat history across copies.
+    const already = await this.prisma.book.findFirst({
+      where: { spineContentItemId: contentItemId, deletedAt: null },
+      select: { title: true },
+    });
+    if (already) {
+      throw new ConflictException(`This work is already used by the Book Buddy book "${already.title}". Open that book instead.`);
+    }
+
+    // The system tenant owns the global catalogue; it exists once a global book has ever been made.
+    await this.prisma.tenant.upsert({
+      where: { domain: '__system__.internal' },
+      update: {},
+      create: {
+        id: SYSTEM_TENANT_ID,
+        name: 'Book Buddy System (Global Catalog)',
+        domain: '__system__.internal',
+        type: 'UNIVERSITY',
+        description: 'Internal system tenant for global catalog books.',
+        allowJoinRequests: false,
+        isActive: true,
+        isGlobalPublisher: true,
+      },
+    });
+
+    const created = await this.prisma.book.create({
+      data: {
+        title: fields.title,
+        author: fields.author,
+        isbn: fields.isbn,
+        language: fields.language,
+        format: 'pdf',
+        genre: 'General',
+        tenantId: SYSTEM_TENANT_ID,
+        catalogScope: 'GLOBAL',
+        globalPublishStatus: 'APPROVED',
+        globalPublishReviewedBy: req?.user?.id ?? null,
+        globalPublishReviewedAt: new Date(),
+      },
+      select: { id: true, title: true },
+    });
+
+    try {
+      await this.queueLink(created.id, contentItemId);
+    } catch (err) {
+      await this.prisma.book.delete({ where: { id: created.id } }).catch(() => undefined);
+      throw err;
+    }
+    return { status: 'QUEUED', bookId: created.id, title: created.title };
+  }
+
+  /** Queue the job that links a book to a shared work. One per book at a time. */
+  private async queueLink(bookId: string, contentItemId: string): Promise<void> {
     // The jobId is fixed per book, as for embedding, so pressing twice during a run is a no-op.
     const existing = await this.queue.getJob(`link-${bookId}`);
     if (existing) {
@@ -86,7 +180,7 @@ export class SharedLibraryController {
 
     await this.queue.add(
       'link-work',
-      { bookId, contentItemId: body.contentItemId },
+      { bookId, contentItemId },
       {
         jobId: `link-${bookId}`,
         attempts: 3,
@@ -96,6 +190,5 @@ export class SharedLibraryController {
       },
     );
     await this.prisma.book.update({ where: { id: bookId }, data: { embeddingStatus: 'PENDING' } });
-    return { status: 'QUEUED', bookId };
   }
 }

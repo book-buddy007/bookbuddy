@@ -16,12 +16,30 @@ import { useToast } from '@/components/ui/use-toast';
 import { AlertTriangle, CheckCircle2, Globe, Link, Loader2, Search } from '@/components/ui/icons';
 import { catalogKeys } from '@/lib/query-keys';
 import { useDebounce } from '@/lib/hooks/useDebounce';
-import { linkBookToSharedWork, listSharedWorks, type SharedWork } from '@/lib/api/adminApi';
-import { appNames, describeWork, isbnRelation, linkBlock } from '@/lib/shared-library';
+import {
+  createBookFromSharedWork,
+  linkBookToSharedWork,
+  listSharedWorks,
+  type SharedWork,
+} from '@/lib/api/adminApi';
+import {
+  LANGUAGE_OPTIONS,
+  appNames,
+  describeWork,
+  inBookBuddy,
+  isbnRelation,
+  languageFromWork,
+  linkBlock,
+} from '@/lib/shared-library';
 
 export interface LinkSharedWorkDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * 'link' (default): link an existing catalogue book to a shared work.
+   * 'create': make a new catalogue book from a shared work, then link it. `book` is not used.
+   */
+  mode?: 'link' | 'create';
   book: {
     id: string;
     title: string;
@@ -29,7 +47,7 @@ export interface LinkSharedWorkDialogProps {
     /** Set when the book already lives in the shared library. */
     spineContentItemId?: string | null;
   } | null;
-  /** Called once the link job is queued, so the caller can show its progress. */
+  /** Called once the link job is queued (for a new book, with its new id), so the caller can show progress. */
   onLinked: (book: { id: string; title: string }) => void;
 }
 
@@ -43,29 +61,41 @@ export interface LinkSharedWorkDialogProps {
  *  - a work whose ISBN differs from the book's: linked to the wrong work, the book would answer
  *    correctly for a different book with nothing looking wrong.
  *
+ * In 'create' mode the same list makes a NEW book instead: the title, ISBN and language come from the
+ * work, the author is typed (the shared library holds none), and a work Book Buddy already has a book
+ * for cannot be picked again. The PDF/EPUB and cover are not copied; they are uploaded afterwards.
+ *
  * The backend's own explanation is shown as it is (library not set up, secret rejected,
  * DigiClassroom unreachable); the screen never invents a reason.
  */
-export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: LinkSharedWorkDialogProps) {
+export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, onLinked }: LinkSharedWorkDialogProps) {
+  const creating = mode === 'create';
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
+  // Create mode only: the new book's details, prefilled from the picked work.
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [language, setLanguage] = useState('en');
   const debounced = useDebounce(query, 350);
 
   // Every open starts fresh, searching for the book's own title: the usual case is that the work has
   // the same name, and an empty list would make the admin type what is already on screen.
   useEffect(() => {
     if (open) {
-      setQuery(book?.title ?? '');
+      setQuery(creating ? '' : (book?.title ?? ''));
       setSelectedId(null);
       setLinkError(null);
+      setTitle('');
+      setAuthor('');
+      setLanguage('en');
     }
-  }, [open, book?.id, book?.title]);
+  }, [open, creating, book?.id, book?.title]);
 
-  const alreadyLinked = !!book?.spineContentItemId;
+  const alreadyLinked = !creating && !!book?.spineContentItemId;
 
   const works = useQuery({
     queryKey: ['shared-library', 'works', debounced.trim()],
@@ -74,24 +104,37 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
       if (!res.success) throw new Error(res.error || 'Could not load the shared library.');
       return res.data as SharedWork[];
     },
-    enabled: open && !!book && !alreadyLinked,
+    enabled: open && (creating || !!book) && !alreadyLinked,
     retry: false,
     staleTime: 30_000,
   });
 
   const linkMutation = useMutation({
-    mutationFn: async (contentItemId: string) => {
-      const res = await linkBookToSharedWork(book!.id, contentItemId);
+    mutationFn: async (work: SharedWork): Promise<{ id: string; title: string }> => {
+      if (creating) {
+        const res = await createBookFromSharedWork({
+          contentItemId: work.contentItemId,
+          author: author.trim(),
+          // Only what the admin changed: the work's own title is the default.
+          ...(title.trim() && title.trim() !== work.title ? { title: title.trim() } : {}),
+          language,
+        });
+        if (!res.success || !res.data) throw new Error(res.error || 'Could not create the book.');
+        return { id: res.data.bookId, title: res.data.title };
+      }
+      const res = await linkBookToSharedWork(book!.id, work.contentItemId);
       if (!res.success) throw new Error(res.error || 'Could not queue the link.');
-      return res;
+      return { id: book!.id, title: book!.title };
     },
-    onSuccess: () => {
+    onSuccess: (done) => {
       toast({
-        title: 'Linking queued',
-        description: `"${book!.title}" is being linked to the shared library.`,
+        title: creating ? 'Book created' : 'Linking queued',
+        description: creating
+          ? `"${done.title}" was added and is being linked to the shared library. Upload its PDF/EPUB and cover next.`
+          : `"${done.title}" is being linked to the shared library.`,
       });
       void queryClient.invalidateQueries({ queryKey: catalogKeys.all });
-      onLinked({ id: book!.id, title: book!.title });
+      onLinked(done);
       onOpenChange(false);
     },
     onError: (err: Error) => setLinkError(err.message),
@@ -99,8 +142,13 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
 
   const list = works.data ?? [];
   const selected = list.find((w) => w.contentItemId === selectedId) ?? null;
-  const blocked = book && selected ? linkBlock(book, selected) : null;
-  const canLink = !!book && !!selected && !blocked && !linkMutation.isPending;
+  // A new book cannot be made from a work Book Buddy already has a book for.
+  const blocked = creating
+    ? selected && inBookBuddy(selected) ? ('already-used' as const) : null
+    : book && selected ? linkBlock(book, selected) : null;
+  const canLink = creating
+    ? !!selected && !blocked && !!author.trim() && !linkMutation.isPending
+    : !!book && !!selected && !blocked && !linkMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={(next) => !linkMutation.isPending && onOpenChange(next)}>
@@ -110,10 +158,14 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
             <Globe className="h-7 w-7 text-bb-info-ink" />
           </div>
           <DialogTitle className="text-center text-lg font-bold text-bb-text dark:text-white">
-            Link to the shared library
+            {creating ? 'Add a book from the shared library' : 'Link to the shared library'}
           </DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
-            {book ? <>Use a book already embedded in DigiClassroom for “{book.title}”. Nothing is embedded again.</> : null}
+            {creating ? (
+              <>Create a Book Buddy book from a work already embedded in DigiClassroom. Nothing is embedded again.</>
+            ) : book ? (
+              <>Use a book already embedded in DigiClassroom for “{book.title}”. Nothing is embedded again.</>
+            ) : null}
           </DialogDescription>
         </DialogHeader>
 
@@ -177,7 +229,8 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
               {works.isSuccess && list.length > 0 && (
                 <ul role="radiogroup" aria-label="Works in the shared library" className="space-y-2">
                   {list.map((w) => {
-                    const relation = book ? isbnRelation(book.isbn, w.isbn) : 'unknown';
+                    const relation = !creating && book ? isbnRelation(book.isbn, w.isbn) : 'unknown';
+                    const taken = creating && inBookBuddy(w);
                     const isSelected = w.contentItemId === selectedId;
                     const usedBy = appNames(w.linkedApps ?? []);
                     return (
@@ -189,6 +242,10 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
                           onClick={() => {
                             setSelectedId(w.contentItemId);
                             setLinkError(null);
+                            if (creating) {
+                              setTitle(w.title);
+                              setLanguage(languageFromWork(w.lang));
+                            }
                           }}
                           className={`w-full rounded-xl border p-3 text-left transition-all ${
                             isSelected
@@ -207,6 +264,7 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
                             <div className="flex shrink-0 flex-col items-end gap-1">
                               {relation === 'match' && <Badge variant="success">ISBN matches</Badge>}
                               {relation === 'mismatch' && <Badge variant="destructive">ISBN differs</Badge>}
+                              {taken && <Badge variant="warning">Already in Book Buddy</Badge>}
                             </div>
                           </div>
                         </button>
@@ -228,7 +286,56 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
               </div>
             )}
 
-            {selected && !blocked && (
+            {blocked === 'already-used' && selected && (
+              <div role="alert" className="mx-6 mb-3 flex gap-2.5 rounded-xl border border-bb-warning/30 bg-bb-warning-soft/70 p-3">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-bb-warning-ink" />
+                <p className="text-xs leading-relaxed text-bb-warning-ink">
+                  Book Buddy already has a book for “{selected.title}”. A second record would split its readers, notes and chat
+                  history, so open the existing book and use Link to shared library there instead.
+                </p>
+              </div>
+            )}
+
+            {creating && selected && !blocked && (
+              <div className="mx-6 mb-3 space-y-3 rounded-xl border border-bb-border bg-bb-surface-2/70 p-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="space-y-1 sm:col-span-2">
+                    <span className="text-xs font-semibold text-bb-text">Title</span>
+                    <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} className="rounded-xl bg-bb-surface border-bb-border/80" />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold text-bb-text">Author <span className="text-bb-danger-ink">*</span></span>
+                    <Input
+                      value={author}
+                      onChange={(e) => setAuthor(e.target.value)}
+                      maxLength={200}
+                      placeholder="The shared library holds no author"
+                      aria-required="true"
+                      className="rounded-xl bg-bb-surface border-bb-border/80"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-semibold text-bb-text">Language</span>
+                    <select
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-bb-border/80 bg-bb-surface px-3 text-sm"
+                    >
+                      {LANGUAGE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <p className="text-xs leading-relaxed text-bb-muted">
+                  A new book is added to the global catalogue with this work&apos;s ISBN{selected.isbn ? ` (${selected.isbn})` : ''} and
+                  linked to it, so Varta answers from the shared passages. The PDF/EPUB and cover are not copied from the
+                  other app: upload them to the new book afterwards.
+                </p>
+              </div>
+            )}
+
+            {!creating && selected && !blocked && (
               <p className="mx-6 mb-3 rounded-xl border border-bb-border bg-bb-surface-2/70 p-3 text-xs leading-relaxed text-bb-muted">
                 Varta for this book will answer from “{selected.title}”. Any copy of the book already indexed in Book
                 Buddy&apos;s own index is removed. The shared library is not changed.
@@ -256,10 +363,10 @@ export function LinkSharedWorkDialog({ open, onOpenChange, book, onLinked }: Lin
                 type="button"
                 className="gap-2 rounded-xl text-white shadow-md"
                 disabled={!canLink}
-                onClick={() => selected && linkMutation.mutate(selected.contentItemId)}
+                onClick={() => selected && linkMutation.mutate(selected)}
               >
                 {linkMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link className="h-4 w-4" />}
-                Link this book
+                {creating ? 'Create and link' : 'Link this book'}
               </EnhancedButton>
             </div>
           </>

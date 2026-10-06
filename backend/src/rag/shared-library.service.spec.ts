@@ -67,6 +67,32 @@ describe('SharedLibraryService', () => {
     });
   });
 
+  describe('getWork', () => {
+    it('asks for the one work by id and returns it', async () => {
+      reply(200, { success: true, works: [{ contentItemId: WORK, title: 'Economics', isbn: '978' }] });
+      await expect(service.getWork(WORK)).resolves.toMatchObject({ contentItemId: WORK, title: 'Economics' });
+      expect(fetchMock.mock.calls[0][0]).toBe(`https://dcp.test/api/internal/trio-works?id=${WORK}&limit=100`);
+    });
+
+    it('picks the work out of a list, never assuming, when DigiClassroom ignores the id', async () => {
+      const other = '00000000-0000-4000-8000-000000000000';
+      reply(200, { success: true, works: [{ contentItemId: other, title: 'Other' }, { contentItemId: WORK, title: 'Economics' }] });
+      await expect(service.getWork(WORK)).resolves.toMatchObject({ title: 'Economics' });
+    });
+
+    it('says the work is not there or not public when it is not returned', async () => {
+      reply(200, { success: true, works: [{ contentItemId: '00000000-0000-4000-8000-000000000000', title: 'Other' }] });
+      await expect(service.getWork(WORK)).rejects.toMatchObject({ status: 404 });
+      reply(200, { success: true, works: [] });
+      await expect(service.getWork(WORK)).rejects.toMatchObject({ status: 404 });
+    });
+
+    it('refuses a malformed id without calling out', async () => {
+      await expect(service.getWork('nope')).rejects.toMatchObject({ status: 400 });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('linkWork', () => {
     it('posts the book as bookbuddy with its ISBN', async () => {
       reply(200, { success: true, created: true });
