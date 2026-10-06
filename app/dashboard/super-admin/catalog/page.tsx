@@ -78,6 +78,7 @@ import { PurgeBookDialog } from './PurgeBookDialog';
 import { AddFormatDialog } from './AddFormatDialog';
 import { EditBookDialog } from './EditBookDialog';
 import { EmbeddingProgressDialog } from './EmbeddingProgressDialog';
+import { LinkSharedWorkDialog } from './LinkSharedWorkDialog';
 
 // Format badge helper: availability is shown by icon + label; colour only marks "uploaded".
 const FORMAT_BADGE_CONFIG: Record<string, { icon: any; label: string; active: string; inactive: string }> = {
@@ -162,6 +163,9 @@ export default function SuperAdminCatalogPage() {
 
   // Indexing progress — opens on trigger and watches the run through.
   const [embedBook, setEmbedBook] = useState<{ id: string; title: string } | null>(null);
+  // "Link to shared library": the book being linked, and whether its dialog is open.
+  const [linkBook, setLinkBook] = useState<{ id: string; title: string; isbn?: string | null; spineContentItemId?: string | null } | null>(null);
+  const [isLinkOpen, setIsLinkOpen] = useState(false);
   const [isEmbedProgressOpen, setIsEmbedProgressOpen] = useState(false);
 
   // Edit Dialog
@@ -404,6 +408,17 @@ export default function SuperAdminCatalogPage() {
         bookId={embedBook?.id ?? null}
         bookTitle={embedBook?.title}
       />
+      <LinkSharedWorkDialog
+        open={isLinkOpen}
+        onOpenChange={setIsLinkOpen}
+        book={linkBook}
+        onLinked={(b) => {
+          // Follow the link through, as for embedding: it can fail a few seconds later and the reason
+          // (ISBN mismatch, not public, library unreachable) is what the admin needs to read.
+          setEmbedBook(b);
+          setIsEmbedProgressOpen(true);
+        }}
+      />
 
       {/* Tabs */}
       <div className="overflow-x-auto scrollbar-hide">
@@ -521,6 +536,11 @@ export default function SuperAdminCatalogPage() {
                         {book.embeddingStatus && book.embeddingStatus !== 'NONE' && (
                           <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-bb-info-soft text-bb-info-ink border-bb-info/30">
                             <BrainCircuit className="h-2.5 w-2.5 mr-0.5" /> AI
+                          </Badge>
+                        )}
+                        {book.spineContentItemId && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-bb-info-soft text-bb-info-ink border-bb-info/30">
+                            <Globe className="h-2.5 w-2.5 mr-0.5" /> Shared
                           </Badge>
                         )}
                       </div>
@@ -675,6 +695,12 @@ export default function SuperAdminCatalogPage() {
                                   AI: {book.embeddingStatus}
                                 </Badge>
                               )}
+                              {book.spineContentItemId && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-fit bg-bb-info-soft text-bb-info-ink border-bb-info/30">
+                                  <Globe className="h-3 w-3 mr-0.5" />
+                                  Shared library
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
 
@@ -738,6 +764,11 @@ export default function SuperAdminCatalogPage() {
                                   }}
                                 >
                                   <BrainCircuit className="h-4 w-4 mr-2 text-bb-info-ink" /> Trigger AI Embed
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() => setTimeout(() => { setLinkBook({ id: book.id, title: book.title, isbn: book.isbn, spineContentItemId: book.spineContentItemId }); setIsLinkOpen(true); }, 100)}
+                                >
+                                  <Globe className="h-4 w-4 mr-2 text-bb-info-ink" /> Link to shared library
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem

@@ -14,6 +14,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BetterAuthGuard } from '../guards/better-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { pickRelevantJob } from './embedding-status';
 
 @Controller('api/books')
 @UseGuards(BetterAuthGuard, RolesGuard)
@@ -46,17 +47,17 @@ export class EmbeddingController {
     });
     if (!book) throw new NotFoundException('Book not found');
 
-    const [row, job, chapterCount] = await Promise.all([
+    const [row, embedJob, linkJob, chapterCount] = await Promise.all([
       this.prisma.bookEmbeddingStatus.findUnique({ where: { bookId } }),
       this.ingestionQueue.getJob(`embed-${bookId}`),
+      // Linking a book to a work already in the shared library is its own job.
+      this.ingestionQueue.getJob(`link-${bookId}`),
       this.prisma.bookFormat.count({
         where: { bookId, type: 'AI_EMBED' },
       }),
     ]);
 
-    const queueState = job ? await job.getState() : null;
-    const rawProgress = job?.progress;
-    const progress = typeof rawProgress === 'number' ? rawProgress : null;
+    const { state: queueState, progress } = await pickRelevantJob([embedJob, linkJob]);
 
     const running =
       queueState === 'active' ||

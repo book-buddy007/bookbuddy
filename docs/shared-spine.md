@@ -59,8 +59,11 @@ library.
 
 1. Upload and embed the book in **DigiClassroom**, as today.
 2. In Book Buddy, make sure the book exists in the catalogue (its own record, cover, PDF/EPUB).
-3. As super-admin, browse the shared library (`GET /api/shared-library/works?q=title`) and link:
-   `POST /api/books/<bookId>/link-shared-work {"contentItemId": "<work id>"}`.
+3. As super-admin, open Super Admin > Catalogue, use the book's menu > **Link to shared library**, search
+   the shared library (it starts with the book's own title), pick the work and press **Link this book**.
+   The screen shows ISBN matches and refuses a mismatch, and a progress dialog follows the link. (The same
+   steps are available as `GET /api/shared-library/works?q=title` and
+   `POST /api/books/<bookId>/link-shared-work {"contentItemId": "<work id>"}`.)
    Book Buddy asks DCP to link, checks it can read the passages, switches the book to the shared
    library and removes the book's now-unused passages from its own index. No embedding, no OpenAI
    cost beyond questions and answers.
@@ -109,7 +112,8 @@ Pressing **Embed** on a book in Book Buddy:
 7. Redeploy, run `npm run check:ai` from `backend/` with the same variables (it also checks the
    shared collection and that the key is read-only), then link a book.
 
-Going back for one book: re-embed it in Book Buddy (the book returns to the own index). For
+Going back for one book: with `INGESTION_MODE=local` (or for a book that is not global and AI-licensed),
+re-embed it in Book Buddy from its own chapter markdown and it returns to the own index. For
 everything: leave `SHARED_QDRANT_URL` empty; own-index books are untouched either way.
 
 ## What this does not cover
@@ -120,6 +124,7 @@ everything: leave `SHARED_QDRANT_URL` empty; own-index books are untouched eithe
 - **Removing a work** from the shared library is done in DCP; Book Buddy only drops its own record.
 - **PDLMS** deletes shared points directly when its own purge URL is unset (its audit finding
   PDLMS-018); that is PDLMS's to fix and applies equally to books Book Buddy has linked.
-- Book Buddy's catalogue has no screen yet for browse-and-link; they are API calls.
-- Unlinking a book from the shared library (back to its own index) is done by re-embedding it.
+- Unlinking a book from the shared library has no button: it needs `INGESTION_MODE=local` and a re-embed from the
+  book's own chapter markdown, as described above. While `INGESTION_MODE=trio`, re-embedding an eligible book
+  sends it to DigiClassroom again.
 - The 4 works now in the shared index: titles not confirmed from here.

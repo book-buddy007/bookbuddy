@@ -716,6 +716,63 @@ export const getBookEmbeddingStatus = async (bookId: string) => {
   }
 };
 
+// ── Shared library: use a book already embedded in DigiClassroom ─────────────
+
+/** A public work in the shared library (no passage text: titles, ids and counts only). */
+export interface SharedWork {
+  contentItemId: string;
+  title: string;
+  isbn: string | null;
+  edition: string | null;
+  lang: string | null;
+  chunks: number;
+  pageStart: number | null;
+  pageEnd: number | null;
+  /** Which apps already hold a record for this work (names only). */
+  linkedApps: string[];
+}
+
+/**
+ * Browse the shared library's public works. Dedicated route, not the `/admin/*` proxy, for the
+ * same reason as the embedding calls. The backend's message is passed through as the error: it
+ * says whether the library is not set up, the secret was rejected, or DigiClassroom is down.
+ */
+export const listSharedWorks = async (query?: string) => {
+  try {
+    const params = new URLSearchParams();
+    if (query?.trim()) params.set('q', query.trim());
+    const res = await fetch(`/api/shared-library/works?${params}`, { cache: 'no-store' });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { success: false, error: extractErrorMessage(body), status: res.status };
+    }
+    return { success: true, data: (Array.isArray(body?.works) ? body.works : []) as SharedWork[] };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Could not reach the library service.' };
+  }
+};
+
+/**
+ * Queue a book to use an existing shared work. Nothing is embedded; progress is watched with
+ * `getBookEmbeddingStatus`, which follows link jobs too.
+ */
+export const linkBookToSharedWork = async (bookId: string, contentItemId: string) => {
+  try {
+    const res = await fetch(`/api/books/${bookId}/link-shared-work`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentItemId }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { success: false, error: extractErrorMessage(body) };
+    }
+    return { success: true, data: body };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Could not reach the ingestion service.' };
+  }
+};
+
 // ── Catalog Metadata & Multi-Step Wizard ─────────────────────────────────────
 
 export const getCatalogCategories = async (type?: string) => {
