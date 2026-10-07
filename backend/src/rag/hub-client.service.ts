@@ -101,7 +101,7 @@ export class HubClientService {
     return secret;
   }
 
-  private async call<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+  private async call<T>(method: 'GET' | 'POST' | 'DELETE', path: string, body?: unknown): Promise<T> {
     const url = `${this.baseUrl()}/api/hub${path}`;
     const headers: Record<string, string> = {
       'X-Hub-App': this.appId(),
@@ -182,5 +182,18 @@ export class HubClientService {
   /** Records that this app's record `appRef` is the hub work. Safe to repeat; never re-points. */
   async linkWork(workId: string, appRef: string, isbn?: string | null): Promise<void> {
     await this.call('POST', `/works/${encodeURIComponent(workId)}/link`, { appRef, ...(isbn ? { isbn } : {}) });
+  }
+
+  /**
+   * Tells the hub this app has stopped using the work: removes only this app's own link record, never
+   * the work or its files. True when a link was removed, false when there was none (safe to repeat).
+   * The hub refuses with 409 when the record is linked to a different work than the one named.
+   */
+  async unlinkWork(workId: string, appRef: string): Promise<boolean> {
+    const out = await this.call<{ unlinked?: boolean }>(
+      'DELETE',
+      `/works/${encodeURIComponent(workId)}/link/${encodeURIComponent(appRef)}`,
+    );
+    return out.unlinked === true;
   }
 }

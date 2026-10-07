@@ -191,4 +191,20 @@ export class SharedLibraryService {
       },
     });
   }
+
+  /**
+   * Tells the library this book no longer uses its work, so its owner stops counting Book Buddy as a
+   * user. Only PDLMS's hub has this; DigiClassroom's endpoints do not, and nothing is changed there.
+   * Returns whether a link was removed. This changes nothing in Book Buddy: the book's own record,
+   * formats and index are the caller's to deal with, and it never deletes anything of the owner's.
+   */
+  async unlinkWork(input: { contentItemId: string; bookId: string }): Promise<boolean> {
+    if (!isUuid(input.contentItemId)) {
+      throw new SharedLibraryError(400, 'That is not a valid work id.');
+    }
+    if (!this.usesHub()) {
+      throw new SharedLibraryError(501, 'Unlinking is only available when the shared library is PDLMS’s hub.');
+    }
+    return this.hub.unlinkWork(input.contentItemId, input.bookId);
+  }
 }

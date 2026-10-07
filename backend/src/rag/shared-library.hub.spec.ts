@@ -24,6 +24,7 @@ function make(enabled = true) {
     listWorks: jest.fn().mockResolvedValue({ items: [summary()], total: 1 }),
     getWork: jest.fn().mockResolvedValue({ ...summary(), manifest: { files: [] } }),
     linkWork: jest.fn().mockResolvedValue(undefined),
+    unlinkWork: jest.fn().mockResolvedValue(true),
   };
   return { service: new SharedLibraryService(hub), hub };
 }
@@ -116,6 +117,40 @@ describe('SharedLibraryService with the PDLMS hub', () => {
       hub.linkWork.mockRejectedValue(new SharedLibraryError(409, 'The ISBN does not match the hub work; the link was not made.'));
       const err: any = await service.linkWork({ contentItemId: WORK, bookId: 'b' }).catch((e) => e);
       expect(err.retryable).toBe(false);
+    });
+  });
+
+  describe('unlinkWork', () => {
+    it('unlinks through the hub with this book as the record id, and reports whether a link was removed', async () => {
+      const { service, hub } = make();
+      await expect(service.unlinkWork({ contentItemId: WORK, bookId: 'book-1' })).resolves.toBe(true);
+      expect(hub.unlinkWork).toHaveBeenCalledWith(WORK, 'book-1');
+      hub.unlinkWork.mockResolvedValue(false);
+      await expect(service.unlinkWork({ contentItemId: WORK, bookId: 'book-1' })).resolves.toBe(false);
+    });
+
+    it('refuses a bad work id before calling the hub', async () => {
+      const { service, hub } = make();
+      await expect(service.unlinkWork({ contentItemId: 'x', bookId: 'b' })).rejects.toMatchObject({ status: 400 });
+      expect(hub.unlinkWork).not.toHaveBeenCalled();
+    });
+
+    it('is not available with DigiClassroom, and sends nothing there', async () => {
+      const { service, hub } = make(false);
+      const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(() => {
+        throw new Error('must not be called');
+      });
+      await expect(service.unlinkWork({ contentItemId: WORK, bookId: 'b' })).rejects.toMatchObject({ status: 501 });
+      expect(hub.unlinkWork).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
+      fetchSpy.mockRestore();
+    });
+
+    it('lets the hub’s refusal through untouched, so a mixed-up id is not retried', async () => {
+      const { service, hub } = make();
+      hub.unlinkWork.mockRejectedValue(new SharedLibraryError(409, 'linked to a different work'));
+      const err: any = await service.unlinkWork({ contentItemId: WORK, bookId: 'b' }).catch((e) => e);
+      expect(err).toMatchObject({ status: 409, retryable: false });
     });
   });
 

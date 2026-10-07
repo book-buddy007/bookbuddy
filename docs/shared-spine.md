@@ -154,9 +154,15 @@ stored. If the hub cannot answer, the read fails with the hub's reason: there is
 Book Buddy holds itself always wins over the hub's. Hub books cannot be binned, purged or have files
 deleted from Book Buddy (the same rule as any shared-library book): only PDLMS removes them.
 
-Not covered yet: **audiobooks** (still uploaded to Book Buddy), a button to **unlink**, "also used by"
-in the catalogue, and a hub search endpoint (passages are read straight from Qdrant, which with a
-read-only key can see the whole collection).
+Telling the hub a book is no longer used: `SharedLibraryService.unlinkWork` calls the hub's
+`DELETE /api/hub/works/:id/link/:appRef`, which removes only Book Buddy's own link record at PDLMS (never
+the work or its files). It is a building block: **nothing in Book Buddy calls it yet**, because Book Buddy
+has no screen or flow that takes a book off the shared library (see below). It is refused with 501 when
+the library is DigiClassroom, which has no such call.
+
+Not covered yet: **audiobooks** (still uploaded to Book Buddy), a button or flow that **unlinks** a book
+(and calls the above), "also used by" in the catalogue, and a hub search endpoint (passages are read
+straight from Qdrant, which with a read-only key can see the whole collection).
 
 ### Turning it on
 

@@ -142,6 +142,28 @@ describe('HubClientService', () => {
       expect(JSON.parse(init.body)).toEqual({ appRef: 'book-9' });
     });
 
+    it('unlinks with a DELETE to the record’s own path, the id URL-encoded, and no body', async () => {
+      reply(200, { workId: 'w1', appRef: 'bb/1 x', unlinked: true });
+      await expect(hub.unlinkWork('w1', 'bb/1 x')).resolves.toBe(true);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe('https://api.pdlms.test/api/hub/works/w1/link/bb%2F1%20x');
+      expect(init.method).toBe('DELETE');
+      expect(init.body).toBeUndefined();
+      expect(init.headers['X-Hub-App']).toBe('bookbuddy');
+      expect(init.redirect).toBe('error');
+    });
+
+    it('reports false, not an error, when there was nothing to unlink', async () => {
+      reply(200, { workId: 'w1', appRef: 'b1', unlinked: false });
+      await expect(hub.unlinkWork('w1', 'b1')).resolves.toBe(false);
+    });
+
+    it('lets the hub’s refusal through when the record is linked to another work', async () => {
+      reply(409, { message: 'This record is linked to a different work, so it was not unlinked from this one.' });
+      const err: any = await hub.unlinkWork('w1', 'b1').catch((e) => e);
+      expect(err).toMatchObject({ status: 409, retryable: false });
+    });
+
     it('returns a file link only when it is https', async () => {
       reply(201, { url: 'https://r2.test/x?sig=1', expiresAt: 'later', mimeType: 'application/pdf', sizeBytes: 1, version: 'v' });
       await expect(hub.fileLink('w1', 'f1')).resolves.toMatchObject({ url: 'https://r2.test/x?sig=1' });
