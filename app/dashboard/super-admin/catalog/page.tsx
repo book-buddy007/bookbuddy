@@ -14,7 +14,8 @@ toggleGlobalPublisherStatus,
 triggerBookEmbedding,
 getCatalogBin,
 restoreCatalogBook,
-backfillCatalogGraphs
+backfillCatalogGraphs,
+getSharedLibraryStatus
 } from '@/lib/api/adminApi';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
@@ -68,7 +69,8 @@ FilePlus,
 Languages,Pencil,
 BookMarked,
 Inbox,
-RotateCcw,Trash
+RotateCcw,Trash,
+Link2Off
 } from '@/components/ui/icons';
 
 import { AddBookWizard } from './AddBookWizard';
@@ -79,6 +81,7 @@ import { AddFormatDialog } from './AddFormatDialog';
 import { EditBookDialog } from './EditBookDialog';
 import { EmbeddingProgressDialog } from './EmbeddingProgressDialog';
 import { LinkSharedWorkDialog } from './LinkSharedWorkDialog';
+import { UnlinkSharedWorkDialog } from './UnlinkSharedWorkDialog';
 
 // Format badge helper: availability is shown by icon + label; colour only marks "uploaded".
 const FORMAT_BADGE_CONFIG: Record<string, { icon: any; label: string; active: string; inactive: string }> = {
@@ -169,6 +172,19 @@ export default function SuperAdminCatalogPage() {
   // "Add from shared library": make a new book from a work already embedded in DigiClassroom.
   const [isCreateFromSharedOpen, setIsCreateFromSharedOpen] = useState(false);
   const [isEmbedProgressOpen, setIsEmbedProgressOpen] = useState(false);
+  // "Unlink from shared library": the book being taken off it, and whether its dialog is open.
+  const [unlinkBook, setUnlinkBook] = useState<{ id: string; title: string } | null>(null);
+  const [isUnlinkOpen, setIsUnlinkOpen] = useState(false);
+  // Whose shared library this is, and whether a book can be taken off it from here (PDLMS's hub only).
+  const { data: libraryStatus } = useQuery({
+    queryKey: ['shared-library', 'status'],
+    queryFn: async () => {
+      const res = await getSharedLibraryStatus();
+      return res.success ? res.data : null;
+    },
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
 
   // Edit Dialog
   const [editBook, setEditBook] = useState<any>(null);
@@ -424,6 +440,7 @@ export default function SuperAdminCatalogPage() {
           setIsEmbedProgressOpen(true);
         }}
       />
+      <UnlinkSharedWorkDialog open={isUnlinkOpen} onOpenChange={setIsUnlinkOpen} book={unlinkBook} />
       <LinkSharedWorkDialog
         open={isLinkOpen}
         onOpenChange={setIsLinkOpen}
@@ -579,9 +596,18 @@ export default function SuperAdminCatalogPage() {
                         <DropdownMenuSeparator />
                         {book.spineContentItemId ? (
                           // A shared-library book is the owning app's to remove (PDLMS or DigiClassroom); Book Buddy has no way to.
-                          <DropdownMenuItem disabled title="This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.">
-                            <Globe className="h-4 w-4 mr-2" /> Remove in the owning app
-                          </DropdownMenuItem>
+                          libraryStatus?.canUnlink ? (
+                            <DropdownMenuItem
+                              onSelect={() => setTimeout(() => { setUnlinkBook({ id: book.id, title: book.title }); setIsUnlinkOpen(true); }, 100)}
+                              className="text-bb-danger-ink focus:text-bb-danger-ink focus:bg-bb-danger-soft"
+                            >
+                              <Link2Off className="h-4 w-4 mr-2" /> Unlink from shared library
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem disabled title="This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.">
+                              <Globe className="h-4 w-4 mr-2" /> Remove in the owning app
+                            </DropdownMenuItem>
+                          )
                         ) : (
                         <DropdownMenuItem
                           onSelect={() => setTimeout(() => { setDeleteBook({ id: book.id, title: book.title, author: book.author }); setIsDeleteOpen(true); }, 100)}
@@ -796,9 +822,18 @@ export default function SuperAdminCatalogPage() {
                                 <DropdownMenuSeparator />
                                 {book.spineContentItemId ? (
                                   // A shared-library book is the owning app's to remove (PDLMS or DigiClassroom); Book Buddy has no way to.
-                                  <DropdownMenuItem disabled title="This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.">
-                                    <Globe className="h-4 w-4 mr-2" /> Remove in the owning app
-                                  </DropdownMenuItem>
+                                  libraryStatus?.canUnlink ? (
+                                    <DropdownMenuItem
+                                      onSelect={() => setTimeout(() => { setUnlinkBook({ id: book.id, title: book.title }); setIsUnlinkOpen(true); }, 100)}
+                                      className="text-bb-danger-ink focus:text-bb-danger-ink focus:bg-bb-danger-soft"
+                                    >
+                                      <Link2Off className="h-4 w-4 mr-2" /> Unlink from shared library
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem disabled title="This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.">
+                                      <Globe className="h-4 w-4 mr-2" /> Remove in the owning app
+                                    </DropdownMenuItem>
+                                  )
                                 ) : (
                                 <DropdownMenuItem
                                   onSelect={() => setTimeout(() => { setDeleteBook({ id: book.id, title: book.title, author: book.author }); setIsDeleteOpen(true); }, 100)}

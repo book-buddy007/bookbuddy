@@ -12,11 +12,12 @@ describe('bookRemovalBlocker', () => {
     }
   });
 
-  it('refuses every action on a shared-library book, naming DigiClassroom as the place to do it', () => {
+  it('refuses every action on a shared-library book, pointing to the owning app and to Unlink for PDLMS hub libraries', () => {
     const reasons = (['bin', 'purge', 'delete-file', 'replace-file'] as const).map((a) => bookRemovalBlocker(SHARED, a));
     for (const r of reasons) {
-      expect(r).toMatch(/belongs to the shared library, which DigiClassroom owns/);
-      expect(r).toMatch(/Remove it in DigiClassroom/);
+      expect(r).toMatch(/belongs to the shared library, which PDLMS or DigiClassroom owns/);
+      expect(r).toMatch(/Remove it in the app that owns it/);
+      expect(r).toMatch(/Unlink from shared library/);
     }
     expect(reasons[0]).toMatch(/cannot be moved to the Bin/);
     expect(reasons[1]).toMatch(/cannot be permanently deleted/);

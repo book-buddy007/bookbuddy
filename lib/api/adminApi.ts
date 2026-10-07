@@ -752,6 +752,48 @@ export const listSharedWorks = async (query?: string) => {
   }
 };
 
+/** Whose shared library this is, and what the catalogue may offer for it. */
+export interface SharedLibraryStatus {
+  configured: boolean;
+  owner: 'PDLMS' | 'DigiClassroom';
+  /** True only for PDLMS's hub: DigiClassroom has no way to take a book off the library. */
+  canUnlink: boolean;
+}
+
+export const getSharedLibraryStatus = async () => {
+  try {
+    const res = await fetch('/api/shared-library/status', { cache: 'no-store' });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: extractErrorMessage(body), status: res.status };
+    return { success: true, data: body as SharedLibraryStatus };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Could not reach the library service.' };
+  }
+};
+
+/** What happens to a book when it is taken off the shared library. */
+export type UnlinkOutcome = 'retire' | 'keep';
+
+/**
+ * Take a book off the shared library (PDLMS's hub). Queues a job: 'retire' unlinks and moves the book
+ * to the Bin in one step; 'keep' unlinks and keeps the book here. Progress is watched with
+ * `getBookEmbeddingStatus`, which follows unlink jobs too.
+ */
+export const unlinkBookFromSharedWork = async (bookId: string, outcome: UnlinkOutcome) => {
+  try {
+    const res = await fetch(`/api/books/${bookId}/unlink-shared-work`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outcome }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: extractErrorMessage(body) };
+    return { success: true, data: body as { status: string; bookId: string; outcome: UnlinkOutcome } };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Could not reach the library service.' };
+  }
+};
+
 /**
  * Queue a book to use an existing shared work. Nothing is embedded; progress is watched with
  * `getBookEmbeddingStatus`, which follows link jobs too.

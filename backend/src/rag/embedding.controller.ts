@@ -47,17 +47,19 @@ export class EmbeddingController {
     });
     if (!book) throw new NotFoundException('Book not found');
 
-    const [row, embedJob, linkJob, chapterCount] = await Promise.all([
+    const [row, embedJob, linkJob, unlinkJob, chapterCount] = await Promise.all([
       this.prisma.bookEmbeddingStatus.findUnique({ where: { bookId } }),
       this.ingestionQueue.getJob(`embed-${bookId}`),
       // Linking a book to a work already in the shared library is its own job.
       this.ingestionQueue.getJob(`link-${bookId}`),
+      // Taking a book off the shared library is its own job too.
+      this.ingestionQueue.getJob(`unlink-${bookId}`),
       this.prisma.bookFormat.count({
         where: { bookId, type: 'AI_EMBED' },
       }),
     ]);
 
-    const { state: queueState, progress } = await pickRelevantJob([embedJob, linkJob]);
+    const { state: queueState, progress } = await pickRelevantJob([embedJob, linkJob, unlinkJob]);
 
     const running =
       queueState === 'active' ||

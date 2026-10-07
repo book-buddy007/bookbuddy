@@ -58,6 +58,11 @@ export class HubFilesService {
     return work;
   }
 
+  /** Drops what is remembered about a work, e.g. once a book has been unlinked from it. */
+  forget(workId: string): void {
+    this.manifests.delete(workId);
+  }
+
   /**
    * A fresh link for one rendition of a hub-owned book. Never stored. If the hub no longer knows the
    * file id from the cached manifest (the file was replaced there), it is looked up once more.

@@ -30,8 +30,9 @@ export function bookRemovalBlocker(
   if (!book.spineContentItemId) return null;
   const name = book.title ? `"${book.title}"` : 'This book';
   return (
-    `${name} belongs to the shared library, which DigiClassroom owns, so it cannot ${REFUSAL[action]} ` +
+    `${name} belongs to the shared library, which PDLMS or DigiClassroom owns, so it cannot ${REFUSAL[action]} ` +
     `from Book Buddy: its files and embeddings are used by the other apps too. ` +
-    `Remove it in DigiClassroom. To stop showing it here, make it unavailable instead.`
+    `Remove it in the app that owns it. If the library is PDLMS's hub, use "Unlink from shared library" to take it off the ` +
+    `library from here (it can then be retired or kept). Marking a book unavailable only stops borrowing; it does not hide it.`
   );
 }

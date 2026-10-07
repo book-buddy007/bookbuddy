@@ -53,6 +53,21 @@ export class SharedLibraryController {
     throw err;
   }
 
+  /**
+   * What the catalogue screens need to know about the shared library before drawing their menus:
+   * whether one is set up, whose it is, and whether a book can be taken off it from here.
+   */
+  @Get('shared-library/status')
+  @Roles('super-admin')
+  status() {
+    return {
+      configured: !!sharedIndexConfig(),
+      owner: this.library.ownerName(),
+      // Only PDLMS's hub has an unlink call; DigiClassroom's endpoints do not.
+      canUnlink: this.library.usesHub(),
+    };
+  }
+
   @Get('shared-library/works')
   @Roles('super-admin')
   async works(@Query('q') q?: string, @Query('limit') limit?: string) {
@@ -81,6 +96,65 @@ export class SharedLibraryController {
 
     await this.queueLink(bookId, body.contentItemId);
     return { status: 'QUEUED', bookId };
+  }
+
+  /**
+   * Take a book off the shared library: tell PDLMS this book is no longer used, then let go of the
+   * work here. The book's readers keep their annotations, progress and chat history.
+   *
+   *   outcome 'retire'  unlink and move the book to the Bin, in one step;
+   *   outcome 'keep'    unlink and keep the book here, to be given its own files and index.
+   *
+   * One job per book at a time, and not while the book is being linked or embedded. See
+   * IngestionProcessor.handleUnlink for what the job does, in what order, and why it can be repeated.
+   */
+  @Post('books/:bookId/unlink-shared-work')
+  @Roles('super-admin')
+  async unlink(@Param('bookId') bookId: string, @Body() body: { outcome?: string }, @Req() req: any) {
+    if (!this.library.usesHub()) {
+      throw new ConflictException(
+        'Taking a book off the shared library is only available when the library is PDLMS’s hub (HUB_URL is set). ' +
+          'See docs/shared-spine.md for how to take a DigiClassroom-linked book back to Book Buddy’s own index.',
+      );
+    }
+    const outcome = body?.outcome;
+    if (outcome !== 'retire' && outcome !== 'keep') {
+      throw new BadRequestException('outcome must be "retire" (unlink and move to the Bin) or "keep" (unlink and keep the book here).');
+    }
+
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true, deletedAt: true, spineContentItemId: true },
+    });
+    if (!book || book.deletedAt) throw new NotFoundException('Book not found');
+    if (!book.spineContentItemId) {
+      throw new ConflictException('This book is not linked to the shared library, so there is nothing to unlink.');
+    }
+
+    // One job at a time per book, whichever kind. A settled job of the same kind is cleared so it
+    // cannot swallow the new request (the job id is fixed per book).
+    for (const prefix of ['link', 'embed', 'unlink']) {
+      const job = await this.queue.getJob(`${prefix}-${bookId}`);
+      if (!job) continue;
+      const state = await job.getState();
+      if (['active', 'waiting', 'delayed', 'prioritized', 'waiting-children'].includes(state)) {
+        throw new ConflictException(`This book is busy (${prefix === 'embed' ? 'embedding' : prefix + 'ing'}, state: ${state}). Try again when it has finished.`);
+      }
+      if (prefix === 'unlink') await job.remove();
+    }
+
+    await this.queue.add(
+      'unlink-work',
+      { bookId, outcome, requestedBy: req?.user?.id ?? null },
+      {
+        jobId: `unlink-${bookId}`,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: 100,
+        removeOnFail: 50,
+      },
+    );
+    return { status: 'QUEUED', bookId, outcome };
   }
 
   /**

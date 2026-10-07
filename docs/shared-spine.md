@@ -154,15 +154,31 @@ stored. If the hub cannot answer, the read fails with the hub's reason: there is
 Book Buddy holds itself always wins over the hub's. Hub books cannot be binned, purged or have files
 deleted from Book Buddy (the same rule as any shared-library book): only PDLMS removes them.
 
-Telling the hub a book is no longer used: `SharedLibraryService.unlinkWork` calls the hub's
-`DELETE /api/hub/works/:id/link/:appRef`, which removes only Book Buddy's own link record at PDLMS (never
-the work or its files). It is a building block: **nothing in Book Buddy calls it yet**, because Book Buddy
-has no screen or flow that takes a book off the shared library (see below). It is refused with 501 when
-the library is DigiClassroom, which has no such call.
+**Taking a book off the library (unlink).** Super-admin, Catalogue > the book's menu > **Unlink from shared
+library** (offered only when the library is PDLMS's hub; DigiClassroom has no unlink). Pick one outcome:
 
-Not covered yet: **audiobooks** (still uploaded to Book Buddy), a button or flow that **unlinks** a book
-(and calls the above), "also used by" in the catalogue, and a hub search endpoint (passages are read
-straight from Qdrant, which with a read-only key can see the whole collection).
+- **Retire it** unlinks and moves the book to the Bin in one step, so a half-retired book is never left behind.
+  It can be restored from the Bin, but it is no longer linked.
+- **Keep it here** unlinks and keeps the book: its details and cover stay, but it has no files or index until
+  you upload and embed them yourself. If it has no readable file of its own, borrowing is paused
+  (`available=false`; note that `available` only stops borrowing, it does not hide a book).
+
+It runs as a background job (`unlink-work`, `POST /api/books/:id/unlink-shared-work {"outcome": "retire"|"keep"}`),
+and the dialog follows it. In order: (1) tell the hub, which removes only Book Buddy's own link record at PDLMS
+(never the work, its files or its embeddings); (2) in one transaction, clear the book's link and "ready" state and
+delete only the hub marker rows (and, for Retire, bin the book); (3) forget cached state; (4) write an audit row.
+The hub goes first because it can be repeated safely and the local step is the one that is hard to take back, so
+every step can be run again: if the job fails, the book is left exactly as it was (still linked) with the reason
+shown, and "Try again" finishes it. A hub that refuses (a record linked to a different work) stops the job without
+retrying. Only one job runs per book at a time (not while it is being linked or embedded).
+
+Kept on purpose: the book's own files and its copied cover, readers' annotations, progress and chat history, and
+the citation map (so old chat citations still jump to the right page). Readers lose the streamed PDF/EPUB and Varta
+can no longer answer from the book. A book can be linked again afterwards.
+
+Not covered yet: **audiobooks** (still uploaded to Book Buddy), "also used by" in the catalogue, noticing that
+PDLMS has stopped sharing a book (reads fail with the hub's reason until an admin unlinks it), and a hub search
+endpoint (passages are read straight from Qdrant, which with a read-only key can see the whole collection).
 
 ### Turning it on
 

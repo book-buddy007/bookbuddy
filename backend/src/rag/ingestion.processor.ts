@@ -10,7 +10,7 @@ import { LocalIndexerService } from './local/local-indexer.service';
 import { handsNewBooksToShared, qdrantCollectionName, sharedIndexConfig } from './local/index-config';
 import { sharedIndexBlocker } from './local/shared-index-policy';
 import { SharedLibraryError, SharedLibraryService } from './shared-library.service';
-import { HubFilesService } from './hub-files.service';
+import { HubFilesService, hubMarkerOf } from './hub-files.service';
 
 
 /**
@@ -37,6 +37,17 @@ import { HubFilesService } from './hub-files.service';
 export interface LinkJobData {
   bookId: string;
   contentItemId: string;
+}
+
+/**
+ * Payload of an `unlink-work` job: take a book off the shared library (PDLMS's hub).
+ *   retire  unlink, then move the book to the Bin, in one step;
+ *   keep    unlink and keep the book here, to be given its own files and index.
+ */
+export interface UnlinkJobData {
+  bookId: string;
+  outcome: 'retire' | 'keep';
+  requestedBy?: string | null;
 }
 
 export interface IngestJobData {
@@ -172,6 +183,8 @@ export class IngestionProcessor extends WorkerHost {
         return this.handleIngestion(job);
       case 'link-work':
         return this.handleLink(job);
+      case 'unlink-work':
+        return this.handleUnlink(job);
       default:
         throw new Error(`Unknown job name: ${job.name}`);
     }
@@ -391,6 +404,110 @@ export class IngestionProcessor extends WorkerHost {
         update: { status: 'FAILED', errorMessage: err.message },
       });
       await this.prisma.book.update({ where: { id: bookId }, data: { embeddingStatus: 'FAILED' } });
+      throw err;
+    }
+  }
+
+  /**
+   * Take a book off the shared library. The hub is told FIRST and the book changed after, because the
+   * hub call can be repeated safely and the local detach is the step that is hard to take back: if the
+   * hub answers and the local step then fails, the job retries (the hub says "nothing to remove") and
+   * finishes; the other order could leave PDLMS counting a book Book Buddy has already let go of.
+   *
+   * Only what the shared library supplied is removed from the book: the link, the marker rows for
+   * streamed PDF/EPUB, and the "ready" state. The book's own files, the copied cover, its readers'
+   * annotations, progress and chat, and its citation map (so old chat citations still jump to a page)
+   * all stay. Nothing at PDLMS is deleted: the hub removes only Book Buddy's own link record.
+   *
+   * Every step can be repeated, so a retry, or pressing Unlink again after a failure, finishes the
+   * job rather than doing it twice. A failure leaves the book as it was (still linked and READY) and
+   * records why on its embedding-status row.
+   */
+  private async handleUnlink(job: Job<UnlinkJobData>) {
+    const { bookId, outcome, requestedBy = null } = job.data;
+    this.logger.log(`🔓 Unlinking book ${bookId} from the shared library (${outcome})`);
+
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true, title: true, spineContentItemId: true, deletedAt: true },
+    });
+    if (!book) {
+      this.logger.warn(`Book ${bookId} deleted before unlinking started. Skipping.`);
+      return;
+    }
+    const workId = book.spineContentItemId;
+
+    try {
+      await this.prisma.bookEmbeddingStatus.updateMany({ where: { bookId }, data: { errorMessage: null } });
+
+      // No work id means a previous run already detached the book; only the rest is left to finish.
+      let hub: 'removed' | 'none' | 'skipped' = 'skipped';
+      if (workId) {
+        try {
+          hub = (await this.sharedLibrary.unlinkWork({ contentItemId: workId, bookId })) ? 'removed' : 'none';
+        } catch (err) {
+          if (err instanceof SharedLibraryError && !err.retryable) throw new UnrecoverableError(err.message);
+          throw err;
+        }
+      }
+      await job.updateProgress(40);
+
+      const formats = await this.prisma.bookFormat.findMany({
+        where: { bookId, type: { in: ['PDF', 'EPUB'] } },
+        select: { id: true, fileUrl: true, metadata: true },
+      });
+      const hubRows = formats.filter((f) => !f.fileUrl && hubMarkerOf(f.metadata));
+      const ownReadable = formats.some((f) => !!f.fileUrl);
+
+      await this.prisma.$transaction([
+        this.prisma.book.update({
+          where: { id: bookId },
+          data: {
+            spineContentItemId: null,
+            vectorCollectionId: null,
+            embeddingStatus: 'NONE',
+            embeddingStartedAt: null,
+            // Nothing left to read: stop new borrows until files are put back. (Borrowing is all
+            // `available` controls; listing and reading never look at it.)
+            ...(outcome === 'keep' && !ownReadable ? { available: false } : {}),
+            // Retire: the same soft delete as the Bin, in the same write, so a book is never left
+            // unlinked but not retired. An already-binned book keeps its original date.
+            ...(outcome === 'retire' ? { deletedAt: book.deletedAt ?? new Date(), deletedBy: requestedBy } : {}),
+          },
+        }),
+        this.prisma.bookEmbeddingStatus.upsert({
+          where: { bookId },
+          create: { bookId, status: 'NONE', totalChunks: 0, embeddedChunks: 0 },
+          update: { status: 'NONE', totalChunks: 0, embeddedChunks: 0, errorMessage: null },
+        }),
+        this.prisma.bookFormat.deleteMany({ where: { id: { in: hubRows.map((f) => f.id) } } }),
+      ]);
+      await job.updateProgress(80);
+
+      this.contentSpine.invalidate(bookId);
+      if (workId) this.hubFiles.forget(workId);
+
+      try {
+        await this.prisma.auditLog.create({
+          data: {
+            action: 'SHARED_LIBRARY_UNLINK',
+            entityType: 'book',
+            entityId: bookId,
+            userId: requestedBy,
+            metadata: { workId, outcome, hub, hubFilesRemoved: hubRows.length, keptOwnFiles: ownReadable },
+          },
+        });
+      } catch (auditErr: any) {
+        this.logger.warn(`Unlinked ${bookId}, but could not write the audit record: ${auditErr.message}`);
+      }
+      await job.updateProgress(100);
+      this.logger.log(`✅ Book "${book.title}" (${bookId}) is off the shared library (${outcome}; hub: ${hub})`);
+    } catch (err: any) {
+      this.logger.error(`❌ Unlinking failed for ${bookId}: ${err.message}`);
+      // The book is unchanged, so its status stays as it was; only the reason is recorded.
+      await this.prisma.bookEmbeddingStatus
+        .updateMany({ where: { bookId }, data: { errorMessage: err.message } })
+        .catch(() => undefined);
       throw err;
     }
   }
