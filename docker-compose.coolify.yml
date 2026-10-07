@@ -59,7 +59,9 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       CDN_BASE_URL: https://media.bookbuddy.live
       NEXT_PUBLIC_CDN_BASE_URL: https://media.bookbuddy.live
-      MEDIA_PROXY_ALLOWED_HOSTS: media.bookbuddy.live
+      # Comma-separated. To stream files from PDLMS's library hub, add its storage host (the host of the
+      # signed links it returns), e.g. `media.bookbuddy.live,<account>.r2.cloudflarestorage.com`.
+      MEDIA_PROXY_ALLOWED_HOSTS: ${MEDIA_PROXY_ALLOWED_HOSTS:-media.bookbuddy.live}
       FEDERATION_ENABLED: "false"
       NEXT_PUBLIC_FEDERATION_ENABLED: "false"
       # Google sign-in: inert until both are set in Coolify (callback: <APP_URL>/api/auth/callback/google).
@@ -152,6 +154,14 @@ services:
       TRIO_INGEST_URL: ${TRIO_INGEST_URL:-}
       TRIO_API_BASE: ${TRIO_API_BASE:-}
       TRIO_SERVICE_SECRET: ${TRIO_SERVICE_SECRET:-}
+      # PDLMS's library hub (optional; empty = not used, and DigiClassroom's endpoints above stay in
+      # charge). Books, files and manifests from PDLMS, one secret for this app only. When set,
+      # SHARED_QDRANT_* above must point at PDLMS's index (collection pdlms_content_v1, 3072d).
+      # The reader streams hub files, so the web service must also allow PDLMS's storage host in
+      # MEDIA_PROXY_ALLOWED_HOSTS. See docs/shared-spine.md.
+      HUB_URL: ${HUB_URL:-}
+      HUB_SECRET: ${HUB_SECRET:-}
+      HUB_APP_ID: ${HUB_APP_ID:-bookbuddy}
       # The embedding model and its vector width are fixed together and stored with every passage.
       # Changing either means a NEW collection name above and re-indexing every book: a question
       # embedded one way cannot be compared with passages embedded another.

@@ -10,6 +10,7 @@ import { LocalIndexerService } from './local/local-indexer.service';
 import { handsNewBooksToShared, qdrantCollectionName, sharedIndexConfig } from './local/index-config';
 import { sharedIndexBlocker } from './local/shared-index-policy';
 import { SharedLibraryError, SharedLibraryService } from './shared-library.service';
+import { HubFilesService } from './hub-files.service';
 
 
 /**
@@ -56,6 +57,7 @@ export class IngestionProcessor extends WorkerHost {
     private localIndexer: LocalIndexerService,
     private sharedLibrary: SharedLibraryService,
     @InjectQueue('book-graph-extraction') private graphQueue: Queue,
+    private hubFiles: HubFilesService,
   ) {
     super();
   }
@@ -359,6 +361,17 @@ export class IngestionProcessor extends WorkerHost {
         });
       } catch (cleanupErr: any) {
         this.logger.warn(`Could not clear the old local passages of book ${bookId}: ${cleanupErr.message}`);
+      }
+      // Hub books: record the PDF/EPUB as hub-owned formats (streamed on every read, never copied) and
+      // bring the cover across. Best effort: the passages are what linking is for, and syncing can be
+      // repeated by linking again.
+      if (this.sharedLibrary.usesHub()) {
+        try {
+          const synced = await this.hubFiles.syncFromWork(bookId, contentItemId);
+          this.logger.log(`Hub files for ${bookId}: formats [${synced.formats.join(', ')}], cover copied: ${synced.cover}`);
+        } catch (syncErr: any) {
+          this.logger.warn(`Linked ${bookId}, but could not record its hub files: ${syncErr.message}`);
+        }
       }
       await job.updateProgress(100);
 

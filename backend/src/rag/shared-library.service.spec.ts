@@ -6,7 +6,7 @@ describe('SharedLibraryService', () => {
   const saved = { ...process.env };
   const realFetch = global.fetch;
   let fetchMock: jest.Mock;
-  const service = new SharedLibraryService();
+  const service = new SharedLibraryService({ enabled: () => false } as any);
 
   beforeEach(() => {
     process.env.TRIO_INGEST_URL = 'https://dcp.test/api/internal/trio-ingest';

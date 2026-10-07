@@ -25,6 +25,7 @@ describe('SharedLibraryController', () => {
       tenant: { upsert: jest.fn().mockResolvedValue({}) },
     };
     const library = {
+      ownerName: jest.fn().mockReturnValue('PDLMS'),
       listWorks: jest.fn().mockResolvedValue([{ contentItemId: WORK }]),
       getWork: overrides.workError
         ? jest.fn().mockRejectedValue(overrides.workError)
@@ -57,7 +58,7 @@ describe('SharedLibraryController', () => {
 
     it('lists the works', async () => {
       const { controller, library } = make();
-      await expect(controller.works('eco', '10')).resolves.toEqual({ works: [{ contentItemId: WORK }] });
+      await expect(controller.works('eco', '10')).resolves.toEqual({ works: [{ contentItemId: WORK }], owner: 'PDLMS' });
       expect(library.listWorks).toHaveBeenCalledWith('eco', 10);
     });
 

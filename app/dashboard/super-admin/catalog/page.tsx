@@ -578,9 +578,9 @@ export default function SuperAdminCatalogPage() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {book.spineContentItemId ? (
-                          // A shared-library book is DigiClassroom's to remove; Book Buddy has no way to.
-                          <DropdownMenuItem disabled title="This book belongs to the shared library, which DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in DigiClassroom.">
-                            <Globe className="h-4 w-4 mr-2" /> Remove in DigiClassroom
+                          // A shared-library book is the owning app's to remove (PDLMS or DigiClassroom); Book Buddy has no way to.
+                          <DropdownMenuItem disabled title="This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.">
+                            <Globe className="h-4 w-4 mr-2" /> Remove in the owning app
                           </DropdownMenuItem>
                         ) : (
                         <DropdownMenuItem
@@ -795,9 +795,9 @@ export default function SuperAdminCatalogPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {book.spineContentItemId ? (
-                                  // A shared-library book is DigiClassroom's to remove; Book Buddy has no way to.
-                                  <DropdownMenuItem disabled title="This book belongs to the shared library, which DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in DigiClassroom.">
-                                    <Globe className="h-4 w-4 mr-2" /> Remove in DigiClassroom
+                                  // A shared-library book is the owning app's to remove (PDLMS or DigiClassroom); Book Buddy has no way to.
+                                  <DropdownMenuItem disabled title="This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.">
+                                    <Globe className="h-4 w-4 mr-2" /> Remove in the owning app
                                   </DropdownMenuItem>
                                 ) : (
                                 <DropdownMenuItem

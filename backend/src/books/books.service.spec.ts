@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { S3Service } from '../aws/s3.service';
 import { SecureLinksService } from '../drm/secure-links.service';
 import { BookAccessService } from '../common/book-access.service';
+import { HubFilesService } from '../rag/hub-files.service';
 
 describe('BooksService', () => {
   let service: BooksService;
@@ -36,6 +37,7 @@ describe('BooksService', () => {
           provide: S3Service,
           useValue: { getPresignedDownloadUrl: jest.fn() },
         },
+        { provide: HubFilesService, useValue: { readLink: jest.fn() } },
         {
           provide: SecureLinksService,
           useValue: { encryptPayload: jest.fn() },

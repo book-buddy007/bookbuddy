@@ -58,7 +58,8 @@ export class SharedLibraryController {
   async works(@Query('q') q?: string, @Query('limit') limit?: string) {
     this.requireSharedMode();
     try {
-      return { works: await this.library.listWorks(q, limit ? Number(limit) : 50) };
+      // `owner` lets the screen say whose library this is (PDLMS's hub, or DigiClassroom).
+      return { works: await this.library.listWorks(q, limit ? Number(limit) : 50), owner: this.library.ownerName() };
     } catch (err) {
       this.rethrow(err);
     }
@@ -91,8 +92,9 @@ export class SharedLibraryController {
    * another Book Buddy book is refused rather than duplicated. If the link cannot be queued, the
    * book just created is removed again: it has no files and no link, so nothing else depends on it.
    *
-   * The PDF/EPUB and cover are not copied: they live in the other app's storage. Upload them to the
-   * new book afterwards.
+   * When the library is PDLMS's hub, the PDF/EPUB appear on the new book by themselves (they are streamed
+   * from the hub on every read, never copied) and the cover is brought across once. With DigiClassroom's
+   * older endpoints nothing is copied: upload the files to the new book afterwards.
    */
   @Post('shared-library/create-book')
   @Roles('super-admin')

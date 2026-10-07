@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Injectable,
   NotFoundException,
   BadRequestException,
@@ -6,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BookAccessService } from '../common/book-access.service';
+import { HubFilesService, hubMarkerOf } from '../rag/hub-files.service';
+import { SharedLibraryError } from '../rag/shared-library.error';
 import { S3Service } from '../aws/s3.service';
 import { SecureLinksService } from '../drm/secure-links.service';
 import { Prisma } from '@prisma/client';
@@ -24,6 +27,7 @@ export class BooksService {
     private readonly s3Service: S3Service,
     private readonly secureLinks: SecureLinksService,
     private readonly bookAccess: BookAccessService,
+    private readonly hubFiles: HubFilesService,
   ) {}
 
   /** Map incoming (frontend) format filters to the Prisma enum members. */
@@ -285,9 +289,16 @@ export class BooksService {
       where: { bookId, type: dbFormat as any },
       orderBy: { partIndex: 'asc' },
     });
-    if (!bookFormat || !bookFormat.fileUrl) {
+    // A file PDLMS's library hub owns has no URL here, only a marker: it is streamed, and a fresh
+    // link is asked for on every read. Book Buddy's own file, when there is one, always wins.
+    const hubMarker = bookFormat && !bookFormat.fileUrl ? hubMarkerOf(bookFormat.metadata) : null;
+    if (!bookFormat || (!bookFormat.fileUrl && !hubMarker)) {
       throw new NotFoundException(`No ${format} file available for this book`);
     }
+    if (hubMarker) {
+      return this.getHubReadUrl(book, hubMarker.workId, dbFormat, format);
+    }
+    const fileUrl = bookFormat.fileUrl as string;
 
     // Resolve the storage key: prefer explicit s3Key in metadata, else
     // strip the CDN/base origin from the stored public URL.
@@ -295,9 +306,9 @@ export class BooksService {
     let key = typeof metadata.s3Key === 'string' ? metadata.s3Key : undefined;
     if (!key) {
       try {
-        key = new URL(bookFormat.fileUrl).pathname.replace(/^\//, '');
+        key = new URL(fileUrl).pathname.replace(/^\//, '');
       } catch {
-        key = bookFormat.fileUrl;
+        key = fileUrl;
       }
     }
 
@@ -326,6 +337,38 @@ export class BooksService {
       };
     }
     return { url, expiresAt, format };
+  }
+
+  /**
+   * The read link for a book whose file lives in PDLMS's library hub. Same shape as the book's own
+   * (and the same DRM wrapping), but the URL is the hub's fresh five-minute link, never stored.
+   * If the hub cannot answer the read fails: there is no other copy to fall back to.
+   */
+  private async getHubReadUrl(
+    book: { drmProtected?: boolean | null },
+    workId: string,
+    dbFormat: string,
+    format: string,
+  ) {
+    const kind = dbFormat === 'PDF' ? 'pdf' : dbFormat === 'EPUB' ? 'epub' : null;
+    if (!kind) throw new NotFoundException(`No ${format} file available for this book`);
+
+    let link: { url: string; expiresAt: string };
+    try {
+      link = await this.hubFiles.readLink(workId, kind);
+    } catch (err) {
+      if (err instanceof SharedLibraryError) {
+        throw new HttpException({ message: err.message }, err.status >= 400 ? err.status : 502);
+      }
+      throw err;
+    }
+    if (book.drmProtected) {
+      return {
+        encryptedUrl: this.secureLinks.encryptPayload({ url: link.url, expiresAt: link.expiresAt, format }),
+        format,
+      };
+    }
+    return { url: link.url, expiresAt: link.expiresAt, format };
   }
 
   async borrow(userId: string, bookId: string) {

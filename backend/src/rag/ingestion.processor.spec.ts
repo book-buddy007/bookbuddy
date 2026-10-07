@@ -79,7 +79,8 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
           }),
     };
     const graphQueue = { add: jest.fn().mockResolvedValue({}) };
-    const sharedLibrary = { linkWork: jest.fn().mockResolvedValue(undefined) };
+    const sharedLibrary = { linkWork: jest.fn().mockResolvedValue(undefined), usesHub: jest.fn().mockReturnValue(false) };
+    const hubFiles = { syncFromWork: jest.fn().mockResolvedValue({ formats: ['PDF'], cover: true }) };
     const processor = new IngestionProcessor(
       prisma,
       fileService as any,
@@ -89,9 +90,10 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
       localIndexer as any,
       sharedLibrary as any,
       graphQueue as any,
+      hubFiles as any,
     );
     const job: any = { name: 'ingest-book', data: { bookId: 'book-1' }, updateProgress: jest.fn().mockResolvedValue(undefined) };
-    return { processor, prisma, fileService, contentSpine, localIndexer, graphQueue, qdrant, job, sharedLibrary };
+    return { processor, prisma, fileService, contentSpine, localIndexer, graphQueue, qdrant, job, sharedLibrary, hubFiles };
   }
 
   it('reads every chapter in order, indexes them together and marks the book READY', async () => {
@@ -333,6 +335,34 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
         filter: { must: [{ key: 'content_item_id', match: { value: 'book-1' } }] },
         wait: true,
       });
+    });
+
+    it('does not touch hub files when the library is DigiClassroom', async () => {
+      const s = setup({ book: linkBook });
+      await s.processor.process(linkJob(s));
+      expect(s.hubFiles.syncFromWork).not.toHaveBeenCalled();
+    });
+
+    it('records the hub files of a hub work after linking, once READY is saved', async () => {
+      const s = setup({ book: linkBook });
+      s.sharedLibrary.usesHub.mockReturnValue(true);
+      await s.processor.process(linkJob(s));
+      expect(s.hubFiles.syncFromWork).toHaveBeenCalledWith('book-1', 'work-1');
+      expect(s.hubFiles.syncFromWork.mock.invocationCallOrder[0]).toBeGreaterThan(
+        s.prisma.book.update.mock.invocationCallOrder.at(-1)!,
+      );
+    });
+
+    it('still finishes READY when recording the hub files fails', async () => {
+      const s = setup({ book: linkBook });
+      s.sharedLibrary.usesHub.mockReturnValue(true);
+      s.hubFiles.syncFromWork.mockRejectedValue(new Error('hub down'));
+      await s.processor.process(linkJob(s));
+      expect(s.prisma.bookEmbeddingStatus.update).toHaveBeenCalledWith({
+        where: { bookId: 'book-1' },
+        data: { status: 'READY', totalChunks: 2, embeddedChunks: 2 },
+      });
+      expect(s.graphQueue.add).toHaveBeenCalled();
     });
 
     it('stops, without saving anything, when the shared library cannot be used', async () => {

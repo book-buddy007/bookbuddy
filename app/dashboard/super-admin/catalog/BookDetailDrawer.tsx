@@ -180,7 +180,7 @@ export function BookDetailDrawer({ open, onOpenChange, bookId }: BookDetailDrawe
                   onRequestDelete={setDeleteTarget}
                   deleteLockedReason={
                     book.spineContentItemId
-                      ? 'This book belongs to the shared library, which DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in DigiClassroom.'
+                      ? 'This book belongs to the shared library, which PDLMS or DigiClassroom owns. Its files and embeddings are used by the other apps too, so it can only be removed in the app that owns it.'
                       : undefined
                   }
                 />

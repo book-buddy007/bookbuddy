@@ -8,6 +8,8 @@ import { LocalIndexerService } from './local/local-indexer.service';
 import { EmbeddingController } from './embedding.controller';
 import { SharedLibraryController } from './shared-library.controller';
 import { SharedLibraryService } from './shared-library.service';
+import { HubClientService } from './hub-client.service';
+import { HubFilesService } from './hub-files.service';
 import { IngestionProcessor } from './ingestion.processor';
 import { EmbeddingRecoveryCron } from './embedding-recovery.cron';
 import { RagSearchService } from './rag-search.service';
@@ -85,6 +87,8 @@ import { PDFExtractKitAdapter } from './providers/pdf-extract-kit.adapter';
     EmbeddingService,
     LocalIndexerService,
     SharedLibraryService,
+    HubClientService,
+    HubFilesService,
     FileService,
     PDFExtractKitAdapter,
     IngestionProcessor,
@@ -107,6 +111,9 @@ import { PDFExtractKitAdapter } from './providers/pdf-extract-kit.adapter';
     RagSearchService,
     ContentSpineService,
     BookChatService,
+    // Reading a hub-owned book asks the hub for its file (BooksService).
+    HubFilesService,
+    HubClientService,
     EMBEDDING_PROVIDER,
     LLM_PROVIDER,
     RERANKER_PROVIDER,

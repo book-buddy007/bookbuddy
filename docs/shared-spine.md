@@ -128,6 +128,69 @@ Going back for one book: with `INGESTION_MODE=local` (or for a book that is not 
 re-embed it in Book Buddy from its own chapter markdown and it returns to the own index. For
 everything: leave `SHARED_QDRANT_URL` empty; own-index books are untouched either way.
 
+## PDLMS as the library hub (replaces DigiClassroom as the owner)
+
+PDLMS can lend its global books to Book Buddy through its hub API (PDLMS `docs/library-hub.md`):
+catalogue, files, manifests and its own embeddings (collection `pdlms_content_v1`, 3072d). Book Buddy
+uploads nothing and embeds nothing for those books. It is **off until `HUB_URL` and `HUB_SECRET` are
+set**; while they are empty everything above (DigiClassroom's `trio-works` / `trio-link`) is
+unchanged. The choice is made per call from the configuration.
+
+What changes when it is on:
+
+| | DigiClassroom (above) | PDLMS hub |
+|---|---|---|
+| Browse and link | `trio-works`, `trio-link`, one secret shared by all apps | `/api/hub/works`, `/works/:id`, `/works/:id/link`, one secret for Book Buddy only |
+| Passages | shared Qdrant `trio_content_v1_openai3072` | PDLMS's `pdlms_content_v1` (same 3072d, same payload fields) |
+| PDF / EPUB | upload them to the Book Buddy book afterwards | **streamed from PDLMS on every read, never copied** |
+| Cover | upload afterwards | copied once into Book Buddy's own public bucket (a small display image; never replaces a cover you set) |
+| Who may see a book | public in the shared index | only books PDLMS super-admin listed for `bookbuddy` (`hubAllowedApps`), global, not binned |
+
+**Reading a hub book.** Linking leaves a marker on the book (a PDF/EPUB `BookFormat` row with no file
+URL and `metadata.hub`), so the catalogue shows the format and its size. When someone opens the book,
+Book Buddy first applies its own rules (tier, institution, borrowing), then asks the hub for a fresh
+five-minute link and returns it in the usual shape (DRM-wrapped if the book is protected). Nothing is
+stored. If the hub cannot answer, the read fails with the hub's reason: there is no other copy. A file
+Book Buddy holds itself always wins over the hub's. Hub books cannot be binned, purged or have files
+deleted from Book Buddy (the same rule as any shared-library book): only PDLMS removes them.
+
+Not covered yet: **audiobooks** (still uploaded to Book Buddy), a button to **unlink**, "also used by"
+in the catalogue, and a hub search endpoint (passages are read straight from Qdrant, which with a
+read-only key can see the whole collection).
+
+### Turning it on
+
+1. PDLMS (a production deploy of another app): deploy its `feat/hub-api`, apply its migration
+   `20261007120000_add_library_hub`, and make Book Buddy's secret:
+   ```bash
+   node backend/scripts/hub-client-secret.js bookbuddy      # in PDLMS
+   ```
+   Set the printed **HASH** on the PDLMS API as `HUB_CLIENTS={"bookbuddy":"<hash>"}`. Give Book Buddy
+   the **SECRET**. Then, per book, list the app: `PUT /api/super-admin/catalog/books/:id/hub-sharing
+   {"apps":["bookbuddy"]}` (also needs `licenseType` AI_PERMITTED and embeddings READY to be linkable).
+2. Qdrant: give PDLMS's Qdrant a read-only key and a network Book Buddy's API can reach, as for the
+   shared one in "Switch-over" above (step 3 and 4). Do not attach Book Buddy to the whole `coolify`
+   network.
+3. Book Buddy, set in Coolify (you enter the secrets):
+   ```
+   HUB_URL=https://api.pdlms.vinstitution.com
+   HUB_SECRET=<the SECRET from step 1>
+   HUB_APP_ID=bookbuddy
+   SHARED_QDRANT_URL=<PDLMS's Qdrant>        SHARED_QDRANT_API_KEY=<its READ-ONLY key>
+   SHARED_QDRANT_COLLECTION=pdlms_content_v1   SHARED_EMBEDDING_DIMENSIONS=3072
+   MEDIA_PROXY_ALLOWED_HOSTS=media.bookbuddy.live,<PDLMS's storage host>
+   ```
+   The last one is needed because the reader fetches signed links through `/api/proxy-media`, which
+   refuses hosts it does not know; the host to add is the one in a link the hub returns.
+4. Redeploy, run `npm run check:ai` from `backend/` (it now also checks the hub accepts this app and
+   that the shared Qdrant is reachable and read-only), then link a book as in "Using it day to day".
+
+**This is a switch for the whole deployment, not per book.** Book Buddy has one `SHARED_QDRANT_*`, so
+books already linked through DigiClassroom would lose their passages the moment it points at PDLMS's
+collection (their work ids are DigiClassroom's, not PDLMS's). Before switching, take each of those books
+back to Book Buddy's own index ("Going back for one book" above) and link it again, from the screen, to its
+PDLMS work. A deployment with no linked books can simply set the variables.
+
 ## What this does not cover
 
 - **DigiClassroom's own search does not filter by `visibility` or `grant_org_ids` at query time**

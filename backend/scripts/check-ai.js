@@ -129,6 +129,34 @@ async function openai(path, body) {
     }
   }
 
+  const hubUrl = (env.HUB_URL || '').trim().replace(/\/+$/, '');
+  if (hubUrl) {
+    console.log('Library hub (PDLMS)');
+    if (!env.HUB_SECRET) {
+      bad('HUB_SECRET is not set');
+    } else {
+      try {
+        const res = await fetch(`${hubUrl}/api/hub/works?limit=50`, {
+          headers: { 'X-Hub-App': env.HUB_APP_ID || 'bookbuddy', 'X-Hub-Secret': env.HUB_SECRET },
+          redirect: 'error',
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.status === 401) bad('the hub rejected HUB_APP_ID / HUB_SECRET (PDLMS must hold the hash of this secret in HUB_CLIENTS)');
+        else if (res.status === 503) bad('the hub is not enabled on the PDLMS server (HUB_CLIENTS is empty there)');
+        else if (!res.ok) bad(`the hub answered HTTP ${res.status}`);
+        else {
+          const body = await res.json();
+          const searchable = (body.items || []).filter((w) => w.searchable).length;
+          ok(`the hub accepted this app: ${body.total} work(s) shared with it, ${searchable} with embedded passages on the first page`);
+          if (!body.total) console.log('  note: nothing is shared with this app yet; opt books in on PDLMS (hub-sharing) first');
+        }
+      } catch (e) {
+        bad(`cannot reach the hub at ${hubUrl}: ${e.message}`);
+      }
+    }
+    if (!sharedUrl) bad("HUB_URL is set but SHARED_QDRANT_URL is not: linked books could not be read (point it at PDLMS's index, collection pdlms_content_v1)");
+  }
+
   console.log(failed ? `\n${failed} problem(s) found.` : '\nAll good: Varta can index and answer.');
   process.exit(failed ? 1 : 0);
 })();

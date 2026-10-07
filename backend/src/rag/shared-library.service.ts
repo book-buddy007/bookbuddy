@@ -1,19 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { SharedLibraryError } from './shared-library.error';
+import { HubClientService, HubWorkSummary } from './hub-client.service';
 
-export class SharedLibraryError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'SharedLibraryError';
-  }
-
-  /** A refusal (4xx) will be refused again; only a network or server failure is worth retrying. */
-  get retryable(): boolean {
-    return this.status === 0 || this.status >= 500;
-  }
-}
+// Re-exported: callers have always imported it from here.
+export { SharedLibraryError };
 
 export interface SharedWork {
   contentItemId: string;
@@ -27,12 +17,32 @@ export interface SharedWork {
   linkedApps: string[];
 }
 
+/** A hub work in the shape the catalogue screens already understand. */
+export function sharedWorkFromHub(w: HubWorkSummary): SharedWork {
+  return {
+    contentItemId: w.id,
+    title: w.title,
+    isbn: w.isbn,
+    edition: null,
+    lang: w.language,
+    chunks: w.passageCount,
+    pageStart: null,
+    pageEnd: w.pages,
+    linkedApps: [],
+  };
+}
+
 export const isUuid = (v: unknown): v is string =>
   typeof v === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
 /**
- * Book Buddy's side of the conversation with DigiClassroom, which owns the shared library.
+ * Book Buddy's side of the conversation with the shared library.
+ *
+ * Two owners are supported. When HUB_URL and HUB_SECRET are set, the library is PDLMS's hub
+ * (HubClientService): one secret for this app, books, files and manifests, and PDLMS's own index.
+ * Otherwise it is DigiClassroom's older internal endpoints, below, exactly as before. The choice is
+ * made per call from the configuration, so nothing is half-switched.
  *
  * Browse the public works already embedded there, and link a Book Buddy book to one so Varta
  * answers from those passages instead of Book Buddy embedding the book a second time.
@@ -43,6 +53,18 @@ export const isUuid = (v: unknown): v is string =>
 @Injectable()
 export class SharedLibraryService {
   private readonly logger = new Logger(SharedLibraryService.name);
+
+  constructor(private readonly hub: HubClientService) {}
+
+  /** True when the shared library is PDLMS's hub. */
+  usesHub(): boolean {
+    return this.hub.enabled();
+  }
+
+  /** Who owns the library, in words for the admin screens. */
+  ownerName(): 'PDLMS' | 'DigiClassroom' {
+    return this.usesHub() ? 'PDLMS' : 'DigiClassroom';
+  }
 
   /**
    * Where DigiClassroom's internal endpoints live: TRIO_API_BASE if set, otherwise the ingest
@@ -105,6 +127,12 @@ export class SharedLibraryService {
   }
 
   async listWorks(query?: string, limit = 50): Promise<SharedWork[]> {
+    if (this.usesHub()) {
+      // Only works with embedded passages: linking exists to reuse them. A work the hub can serve
+      // files for but has not embedded is not a candidate here.
+      const { items } = await this.hub.listWorks({ q: query, limit: Math.min(Math.max(Math.trunc(limit) || 50, 1), 50) });
+      return items.filter((w) => w.searchable).map(sharedWorkFromHub);
+    }
     const params = new URLSearchParams();
     if (query?.trim()) params.set('q', query.trim().slice(0, 120));
     params.set('limit', String(Math.min(Math.max(Math.trunc(limit) || 50, 1), 100)));
@@ -123,6 +151,18 @@ export class SharedLibraryService {
     if (!isUuid(contentItemId)) {
       throw new SharedLibraryError(400, 'That is not a valid work id.');
     }
+    if (this.usesHub()) {
+      const work = await this.hub.getWork(contentItemId).catch((err) => {
+        if (err instanceof SharedLibraryError && err.status === 404) {
+          throw new SharedLibraryError(404, 'That work is not in the shared library, or it has not been shared with Book Buddy.');
+        }
+        throw err;
+      });
+      if (!work.searchable) {
+        throw new SharedLibraryError(409, 'That work has no embedded passages in the shared library yet, so there is nothing to link to.');
+      }
+      return sharedWorkFromHub(work);
+    }
     const json = await this.call(`/trio-works?id=${encodeURIComponent(contentItemId)}&limit=100`, { method: 'GET' });
     const works: SharedWork[] = Array.isArray(json.works) ? json.works : [];
     const work = works.find((w) => w.contentItemId === contentItemId);
@@ -136,6 +176,10 @@ export class SharedLibraryService {
   async linkWork(input: { contentItemId: string; bookId: string; isbn?: string | null }): Promise<void> {
     if (!isUuid(input.contentItemId)) {
       throw new SharedLibraryError(400, 'That is not a valid work id.');
+    }
+    if (this.usesHub()) {
+      await this.hub.linkWork(input.contentItemId, input.bookId, input.isbn);
+      return;
     }
     await this.call('/trio-link', {
       method: 'POST',

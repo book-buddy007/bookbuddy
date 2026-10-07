@@ -52,18 +52,20 @@ export interface LinkSharedWorkDialogProps {
 }
 
 /**
- * Link a catalogue book to a work that is already embedded in the shared library (DigiClassroom),
+ * Link a catalogue book to a work that is already embedded in the shared library (PDLMS or DigiClassroom),
  * instead of embedding the book again.
  *
  * What the screen refuses, and why:
- *  - a book that already lives in the shared library: DigiClassroom will not repoint it, so the
+ *  - a book that already lives in the shared library: the owner will not repoint it, so the
  *    screen says so rather than offering a choice that is guaranteed to fail;
  *  - a work whose ISBN differs from the book's: linked to the wrong work, the book would answer
  *    correctly for a different book with nothing looking wrong.
  *
  * In 'create' mode the same list makes a NEW book instead: the title, ISBN and language come from the
  * work, the author is typed (the shared library holds none), and a work Book Buddy already has a book
- * for cannot be picked again. The PDF/EPUB and cover are not copied; they are uploaded afterwards.
+ * for cannot be picked again. From PDLMS's library hub the PDF/EPUB appear on their own (streamed from
+ * PDLMS on every read, never copied) and the cover is brought across once; from DigiClassroom nothing
+ * is copied and the files are uploaded afterwards.
  *
  * The backend's own explanation is shown as it is (library not set up, secret rejected,
  * DigiClassroom unreachable); the screen never invents a reason.
@@ -162,9 +164,9 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
           </DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
             {creating ? (
-              <>Create a Book Buddy book from a work already embedded in DigiClassroom. Nothing is embedded again.</>
+              <>Create a Book Buddy book from a work already embedded in the shared library (PDLMS or DigiClassroom). Nothing is embedded again.</>
             ) : book ? (
-              <>Use a book already embedded in DigiClassroom for “{book.title}”. Nothing is embedded again.</>
+              <>Use a book already embedded in the shared library for “{book.title}”. Nothing is embedded again.</>
             ) : null}
           </DialogDescription>
         </DialogHeader>
@@ -221,8 +223,8 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
 
               {works.isSuccess && list.length === 0 && (
                 <p className="py-10 text-center text-sm text-muted-foreground">
-                  No public works match. Books are added to the shared library by uploading and embedding them in
-                  DigiClassroom.
+                  No works match. Books are added to the shared library by uploading and embedding them in PDLMS or
+                  DigiClassroom, and a book can be used here only if its owner has shared it with Book Buddy.
                 </p>
               )}
 

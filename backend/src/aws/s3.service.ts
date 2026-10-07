@@ -240,6 +240,19 @@ export class S3Service {
     return Buffer.from(await res.Body.transformToByteArray());
   }
 
+  /**
+   * Writes one object with the app's own credentials, and returns the public URL it would have if
+   * its key is a public one (covers, samples). For small server-made files; uploads from a person's
+   * browser go through the presigned flow instead.
+   */
+  async putObject(key: string, body: Buffer, contentType: string): Promise<{ publicUrl: string }> {
+    this.assertConfigured();
+    await this.client.send(
+      new PutObjectCommand({ Bucket: this.bucketFor(key), Key: key, Body: body, ContentType: contentType }),
+    );
+    return { publicUrl: `${this.cdnBaseUrl}/${key}` };
+  }
+
   async getPresignedDownloadUrl(params: {
     key: string;
     expiresInSeconds?: number;
