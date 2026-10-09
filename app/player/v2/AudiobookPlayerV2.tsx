@@ -226,7 +226,7 @@ export default function AudiobookPlayerV2() {
     try {
       const res = await apiClient.get(`/audiobooks/sections/${sectionId}/presign?gender=${gender}`);
       const url = res.data.url;
-      store.cacheUrl(`${sectionId}:${gender}`, url);
+      store.cacheUrl(`${sectionId}:${gender}`, url, res.data.expiresAt);
       return url;
     } catch (err: any) {
       console.error('Failed to get presigned URL:', err);
@@ -315,7 +315,7 @@ export default function AudiobookPlayerV2() {
     let cancelled = false;
     apiClient
       .get(`/audiobooks/sections/${next.id}/presign?gender=${activeGender}`)
-      .then(res => { if (!cancelled && res.data?.url) store.cacheUrl(`${next.id}:${activeGender}`, res.data.url); })
+      .then(res => { if (!cancelled && res.data?.url) store.cacheUrl(`${next.id}:${activeGender}`, res.data.url, res.data.expiresAt); })
       .catch(() => { /* prefetch is best-effort — the real fetch will retry */ });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -579,7 +579,7 @@ export default function AudiobookPlayerV2() {
     try {
       const res = await apiClient.get(`/audiobooks/sections/${currentSectionId}/presign?gender=${activeGender}`);
       url = res.data?.url ?? null;
-      if (url) store.cacheUrl(`${currentSectionId}:${activeGender}`, url);
+      if (url) store.cacheUrl(`${currentSectionId}:${activeGender}`, url, res.data?.expiresAt);
     } catch {
       store.setError('Still cannot reach the audio. Check your connection and try again.');
       store.setLoading(false);
@@ -622,7 +622,7 @@ export default function AudiobookPlayerV2() {
         if (!url) {
           const res = await apiClient.get(`/audiobooks/sections/${section.id}/presign?gender=${activeGender}`);
           url = res.data?.url;
-          if (url) store.cacheUrl(`${section.id}:${activeGender}`, url);
+          if (url) store.cacheUrl(`${section.id}:${activeGender}`, url, res.data?.expiresAt);
         }
         if (url) await cache.add(url);
       }

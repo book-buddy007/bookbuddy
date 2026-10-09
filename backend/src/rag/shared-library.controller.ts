@@ -124,11 +124,19 @@ export class SharedLibraryController {
 
     const book = await this.prisma.book.findUnique({
       where: { id: bookId },
-      select: { id: true, deletedAt: true, spineContentItemId: true },
+      select: { id: true, deletedAt: true, spineContentItemId: true, hubWorkId: true },
     });
     if (!book || book.deletedAt) throw new NotFoundException('Book not found');
-    if (!book.spineContentItemId) {
+    if (!book.spineContentItemId && !book.hubWorkId) {
       throw new ConflictException('This book is not linked to the shared library, so there is nothing to unlink.');
+    }
+    if (!book.hubWorkId) {
+      // Linked through DigiClassroom's older endpoints (or before the hub recorded its work id): the hub
+      // has no link record to remove, and this job only detaches what the hub supplied.
+      throw new ConflictException(
+        'This book is linked to the shared library through DigiClassroom, not PDLMS’s hub, so it cannot be unlinked from here. ' +
+          'See docs/shared-spine.md for how to take a DigiClassroom-linked book back to Book Buddy’s own index.',
+      );
     }
 
     // One job at a time per book, whichever kind. A settled job of the same kind is cleared so it
@@ -192,8 +200,18 @@ export class SharedLibraryController {
 
     // One Book Buddy book per work: two records of the same book would split its readers, notes and
     // chat history across copies.
+    // The work is known by two ids with the hub: PDLMS's (what is selected) and the embedder's (what the
+    // passages carry, `work.index`). A book linked through either, or through DigiClassroom before the hub
+    // was switched on, uses the same work, so all of them are checked.
     const already = await this.prisma.book.findFirst({
-      where: { spineContentItemId: contentItemId, deletedAt: null },
+      where: {
+        deletedAt: null,
+        OR: [
+          { hubWorkId: contentItemId },
+          { spineContentItemId: contentItemId },
+          ...(work.index ? [{ spineContentItemId: work.index.contentItemId }] : []),
+        ],
+      },
       select: { title: true },
     });
     if (already) {

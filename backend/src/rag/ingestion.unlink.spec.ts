@@ -3,6 +3,8 @@ import { IngestionProcessor } from './ingestion.processor';
 import { SharedLibraryError } from './shared-library.error';
 
 const WORK = '5f0c1d2e-3a4b-4c5d-8e6f-7a8b9c0d1e2f';
+// The id the passages carry in the index: the embedder's, not PDLMS's. It must never reach the hub.
+const INDEX = '0b9d8c7e-6f5a-4b3c-9d2e-1f0a9b8c7d6e';
 
 const hubRow = (id: string, type = 'PDF') => ({ id, type, fileUrl: null, metadata: { hub: { workId: WORK, fileId: `f-${id}`, version: 'v' } } });
 const ownRow = (id: string, type = 'PDF') => ({ id, type, fileUrl: `https://cdn.test/${id}.pdf`, metadata: { s3Key: id } });
@@ -13,7 +15,7 @@ function setup(opts: { book?: any; formats?: any[]; hubResult?: boolean; hubErro
     book: {
       findUnique: jest.fn().mockResolvedValue(
         opts.book === undefined
-          ? { id: 'book-1', title: 'Understanding Society', spineContentItemId: WORK, deletedAt: null }
+          ? { id: 'book-1', title: 'Understanding Society', hubWorkId: WORK, spineContentItemId: INDEX, deletedAt: null }
           : opts.book,
       ),
       update: jest.fn((a: any) => ({ op: 'book.update', a })),
@@ -26,6 +28,7 @@ function setup(opts: { book?: any; formats?: any[]; hubResult?: boolean; hubErro
       findMany: jest.fn().mockResolvedValue(opts.formats ?? [hubRow('f1', 'PDF'), hubRow('f2', 'EPUB')]),
       deleteMany: jest.fn((a: any) => ({ op: 'format.deleteMany', a })),
     },
+    audioChapter: { deleteMany: jest.fn((a: any) => ({ op: 'audioChapter.deleteMany', a })) },
     auditLog: { create: jest.fn().mockResolvedValue({}) },
     $transaction: jest.fn(async (ops: any[]) => {
       order.push('transaction');
@@ -65,6 +68,20 @@ describe('IngestionProcessor: unlink-work', () => {
     expect(s.order).toEqual(['hub', 'transaction']);
   });
 
+  it('names the work to the hub by PDLMS’s id, never by the id its passages carry in the index', async () => {
+    const s = setup();
+    await s.processor.process(s.job());
+    expect(JSON.stringify(s.sharedLibrary.unlinkWork.mock.calls)).not.toContain(INDEX);
+    expect(s.hubFiles.forget).toHaveBeenCalledWith(WORK);
+  });
+
+  it('skips the hub for a book with no hub work id (linked through DigiClassroom) and only detaches it', async () => {
+    const s = setup({ book: { id: 'book-1', title: 'T', hubWorkId: null, spineContentItemId: INDEX, deletedAt: null }, formats: [] });
+    await s.processor.process(s.job('keep'));
+    expect(s.sharedLibrary.unlinkWork).not.toHaveBeenCalled();
+    expect(bookUpdate(s).data).toMatchObject({ spineContentItemId: null, hubWorkId: null });
+  });
+
   it('changes nothing locally when the hub call fails, records why, and lets the job retry', async () => {
     const s = setup({ hubError: new SharedLibraryError(0, 'Could not reach the library hub') });
     await expect(s.processor.process(s.job())).rejects.toMatchObject({ status: 0 });
@@ -91,7 +108,7 @@ describe('IngestionProcessor: unlink-work', () => {
     it('clears the link and the ready state, and removes only the hub marker rows', async () => {
       const s = setup({ formats: [hubRow('f1', 'PDF'), ownRow('own-epub', 'EPUB')] });
       await s.processor.process(s.job('keep'));
-      expect(bookUpdate(s).data).toMatchObject({ spineContentItemId: null, vectorCollectionId: null, embeddingStatus: 'NONE', embeddingStartedAt: null });
+      expect(bookUpdate(s).data).toMatchObject({ spineContentItemId: null, hubWorkId: null, vectorCollectionId: null, embeddingStatus: 'NONE', embeddingStartedAt: null });
       expect(bookUpdate(s).data).not.toHaveProperty('deletedAt');
       expect(s.prisma.bookFormat.deleteMany).toHaveBeenCalledWith({ where: { id: { in: ['f1'] } } });
       expect(s.prisma.bookEmbeddingStatus.upsert.mock.calls[0][0]).toMatchObject({
@@ -110,9 +127,20 @@ describe('IngestionProcessor: unlink-work', () => {
       expect(bookUpdate(own).data).not.toHaveProperty('available');
     });
 
+    it('removes the hub’s audio and its marker, but not audio the book has of its own, and does not count audio as a readable file', async () => {
+      const audioMarker = hubRow('a1', 'AUDIOBOOK');
+      const s = setup({ formats: [hubRow('f1', 'PDF'), audioMarker, ownRow('own-audio', 'AUDIOBOOK')] });
+      await s.processor.process(s.job('keep'));
+      expect(s.prisma.bookFormat.deleteMany).toHaveBeenCalledWith({ where: { id: { in: ['f1', 'a1'] } } });
+      // Only chapters the hub supplied (marked), never the book's own.
+      expect(s.prisma.audioChapter.deleteMany).toHaveBeenCalledWith({ where: { bookId: 'book-1', hubChapterId: { not: null } } });
+      // The own audio file is not a reason to leave the book borrowable: nothing is left to READ.
+      expect(bookUpdate(s).data.available).toBe(false);
+    });
+
     it('never touches the book’s citation map, cover, learner data or anything at the hub beyond its own link', async () => {
       const s = setup();
-      expect(Object.keys(s.prisma)).toEqual(['book', 'bookEmbeddingStatus', 'bookFormat', 'auditLog', '$transaction']);
+      expect(Object.keys(s.prisma)).toEqual(['book', 'bookEmbeddingStatus', 'bookFormat', 'audioChapter', 'auditLog', '$transaction']);
       await s.processor.process(s.job('keep'));
       expect(bookUpdate(s).data).not.toHaveProperty('coverUrl');
       expect(bookUpdate(s).data).not.toHaveProperty('coverKey');
@@ -131,14 +159,14 @@ describe('IngestionProcessor: unlink-work', () => {
 
     it('keeps the original binning date of a book that was already in the Bin', async () => {
       const when = new Date('2026-01-01');
-      const s = setup({ book: { id: 'book-1', title: 'T', spineContentItemId: WORK, deletedAt: when } });
+      const s = setup({ book: { id: 'book-1', title: 'T', hubWorkId: WORK, spineContentItemId: INDEX, deletedAt: when } });
       await s.processor.process(s.job('retire'));
       expect(bookUpdate(s).data.deletedAt).toBe(when);
     });
   });
 
   it('is safe to run again: a book already detached skips the hub and still finishes', async () => {
-    const s = setup({ book: { id: 'book-1', title: 'T', spineContentItemId: null, deletedAt: null }, formats: [] });
+    const s = setup({ book: { id: 'book-1', title: 'T', hubWorkId: null, spineContentItemId: null, deletedAt: null }, formats: [] });
     await s.processor.process(s.job('retire'));
     expect(s.sharedLibrary.unlinkWork).not.toHaveBeenCalled();
     expect(bookUpdate(s).data.deletedAt).toBeInstanceOf(Date);

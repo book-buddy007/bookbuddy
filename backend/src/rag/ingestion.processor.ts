@@ -321,7 +321,20 @@ export class IngestionProcessor extends WorkerHost {
       });
       await job.updateProgress(10);
 
-      // DigiClassroom checks the work is public, the ISBNs agree and the record is not already
+      // `contentItemId` is the work as the library lists it: PDLMS's id with the hub, DigiClassroom's
+      // otherwise. The passages carry the embedder's id, which with the hub is a different one, so both
+      // are worked out first and nothing is recorded anywhere if they cannot be (see resolveIndex).
+      let ids: { hubWorkId: string | null; indexContentItemId: string };
+      try {
+        ids = await this.sharedLibrary.resolveIndex(contentItemId);
+      } catch (err) {
+        if (err instanceof SharedLibraryError && !err.retryable) {
+          throw new UnrecoverableError(err.message);
+        }
+        throw err;
+      }
+
+      // The library checks the work is public, the ISBNs agree and the record is not already
       // attached to a different work, and answers with a reason a person can act on if not.
       try {
         await this.sharedLibrary.linkWork({ contentItemId, bookId, isbn: book.isbn });
@@ -335,7 +348,7 @@ export class IngestionProcessor extends WorkerHost {
 
       let index: BookIndex;
       try {
-        index = this.contentSpine.sharedIndex(contentItemId);
+        index = this.contentSpine.sharedIndex(ids.indexContentItemId);
       } catch (err) {
         if (err instanceof SharedIndexUnavailableError) throw new UnrecoverableError(err.message);
         throw err;
@@ -352,7 +365,8 @@ export class IngestionProcessor extends WorkerHost {
       await this.prisma.book.update({
         where: { id: bookId },
         data: {
-          spineContentItemId: contentItemId,
+          spineContentItemId: ids.indexContentItemId,
+          hubWorkId: ids.hubWorkId,
           embeddingStatus: 'READY',
           vectorCollectionId: index.collection,
         },
@@ -378,10 +392,12 @@ export class IngestionProcessor extends WorkerHost {
       // Hub books: record the PDF/EPUB as hub-owned formats (streamed on every read, never copied) and
       // bring the cover across. Best effort: the passages are what linking is for, and syncing can be
       // repeated by linking again.
-      if (this.sharedLibrary.usesHub()) {
+      if (ids.hubWorkId) {
         try {
-          const synced = await this.hubFiles.syncFromWork(bookId, contentItemId);
-          this.logger.log(`Hub files for ${bookId}: formats [${synced.formats.join(', ')}], cover copied: ${synced.cover}`);
+          const synced = await this.hubFiles.syncFromWork(bookId, ids.hubWorkId);
+          this.logger.log(
+            `Hub files for ${bookId}: formats [${synced.formats.join(', ')}], audio tracks: ${synced.audioTracks}, cover copied: ${synced.cover}`,
+          );
         } catch (syncErr: any) {
           this.logger.warn(`Linked ${bookId}, but could not record its hub files: ${syncErr.message}`);
         }
@@ -394,7 +410,7 @@ export class IngestionProcessor extends WorkerHost {
         { jobId: `graph-ingest-${bookId}`, removeOnComplete: true, removeOnFail: true },
       );
       this.logger.log(
-        `✅ Book "${book.title}" (${bookId}) now uses shared work ${contentItemId}: ${mapped} passages`,
+        `✅ Book "${book.title}" (${bookId}) now uses shared work ${contentItemId} (passages under ${ids.indexContentItemId}): ${mapped} passages`,
       );
     } catch (err: any) {
       this.logger.error(`❌ Linking failed for ${bookId}: ${err.message}`);
@@ -429,13 +445,15 @@ export class IngestionProcessor extends WorkerHost {
 
     const book = await this.prisma.book.findUnique({
       where: { id: bookId },
-      select: { id: true, title: true, spineContentItemId: true, deletedAt: true },
+      select: { id: true, title: true, hubWorkId: true, deletedAt: true },
     });
     if (!book) {
       this.logger.warn(`Book ${bookId} deleted before unlinking started. Skipping.`);
       return;
     }
-    const workId = book.spineContentItemId;
+    // The hub knows the work by PDLMS's id. `spineContentItemId` is the id of its passages in the
+    // index, which is the embedder's and differs from it, so it is never sent to the hub.
+    const workId = book.hubWorkId;
 
     try {
       await this.prisma.bookEmbeddingStatus.updateMany({ where: { bookId }, data: { errorMessage: null } });
@@ -453,17 +471,20 @@ export class IngestionProcessor extends WorkerHost {
       await job.updateProgress(40);
 
       const formats = await this.prisma.bookFormat.findMany({
-        where: { bookId, type: { in: ['PDF', 'EPUB'] } },
-        select: { id: true, fileUrl: true, metadata: true },
+        where: { bookId, type: { in: ['PDF', 'EPUB', 'AUDIOBOOK'] } },
+        select: { id: true, type: true, fileUrl: true, metadata: true },
       });
       const hubRows = formats.filter((f) => !f.fileUrl && hubMarkerOf(f.metadata));
-      const ownReadable = formats.some((f) => !!f.fileUrl);
+      // Whether the book keeps something to read of its own (audio is listened to, not read, so it
+      // does not count towards that).
+      const ownReadable = formats.some((f) => f.type !== 'AUDIOBOOK' && !!f.fileUrl);
 
       await this.prisma.$transaction([
         this.prisma.book.update({
           where: { id: bookId },
           data: {
             spineContentItemId: null,
+            hubWorkId: null,
             vectorCollectionId: null,
             embeddingStatus: 'NONE',
             embeddingStartedAt: null,
@@ -481,6 +502,9 @@ export class IngestionProcessor extends WorkerHost {
           update: { status: 'NONE', totalChunks: 0, embeddedChunks: 0, errorMessage: null },
         }),
         this.prisma.bookFormat.deleteMany({ where: { id: { in: hubRows.map((f) => f.id) } } }),
+        // The hub's audio structure (chapters, sections, tracks), and with it the listeners' bookmarks on
+        // it. Only rows the hub supplied: audio the book has of its own is never marked and is not touched.
+        this.prisma.audioChapter.deleteMany({ where: { bookId, hubChapterId: { not: null } } }),
       ]);
       await job.updateProgress(80);
 

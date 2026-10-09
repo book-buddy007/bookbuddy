@@ -2,7 +2,12 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import { SharedLibraryController } from './shared-library.controller';
 
 const BOOK = 'book-1';
-const LINKED = { id: BOOK, deletedAt: null, spineContentItemId: '5f0c1d2e-3a4b-4c5d-8e6f-7a8b9c0d1e2f' };
+const LINKED = {
+  id: BOOK,
+  deletedAt: null,
+  spineContentItemId: '0b9d8c7e-6f5a-4b3c-9d2e-1f0a9b8c7d6e',
+  hubWorkId: '5f0c1d2e-3a4b-4c5d-8e6f-7a8b9c0d1e2f',
+};
 
 function make(opts: { hub?: boolean; book?: any; jobs?: Record<string, string>; sharedUrl?: string } = {}) {
   const saved = process.env.SHARED_QDRANT_URL;
@@ -76,9 +81,15 @@ describe('SharedLibraryController: unlink-shared-work', () => {
       const { controller } = make({ book });
       await expect(controller.unlink(BOOK, { outcome: 'keep' }, req)).rejects.toBeInstanceOf(NotFoundException);
     }
-    const unlinked = make({ book: { ...LINKED, spineContentItemId: null } });
+    const unlinked = make({ book: { ...LINKED, spineContentItemId: null, hubWorkId: null } });
     await expect(unlinked.controller.unlink(BOOK, { outcome: 'keep' }, req)).rejects.toThrow(/not linked/);
     expect(unlinked.queue.add).not.toHaveBeenCalled();
+  });
+
+  it('refuses a book linked through DigiClassroom, which has no hub link to remove', async () => {
+    const dcp = make({ book: { ...LINKED, hubWorkId: null } });
+    await expect(dcp.controller.unlink(BOOK, { outcome: 'keep' }, req)).rejects.toThrow(/through DigiClassroom, not PDLMS/);
+    expect(dcp.queue.add).not.toHaveBeenCalled();
   });
 
   it.each(['link', 'embed', 'unlink'])('refuses while a %s job is running for the book', async (kind) => {

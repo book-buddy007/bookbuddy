@@ -79,8 +79,13 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
           }),
     };
     const graphQueue = { add: jest.fn().mockResolvedValue({}) };
-    const sharedLibrary = { linkWork: jest.fn().mockResolvedValue(undefined), usesHub: jest.fn().mockReturnValue(false) };
-    const hubFiles = { syncFromWork: jest.fn().mockResolvedValue({ formats: ['PDF'], cover: true }) };
+    const sharedLibrary: any = { linkWork: jest.fn().mockResolvedValue(undefined), usesHub: jest.fn().mockReturnValue(false) };
+    // By default the passages carry the work's own id; the hub tests give them another one.
+    sharedLibrary.resolveIndex = jest.fn(async (id: string) => ({
+      hubWorkId: sharedLibrary.usesHub() ? id : null,
+      indexContentItemId: id,
+    }));
+    const hubFiles = { syncFromWork: jest.fn().mockResolvedValue({ formats: ['PDF'], cover: true, audioTracks: 0 }) };
     const processor = new IngestionProcessor(
       prisma,
       fileService as any,
@@ -351,6 +356,55 @@ describe('IngestionProcessor (INGESTION_MODE=local)', () => {
       expect(s.hubFiles.syncFromWork.mock.invocationCallOrder[0]).toBeGreaterThan(
         s.prisma.book.update.mock.invocationCallOrder.at(-1)!,
       );
+    });
+
+    describe('with the hub, where the passages carry the embedder’s id and not the work id', () => {
+      const WORK = 'pdlms-work';
+      const INDEX = 'dcp-item';
+      const hubSetup = () => {
+        const s = setup({ book: linkBook });
+        s.sharedLibrary.usesHub.mockReturnValue(true);
+        s.sharedLibrary.resolveIndex.mockResolvedValue({ hubWorkId: WORK, indexContentItemId: INDEX });
+        return s;
+      };
+      const job = (s: ReturnType<typeof setup>) => ({ ...s.job, name: 'link-work', data: { bookId: 'book-1', contentItemId: WORK } });
+
+      it('reads the passages under the index id, records both ids, and sends the work id to the hub', async () => {
+        const s = hubSetup();
+        await s.processor.process(job(s));
+
+        // The hub is told the PDLMS work; Qdrant is asked for the embedder's id.
+        expect(s.sharedLibrary.linkWork).toHaveBeenCalledWith({ contentItemId: WORK, bookId: 'book-1', isbn: '978-93-5729-100-2' });
+        expect(s.contentSpine.sharedIndex).toHaveBeenCalledWith(INDEX);
+        expect(s.qdrant.scroll.mock.calls[0][1].filter.must).toContainEqual({ key: 'content_item_id', match: { value: INDEX } });
+        expect(JSON.stringify(s.qdrant.scroll.mock.calls)).not.toContain(WORK);
+        expect(s.prisma.book.update).toHaveBeenLastCalledWith({
+          where: { id: 'book-1' },
+          data: expect.objectContaining({ spineContentItemId: INDEX, hubWorkId: WORK, embeddingStatus: 'READY' }),
+        });
+        expect(s.hubFiles.syncFromWork).toHaveBeenCalledWith('book-1', WORK);
+      });
+
+      it('refuses without recording a link anywhere when the index cannot be pinned down, and does not retry', async () => {
+        const s = hubSetup();
+        s.sharedLibrary.resolveIndex.mockRejectedValue(new SharedLibraryError(409, 'The library cannot say where that work’s passages are.'));
+        const err: any = await s.processor.process(job(s)).catch((e) => e);
+
+        expect(err.name).toBe('UnrecoverableError');
+        expect(err.message).toMatch(/cannot say where/);
+        expect(s.sharedLibrary.linkWork).not.toHaveBeenCalled();
+        expect(s.qdrant.scroll).not.toHaveBeenCalled();
+        expect(JSON.stringify(s.prisma.book.update.mock.calls)).not.toMatch(/hubWorkId|spineContentItemId/);
+        expect(JSON.stringify(s.prisma.bookEmbeddingStatus.upsert.mock.calls)).toMatch(/FAILED/);
+      });
+
+      it('lets a failure to reach the hub while resolving the index be retried', async () => {
+        const s = hubSetup();
+        s.sharedLibrary.resolveIndex.mockRejectedValue(new SharedLibraryError(0, 'Could not reach the library hub.'));
+        const err: any = await s.processor.process(job(s)).catch((e) => e);
+        expect(err.name).toBe('SharedLibraryError');
+        expect(s.sharedLibrary.linkWork).not.toHaveBeenCalled();
+      });
     });
 
     it('still finishes READY when recording the hub files fails', async () => {

@@ -53,7 +53,7 @@ export function AudioSessionBridge() {
         try {
           const res = await apiClient.get(`/audiobooks/sections/${next.id}/presign?gender=${s.activeGender}`)
           url = res.data?.url
-          if (url) s.cacheUrl(sectionKey(next.id, s.activeGender), url)
+          if (url) s.cacheUrl(sectionKey(next.id, s.activeGender), url, res.data?.expiresAt)
         } catch {
           /* fall through: stop rather than pretend */
         }
