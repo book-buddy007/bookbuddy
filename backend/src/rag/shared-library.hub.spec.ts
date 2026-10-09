@@ -1,6 +1,8 @@
 import { SharedLibraryError, SharedLibraryService, sharedWorkFromHub } from './shared-library.service';
 
 const WORK = '5f0c1d2e-3a4b-4c5d-8e6f-7a8b9c0d1e2f';
+// The id the passages carry in the shared index: the embedder's, not the work's.
+const INDEX = '0b9d8c7e-6f5a-4b3c-9d2e-1f0a9b8c7d6e';
 
 const summary = (over: Record<string, unknown> = {}) => ({
   id: WORK,
@@ -22,7 +24,7 @@ function make(enabled = true) {
   const hub: any = {
     enabled: jest.fn().mockReturnValue(enabled),
     listWorks: jest.fn().mockResolvedValue({ items: [summary()], total: 1 }),
-    getWork: jest.fn().mockResolvedValue({ ...summary(), manifest: { files: [] } }),
+    getWork: jest.fn().mockResolvedValue({ ...summary(), index: { collection: 'trio_content_v1_openai3072', contentItemId: INDEX }, manifest: { files: [] } }),
     linkWork: jest.fn().mockResolvedValue(undefined),
     unlinkWork: jest.fn().mockResolvedValue(true),
   };
@@ -69,9 +71,19 @@ describe('SharedLibraryService with the PDLMS hub', () => {
   });
 
   describe('getWork', () => {
-    it('returns the work', async () => {
+    it('returns the work, with where its passages are', async () => {
       const { service } = make();
-      await expect(service.getWork(WORK)).resolves.toMatchObject({ contentItemId: WORK, chunks: 42 });
+      await expect(service.getWork(WORK)).resolves.toMatchObject({
+        contentItemId: WORK,
+        chunks: 42,
+        index: { collection: 'trio_content_v1_openai3072', contentItemId: INDEX },
+      });
+    });
+
+    it('refuses a work the hub calls searchable but cannot place in the index', async () => {
+      const { service, hub } = make();
+      hub.getWork.mockResolvedValue({ ...summary(), index: null, manifest: { files: [] } });
+      await expect(service.getWork(WORK)).rejects.toMatchObject({ status: 409 });
     });
 
     it('rejects an id that is not a uuid without calling the hub', async () => {
@@ -96,6 +108,73 @@ describe('SharedLibraryService with the PDLMS hub', () => {
       const { service, hub } = make();
       hub.getWork.mockRejectedValue(new SharedLibraryError(0, 'unreachable'));
       await expect(service.getWork(WORK)).rejects.toMatchObject({ status: 0, retryable: true });
+    });
+  });
+
+  describe('resolveIndex', () => {
+    const saved = { url: process.env.SHARED_QDRANT_URL, collection: process.env.SHARED_QDRANT_COLLECTION };
+    beforeEach(() => {
+      process.env.SHARED_QDRANT_URL = 'http://qdrant:6333';
+      delete process.env.SHARED_QDRANT_COLLECTION; // the default: trio_content_v1_openai3072
+    });
+    afterEach(() => {
+      for (const [k, v] of [['SHARED_QDRANT_URL', saved.url], ['SHARED_QDRANT_COLLECTION', saved.collection]] as const) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    });
+
+    it('gives the work id for the hub and the embedder’s id for the passages, which differ', async () => {
+      const { service } = make();
+      await expect(service.resolveIndex(WORK)).resolves.toEqual({ hubWorkId: WORK, indexContentItemId: INDEX });
+    });
+
+    it('refuses, as a refusal that is not retried, when the passages are in another collection', async () => {
+      const { service, hub } = make();
+      hub.getWork.mockResolvedValue({ ...summary(), index: { collection: 'pdlms_content_v1', contentItemId: INDEX }, manifest: { files: [] } });
+      const err: any = await service.resolveIndex(WORK).catch((e) => e);
+      expect(err).toBeInstanceOf(SharedLibraryError);
+      expect(err.status).toBe(409);
+      expect(err.retryable).toBe(false);
+      expect(err.message).toMatch(/pdlms_content_v1.*trio_content_v1_openai3072/s);
+    });
+
+    it('follows SHARED_QDRANT_COLLECTION when it is set', async () => {
+      process.env.SHARED_QDRANT_COLLECTION = 'pdlms_content_v1';
+      const { service, hub } = make();
+      hub.getWork.mockResolvedValue({ ...summary(), index: { collection: 'pdlms_content_v1', contentItemId: INDEX }, manifest: { files: [] } });
+      await expect(service.resolveIndex(WORK)).resolves.toMatchObject({ indexContentItemId: INDEX });
+    });
+
+    it('refuses when the hub cannot say where the passages are, or gives an id that is not a uuid', async () => {
+      for (const index of [null, { collection: 'trio_content_v1_openai3072', contentItemId: 'not-a-uuid' }]) {
+        const { service, hub } = make();
+        hub.getWork.mockResolvedValue({ ...summary(), index, manifest: { files: [] } });
+        await expect(service.resolveIndex(WORK)).rejects.toMatchObject({ status: 409 });
+      }
+    });
+
+    it('refuses when the shared index is not set up here, before anything is linked', async () => {
+      delete process.env.SHARED_QDRANT_URL;
+      const { service, hub } = make();
+      await expect(service.resolveIndex(WORK)).rejects.toMatchObject({ status: 409, message: expect.stringMatching(/SHARED_QDRANT_URL/) });
+      expect(hub.linkWork).not.toHaveBeenCalled();
+    });
+
+    it('lets a failure to reach the hub through, so the job retries', async () => {
+      const { service, hub } = make();
+      hub.getWork.mockRejectedValue(new SharedLibraryError(0, 'unreachable'));
+      await expect(service.resolveIndex(WORK)).rejects.toMatchObject({ retryable: true });
+    });
+
+    it('with DigiClassroom the work id is the index id and there is no hub id', async () => {
+      const { service, hub } = make(false);
+      await expect(service.resolveIndex(WORK)).resolves.toEqual({ hubWorkId: null, indexContentItemId: WORK });
+      expect(hub.getWork).not.toHaveBeenCalled();
+    });
+
+    it('rejects an id that is not a uuid', async () => {
+      await expect(make().service.resolveIndex('nope')).rejects.toMatchObject({ status: 400 });
     });
   });
 

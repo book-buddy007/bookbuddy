@@ -142,6 +142,18 @@ describe('SharedLibraryController', () => {
         expect(prisma.book.create).not.toHaveBeenCalled();
       });
 
+      it('looks for an existing book by the PDLMS work id AND the id the passages carry, so a DigiClassroom-linked book is found too', async () => {
+        const INDEX = '0b9d8c7e-6f5a-4b3c-9d2e-1f0a9b8c7d6e';
+        const { controller, prisma } = make({
+          work: { contentItemId: WORK, title: 'T', isbn: null, lang: 'Hindi', index: { collection: 'c', contentItemId: INDEX } },
+        });
+        await controller.createBook({ contentItemId: WORK, author: 'A' }, req);
+        expect(prisma.book.findFirst.mock.calls[0][0].where).toEqual({
+          deletedAt: null,
+          OR: [{ hubWorkId: WORK }, { spineContentItemId: WORK }, { spineContentItemId: INDEX }],
+        });
+      });
+
       it('removes the book again if the link cannot be queued, so nothing is left half-made', async () => {
         const { controller, prisma } = make({ enqueueError: new Error('redis down') });
         await expect(controller.createBook({ contentItemId: WORK, author: 'A' }, req)).rejects.toThrow('redis down');

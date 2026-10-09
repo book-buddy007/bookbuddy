@@ -13,17 +13,48 @@ const file = (kind: string, over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-function make(opts: { files?: any[]; withheld?: 'drm' | null; existing?: Record<string, any>; book?: any } = {}) {
-  const work = { id: WORK, manifest: { revision: 'r', files: opts.files ?? [file('pdf'), file('epub'), file('cover')], filesWithheld: opts.withheld ?? null, chapters: [], pages: 10 } };
+const track = (id: string, gender: string, over: Record<string, unknown> = {}) => ({
+  fileId: id,
+  kind: 'audio',
+  gender,
+  mimeType: 'audio/mpeg',
+  sizeBytes: 5000,
+  durationSeconds: 60,
+  version: `v-${id}`,
+  ...over,
+});
+const audioChapter = (id: string, sections: any[], over: Record<string, unknown> = {}) => ({ chapterId: id, title: `Chapter ${id}`, sortOrder: 1, sections, ...over });
+const audioSection = (id: string, tracks: any[], over: Record<string, unknown> = {}) => ({ sectionId: id, title: `Section ${id}`, sortOrder: 1, type: 'SECTION', durationSeconds: 60, tracks, ...over });
+
+function make(opts: { files?: any[]; withheld?: 'drm' | null; existing?: Record<string, any>; book?: any; audio?: any[]; ownChapters?: number } = {}) {
+  const work = { id: WORK, manifest: { revision: 'r', files: opts.files ?? [file('pdf'), file('epub'), file('cover')], filesWithheld: opts.withheld ?? null, audio: opts.audio ?? [], chapters: [], pages: 10 } };
+  let seq = 0;
   const prisma: any = {
     bookFormat: {
       findUnique: jest.fn(async ({ where }: any) => opts.existing?.[where.bookId_type_partIndex.type] ?? null),
       upsert: jest.fn().mockResolvedValue({}),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
     },
     book: {
       findUnique: jest.fn().mockResolvedValue(opts.book ?? { coverUrl: null, coverKey: null }),
       update: jest.fn().mockResolvedValue({}),
     },
+    audioChapter: {
+      count: jest.fn().mockResolvedValue(opts.ownChapters ?? 0),
+      upsert: jest.fn(async (a: any) => ({ id: `chap-row-${a.where.bookId_hubChapterId.hubChapterId}` })),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    },
+    audioSection: {
+      upsert: jest.fn(async (a: any) => ({ id: `sec-row-${a.where.chapterId_hubSectionId.hubSectionId}` })),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    },
+    audioTrack: {
+      findFirst: jest.fn().mockResolvedValue(null),
+      create: jest.fn(async () => ({ id: `t${++seq}` })),
+      update: jest.fn().mockResolvedValue({}),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    },
+    $transaction: jest.fn(async (fn: any) => fn(prisma)),
   };
   const s3: any = {
     buildCoverKey: jest.fn((p: any) => `global/books/${p.bookId}/covers/front/1-${p.filename}`),
@@ -138,8 +169,90 @@ describe('HubFilesService.syncFromWork', () => {
   it('records nothing for a copy-protected work', async () => {
     const { service, prisma } = make({ files: [], withheld: 'drm' });
     const out = await service.syncFromWork('book-1', WORK);
-    expect(out).toEqual({ formats: [], cover: false });
+    expect(out).toEqual({ formats: [], cover: false, audioTracks: 0 });
     expect(prisma.bookFormat.upsert).not.toHaveBeenCalled();
+  });
+
+  describe('audio', () => {
+    const AUDIO = [
+      audioChapter('c1', [audioSection('s1', [track('t-m', 'male'), track('t-f', 'female')]), audioSection('s2', [track('t-f2', 'female')], { sortOrder: 2, type: 'INTRO' })]),
+    ];
+
+    it('mirrors chapters, sections and tracks with the hub’s ids, and copies no file', async () => {
+      const { service, prisma } = make({ audio: AUDIO });
+      const out = await service.syncFromWork('book-1', WORK);
+
+      expect(out.audioTracks).toBe(3);
+      expect(out.formats).toContain('AUDIOBOOK');
+      expect(prisma.audioChapter.upsert.mock.calls[0][0]).toMatchObject({
+        where: { bookId_hubChapterId: { bookId: 'book-1', hubChapterId: 'c1' } },
+        create: { bookId: 'book-1', hubChapterId: 'c1', title: 'Chapter c1' },
+      });
+      const sections = prisma.audioSection.upsert.mock.calls.map((c: any[]) => c[0]);
+      expect(sections[0].create).toMatchObject({ chapterId: 'chap-row-c1', hubSectionId: 's1', sectionType: 'SECTION', fileSizeBytes: BigInt(5000) });
+      expect(sections[1].create).toMatchObject({ hubSectionId: 's2', sectionType: 'INTRO' });
+      const created = prisma.audioTrack.create.mock.calls.map((c: any[]) => c[0].data);
+      expect(created).toHaveLength(3);
+      expect(created[0]).toMatchObject({ sectionId: 'sec-row-s1', gender: 'MALE', fileUrl: '', hubFileId: 't-m', durationSeconds: 60, fileSizeBytes: BigInt(5000) });
+      expect(created[1]).toMatchObject({ gender: 'FEMALE', hubFileId: 't-f' });
+      // Nothing is fetched or stored: the hub's links are asked for on every play.
+      expect(prisma.bookFormat.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { bookId_type_partIndex: { bookId: 'book-1', type: 'AUDIOBOOK', partIndex: 0 } },
+          create: expect.objectContaining({ fileUrl: null, metadata: { hub: { workId: WORK, fileId: 'audio', version: 'r' } } }),
+        }),
+      );
+    });
+
+    it('updates a track in place on a repeat run, so a listener’s progress and bookmarks keep their ids', async () => {
+      const { service, prisma } = make({ audio: AUDIO });
+      prisma.audioTrack.findFirst.mockResolvedValue({ id: 'existing-track' });
+      await service.syncFromWork('book-1', WORK);
+      expect(prisma.audioTrack.create).not.toHaveBeenCalled();
+      expect(prisma.audioTrack.update).toHaveBeenCalledWith({ where: { id: 'existing-track' }, data: expect.objectContaining({ hubFileId: 't-m', fileUrl: '' }) });
+    });
+
+    it('removes only hub-marked rows the hub no longer lists', async () => {
+      const { service, prisma } = make({ audio: AUDIO });
+      await service.syncFromWork('book-1', WORK);
+      expect(prisma.audioTrack.deleteMany).toHaveBeenCalledWith({ where: { section: { chapter: { bookId: 'book-1' } }, hubFileId: { not: null, notIn: ['t-m', 't-f', 't-f2'] } } });
+      expect(prisma.audioSection.deleteMany).toHaveBeenCalledWith({ where: { chapter: { bookId: 'book-1' }, hubSectionId: { not: null, notIn: ['s1', 's2'] } } });
+      expect(prisma.audioChapter.deleteMany).toHaveBeenCalledWith({ where: { bookId: 'book-1', hubChapterId: { not: null, notIn: ['c1'] } } });
+    });
+
+    it('leaves audio the book holds itself alone', async () => {
+      const ownChapters = make({ audio: AUDIO, ownChapters: 2 });
+      expect((await ownChapters.service.syncFromWork('book-1', WORK)).audioTracks).toBe(0);
+      expect(ownChapters.prisma.audioChapter.upsert).not.toHaveBeenCalled();
+      expect(ownChapters.prisma.audioChapter.deleteMany).not.toHaveBeenCalled();
+
+      const ownFile = make({ audio: AUDIO, existing: { AUDIOBOOK: { fileUrl: 'https://cdn/own.m4b', metadata: {} } } });
+      expect((await ownFile.service.syncFromWork('book-1', WORK)).audioTracks).toBe(0);
+      expect(ownFile.prisma.audioChapter.upsert).not.toHaveBeenCalled();
+    });
+
+    it('skips a track whose gender is neither male nor female, and drops the marker when nothing is left', async () => {
+      const { service, prisma } = make({ audio: [audioChapter('c1', [audioSection('s1', [track('t-x', 'other')])])] });
+      const out = await service.syncFromWork('book-1', WORK);
+      expect(out.audioTracks).toBe(0);
+      expect(prisma.audioTrack.create).not.toHaveBeenCalled();
+      expect(prisma.bookFormat.deleteMany).toHaveBeenCalledWith({ where: { bookId: 'book-1', type: 'AUDIOBOOK', fileUrl: null } });
+    });
+
+    it('does not fail the link when the audio cannot be recorded', async () => {
+      const { service, prisma } = make({ audio: AUDIO });
+      prisma.$transaction.mockRejectedValue(new Error('db down'));
+      await expect(service.syncFromWork('book-1', WORK)).resolves.toMatchObject({ formats: ['PDF', 'EPUB'], audioTracks: 0 });
+    });
+  });
+
+  describe('audioLink', () => {
+    it('asks the hub for a fresh link for the track and returns only the url and expiry', async () => {
+      const { service, hub } = make();
+      await expect(service.audioLink(WORK, 't-m')).resolves.toEqual({ url: LINK, expiresAt: '2026-10-07T10:05:00Z' });
+      expect(hub.fileLink).toHaveBeenCalledWith(WORK, 't-m');
+      expect(hub.getWork).not.toHaveBeenCalled();
+    });
   });
 
   it('always reads the manifest afresh', async () => {

@@ -1,12 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SharedLibraryError } from './shared-library.error';
-import { HubClientService, HubWorkSummary } from './hub-client.service';
+import { HubClientService, HubWork, HubWorkSummary } from './hub-client.service';
+import { sharedIndexConfig } from './local/index-config';
 
 // Re-exported: callers have always imported it from here.
 export { SharedLibraryError };
 
 export interface SharedWork {
+  /**
+   * The work in the library that is browsed and selected: PDLMS's id when the library is the hub,
+   * DigiClassroom's otherwise. Not necessarily the id its passages carry in the index: see `index`.
+   */
   contentItemId: string;
+  /** Hub only, and only when the work was fetched singly: where its passages are and under what id. */
+  index?: { collection: string; contentItemId: string } | null;
   title: string;
   isbn: string | null;
   edition: string | null;
@@ -18,9 +25,10 @@ export interface SharedWork {
 }
 
 /** A hub work in the shape the catalogue screens already understand. */
-export function sharedWorkFromHub(w: HubWorkSummary): SharedWork {
+export function sharedWorkFromHub(w: HubWorkSummary | HubWork): SharedWork {
   return {
     contentItemId: w.id,
+    ...('index' in w ? { index: w.index ?? null } : {}),
     title: w.title,
     isbn: w.isbn,
     edition: null,
@@ -158,7 +166,7 @@ export class SharedLibraryService {
         }
         throw err;
       });
-      if (!work.searchable) {
+      if (!work.searchable || !work.index) {
         throw new SharedLibraryError(409, 'That work has no embedded passages in the shared library yet, so there is nothing to link to.');
       }
       return sharedWorkFromHub(work);
@@ -170,6 +178,44 @@ export class SharedLibraryService {
       throw new SharedLibraryError(404, 'That work is not in the shared library, or it is not public.');
     }
     return work;
+  }
+
+  /**
+   * Which ids a link to this work needs, worked out before anything is recorded anywhere.
+   *
+   *   hubWorkId            PDLMS's id for the work (null when the library is DigiClassroom's): its files,
+   *                        the link record at PDLMS and unlinking all use it.
+   *   indexContentItemId   the id the passages carry in the shared index. With the hub this is the
+   *                        embedder's id (DigiClassroom's in trio mode) and differs from the work id;
+   *                        it is what every Qdrant read filters on.
+   *
+   * Refuses (never retryable) when the hub cannot say where the passages are, or says they are in a
+   * different collection from the one Book Buddy reads: linking would then report a book ready that
+   * answers from nothing, or from somebody else's index.
+   */
+  async resolveIndex(workId: string): Promise<{ hubWorkId: string | null; indexContentItemId: string }> {
+    if (!isUuid(workId)) {
+      throw new SharedLibraryError(400, 'That is not a valid work id.');
+    }
+    if (!this.usesHub()) return { hubWorkId: null, indexContentItemId: workId };
+
+    const work = await this.getWork(workId); // 404 / 409 when it is unknown, unshared or not searchable
+    const cfg = sharedIndexConfig();
+    if (!cfg) {
+      throw new SharedLibraryError(409, 'Reading from the shared index is not set up: set SHARED_QDRANT_URL. Nothing was linked.');
+    }
+    const index = work.index;
+    if (!index || !isUuid(index.contentItemId)) {
+      throw new SharedLibraryError(409, 'The library cannot say where that work’s passages are, so it cannot be linked yet.');
+    }
+    if (index.collection !== cfg.collection) {
+      throw new SharedLibraryError(
+        409,
+        `That work’s passages are in the collection "${index.collection}", but Book Buddy reads "${cfg.collection}" ` +
+          '(SHARED_QDRANT_COLLECTION). Nothing was linked.',
+      );
+    }
+    return { hubWorkId: workId, indexContentItemId: index.contentItemId };
   }
 
   /** Links this book to an existing public work. Safe to repeat. */

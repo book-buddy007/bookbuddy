@@ -25,16 +25,41 @@ export interface HubFile {
   version: string;
 }
 
+export interface HubAudioTrack extends HubFile {
+  kind: 'audio';
+  gender: string;
+  durationSeconds: number;
+}
+
+export interface HubAudioChapter {
+  chapterId: string;
+  title: string;
+  sortOrder: number;
+  sections: Array<{
+    sectionId: string;
+    title: string;
+    sortOrder: number;
+    type: string;
+    durationSeconds: number | null;
+    tracks: HubAudioTrack[];
+  }>;
+}
+
 export interface HubManifest {
   revision: string;
   files: HubFile[];
   filesWithheld: 'drm' | null;
+  audio?: HubAudioChapter[];
   chapters: Array<{ title: string; firstPage: number | null; lastPage: number | null; passages: number }>;
   pages: number | null;
 }
 
 export interface HubWork extends HubWorkSummary {
   description: string | null;
+  /**
+   * Where the work's passages are in the shared index, and the id they carry there. That id is the
+   * embedder's (DigiClassroom's `content_item_id` in trio mode), NOT `id`. Null when they cannot be read.
+   */
   index: { collection: string; contentItemId: string } | null;
   manifest: HubManifest;
 }

@@ -131,18 +131,28 @@ everything: leave `SHARED_QDRANT_URL` empty; own-index books are untouched eithe
 ## PDLMS as the library hub (replaces DigiClassroom as the owner)
 
 PDLMS can lend its global books to Book Buddy through its hub API (PDLMS `docs/library-hub.md`):
-catalogue, files, manifests and its own embeddings (collection `pdlms_content_v1`, 3072d). Book Buddy
+catalogue, files and manifests. The **passages are still DigiClassroom's**: PDLMS stays in `trio` mode,
+DigiClassroom embeds each book once and writes it to the shared collection `trio_content_v1_openai3072`,
+and Book Buddy reads it from there exactly as it does for a book linked the older way. Book Buddy
 uploads nothing and embeds nothing for those books. It is **off until `HUB_URL` and `HUB_SECRET` are
 set**; while they are empty everything above (DigiClassroom's `trio-works` / `trio-link`) is
 unchanged. The choice is made per call from the configuration.
+
+**Two ids per hub book.** `Book.hubWorkId` is PDLMS's id for the work (its files, its link record,
+unlinking). `Book.spineContentItemId` is the `content_item_id` the passages carry in Qdrant, which is
+DigiClassroom's and is a *different* UUID. The hub reports the second in the work's `index`
+(`{collection, contentItemId}`); the link job refuses, without recording anything, if `index` is missing
+or names a collection other than `SHARED_QDRANT_COLLECTION`. Every Qdrant read filters on
+`spineContentItemId`; every call to the hub uses `hubWorkId`. Never send one where the other belongs.
 
 What changes when it is on:
 
 | | DigiClassroom (above) | PDLMS hub |
 |---|---|---|
 | Browse and link | `trio-works`, `trio-link`, one secret shared by all apps | `/api/hub/works`, `/works/:id`, `/works/:id/link`, one secret for Book Buddy only |
-| Passages | shared Qdrant `trio_content_v1_openai3072` | PDLMS's `pdlms_content_v1` (same 3072d, same payload fields) |
+| Passages | shared Qdrant `trio_content_v1_openai3072` | the same collection; the id to read them by comes from the hub's `index` |
 | PDF / EPUB | upload them to the Book Buddy book afterwards | **streamed from PDLMS on every read, never copied** |
+| Audiobook | upload the tracks afterwards | chapters, sections and tracks are mirrored when the book is linked (rows marked `hubChapterId` / `hubSectionId` / `hubFileId`, empty `fileUrl`); each play asks the hub for a fresh link |
 | Cover | upload afterwards | copied once into Book Buddy's own public bucket (a small display image; never replaces a cover you set) |
 | Who may see a book | public in the shared index | only books PDLMS super-admin listed for `bookbuddy` (`hubAllowedApps`), global, not binned |
 
@@ -166,7 +176,7 @@ library** (offered only when the library is PDLMS's hub; DigiClassroom has no un
 It runs as a background job (`unlink-work`, `POST /api/books/:id/unlink-shared-work {"outcome": "retire"|"keep"}`),
 and the dialog follows it. In order: (1) tell the hub, which removes only Book Buddy's own link record at PDLMS
 (never the work, its files or its embeddings); (2) in one transaction, clear the book's link and "ready" state and
-delete only the hub marker rows (and, for Retire, bin the book); (3) forget cached state; (4) write an audit row.
+delete only the hub marker rows and the hub's audio (and, for Retire, bin the book); (3) forget cached state; (4) write an audit row.
 The hub goes first because it can be repeated safely and the local step is the one that is hard to take back, so
 every step can be run again: if the job fails, the book is left exactly as it was (still linked) with the reason
 shown, and "Try again" finishes it. A hub that refuses (a record linked to a different work) stops the job without
@@ -176,42 +186,43 @@ Kept on purpose: the book's own files and its copied cover, readers' annotations
 the citation map (so old chat citations still jump to the right page). Readers lose the streamed PDF/EPUB and Varta
 can no longer answer from the book. A book can be linked again afterwards.
 
-Not covered yet: **audiobooks** (still uploaded to Book Buddy), "also used by" in the catalogue, noticing that
+Not covered yet: **audio transcripts and word alignment** for hub books (the hub does not hold them), "also used by" in the catalogue, noticing that
 PDLMS has stopped sharing a book (reads fail with the hub's reason until an admin unlinks it), and a hub search
 endpoint (passages are read straight from Qdrant, which with a read-only key can see the whole collection).
 
 ### Turning it on
 
-1. PDLMS (a production deploy of another app): deploy its `feat/hub-api`, apply its migration
-   `20261007120000_add_library_hub`, and make Book Buddy's secret:
-   ```bash
-   node backend/scripts/hub-client-secret.js bookbuddy      # in PDLMS
-   ```
-   Set the printed **HASH** on the PDLMS API as `HUB_CLIENTS={"bookbuddy":"<hash>"}`. Give Book Buddy
-   the **SECRET**. Then, per book, list the app: `PUT /api/super-admin/catalog/books/:id/hub-sharing
-   {"apps":["bookbuddy"]}` (also needs `licenseType` AI_PERMITTED and embeddings READY to be linkable).
-2. Qdrant: give PDLMS's Qdrant a read-only key and a network Book Buddy's API can reach, as for the
-   shared one in "Switch-over" above (step 3 and 4). Do not attach Book Buddy to the whole `coolify`
-   network.
+The step-by-step checklist, with checks and undo for each step, is [`docs/deploy-hub.md`](deploy-hub.md). In short:
+
+1. PDLMS: push its `feat/hub-index-from-dcp` (no migration; the hub itself, with migration
+   `20261007120000_add_library_hub`, is already live and off), make Book Buddy's secret
+   (`node backend/scripts/hub-client-secret.js bookbuddy` in PDLMS), set the printed **HASH** as
+   `HUB_CLIENTS={"bookbuddy":"<hash>"}` on the PDLMS API, and give Book Buddy the **SECRET**. PDLMS stays in
+   `trio` mode; do not set `INGESTION_MODE=local`. Then, per book, tick **Share with Book Buddy** in PDLMS
+   (also needs licence `AI_PERMITTED`, embedding `READY`, a citation map).
+2. Qdrant: Book Buddy reads the same shared Qdrant it would for a DigiClassroom-linked book. Give its API a
+   path to it as in "Switch-over" above (steps 3 and 4): a small `trio-data` network now, a read-only key
+   later. Do not attach Book Buddy to the whole `coolify` network.
 3. Book Buddy, set in Coolify (you enter the secrets):
    ```
    HUB_URL=https://api.pdlms.vinstitution.com
    HUB_SECRET=<the SECRET from step 1>
    HUB_APP_ID=bookbuddy
-   SHARED_QDRANT_URL=<PDLMS's Qdrant>        SHARED_QDRANT_API_KEY=<its READ-ONLY key>
-   SHARED_QDRANT_COLLECTION=pdlms_content_v1   SHARED_EMBEDDING_DIMENSIONS=3072
+   SHARED_QDRANT_URL=http://trio-content-qdrant:6333     SHARED_QDRANT_API_KEY=<read-only key, once there is one>
+   SHARED_QDRANT_COLLECTION=trio_content_v1_openai3072   SHARED_EMBEDDING_DIMENSIONS=3072     (the defaults)
+   OPENAI_API_KEY=<a key>                                 (Varta cannot answer without it)
    MEDIA_PROXY_ALLOWED_HOSTS=media.bookbuddy.live,<PDLMS's storage host>
    ```
-   The last one is needed because the reader fetches signed links through `/api/proxy-media`, which
+   The last one is needed because the PDF reader fetches signed links through `/api/proxy-media`, which
    refuses hosts it does not know; the host to add is the one in a link the hub returns.
-4. Redeploy, run `npm run check:ai` from `backend/` (it now also checks the hub accepts this app and
-   that the shared Qdrant is reachable and read-only), then link a book as in "Using it day to day".
+4. Redeploy, run `npm run check:ai` from `backend/` (it also checks the hub accepts this app and that the
+   shared Qdrant is reachable; without a read-only key it reports that one gap), then link a book as in
+   "Using it day to day".
 
-**This is a switch for the whole deployment, not per book.** Book Buddy has one `SHARED_QDRANT_*`, so
-books already linked through DigiClassroom would lose their passages the moment it points at PDLMS's
-collection (their work ids are DigiClassroom's, not PDLMS's). Before switching, take each of those books
-back to Book Buddy's own index ("Going back for one book" above) and link it again, from the screen, to its
-PDLMS work. A deployment with no linked books can simply set the variables.
+The shared collection is the same one DigiClassroom-linked books already read, so books linked the older way
+keep working. They stay DigiClassroom-linked: no hub files, and no Unlink from the hub (their `hubWorkId` is
+empty). To move one over, take it back to Book Buddy's own index ("Going back for one book" above) and link it
+again, from the screen, to its PDLMS work.
 
 ## What this does not cover
 

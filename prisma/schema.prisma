@@ -655,9 +655,13 @@ model Book {
   aiEmbedEnabled     Boolean         @default(false)
   embeddingStatus    EmbeddingStatus @default(NONE)
   vectorCollectionId String? // Qdrant collection reference (shared collection, used for payload filtering)
-  // The canonical work in the shared DigiClassroom spine this book is indexed as (shared index mode
-  // only). Written by the server after DigiClassroom confirms it, never from client input.
+  // The id this book's passages carry in the shared index (shared index mode only): DigiClassroom's
+  // content_item_id. Set = the book reads from the shared index. Written by the server after the work
+  // is confirmed, never from client input. For a hub book this is NOT the PDLMS work id: see hubWorkId.
   spineContentItemId String?
+  // The work in PDLMS's library hub this book is linked to (hub mode only). Its files are streamed from
+  // the hub under this id, and unlinking and the one-book-per-work check use it. Written by the link job.
+  hubWorkId String?
 
   // Shared cross-repo curriculum taxonomy (Vidyaverse-hosted Taxonomy Service).
   // Denormalized local read cache: the taxonomy service's BookTaxonomyLink table is
@@ -722,6 +726,7 @@ model Book {
   @@index([globalPublishStatus])
   @@index([deletedAt])
   @@index([spineContentItemId])
+  @@index([hubWorkId])
 }
 
 // BookPage Model - For Server-Side Full-Text Search
@@ -1415,9 +1420,12 @@ model AudioChapter {
   bookId    String
   title     String
   sortOrder Int // Explicit ordering, not insertion order
+  // Set = this chapter is PDLMS's (streamed from the library hub); the value is the hub's chapter id.
+  hubChapterId String?
   sections  AudioSection[]
   book      Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
+  @@unique([bookId, hubChapterId])
   @@index([bookId])
 }
 
@@ -1431,10 +1439,13 @@ model AudioSection {
   transcriptCues  Json? // Array of {paragraphIndex, startSeconds} for auto-scroll
   durationSeconds Float?
   fileSizeBytes   BigInt? // For Android download size estimation
+  // Set = PDLMS's section (streamed from the library hub); the value is the hub's section id.
+  hubSectionId    String?
   tracks          AudioTrack[]
   bookmarks       AudioBookmark[]
   chapter         AudioChapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
+  @@unique([chapterId, hubSectionId])
   @@index([chapterId])
 }
 
@@ -1442,9 +1453,12 @@ model AudioTrack {
   id              String       @id @default(uuid())
   sectionId       String
   gender          AudioGender
+  // Empty when the file is PDLMS's (hubFileId is set): it is streamed, never copied.
   fileUrl         String       @db.Text
   durationSeconds Float
   fileSizeBytes   BigInt?
+  // Set = streamed from the library hub; the value is the hub's file id for this track.
+  hubFileId       String?
   section         AudioSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   // Reading Intelligence Layer §5 — word-level timestamps for this specific

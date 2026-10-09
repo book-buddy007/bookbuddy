@@ -154,7 +154,7 @@ async function openai(path, body) {
         bad(`cannot reach the hub at ${hubUrl}: ${e.message}`);
       }
     }
-    if (!sharedUrl) bad("HUB_URL is set but SHARED_QDRANT_URL is not: linked books could not be read (point it at PDLMS's index, collection pdlms_content_v1)");
+    if (!sharedUrl) bad("HUB_URL is set but SHARED_QDRANT_URL is not: linked books could not be read (point it at the shared index PDLMS's books are embedded into, collection trio_content_v1_openai3072)");
   }
 
   console.log(failed ? `\n${failed} problem(s) found.` : '\nAll good: Varta can index and answer.');

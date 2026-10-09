@@ -137,7 +137,7 @@ interface AudioPlayerState {
   tickSleepTimer: () => boolean; // returns true if timer expired
 
   toggleChapterDrawer: () => void;
-  cacheUrl: (key: string, url: string) => void;
+  cacheUrl: (key: string, url: string, expiresAt?: string) => void;
   getCachedUrl: (sectionId: string, gender: AudioGender) => string | undefined;
 
   setError: (error: string | null) => void;
@@ -156,6 +156,9 @@ interface AudioPlayerState {
 }
 
 // ─── Store ──────────────────────────────────────────────────
+/** When each cached link ends (ms), for the links that say so. See cacheUrl. */
+const urlExpiry = new Map<string, number>();
+
 export const useAudioPlayerStore = create<AudioPlayerState>()(
   persist(
     (set, get) => ({
@@ -271,11 +274,20 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
       toggleChapterDrawer: () => set((s) => ({ isChapterDrawerOpen: !s.isChapterDrawerOpen })),
 
-      cacheUrl: (key, url) => set((s) => ({
-        urlCache: { ...s.urlCache, [key]: url },
-      })),
+      cacheUrl: (key, url, expiresAt) => {
+        // A link from PDLMS's library hub says when it ends (five minutes); Book Buddy's own do not
+        // (fifteen), and are kept as before. Kept outside the state: nothing renders from it.
+        if (expiresAt && Number.isFinite(Date.parse(expiresAt))) urlExpiry.set(key, Date.parse(expiresAt));
+        else urlExpiry.delete(key);
+        set((s) => ({ urlCache: { ...s.urlCache, [key]: url } }));
+      },
       getCachedUrl: (sectionId, gender) => {
-        return get().urlCache[`${sectionId}:${gender}`];
+        const key = `${sectionId}:${gender}`;
+        const end = urlExpiry.get(key);
+        // Thirty seconds early: a link about to lapse would die mid-buffer, and the prefetch of the next
+        // section could otherwise hand over a link that has already ended.
+        if (end !== undefined && Date.now() > end - 30_000) return undefined;
+        return get().urlCache[key];
       },
 
       setError: (error) => set({ error }),

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Inject, HttpException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -7,6 +7,8 @@ import { AudioGender, AudioSectionType } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { S3Service } from '../aws/s3.service';
 import { BookAccessService } from '../common/book-access.service';
+import { HubFilesService } from '../rag/hub-files.service';
+import { SharedLibraryError } from '../rag/shared-library.error';
 
 @Injectable()
 export class AudiobookService {
@@ -18,6 +20,7 @@ export class AudiobookService {
     private configService: ConfigService,
     private s3Service: S3Service,
     private bookAccess: BookAccessService,
+    private hubFiles: HubFilesService,
   ) {}
 
   async getStructure(bookId: string) {
@@ -52,10 +55,32 @@ export class AudiobookService {
 
     const track = await this.prisma.audioTrack.findFirst({
       where: { sectionId, gender: gender as AudioGender },
+      select: {
+        fileUrl: true,
+        hubFileId: true,
+        section: { select: { chapter: { select: { book: { select: { hubWorkId: true } } } } } },
+      },
     });
 
     if (!track) {
       throw new NotFoundException(`Audio track not found for gender ${gender}`);
+    }
+
+    // A track PDLMS's library hub owns has no file here: it is streamed, and the hub's fresh link is
+    // asked for on every play (never stored). Access was decided above, before the hub is asked.
+    if (track.hubFileId) {
+      const workId = track.section.chapter.book.hubWorkId;
+      if (!workId) throw new NotFoundException('This audio is no longer available from the library.');
+      try {
+        const link = await this.hubFiles.audioLink(workId, track.hubFileId);
+        // The hub's links last five minutes, so the client is told when, to ask again if it needs to.
+        return { url: link.url, expiresAt: link.expiresAt };
+      } catch (err) {
+        if (err instanceof SharedLibraryError) {
+          throw new HttpException({ message: err.message }, err.status >= 400 ? err.status : 502);
+        }
+        throw err;
+      }
     }
 
     // 15 minutes, down from 12 hours. This URL needs no auth to fetch, so its
