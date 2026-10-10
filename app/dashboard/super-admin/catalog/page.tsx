@@ -15,7 +15,8 @@ triggerBookEmbedding,
 getCatalogBin,
 restoreCatalogBook,
 backfillCatalogGraphs,
-getSharedLibraryStatus
+getSharedLibraryStatus,
+refreshBookFromLibrary
 } from '@/lib/api/adminApi';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
@@ -185,6 +186,33 @@ export default function SuperAdminCatalogPage() {
     staleTime: 5 * 60_000,
     retry: false,
   });
+
+  // "Refresh from library": bring a PDLMS-linked book up to date (files, audio, cover). The book being refreshed
+  // is remembered so its menu item is disabled, and the outcome is shown, including why a cover was not copied.
+  const [refreshingBookId, setRefreshingBookId] = useState<string | null>(null);
+  const handleRefreshFromLibrary = async (book: { id: string; title: string }) => {
+    if (refreshingBookId) return;
+    setRefreshingBookId(book.id);
+    toast({ title: 'Refreshing from the library…', description: book.title });
+    const res = await refreshBookFromLibrary(book.id);
+    setRefreshingBookId(null);
+    if (!res.success || !res.data) {
+      toast({ title: 'Could not refresh', description: res.error || 'The library did not answer.', variant: 'destructive' });
+      return;
+    }
+    const d = res.data;
+    const detail = [
+      d.cover ? 'The cover was updated from the library.' : d.coverNote,
+      d.formats.length ? `Formats: ${d.formats.join(', ')}.` : null,
+      d.audioTracks ? `${d.audioTracks} audio track(s).` : null,
+    ].filter(Boolean).join(' ');
+    toast({
+      title: d.coverNote?.startsWith('The cover could not') ? 'Refreshed, but the cover was not copied' : 'Refreshed from the library',
+      description: detail || book.title,
+      ...(d.coverNote?.startsWith('The cover could not') ? { variant: 'destructive' as const } : {}),
+    });
+    queryClient.invalidateQueries({ queryKey: catalogKeys.all });
+  };
 
   // Edit Dialog
   const [editBook, setEditBook] = useState<any>(null);
@@ -596,6 +624,14 @@ export default function SuperAdminCatalogPage() {
                           <FilePlus className="h-4 w-4 mr-2 text-bb-success-ink" /> Add Format
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        {book.hubWorkId && libraryStatus?.owner === 'PDLMS' && (
+                          <DropdownMenuItem
+                            disabled={refreshingBookId === book.id}
+                            onSelect={() => void handleRefreshFromLibrary({ id: book.id, title: book.title })}
+                          >
+                            <RefreshCw className={`h-4 w-4 mr-2 text-bb-info-ink ${refreshingBookId === book.id ? 'animate-spin' : ''}`} /> Refresh from library
+                          </DropdownMenuItem>
+                        )}
                         {book.spineContentItemId ? (
                           // A shared-library book is the owning app's to remove (PDLMS or DigiClassroom); Book Buddy has no way to.
                           libraryStatus?.canUnlink ? (
@@ -822,6 +858,14 @@ export default function SuperAdminCatalogPage() {
                                   <Globe className="h-4 w-4 mr-2 text-bb-info-ink" /> Link to shared library
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
+                                {book.hubWorkId && libraryStatus?.owner === 'PDLMS' && (
+                                  <DropdownMenuItem
+                                    disabled={refreshingBookId === book.id}
+                                    onSelect={() => void handleRefreshFromLibrary({ id: book.id, title: book.title })}
+                                  >
+                                    <RefreshCw className={`h-4 w-4 mr-2 text-bb-info-ink ${refreshingBookId === book.id ? 'animate-spin' : ''}`} /> Refresh from library
+                                  </DropdownMenuItem>
+                                )}
                                 {book.spineContentItemId ? (
                                   // A shared-library book is the owning app's to remove (PDLMS or DigiClassroom); Book Buddy has no way to.
                                   libraryStatus?.canUnlink ? (

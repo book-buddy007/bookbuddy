@@ -21,6 +21,7 @@ import { Roles } from '../auth/roles.decorator';
 import { sharedIndexConfig } from './local/index-config';
 import { SharedLibraryError, SharedLibraryService, isUuid } from './shared-library.service';
 import { newBookFromWork } from './shared-work-book';
+import { HubFilesService } from './hub-files.service';
 
 const SYSTEM_TENANT_ID = '__SYSTEM__';
 
@@ -35,6 +36,7 @@ export class SharedLibraryController {
     private readonly prisma: PrismaService,
     private readonly library: SharedLibraryService,
     @InjectQueue('book-ingestion') private readonly queue: Queue,
+    private readonly hubFiles: HubFilesService,
   ) {}
 
   private requireSharedMode() {
@@ -178,6 +180,43 @@ export class SharedLibraryController {
       },
     );
     return { status: 'QUEUED', bookId, outcome };
+  }
+
+  /**
+   * Bring a hub-linked book up to date with PDLMS: its PDF/EPUB markers, its audio, and its cover (the
+   * cover is the one thing that is copied rather than streamed, so it is the one that goes stale, or was
+   * never copied because storage was misconfigured when the book was linked).
+   *
+   * Nothing is embedded and no passage is touched. A cover someone uploaded is never replaced; one copied
+   * from the library is. Done inside the request (a few small files), not as a job, so the admin sees the
+   * outcome straight away, including why a cover was not copied. Refused while the book is being linked,
+   * unlinked or embedded, because those rewrite the same rows.
+   */
+  @Post('books/:bookId/refresh-from-library')
+  @Roles('super-admin')
+  async refreshFromLibrary(@Param('bookId') bookId: string) {
+    if (!this.library.usesHub()) {
+      throw new ConflictException('Refreshing from the library is only available when the library is PDLMS’s hub (HUB_URL is set).');
+    }
+    const book = await this.prisma.book.findUnique({ where: { id: bookId }, select: { id: true, deletedAt: true, hubWorkId: true } });
+    if (!book || book.deletedAt) throw new NotFoundException('Book not found');
+    if (!book.hubWorkId) {
+      throw new ConflictException('This book is not linked to PDLMS’s library, so there is nothing to refresh it from.');
+    }
+    for (const prefix of ['link', 'embed', 'unlink']) {
+      const job = await this.queue.getJob(`${prefix}-${bookId}`);
+      if (!job) continue;
+      const state = await job.getState();
+      if (['active', 'waiting', 'delayed', 'prioritized', 'waiting-children'].includes(state)) {
+        throw new ConflictException(`This book is busy (${prefix === 'embed' ? 'embedding' : prefix + 'ing'}, state: ${state}). Try again when it has finished.`);
+      }
+    }
+    try {
+      const out = await this.hubFiles.syncFromWork(bookId, book.hubWorkId, { refreshCover: true });
+      return { status: 'REFRESHED', bookId, ...out };
+    } catch (err) {
+      this.rethrow(err);
+    }
   }
 
   /**

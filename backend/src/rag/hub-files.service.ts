@@ -20,6 +20,8 @@ export function hubMarkerOf(metadata: unknown): HubFormatMarker | null {
 }
 
 const MANIFEST_TTL_MS = 60_000;
+/** Filename prefix of a cover copied from the library: how a later refresh knows it is allowed to replace it. */
+const HUB_COVER = 'hub-cover.';
 const MAX_COVER_BYTES = 5 * 1024 * 1024;
 const COVER_TYPES: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 const KIND_TO_FORMAT = { pdf: 'PDF', epub: 'EPUB' } as const;
@@ -94,8 +96,16 @@ export class HubFilesService {
    * After a book is linked: record its PDF and EPUB as hub-owned formats, and copy its cover if it
    * has none. Safe to repeat. A file the book already has of its own is left alone (it wins on
    * reading), and a failure here never undoes the link: the passages are what linking is for.
+   *
+   * `refreshCover` (the "Refresh from library" action) also lets the library's cover replace one an earlier
+   * sync copied from it. A cover someone uploaded or chose is never replaced, whatever this says.
+   * `coverNote` says, in words for the admin, why the cover was not copied (kept, missing, or the error).
    */
-  async syncFromWork(bookId: string, workId: string): Promise<{ formats: string[]; cover: boolean; audioTracks: number }> {
+  async syncFromWork(
+    bookId: string,
+    workId: string,
+    opts: { refreshCover?: boolean } = {},
+  ): Promise<{ formats: string[]; cover: boolean; audioTracks: number; coverNote?: string }> {
     const work = await this.work(workId, true);
     const formats: string[] = [];
 
@@ -122,11 +132,11 @@ export class HubFilesService {
     });
     if (audioTracks > 0) formats.push('AUDIOBOOK');
 
-    const cover = await this.copyCover(bookId, workId, work).catch((err) => {
+    const cover = await this.copyCover(bookId, workId, work, !!opts.refreshCover).catch((err) => {
       this.logger.warn(`Could not copy the cover of work ${workId} for book ${bookId}: ${err?.message ?? err}`);
-      return false;
+      return { copied: false, note: `The cover could not be copied: ${err?.message ?? err}` };
     });
-    return { formats, cover, audioTracks };
+    return { formats, cover: cover.copied, audioTracks, ...(cover.note ? { coverNote: cover.note } : {}) };
   }
 
   /**
@@ -225,11 +235,22 @@ export class HubFilesService {
     return tracks;
   }
 
-  private async copyCover(bookId: string, workId: string, work: HubWork): Promise<boolean> {
+  private async copyCover(
+    bookId: string,
+    workId: string,
+    work: HubWork,
+    refresh: boolean,
+  ): Promise<{ copied: boolean; note?: string }> {
     const file: HubFile | undefined = work.manifest.files.find((f) => f.kind === 'cover');
-    if (!file) return false;
+    if (!file) return { copied: false, note: 'The library has no cover for this book.' };
     const book = await this.prisma.book.findUnique({ where: { id: bookId }, select: { coverUrl: true, coverKey: true } });
-    if (!book || book.coverUrl || book.coverKey) return false; // never replace a cover someone chose
+    if (!book) return { copied: false };
+    // Never replace a cover someone chose. The one exception is a refresh of a cover an earlier sync copied
+    // from the library, which this code names (see HUB_COVER) and nobody else does.
+    const previous = book.coverKey && book.coverKey.includes(HUB_COVER) ? book.coverKey : null;
+    if ((book.coverUrl || book.coverKey) && !(refresh && previous)) {
+      return { copied: false, note: 'The book already has a cover of its own, which is kept.' };
+    }
 
     const link = await this.hub.fileLink(workId, file.fileId);
     const res = await fetch(link.url, { redirect: 'error', signal: AbortSignal.timeout(20_000) });
@@ -242,9 +263,11 @@ export class HubFilesService {
     const body = Buffer.from(await res.arrayBuffer());
     if (body.length === 0 || body.length > MAX_COVER_BYTES) throw new Error('cover has an unusable size');
 
-    const key = this.s3.buildCoverKey({ bookId, side: 'front', filename: `hub-cover.${ext}` });
+    const key = this.s3.buildCoverKey({ bookId, side: 'front', filename: `${HUB_COVER}${ext}` });
     const { publicUrl } = await this.s3.putObject(key, body, type);
     await this.prisma.book.update({ where: { id: bookId }, data: { coverKey: key, coverUrl: publicUrl } });
-    return true;
+    // The cover it replaces was this code's own copy, so it is not left behind in storage. Best effort.
+    if (previous) await this.s3.deleteFile(previous);
+    return { copied: true };
   }
 }

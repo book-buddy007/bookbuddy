@@ -37,8 +37,9 @@ describe('SharedLibraryController', () => {
       getJob: jest.fn().mockResolvedValue(overrides.job ?? null),
       add: overrides.enqueueError ? jest.fn().mockRejectedValue(overrides.enqueueError) : jest.fn().mockResolvedValue({}),
     };
-    const controller = new SharedLibraryController(prisma as any, library as any, queue as any);
-    return { controller, prisma, library, queue };
+    const hubFiles = { syncFromWork: jest.fn().mockResolvedValue({ formats: ['PDF'], cover: true, audioTracks: 0 }) };
+    const controller = new SharedLibraryController(prisma as any, library as any, queue as any, hubFiles as any);
+    return { controller, prisma, library, queue, hubFiles };
   }
 
   describe('with no shared library configured', () => {
@@ -201,6 +202,55 @@ describe('SharedLibraryController', () => {
         const { controller, prisma } = make();
         await expect(controller.createBook({ contentItemId: WORK, author: 'A' }, req)).rejects.toBeInstanceOf(ConflictException);
         expect(prisma.book.create).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('refresh-from-library (bring a hub book up to date, cover included)', () => {
+      const LINKED = { id: 'b1', deletedAt: null, hubWorkId: WORK };
+
+      it('syncs the book from its PDLMS work, allowing a copied cover to be replaced, and returns what happened', async () => {
+        const { controller, hubFiles } = make({ hub: true, book: LINKED });
+        hubFiles.syncFromWork.mockResolvedValue({ formats: ['PDF', 'AUDIOBOOK'], cover: true, audioTracks: 2 });
+        await expect(controller.refreshFromLibrary('b1')).resolves.toEqual({
+          status: 'REFRESHED', bookId: 'b1', formats: ['PDF', 'AUDIOBOOK'], cover: true, audioTracks: 2,
+        });
+        expect(hubFiles.syncFromWork).toHaveBeenCalledWith('b1', WORK, { refreshCover: true });
+      });
+
+      it('passes on why the cover was not copied', async () => {
+        const { controller, hubFiles } = make({ hub: true, book: LINKED });
+        hubFiles.syncFromWork.mockResolvedValue({ formats: ['PDF'], cover: false, audioTracks: 0, coverNote: 'The book already has a cover of its own, which is kept.' });
+        await expect(controller.refreshFromLibrary('b1')).resolves.toMatchObject({ cover: false, coverNote: expect.stringMatching(/kept/) });
+      });
+
+      it('is only for the hub, a live book, and a book linked to a hub work', async () => {
+        const dcp = make({ hub: false, book: LINKED });
+        await expect(dcp.controller.refreshFromLibrary('b1')).rejects.toBeInstanceOf(ConflictException);
+        for (const book of [null, { ...LINKED, deletedAt: new Date() }]) {
+          await expect(make({ hub: true, book }).controller.refreshFromLibrary('b1')).rejects.toBeInstanceOf(NotFoundException);
+        }
+        const notLinked = make({ hub: true, book: { ...LINKED, hubWorkId: null } });
+        await expect(notLinked.controller.refreshFromLibrary('b1')).rejects.toThrow(/not linked to PDLMS/);
+        for (const m of [dcp, notLinked]) expect(m.hubFiles.syncFromWork).not.toHaveBeenCalled();
+      });
+
+      it('waits while the book is being linked, unlinked or embedded', async () => {
+        const { controller, hubFiles } = make({ hub: true, book: LINKED, job: { getState: async () => 'active', remove: jest.fn() } });
+        await expect(controller.refreshFromLibrary('b1')).rejects.toBeInstanceOf(ConflictException);
+        expect(hubFiles.syncFromWork).not.toHaveBeenCalled();
+      });
+
+      it('is not held up by jobs that have finished', async () => {
+        const { controller } = make({ hub: true, book: LINKED, job: { getState: async () => 'completed', remove: jest.fn() } });
+        await expect(controller.refreshFromLibrary('b1')).resolves.toMatchObject({ status: 'REFRESHED' });
+      });
+
+      it('turns a library failure into an HTTP error carrying its reason', async () => {
+        const { controller, hubFiles } = make({ hub: true, book: LINKED });
+        hubFiles.syncFromWork.mockRejectedValue(new SharedLibraryError(0, 'Could not reach the library hub (PDLMS).'));
+        const err: any = await controller.refreshFromLibrary('b1').catch((e) => e);
+        expect(err).toBeInstanceOf(HttpException);
+        expect(err.getStatus()).toBe(502);
       });
     });
 

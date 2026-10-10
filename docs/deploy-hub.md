@@ -203,6 +203,7 @@ MEDIA_PROXY_ALLOWED_HOSTS=media.bookbuddy.live,<host of PDLMS's S3_ENDPOINT>
 | A hub PDF opens blank or gives 403 | PDLMS storage host missing from `MEDIA_PROXY_ALLOWED_HOSTS` |
 | Hub audio will not play | open `GET /api/audiobooks/sections/<id>/presign?gender=MALE` in the network tab: it carries the hub's reason (not shared, copy-protected, hub unreachable). If it returns a link, the browser could not load it from PDLMS's storage: check that bucket |
 | Varta cannot answer | `OPENAI_API_KEY` missing (step 7) |
+| A hub book has no cover (or an old one) | the cover is copied once, when the book is linked, so a storage problem at that moment (for example a wrong R2 secret) leaves it empty. Catalogue → the book's menu → **Refresh from library** copies it again, and brings the PDF/EPUB and audio entries up to date. A cover someone uploaded is never replaced; one copied from the library is |
 | Read fails with the hub's reason | PDLMS un-shared, binned or deleted the book: unlink it in Book Buddy (Retire or Keep) |
 | "linked through DigiClassroom, not PDLMS's hub" on Unlink | the book was linked the older way (step 6) |
 | `HUB_URL must be https` | plain http is accepted only for localhost |
