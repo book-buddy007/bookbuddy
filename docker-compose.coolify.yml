@@ -89,6 +89,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    # `default` keeps the stack's own network (postgres, redis, qdrant); trio-data adds the shared Qdrant.
+    networks:
+      - default
+      - trio-data
     environment:
       NODE_ENV: production
       PORT: "3333"
@@ -156,7 +160,8 @@ services:
       TRIO_SERVICE_SECRET: ${TRIO_SERVICE_SECRET:-}
       # PDLMS's library hub (optional; empty = not used, and DigiClassroom's endpoints above stay in
       # charge). Books, files and manifests from PDLMS, one secret for this app only. When set,
-      # SHARED_QDRANT_* above must point at PDLMS's index (collection pdlms_content_v1, 3072d).
+      # SHARED_QDRANT_* above stay on the shared index DigiClassroom writes (collection
+      # trio_content_v1_openai3072, 3072d): PDLMS tells Book Buddy which id a book's passages carry there.
       # The reader streams hub files, so the web service must also allow PDLMS's storage host in
       # MEDIA_PROXY_ALLOWED_HOSTS. See docs/shared-spine.md.
       HUB_URL: ${HUB_URL:-}
@@ -233,6 +238,16 @@ services:
     image: qdrant/qdrant:v1.19.1
     volumes:
       - qdrant-data:/qdrant/storage
+
+# Holds only the shared Qdrant (trio-content-qdrant) and this stack's API, so Book Buddy can read the
+# shared index without joining the whole `coolify` network. It is created by hand on the server, and
+# must exist BEFORE this file is deployed: a missing external network stops the deploy.
+#   docker network create trio-data
+#   docker network connect trio-data trio-content-qdrant
+# See docs/deploy-hub.md step 5.
+networks:
+  trio-data:
+    external: true
 
 volumes:
   postgres-data:
