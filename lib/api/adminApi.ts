@@ -730,6 +730,16 @@ export interface SharedWork {
   pageEnd: number | null;
   /** Which apps already hold a record for this work (names only). */
   linkedApps: string[];
+  /**
+   * PDLMS's hub only: what it knows about the book, so it can be added with one click and nothing typed.
+   * Absent for DigiClassroom, which holds no author.
+   */
+  author?: string | null;
+  publisher?: string | null;
+  publishYear?: number | null;
+  pages?: number | null;
+  /** 'pdf', 'epub', 'audiobook': the renditions the library holds. */
+  formats?: string[];
 }
 
 /**
@@ -822,7 +832,8 @@ export const linkBookToSharedWork = async (bookId: string, contentItemId: string
  */
 export const createBookFromSharedWork = async (input: {
   contentItemId: string;
-  author: string;
+  /** Optional: with PDLMS's hub the work's own author is used when this is left out. */
+  author?: string;
   title?: string;
   language?: string;
 }) => {

@@ -49,6 +49,11 @@ export interface LinkSharedWorkDialogProps {
   } | null;
   /** Called once the link job is queued (for a new book, with its new id), so the caller can show progress. */
   onLinked: (book: { id: string; title: string }) => void;
+  /**
+   * Whose library this is (from the library status). With PDLMS's hub the files come across by themselves,
+   * so the screen must not tell the admin to upload them; unknown is treated like DigiClassroom.
+   */
+  owner?: 'PDLMS' | 'DigiClassroom';
 }
 
 /**
@@ -70,8 +75,9 @@ export interface LinkSharedWorkDialogProps {
  * The backend's own explanation is shown as it is (library not set up, secret rejected,
  * DigiClassroom unreachable); the screen never invents a reason.
  */
-export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, onLinked }: LinkSharedWorkDialogProps) {
+export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, onLinked, owner }: LinkSharedWorkDialogProps) {
   const creating = mode === 'create';
+  const fromHub = owner === 'PDLMS';
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -114,12 +120,15 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
   const linkMutation = useMutation({
     mutationFn: async (work: SharedWork): Promise<{ id: string; title: string }> => {
       if (creating) {
+        // The form is only ever filled in for the work that is selected. A one-click Add sends nothing but
+        // the work, so the server uses everything the library holds (author, language, publisher, ...).
+        const edited = selectedId === work.contentItemId;
         const res = await createBookFromSharedWork({
           contentItemId: work.contentItemId,
-          author: author.trim(),
+          ...(edited && author.trim() ? { author: author.trim() } : {}),
           // Only what the admin changed: the work's own title is the default.
-          ...(title.trim() && title.trim() !== work.title ? { title: title.trim() } : {}),
-          language,
+          ...(edited && title.trim() && title.trim() !== work.title.trim() ? { title: title.trim() } : {}),
+          ...(edited ? { language } : {}),
         });
         if (!res.success || !res.data) throw new Error(res.error || 'Could not create the book.');
         return { id: res.data.bookId, title: res.data.title };
@@ -132,7 +141,9 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
       toast({
         title: creating ? 'Book created' : 'Linking queued',
         description: creating
-          ? `"${done.title}" was added and is being linked to the shared library. Upload its PDF/EPUB and cover next.`
+          ? fromHub
+            ? `"${done.title}" was added and is being linked to the shared library. Its PDF/EPUB and cover come from PDLMS by themselves once linking finishes.`
+            : `"${done.title}" was added and is being linked to the shared library. Upload its PDF/EPUB and cover next.`
           : `"${done.title}" is being linked to the shared library.`,
       });
       void queryClient.invalidateQueries({ queryKey: catalogKeys.all });
@@ -141,6 +152,9 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
     },
     onError: (err: Error) => setLinkError(err.message),
   });
+
+  /** A work that can be added with one click: it holds an author, and Book Buddy has no book for it yet. */
+  const quickAddable = (w: SharedWork) => creating && !!w.author?.trim() && !inBookBuddy(w);
 
   const list = works.data ?? [];
   const selected = list.find((w) => w.contentItemId === selectedId) ?? null;
@@ -163,7 +177,9 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
             {creating ? 'Add a book from the shared library' : 'Link to the shared library'}
           </DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
-            {creating ? (
+            {creating && fromHub ? (
+              <>Press <strong>Add</strong> on a work to create its Book Buddy book with everything PDLMS holds: details, cover, PDF and audio. Nothing is uploaded or embedded again. Click a work&apos;s name instead to edit its details first.</>
+            ) : creating ? (
               <>Create a Book Buddy book from a work already embedded in the shared library (PDLMS or DigiClassroom). Nothing is embedded again.</>
             ) : book ? (
               <>Use a book already embedded in the shared library for “{book.title}”. Nothing is embedded again.</>
@@ -205,7 +221,12 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
               </div>
             </div>
 
-            <div className="min-h-[96px] flex-1 overflow-y-auto px-6 pb-3">
+            {/* ONE scroll area for everything between the search box and the buttons (the list, the warnings
+                and the details form). Only the list used to scroll, squeezed to 96px, while the form and the
+                footer sat outside it, so on a short window the dialog clipped its own bottom and the
+                "Create and link" button was out of reach. The buttons stay pinned below this area. */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="min-h-[96px] px-6 pb-3">
               {works.isLoading && (
                 <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading the shared library…
@@ -236,7 +257,7 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
                     const isSelected = w.contentItemId === selectedId;
                     const usedBy = appNames(w.linkedApps ?? []);
                     return (
-                      <li key={w.contentItemId}>
+                      <li key={w.contentItemId} className="flex items-stretch gap-2">
                         <button
                           type="button"
                           role="radio"
@@ -245,11 +266,12 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
                             setSelectedId(w.contentItemId);
                             setLinkError(null);
                             if (creating) {
-                              setTitle(w.title);
+                              setTitle(w.title.trim());
+                              setAuthor(w.author?.trim() ?? '');
                               setLanguage(languageFromWork(w.lang));
                             }
                           }}
-                          className={`w-full rounded-xl border p-3 text-left transition-all ${
+                          className={`min-w-0 flex-1 rounded-xl border p-3 text-left transition-all ${
                             isSelected
                               ? 'border-bb-info/50 bg-bb-info-soft/60 ring-1 ring-bb-info/30'
                               : 'border-bb-border bg-bb-surface hover:bg-bb-surface-2'
@@ -270,6 +292,28 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
                             </div>
                           </div>
                         </button>
+                        {/* One click: the library already has the author, publisher, language, cover and files, so
+                            nothing needs typing. Works with no author on record use the form below instead. */}
+                        {quickAddable(w) && (
+                          <EnhancedButton
+                            type="button"
+                            className="shrink-0 gap-1.5 self-center rounded-xl px-4 text-white shadow-md"
+                            disabled={linkMutation.isPending}
+                            aria-label={`Add “${w.title.trim()}” to Book Buddy`}
+                            onClick={() => {
+                              setLinkError(null);
+                              setSelectedId(null);
+                              linkMutation.mutate(w);
+                            }}
+                          >
+                            {linkMutation.isPending && linkMutation.variables?.contentItemId === w.contentItemId ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Link className="h-4 w-4" />
+                            )}
+                            Add
+                          </EnhancedButton>
+                        )}
                       </li>
                     );
                   })}
@@ -311,7 +355,7 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
                       value={author}
                       onChange={(e) => setAuthor(e.target.value)}
                       maxLength={200}
-                      placeholder="The shared library holds no author"
+                      placeholder={selected.author?.trim() ? 'From the shared library' : 'The shared library holds no author'}
                       aria-required="true"
                       className="rounded-xl bg-bb-surface border-bb-border/80"
                     />
@@ -331,8 +375,10 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
                 </div>
                 <p className="text-xs leading-relaxed text-bb-muted">
                   A new book is added to the global catalogue with this work&apos;s ISBN{selected.isbn ? ` (${selected.isbn})` : ''} and
-                  linked to it, so Varta answers from the shared passages. The PDF/EPUB and cover are not copied from the
-                  other app: upload them to the new book afterwards.
+                  linked to it, so Varta answers from the shared passages.{' '}
+                  {fromHub
+                    ? 'The PDF/EPUB are streamed from PDLMS each time someone reads (nothing is copied), audio is added if the work has it, and the cover is brought across once. There is nothing to upload.'
+                    : 'The PDF/EPUB and cover are not copied from the other app: upload them to the new book afterwards.'}
                 </p>
               </div>
             )}
@@ -343,6 +389,7 @@ export function LinkSharedWorkDialog({ open, onOpenChange, mode = 'link', book, 
                 Buddy&apos;s own index is removed. The shared library is not changed.
               </p>
             )}
+            </div>
 
             {linkError && (
               <div role="alert" className="mx-6 mb-3 flex gap-2.5 rounded-xl border border-bb-danger/30 bg-bb-danger-soft/70 p-3">
