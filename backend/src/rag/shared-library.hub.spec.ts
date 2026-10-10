@@ -48,7 +48,20 @@ describe('SharedLibraryService with the PDLMS hub', () => {
       pageStart: null,
       pageEnd: 180,
       linkedApps: [],
+      // What PDLMS knows, so a book can be made from it without typing anything in.
+      author: 'NCERT',
+      publisher: 'NCERT',
+      publishYear: 2024,
+      pages: 180,
+      description: null,
+      formats: ['pdf'],
     });
+  });
+
+  it('carries the description when the work was fetched singly, and trims and nulls blanks', () => {
+    expect(sharedWorkFromHub({ ...summary(), description: ' About the book. ', index: null, manifest: {} } as any).description).toBe('About the book.');
+    const blank = sharedWorkFromHub(summary({ author: '  ', publisher: null, publishYear: null, pages: null, formats: undefined }) as any);
+    expect([blank.author, blank.publisher, blank.publishYear, blank.pages, blank.formats]).toEqual([null, null, null, null, []]);
   });
 
   describe('listWorks', () => {

@@ -31,25 +31,37 @@ export interface NewBookFromWork {
   author: string;
   isbn: string | null;
   language: string;
+  /** 'pdf', 'epub' or 'audiobook': the first rendition the library holds, else 'pdf'. */
+  format: string;
+  publisher: string | null;
+  publishYear: number | null;
+  pages: number | null;
+  description: string | null;
 }
+
+const FORMAT_ORDER = ['pdf', 'epub', 'audiobook'] as const;
 
 /**
  * What a new Book Buddy book is made of when it is created from a shared work.
  *
- * The title and ISBN come from the work (the ISBN always: it is what proves the book is the work, and
- * the admin cannot edit it here). The title may be overridden, the author must be supplied because
- * the shared library does not hold one, and the language is the work's unless the admin picks another.
+ * Everything the library knows comes across: title, ISBN, language, and (from PDLMS's hub) author,
+ * publisher, year, page count, description and which renditions exist. The ISBN always comes from the
+ * work (it is what proves the book is the work, and the admin cannot edit it here). The title may be
+ * overridden, the language is the work's unless the admin picks another, and the author is the work's
+ * unless the admin gives one. Only when neither exists (DigiClassroom holds no author) is it required.
  * Anything that does not validate is refused with a message, never silently fixed.
  */
 export function newBookFromWork(
-  work: Pick<SharedWork, 'title' | 'isbn' | 'lang'>,
+  work: Pick<SharedWork, 'title' | 'isbn' | 'lang'> &
+    Partial<Pick<SharedWork, 'author' | 'publisher' | 'publishYear' | 'pages' | 'description' | 'formats'>>,
   input: { title?: unknown; author?: unknown; language?: unknown },
 ): NewBookFromWork {
-  const author = typeof input.author === 'string' ? input.author.trim() : '';
-  if (!author) throw new BadRequestException('The author is required: the shared library does not hold one.');
+  const typed = typeof input.author === 'string' ? input.author.trim() : '';
+  const author = typed || (work.author ?? '').trim();
+  if (!author) throw new BadRequestException('The author is required: the shared library does not hold one for this work.');
   if (author.length > 200) throw new BadRequestException('The author must be 200 characters or fewer.');
 
-  let title = work.title;
+  let title = (work.title ?? '').trim();
   if (input.title !== undefined && input.title !== null && input.title !== '') {
     if (typeof input.title !== 'string') throw new BadRequestException('The title must be text.');
     title = input.title.trim();
@@ -65,5 +77,17 @@ export function newBookFromWork(
     language = input.language;
   }
 
-  return { title, author, isbn: work.isbn ?? null, language };
+  const year = work.publishYear;
+  const pages = work.pages;
+  return {
+    title,
+    author,
+    isbn: work.isbn ?? null,
+    language,
+    format: FORMAT_ORDER.find((f) => work.formats?.includes(f)) ?? 'pdf',
+    publisher: (work.publisher ?? '').trim().slice(0, 200) || null,
+    publishYear: Number.isInteger(year) && year! >= 1000 && year! <= 2100 ? year! : null,
+    pages: Number.isInteger(pages) && pages! > 0 ? pages! : null,
+    description: (work.description ?? '').trim() || null,
+  };
 }

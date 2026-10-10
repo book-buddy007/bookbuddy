@@ -73,11 +73,26 @@ export class SharedLibraryController {
   async works(@Query('q') q?: string, @Query('limit') limit?: string) {
     this.requireSharedMode();
     try {
+      const works = await this.library.listWorks(q, limit ? Number(limit) : 50);
+      // The hub does not know which of its works Book Buddy already has a book for (DigiClassroom reports
+      // it), so Book Buddy says so itself: the screen then shows "Already in Book Buddy" instead of
+      // offering a second book that would split the readers' notes and chat history.
+      const used = this.library.usesHub() && works.length ? await this.workIdsInBookBuddy(works.map((w) => w.contentItemId)) : new Set<string>();
+      const marked = works.map((w) => (used.has(w.contentItemId) ? { ...w, linkedApps: [...new Set([...(w.linkedApps ?? []), 'bookbuddy'])] } : w));
       // `owner` lets the screen say whose library this is (PDLMS's hub, or DigiClassroom).
-      return { works: await this.library.listWorks(q, limit ? Number(limit) : 50), owner: this.library.ownerName() };
+      return { works: marked, owner: this.library.ownerName() };
     } catch (err) {
       this.rethrow(err);
     }
+  }
+
+  /** Which of these hub work ids a live Book Buddy book is already linked to. */
+  private async workIdsInBookBuddy(workIds: string[]): Promise<Set<string>> {
+    const rows = await this.prisma.book.findMany({
+      where: { deletedAt: null, hubWorkId: { in: workIds } },
+      select: { hubWorkId: true },
+    });
+    return new Set(rows.map((r) => r.hubWorkId as string));
   }
 
   @Post('books/:bookId/link-shared-work')
@@ -169,7 +184,8 @@ export class SharedLibraryController {
    * Create a Book Buddy book from a work already in the shared library, and link it.
    *
    * The book is made in the global catalogue from what the shared library knows (title, ISBN,
-   * language); the author is supplied because the library does not hold one. The work is confirmed
+   * language, and from PDLMS's hub also author, publisher, year, pages and description; DigiClassroom
+   * holds no author, so for its works the admin supplies one). The work is confirmed
    * with DigiClassroom first, so a typo or a restricted work creates nothing. A work already used by
    * another Book Buddy book is refused rather than duplicated. If the link cannot be queued, the
    * book just created is removed again: it has no files and no link, so nothing else depends on it.
@@ -240,7 +256,12 @@ export class SharedLibraryController {
         author: fields.author,
         isbn: fields.isbn,
         language: fields.language,
-        format: 'pdf',
+        // Everything else the library knows about the book (hub works only; null for DigiClassroom's).
+        publisher: fields.publisher,
+        publishYear: fields.publishYear,
+        pages: fields.pages,
+        description: fields.description,
+        format: fields.format,
         genre: 'General',
         tenantId: SYSTEM_TENANT_ID,
         catalogScope: 'GLOBAL',

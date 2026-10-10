@@ -11,7 +11,7 @@ describe('SharedLibraryController', () => {
     else process.env.SHARED_QDRANT_URL = saved;
   });
 
-  function make(overrides: { book?: any; job?: any; duplicate?: any; work?: any; workError?: Error; enqueueError?: Error } = {}) {
+  function make(overrides: { book?: any; job?: any; duplicate?: any; work?: any; workError?: Error; enqueueError?: Error; hub?: boolean; used?: any[] } = {}) {
     const prisma = {
       book: {
         findUnique: jest
@@ -19,6 +19,7 @@ describe('SharedLibraryController', () => {
           .mockResolvedValue(overrides.book === undefined ? { id: 'b1', deletedAt: null } : overrides.book),
         update: jest.fn().mockResolvedValue({}),
         findFirst: jest.fn().mockResolvedValue(overrides.duplicate ?? null),
+        findMany: jest.fn().mockResolvedValue(overrides.used ?? []),
         create: jest.fn().mockResolvedValue({ id: 'new-book', title: 'Understanding Society' }),
         delete: jest.fn().mockResolvedValue({}),
       },
@@ -26,6 +27,7 @@ describe('SharedLibraryController', () => {
     };
     const library = {
       ownerName: jest.fn().mockReturnValue('PDLMS'),
+      usesHub: jest.fn().mockReturnValue(overrides.hub ?? false),
       listWorks: jest.fn().mockResolvedValue([{ contentItemId: WORK }]),
       getWork: overrides.workError
         ? jest.fn().mockRejectedValue(overrides.workError)
@@ -60,6 +62,27 @@ describe('SharedLibraryController', () => {
       const { controller, library } = make();
       await expect(controller.works('eco', '10')).resolves.toEqual({ works: [{ contentItemId: WORK }], owner: 'PDLMS' });
       expect(library.listWorks).toHaveBeenCalledWith('eco', 10);
+    });
+
+    it('with the hub, marks the works Book Buddy already has a book for, so the screen does not offer a second', async () => {
+      const OTHER = '0b9d8c7e-6f5a-4b3c-9d2e-1f0a9b8c7d6e';
+      const { controller, prisma, library } = make({ hub: true, used: [{ hubWorkId: WORK }] });
+      library.listWorks.mockResolvedValue([
+        { contentItemId: WORK, linkedApps: [] },
+        { contentItemId: OTHER, linkedApps: [] },
+      ]);
+      const out = await controller.works();
+      expect(out.works).toEqual([
+        { contentItemId: WORK, linkedApps: ['bookbuddy'] },
+        { contentItemId: OTHER, linkedApps: [] },
+      ]);
+      expect(prisma.book.findMany).toHaveBeenCalledWith({ where: { deletedAt: null, hubWorkId: { in: [WORK, OTHER] } }, select: { hubWorkId: true } });
+    });
+
+    it('without the hub, asks the database nothing and leaves the works as they are', async () => {
+      const { controller, prisma } = make({ hub: false });
+      await controller.works();
+      expect(prisma.book.findMany).not.toHaveBeenCalled();
     });
 
     it('turns a library failure into an HTTP error carrying its reason', async () => {
@@ -117,6 +140,19 @@ describe('SharedLibraryController', () => {
           expect.objectContaining({ jobId: 'link-new-book' }),
         );
         expect(out).toEqual({ status: 'QUEUED', bookId: 'new-book', title: 'Understanding Society' });
+      });
+
+      it('from a hub work needs no author typed, and saves what the library knows about the book', async () => {
+        const { controller, prisma } = make({
+          work: {
+            contentItemId: WORK, title: 'Understanding Society', isbn: '978-93-5729-100-2', lang: 'en',
+            author: 'NCERT', publisher: 'NCERT', publishYear: 2024, pages: 180, description: 'A textbook.', formats: ['pdf', 'audiobook'],
+          },
+        });
+        await controller.createBook({ contentItemId: WORK }, req);
+        expect(prisma.book.create.mock.calls[0][0].data).toMatchObject({
+          author: 'NCERT', publisher: 'NCERT', publishYear: 2024, pages: 180, description: 'A textbook.', format: 'pdf',
+        });
       });
 
       it('creates nothing when the work is not there or not public', async () => {

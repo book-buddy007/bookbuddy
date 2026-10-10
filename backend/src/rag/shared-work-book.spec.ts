@@ -24,6 +24,58 @@ describe('newBookFromWork', () => {
       author: 'NCERT',
       isbn: '978-93-5729-100-2',
       language: 'en',
+      // DigiClassroom's works carry none of the hub's extras.
+      format: 'pdf',
+      publisher: null,
+      publishYear: null,
+      pages: null,
+      description: null,
+    });
+  });
+
+  describe('from PDLMS’s hub, which holds the whole record', () => {
+    const hubWork = {
+      ...work,
+      author: 'NCERT',
+      publisher: ' NCERT ',
+      publishYear: 2024,
+      pages: 180,
+      description: ' A textbook. ',
+      formats: ['epub', 'audiobook'],
+    };
+
+    it('needs nothing typed: author, publisher, year, pages, description and format all come from the work', () => {
+      expect(newBookFromWork(hubWork, {})).toEqual({
+        title: 'Understanding Society',
+        author: 'NCERT',
+        isbn: '978-93-5729-100-2',
+        language: 'en',
+        format: 'epub', // the first rendition it holds, in the order pdf, epub, audiobook
+        publisher: 'NCERT',
+        publishYear: 2024,
+        pages: 180,
+        description: 'A textbook.',
+      });
+    });
+
+    it('lets the admin’s author win over the work’s', () => {
+      expect(newBookFromWork(hubWork, { author: ' Someone Else ' }).author).toBe('Someone Else');
+    });
+
+    it('is an audiobook only when that is all it holds, and a pdf when the formats are unknown', () => {
+      expect(newBookFromWork({ ...hubWork, formats: ['audiobook'] }, {}).format).toBe('audiobook');
+      expect(newBookFromWork({ ...hubWork, formats: [] }, {}).format).toBe('pdf');
+      expect(newBookFromWork({ ...hubWork, formats: ['pdf', 'epub'] }, {}).format).toBe('pdf');
+    });
+
+    it('drops values that cannot be right instead of saving them', () => {
+      const b = newBookFromWork({ ...hubWork, publishYear: 24, pages: -3, publisher: '   ' }, {});
+      expect([b.publishYear, b.pages, b.publisher]).toEqual([null, null, null]);
+    });
+
+    it('still asks for an author when the work has none', () => {
+      expect(() => newBookFromWork({ ...hubWork, author: null }, {})).toThrow(/does not hold one/);
+      expect(() => newBookFromWork({ ...hubWork, author: '  ' }, {})).toThrow(BadRequestException);
     });
   });
 

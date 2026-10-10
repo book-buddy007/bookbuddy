@@ -22,6 +22,18 @@ export interface SharedWork {
   pageStart: number | null;
   pageEnd: number | null;
   linkedApps: string[];
+  /**
+   * Hub only: what PDLMS knows about the book, so a Book Buddy book can be made from it without anyone
+   * typing it in. Absent (not null) for DigiClassroom, which holds none of these.
+   */
+  author?: string | null;
+  publisher?: string | null;
+  publishYear?: number | null;
+  /** The book's real page count (not the passages' page extent, which is `pageEnd`). */
+  pages?: number | null;
+  description?: string | null;
+  /** Which renditions PDLMS holds: 'pdf', 'epub', 'audiobook'. */
+  formats?: string[];
 }
 
 /** A hub work in the shape the catalogue screens already understand. */
@@ -29,6 +41,12 @@ export function sharedWorkFromHub(w: HubWorkSummary | HubWork): SharedWork {
   return {
     contentItemId: w.id,
     ...('index' in w ? { index: w.index ?? null } : {}),
+    author: w.author?.trim() || null,
+    publisher: w.publisher?.trim() || null,
+    publishYear: w.publishYear ?? null,
+    pages: w.pages ?? null,
+    description: 'description' in w ? w.description?.trim() || null : null,
+    formats: Array.isArray(w.formats) ? w.formats : [],
     title: w.title,
     isbn: w.isbn,
     edition: null,

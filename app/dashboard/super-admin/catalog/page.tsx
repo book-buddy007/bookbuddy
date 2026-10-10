@@ -169,7 +169,7 @@ export default function SuperAdminCatalogPage() {
   // "Link to shared library": the book being linked, and whether its dialog is open.
   const [linkBook, setLinkBook] = useState<{ id: string; title: string; isbn?: string | null; spineContentItemId?: string | null } | null>(null);
   const [isLinkOpen, setIsLinkOpen] = useState(false);
-  // "Add from shared library": make a new book from a work already embedded in DigiClassroom.
+  // "Add from shared library": make a new book from a work already embedded in the shared library (PDLMS or DigiClassroom).
   const [isCreateFromSharedOpen, setIsCreateFromSharedOpen] = useState(false);
   const [isEmbedProgressOpen, setIsEmbedProgressOpen] = useState(false);
   // "Unlink from shared library": the book being taken off it, and whether its dialog is open.
@@ -431,6 +431,7 @@ export default function SuperAdminCatalogPage() {
       />
       <LinkSharedWorkDialog
         mode="create"
+        owner={libraryStatus?.owner}
         open={isCreateFromSharedOpen}
         onOpenChange={setIsCreateFromSharedOpen}
         book={null}
@@ -442,6 +443,7 @@ export default function SuperAdminCatalogPage() {
       />
       <UnlinkSharedWorkDialog open={isUnlinkOpen} onOpenChange={setIsUnlinkOpen} book={unlinkBook} />
       <LinkSharedWorkDialog
+        owner={libraryStatus?.owner}
         open={isLinkOpen}
         onOpenChange={setIsLinkOpen}
         book={linkBook}
