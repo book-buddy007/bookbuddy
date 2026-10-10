@@ -25,7 +25,7 @@ function make(opts: { hub?: boolean; book?: any; jobs?: Record<string, string>; 
     }),
     add: jest.fn().mockResolvedValue({}),
   };
-  return { controller: new SharedLibraryController(prisma, library, queue), prisma, library, queue, removed, restore: () => (process.env.SHARED_QDRANT_URL = saved) };
+  return { controller: new SharedLibraryController(prisma, library, queue, {} as any), prisma, library, queue, removed, restore: () => (process.env.SHARED_QDRANT_URL = saved) };
 }
 
 const req = { user: { id: 'admin-1' } };

@@ -169,7 +169,7 @@ describe('HubFilesService.syncFromWork', () => {
   it('records nothing for a copy-protected work', async () => {
     const { service, prisma } = make({ files: [], withheld: 'drm' });
     const out = await service.syncFromWork('book-1', WORK);
-    expect(out).toEqual({ formats: [], cover: false, audioTracks: 0 });
+    expect(out).toMatchObject({ formats: [], cover: false, audioTracks: 0 });
     expect(prisma.bookFormat.upsert).not.toHaveBeenCalled();
   });
 
@@ -285,6 +285,61 @@ describe('HubFilesService.syncFromWork', () => {
       expect(prisma.book.update).toHaveBeenCalledWith({
         where: { id: 'book-1' },
         data: { coverKey: expect.stringContaining('covers/front'), coverUrl: 'https://media.bb.test/cover.png' },
+      });
+    });
+
+    describe('refreshing a cover (the "Refresh from library" action)', () => {
+      const HUB_KEY = 'global/books/book-1/covers/front/111-hub-cover.png';
+
+      it('copies a cover when the book has none, and says nothing is wrong', async () => {
+        const { service, s3 } = make();
+        global.fetch = image() as any;
+        const out = await service.syncFromWork('book-1', WORK, { refreshCover: true });
+        expect(out).toMatchObject({ cover: true });
+        expect(out.coverNote).toBeUndefined();
+        expect(s3.putObject).toHaveBeenCalledTimes(1);
+      });
+
+      it('replaces a cover that an earlier sync copied from the library, and removes the old copy from storage', async () => {
+        const { service, s3, prisma } = make({ book: { coverUrl: 'https://media.bb.test/old.png', coverKey: HUB_KEY } });
+        s3.deleteFile = jest.fn().mockResolvedValue(undefined);
+        global.fetch = image() as any;
+        const out = await service.syncFromWork('book-1', WORK, { refreshCover: true });
+        expect(out.cover).toBe(true);
+        expect(prisma.book.update).toHaveBeenCalledWith({ where: { id: 'book-1' }, data: expect.objectContaining({ coverUrl: 'https://media.bb.test/cover.png' }) });
+        expect(s3.deleteFile).toHaveBeenCalledWith(HUB_KEY);
+      });
+
+      it('never replaces a cover someone uploaded, and says so', async () => {
+        const { service, s3, hub } = make({ book: { coverUrl: 'https://cdn/mine.png', coverKey: 'global/books/book-1/covers/front/222-my-cover.png' } });
+        s3.deleteFile = jest.fn();
+        global.fetch = image() as any;
+        const out = await service.syncFromWork('book-1', WORK, { refreshCover: true });
+        expect(out).toMatchObject({ cover: false, coverNote: expect.stringMatching(/cover of its own, which is kept/) });
+        expect(s3.putObject).not.toHaveBeenCalled();
+        expect(s3.deleteFile).not.toHaveBeenCalled();
+        expect(hub.fileLink).not.toHaveBeenCalled();
+      });
+
+      it('without refresh (the link job) leaves even a library-copied cover alone', async () => {
+        const { service, s3 } = make({ book: { coverUrl: 'https://media.bb.test/old.png', coverKey: HUB_KEY } });
+        global.fetch = image() as any;
+        expect((await service.syncFromWork('book-1', WORK)).cover).toBe(false);
+        expect(s3.putObject).not.toHaveBeenCalled();
+      });
+
+      it('says why when the cover could not be copied (for example storage refusing the write)', async () => {
+        const { service, s3 } = make();
+        global.fetch = image() as any;
+        s3.putObject.mockRejectedValue(new Error('The request signature we calculated does not match the signature you provided.'));
+        const out = await service.syncFromWork('book-1', WORK, { refreshCover: true });
+        expect(out.cover).toBe(false);
+        expect(out.coverNote).toMatch(/The cover could not be copied: The request signature/);
+      });
+
+      it('says so when the library has no cover', async () => {
+        const { service } = make({ files: [file('pdf')] });
+        expect((await service.syncFromWork('book-1', WORK, { refreshCover: true })).coverNote).toMatch(/no cover for this book/);
       });
     });
 

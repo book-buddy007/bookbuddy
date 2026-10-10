@@ -804,6 +804,31 @@ export const unlinkBookFromSharedWork = async (bookId: string, outcome: UnlinkOu
   }
 };
 
+/** What "Refresh from library" did. `coverNote` says why a cover was not copied (kept, missing, or the error). */
+export interface RefreshFromLibraryResult {
+  status: string;
+  bookId: string;
+  formats: string[];
+  cover: boolean;
+  audioTracks: number;
+  coverNote?: string;
+}
+
+/**
+ * Bring a PDLMS-linked book up to date with the library: its PDF/EPUB and audio entries and its cover.
+ * Done within the request, so the outcome (including why a cover was not copied) comes straight back.
+ */
+export const refreshBookFromLibrary = async (bookId: string) => {
+  try {
+    const res = await fetch(`/api/books/${bookId}/refresh-from-library`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: extractErrorMessage(body) };
+    return { success: true, data: body as RefreshFromLibraryResult };
+  } catch (error: any) {
+    return { success: false, error: error?.message || 'Could not reach the library service.' };
+  }
+};
+
 /**
  * Queue a book to use an existing shared work. Nothing is embedded; progress is watched with
  * `getBookEmbeddingStatus`, which follows link jobs too.
