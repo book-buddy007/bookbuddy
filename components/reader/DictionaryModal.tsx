@@ -2,40 +2,102 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookA, BookmarkPlus, Loader2, Globe, Languages, ExternalLink } from '@/components/ui/icons';
+import { BookA, BookmarkPlus, Loader2, Globe, Languages, ExternalLink, BookOpenCheck } from '@/components/ui/icons';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useDictionaryStore } from '@/store/useDictionaryStore';
+import { useReaderStore } from '@/store/useReaderStore';
 import { toast } from 'sonner';
+
+/** What the book itself says about the term (from /api/dictionary/in-book). */
+interface InBook {
+    found: boolean;
+    kind?: 'definition' | 'mention';
+    text?: string;
+    page?: number | null;
+    chapter?: string | null;
+    occurrences?: number;
+    pages?: number[];
+}
+
+/** The text with the looked-up term set off, for the "In this book" card. */
+function highlightTerm(text: string, term: string) {
+    const t = term.trim();
+    if (!t) return text;
+    const body = t.split(/\s+/).map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
+    const parts = text.split(new RegExp(`(${body}(?:s|es|ed|d|ing)?)`, 'iu'));
+    return parts.map((part, i) =>
+        i % 2 === 1 ? (
+            <mark key={i} className="rounded bg-amber-200/70 px-0.5 text-inherit dark:bg-amber-400/30">{part}</mark>
+        ) : (
+            part
+        ),
+    );
+}
 
 export function DictionaryModal() {
     const { isOpen, word, contextSentence, bookId, closeDictionary } = useDictionaryStore();
     const [lookupData, setLookupData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [inBook, setInBook] = useState<InBook | null>(null);
+    const [inBookLoading, setInBookLoading] = useState(false);
     const { user } = useAuthStore();
 
     useEffect(() => {
         if (isOpen && word) {
+            // A new word (or a closed window) cancels the old request, so a slow answer for the previous
+            // word can never replace this one.
+            const controller = new AbortController();
             const fetchData = async () => {
                 setIsLoading(true);
                 setLookupData(null);
 
                 try {
-                    const res = await fetch(`/api/dictionary/lookup?word=${encodeURIComponent(word)}`);
+                    const res = await fetch(`/api/dictionary/lookup?word=${encodeURIComponent(word)}`, { signal: controller.signal });
                     if (res.ok) {
                         const data = await res.json();
-                        setLookupData(data);
+                        if (!controller.signal.aborted) setLookupData(data);
                     }
                 } catch (error) {
-                    console.error("Failed to fetch dictionary data", error);
+                    if (!controller.signal.aborted) console.error("Failed to fetch dictionary data", error);
                 } finally {
-                    setIsLoading(false);
+                    if (!controller.signal.aborted) setIsLoading(false);
                 }
             };
 
             fetchData();
+            return () => controller.abort();
         }
     }, [word, isOpen]);
+
+    // What the book itself says about the word. Its own request, so it appears the moment it is ready and does
+    // not wait for the outside dictionaries; skipped for a sentence, which is not a term.
+    useEffect(() => {
+        setInBook(null);
+        const isTerm = word.trim().split(/\s+/).filter(Boolean).length <= 6 && word.length <= 60;
+        if (!isOpen || !word || !bookId || !isTerm) {
+            setInBookLoading(false);
+            return;
+        }
+        const controller = new AbortController();
+        setInBookLoading(true);
+        (async () => {
+            try {
+                const res = await fetch(`/api/dictionary/in-book?word=${encodeURIComponent(word)}&bookId=${encodeURIComponent(bookId)}`, { signal: controller.signal });
+                if (res.ok && !controller.signal.aborted) setInBook(await res.json());
+            } catch {
+                /* the card is simply not shown */
+            } finally {
+                if (!controller.signal.aborted) setInBookLoading(false);
+            }
+        })();
+        return () => controller.abort();
+    }, [word, bookId, isOpen]);
+
+    const goToPage = (page: number) => {
+        useReaderStore.getState().setCurrentPage(page);
+        closeDictionary();
+    };
 
     const handleSaveVocabulary = async () => {
         if (!user) {
@@ -96,15 +158,64 @@ export function DictionaryModal() {
                     </DialogTitle>
                 </DialogHeader>
 
+                {inBook?.found && inBook.text ? (
+                    <section aria-label="In this book" className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 dark:border-indigo-900/60 dark:bg-indigo-950/30">
+                        <div className="mb-1.5 flex items-center justify-between gap-2">
+                            <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                                <BookOpenCheck className="h-3.5 w-3.5" />
+                                {inBook.kind === 'definition' ? 'Defined in this book' : 'Used in this book'}
+                            </h4>
+                            {inBook.page != null && (
+                                <Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={() => goToPage(inBook.page as number)}>
+                                    Go to page {inBook.page}
+                                </Button>
+                            )}
+                        </div>
+                        <p className="text-sm leading-relaxed text-foreground">{highlightTerm(inBook.text, word)}</p>
+                        {(inBook.chapter || (inBook.pages && inBook.pages.length > 1)) && (
+                            <p className="mt-1.5 text-xs text-muted-foreground">
+                                {inBook.chapter ? `${inBook.chapter}. ` : ''}
+                                {inBook.pages && inBook.pages.length > 1 ? (
+                                    <>
+                                        Also on page{inBook.pages.filter((p) => p !== inBook.page).length > 1 ? 's' : ''}{' '}
+                                        {inBook.pages.filter((p) => p !== inBook.page).map((p, i, all) => (
+                                            <span key={p}>
+                                                <button type="button" className="underline decoration-dotted underline-offset-2 hover:text-foreground" onClick={() => goToPage(p)}>{p}</button>
+                                                {i < all.length - 1 ? ', ' : ''}
+                                            </span>
+                                        ))}
+                                        .
+                                    </>
+                                ) : null}
+                            </p>
+                        )}
+                    </section>
+                ) : inBookLoading ? (
+                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking what this book says…
+                    </p>
+                ) : null}
+
                 {isLoading ? (
                     <div className="flex justify-center items-center py-8">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                 ) : (!lookupData || (!lookupData.definition && !lookupData.wikiExtract && !lookupData.hindiTranslation)) ? (
+                    inBook?.found || inBookLoading ? null : (
                     <div className="py-8 text-center flex flex-col items-center justify-center space-y-3">
-                        <p className="text-muted-foreground">No definitions found for &quot;{word}&quot;.</p>
-                        <p className="text-sm text-slate-500">You can still save this word to your vocabulary list to review later.</p>
+                        {lookupData?.selection === 'long' ? (
+                            <>
+                                <p className="text-muted-foreground">That is a whole passage, not a word.</p>
+                                <p className="text-sm text-slate-500">Select a single word or term to look it up, or use Ask Varta or Simplify for a passage.</p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-muted-foreground">No definitions found for &quot;{word}&quot;.</p>
+                                <p className="text-sm text-slate-500">You can still save this word to your vocabulary list to review later.</p>
+                            </>
+                        )}
                     </div>
+                    )
                 ) : (
                     <Tabs defaultValue={lookupData.definition ? "dictionary" : (lookupData.hindiTranslation ? "translation" : "wikipedia")} className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
