@@ -174,6 +174,10 @@ services:
       EMBEDDING_DIMENSIONS: "1024"
       # The secret. Without it the app runs but Varta and book indexing report "not configured".
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Where the key above is used. Empty = OpenAI itself. For an OpenRouter key (sk-or-...) set
+      # https://openrouter.ai/api/v1: without it the key is sent to OpenAI, which answers 401 and Varta
+      # cannot answer. OpenRouter accepts the model names used here as they are.
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
       # The answering model. Unlike the embedding model it can be changed any time: edit
       # OPENAI_CHAT_MODEL in Coolify and redeploy, no re-indexing needed.
       OPENAI_CHAT_MODEL: ${OPENAI_CHAT_MODEL:-gpt-4o-mini}
