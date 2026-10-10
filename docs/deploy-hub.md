@@ -155,6 +155,10 @@ MEDIA_PROXY_ALLOWED_HOSTS=media.bookbuddy.live,<host of PDLMS's S3_ENDPOINT>
 - `OPENAI_API_KEY`: Varta embeds each question to search the shared passages and answers with a chat model, so it
   cannot answer without one. `OPENAI_EMBED_MODEL` stays `text-embedding-3-large`, which at 3072 dimensions is the
   model the shared passages were embedded with; a different model would search the wrong space.
+- **Using an OpenRouter key** (`sk-or-...`) instead of an OpenAI one: also set `OPENAI_BASE_URL=https://openrouter.ai/api/v1`.
+  Without it the key is sent to OpenAI and rejected (401), so Varta cannot answer. The default models
+  (`text-embedding-3-large` at 3072 dimensions, `gpt-4o-mini`) work through OpenRouter unchanged, and the embeddings are
+  the same OpenAI vectors the shared passages were made with. Changing a Coolify variable needs **Deploy**, not Restart.
 - `MEDIA_PROXY_ALLOWED_HOSTS` needs the **host of the signed links the hub returns** (PDLMS's storage endpoint, not
   its website). The PDF reader fetches through `/api/proxy-media`, which refuses unknown hosts, so without it
   reading a hub PDF fails with 403. (The audio player uses the link directly and does not go through the proxy.)
